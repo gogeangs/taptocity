@@ -1057,10 +1057,40 @@ header{background:linear-gradient(180deg,#312920,#211e1c);padding:10px 12px 0;bo
 .rl{background-image:none!important;background:#f5ead0;border:1px solid rgba(255,255,255,.5)}
 @media(max-width:380px){header{padding-inline:8px}.hud{padding-inline:7px!important}.tabs{left:104px;right:7px}.tab{font-size:10px}#lamp{left:8px;width:86px}.mc i{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.tab{transition:none}}
+
+/* The shelter identity and the next action should read before the small stats. */
+header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(233,166,79,.21),transparent 65%),linear-gradient(180deg,#292a2e,#191b20)}
+.brandline{display:flex;align-items:center;gap:10px;margin:0 2px 11px;color:#fff2d4}
+.brandmark{display:grid;place-items:center;width:31px;height:31px;flex:none;border-radius:9px;background:#e6a94e;color:#322515;font-size:21px;box-shadow:0 0 16px rgba(231,165,74,.28)}
+.brandline strong{display:block;font:700 18px/1.1 var(--serif);letter-spacing:-.04em}.brandline small{display:block;margin-top:3px;color:#bdafa0;font:10px/1 var(--body);letter-spacing:.04em}
+.brandstatus{margin-left:auto;align-self:flex-start;padding-top:3px;color:#b8a58b;font:700 9px/1.1 var(--body);letter-spacing:.15em}
+.hud{background:transparent;border:0!important;box-shadow:none;border-radius:0!important;padding:0!important;gap:8px!important}
+.town{gap:8px!important;align-items:stretch!important}.town .mats{gap:5px!important;align-items:stretch}
+.mc{background:linear-gradient(155deg,rgba(255,246,223,.1),rgba(255,242,213,.035));border:1px solid rgba(246,215,163,.14);border-radius:10px;min-height:42px;justify-content:center;gap:3px;padding:3px 1px!important}
+.mc .top{font-size:15px!important;line-height:1}.mc .top .mi,.mc .top svg{width:15px;height:15px}.mc i{display:block!important;color:#c4b5a0!important;font-size:9px!important;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.mc::after{display:none}.mc.zero{opacity:.5}.mc.full{border-color:rgba(255,208,112,.5);background:rgba(214,141,49,.2)}
+#pfBtn,#setBtn{width:42px!important;height:50px!important;border-radius:11px!important;margin:0!important;background:rgba(255,240,204,.075)!important;border:1px solid rgba(246,215,163,.17)!important;color:#f5d397}
+#pfBtn svg{width:26px!important;height:30px!important}#setBtn svg{width:20px;height:20px}
+.lvrow{background:rgba(6,8,12,.32);border-radius:8px;padding:6px 9px;gap:8px!important}.lvrow #lv{font-size:12px!important}.lvrow #barL{font-size:10px;color:#d7c7aa}.inkbar{height:5px}
+.tape{position:relative;margin:10px 0 -19px!important;padding:10px 13px 10px 16px!important;min-height:43px!important;background:linear-gradient(115deg,#f4bd65,#f2d493 55%,#e9c380);border:1px solid #ffdda2;border-radius:13px;color:#36271b;box-shadow:0 8px 24px rgba(0,0,0,.42),inset 0 1px rgba(255,255,255,.55)}
+.tape::before{display:block;content:"";position:absolute;top:8px;bottom:8px;left:6px;width:3px;height:auto;background:#804029;border-radius:3px;transform:none}.tape::after{display:none}
+.tape .m{font-size:15px!important;line-height:1.3;font-weight:700}.tape .chap{display:block;width:max-content;margin:0 0 4px;padding:0!important;background:none;color:#804029;font-size:10px!important;letter-spacing:.08em}.tape .chap i{color:#804029}.tape .more{color:#604937}
+.tape.done{margin-bottom:-34px!important}.tape.done .m{font-size:13px!important}.tape.done .chap{display:inline;margin-right:6px}
+#stage{background:#1c1e23}
+#clock{top:30px;padding:8px 12px;background:rgba(23,26,32,.93);border-color:rgba(255,215,147,.4);font-size:12px}
+.zoom{top:30px}.zoom button{background:rgba(23,26,32,.93);border-color:rgba(255,215,147,.32)}
+#lamp{width:92px;min-height:90px;background:linear-gradient(155deg,#f4c267,#d98b39);border:2px solid #ffe1a1;box-shadow:0 5px 0 #724322,0 12px 28px rgba(0,0,0,.55),0 0 28px rgba(243,170,64,.28);color:#312315}
+#lamp svg{width:64px;height:64px;filter:none}#lamp svg circle:first-child{fill:#49301e;stroke:#ffde9c;stroke-dasharray:none}#lamp span{color:#332315;font-size:13px;text-shadow:none}
+#lamp:active{transform:translateY(3px);box-shadow:0 2px 0 #724322,0 6px 14px rgba(0,0,0,.5)}
+.tabs{left:114px;min-height:75px;padding:6px 5px;align-items:stretch;background:rgba(22,25,30,.96);border-color:rgba(235,190,117,.35);border-radius:17px}
+.tab{justify-content:center;color:#c9c2b4;font-size:11px;min-height:60px}.tab svg{width:25px;height:25px}.tab.on{background:linear-gradient(180deg,#f1bd65,#d88e3e);color:#28221e;box-shadow:0 2px 10px rgba(233,170,70,.28)}
+.page,.sh-body{color:#332a22}.sh-head{background:linear-gradient(180deg,#fff4d9,#f3e7ca)}
+@media(max-width:380px){header{padding:9px 9px 0}.brandline{margin-bottom:8px}.brandline strong{font-size:16px}.brandstatus{font-size:8px}.town{gap:4px!important}.town .mats{gap:3px!important}.mc{min-height:38px}.mc .top{font-size:13px!important}.mc i{font-size:8px!important}#pfBtn,#setBtn{width:35px!important;height:46px!important}.tape .m{font-size:13px!important}#lamp{left:8px;width:87px}.tabs{left:104px;right:7px}.tab{font-size:10px}}
 </style>
 
 <div id="app">
   <header>
+    <div class="brandline"><span class="brandmark" aria-hidden="true">✦</span><div><strong>탭투시티</strong><small>재 속의 등불</small></div><span class="brandstatus">SHELTER · 01</span></div>
     <div class="hud">
       <div class="town"><button id="pfBtn" class="lamp" aria-label="내 프로필"></button><button class="mats" id="mats" aria-label="자재 전체 보기" aria-expanded="false"></button><button id="setBtn" aria-label="설정"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
       <div class="lvrow"><b id="lv">Lv.1 텐트</b><div class="inkbar"><i id="bar"></i></div><span id="barL"></span><small id="pop" hidden>생존자 0</small></div>
@@ -3604,7 +3634,7 @@ function mkFog(fr,seed,S2){const w=132,h=104,c=document.createElement('canvas');
   const bl=[];for(let k=0;k<7;k++){const a=k/7*Math.PI*2+r()*.7,d=k===0?0:10+r()*12;bl.push([cx+Math.cos(a)*d*1.55,cy+Math.sin(a)*d*.62-r()*9,13+r()*9]);}
   bl.push([cx+(r()-.5)*14,cy-14-r()*6,15+r()*5]);bl.sort((a,b)=>a[1]-b[1]);
   g.fillStyle='rgba(0,0,0,.32)';for(const[x,y,rr]of bl){g.beginPath();g.ellipse(x+2,y+8,rr*1.05,rr*.75,0,0,7);g.fill();}
-  const col=fr?['#2f2721','#4a3e33','#6a5847']:['#171411','#221e1a','#302a24'];
+  const col=fr?['#3c3634','#66544a','#947257']:['#222328','#333238','#4b4646'];
   for(const[x,y,rr]of bl){const gr=g.createRadialGradient(x-rr*.35,y-rr*.5,rr*.1,x,y+rr*.2,rr*1.05);gr.addColorStop(0,col[2]);gr.addColorStop(.5,col[1]);gr.addColorStop(1,col[0]);g.fillStyle=gr;g.beginPath();g.arc(x,y,rr,0,7);g.fill();}
   if(fr){g.globalCompositeOperation='source-atop';const lg=g.createLinearGradient(0,h,0,h*.35);lg.addColorStop(0,'rgba(255,170,80,.35)');lg.addColorStop(1,'rgba(255,170,80,0)');g.fillStyle=lg;g.fillRect(0,0,w,h);}
   return c;}
