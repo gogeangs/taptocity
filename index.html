@@ -12,6 +12,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="탭투시티">
+<script>try{const p=localStorage.getItem('ttc_cloud_pending');if(p){localStorage.setItem('taptocity-shelter-v1',p);localStorage.removeItem('ttc_cloud_pending');}}catch(e){}</script>
+<script src="cloud-config.js"></script>
 <style>html,body{overscroll-behavior:none;touch-action:manipulation}body{padding-top:env(safe-area-inset-top)}#app{height:calc(100% - env(safe-area-inset-top))}
 #pwaHint{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:300;width:min(340px,calc(100% - 32px));background:#efe3c4;color:#3b2a1a;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.5);padding:12px 12px 12px 14px;display:flex;gap:10px;align-items:center;font:14px/1.45 "Gowun Dodum",system-ui,sans-serif}
 #pwaHint b{display:block;font-size:14.5px}#pwaHint small{color:#6e5638}#pwaHint .x{all:unset;cursor:pointer;padding:6px;color:#6e5638}#pwaHint .go{all:unset;cursor:pointer;background:#3b2a1a;color:#efe3c4;border-radius:99px;padding:8px 12px;font-weight:700;white-space:nowrap}</style>
@@ -1998,7 +2000,13 @@ function buildRing(){const i=ringTile;if(i<0)return;let label='',toks='';const m
   else{closeRing();return;}
   ringEl.style.setProperty('--R',R+'px');const rlb=$('ringLabel');rlb.innerHTML=label;rlb.hidden=false;rlb.scrollTop=0;ringEl.innerHTML=toks;ringEl.hidden=false;placeRing();}
 function placeRing(){if(ringTile<0)return;const[wx,wy]=tileC(ringTile),s=toScreen(wx,wy),lh=0;
-  const sx=Math.max(R+34,Math.min(cw-R-34,s.x)),sy=Math.max(R+40+lh,Math.min(ch-R-44,s.y));ringEl.style.transform=`translate(${sx}px,${sy}px)`;$('ringLabel').classList.toggle('low',sy<ch*.5);}
+  const sx=Math.max(R+34,Math.min(cw-R-34,s.x)),sy=Math.max(R+40+lh,Math.min(ch-R-44,s.y));ringEl.style.transform=`translate(${sx}px,${sy}px)`;fitRL();}
+// keep the info card clear of the ring buttons: put it wherever there is more room, and shrink it to fit
+function fitRL(){const l=$('ringLabel');if(l.hidden||!ringEl.children.length)return;let t=1e9,b=-1e9;for(const k of ringEl.children){const r=k.getBoundingClientRect();t=Math.min(t,r.top);b=Math.max(b,r.bottom+16);}
+  const par=(l.offsetParent||document.body).getBoundingClientRect(),db=par.bottom-parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--rlb')||158);
+  const up=t-(par.top+58)-8,dn=db-8-b,low=dn>up,mh=Math.max(96,Math.floor(low?dn:up));
+  if(l.classList.contains('low')!==low)l.classList.toggle('low',low);const v=mh+'px';if(l.style.maxHeight!==v)l.style.maxHeight=v;
+  }
 ringEl.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b||b.classList.contains('lock'))return;const a=b.dataset.act,g=+b.dataset.arg;
   if((a==='up'||a==='lm')&&b.classList.contains('poor')){toast('자재가 조금 모자라요');return;}
   if(a==='up')upMod(g);else if(a==='asg')openAssign(g);else if(a==='lm')restoreLm(g);else if(a==='aimlm'){setAim(g);closeRing();toast('랜턴 버튼으로 랜드마크를 뒤져요');}else if(a==='sheet')openSheet('shelter');});
@@ -4440,6 +4448,7 @@ if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.r
 })();
 </script>
 
+<script type="module" src="cloud.js"></script>
 <script>
 (function(){
  if('serviceWorker' in navigator){addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});}
