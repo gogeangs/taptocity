@@ -1148,6 +1148,43 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 .acr i{width:24px;height:14px;border-radius:99px;background:rgba(59,42,26,.25);position:relative;flex:none}
 .acr i::after{content:"";position:absolute;left:2px;top:2px;width:10px;height:10px;border-radius:50%;background:#fff;transition:left .15s}
 .acr.on{color:#2f4a1a;border-color:#6f9646;background:#eef3df}.acr.on i{background:#6f9646}.acr.on i::after{left:12px}
+
+.page.case{padding:18px 18px 16px}
+.page.case h3{margin:2px 0 6px;font-size:19px}
+.cswhen{font:600 12.5px/1.4 var(--body);color:var(--sepia-2);margin:0 0 10px}.cswhen b{color:var(--rust)}
+.csb{display:flex;flex-direction:column;gap:8px;margin:0 0 12px}
+.csl{display:flex;gap:9px;align-items:flex-start}
+.csl .av{width:38px;height:38px;border-radius:50%;overflow:hidden;flex:none;background:#e6d8b6;border:1.5px solid rgba(59,42,26,.25)}
+.csl .av.me{background:#3b2a1a}.csl .av svg{width:100%;height:100%;display:block}
+.csl p{margin:0;flex:1;font:14.5px/1.55 var(--body);color:#4a3320;background:rgba(255,255,255,.4);border-radius:4px 12px 12px 12px;padding:7px 10px}
+.csl p b{display:block;font:700 11.5px/1.2 var(--body);color:var(--rust);margin-bottom:2px}
+.csl.me p{background:none;padding:7px 0 0;font-style:italic;color:var(--sepia)}
+.csq{font:700 13px var(--body);color:var(--sepia);margin:0 0 8px}
+.cso{display:flex;flex-direction:column;gap:8px}
+.page .copt{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:4px;width:100%;padding:11px 14px;border-radius:12px;background:#fbf4e4;border:1.5px solid rgba(59,42,26,.22);box-shadow:0 2px 0 rgba(59,42,26,.12);cursor:pointer;text-align:left}
+.page .copt.hi{border-color:var(--rust);background:#fff7e6}
+.page .copt:active{transform:translateY(1px)}.page .copt[disabled]{opacity:.55;cursor:default}
+.copt b{font:700 15.5px/1.3 var(--body);color:var(--sepia)}.copt small{display:flex;flex-wrap:wrap;gap:4px;align-items:center;font:12px/1.4 var(--body);color:var(--sepia-2)}
+.page.case .rqok{width:100%}
+.csnote{display:flex;align-items:center;gap:8px;font:13px/1.5 var(--body);color:var(--sepia-2);margin:0 0 12px}
+.stamp{display:inline-block;font:800 12px/1 var(--body);font-style:normal;letter-spacing:.08em;color:#8a7a64;border:2px solid currentColor;border-radius:4px;padding:4px 6px 3px;transform:rotate(-6deg);flex:none}
+.stamp.ok{color:#b0452a}
+.entry.csn{position:relative;padding-right:74px}.entry.csn .stamp{position:absolute;right:10px;top:10px}
+.entry.csn .n small{font-weight:400;color:var(--sepia-2);margin-left:4px}
+.cst{display:flex;gap:8px;font:13px/1.55 var(--body);color:#4a3320}.cst span{flex:none;width:44px;font-weight:700;color:var(--sepia-2)}
+.csc{margin-top:5px;font:600 12.5px/1.5 var(--body);color:#2f4a6a;background:rgba(47,74,106,.08);border-radius:6px;padding:5px 8px}.csc.none{color:var(--sepia-2);background:rgba(59,42,26,.06);font-weight:400}
+.entry.cspage{border-style:dashed}
+.eggp{background:#f4ecd8;border:1px solid rgba(59,42,26,.2);box-shadow:inset 0 0 18px rgba(120,90,50,.18);padding:16px 18px;margin:0 0 12px;clip-path:polygon(0 0,100% 0,100% 88%,94% 92%,88% 88%,80% 94%,72% 89%,64% 95%,55% 90%,46% 96%,38% 90%,28% 95%,18% 89%,8% 94%,0 90%)}
+.eggp p{margin:0 0 6px;font:15px/1.6 var(--pen);color:#3b2a1a}.eggp p.last{margin-top:12px;font-weight:700}
+.eggr{background:#2a1f16;color:#f3d9a0;border-radius:8px;padding:14px 16px;margin:0 0 12px;font:15px/1.7 var(--body);letter-spacing:.02em}.eggr p{margin:0}
+.radiobox{position:relative}
+.mlamp{all:unset;position:absolute;top:10px;left:calc(50% + 70px);width:22px;height:22px;border-radius:50%;background:#5a3a20;border:2px solid #3b2a1a;box-shadow:inset 0 0 4px rgba(0,0,0,.5);cursor:pointer;animation:mlamp 9s steps(1) infinite}
+.mlamp::after{content:"";position:absolute;inset:-12px}
+.mlamp.hit{animation:none;background:#fff1b8;box-shadow:0 0 12px #ffd46a}
+@keyframes mlamp{0%,4%,8%,16%,24%{background:#ffd46a;box-shadow:0 0 12px #ffd46a}2%,6%,10%,18%,26%,100%{background:#5a3a20;box-shadow:inset 0 0 4px rgba(0,0,0,.5)}}
+.btns .watch,.page .watch{display:block;width:100%;margin:8px 0}
+.segs:has(.seg:nth-child(5)){grid-template-columns:repeat(3,1fr)}
+.segs:has(.seg:nth-child(7)){grid-template-columns:repeat(4,1fr)}
 </style>
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
@@ -1358,7 +1395,7 @@ const BNAME=Object.fromEntries(Object.entries(MODS).map(([k,v])=>[k,v.n]));
 
 // ---------- hidden survivors: only reachable through the radio ----------
 SURV.push(
- {name:'차은호',age:36,job:'심야 라디오 DJ',hidden:true,alias:'목소리의 주인',match:[7,8],src:'gacha',look:{skin:'#e0b48e',hair:'#1f1c2a',top:'#3f3560'},eff:{hope:8,scav:.1},trait:v=>`희망 +${Math.round(v.hope)} · 뒤지기 수확 +${pc(v.scav)}%`,
+ {name:'차은호',age:36,job:'심야 라디오 DJ',hidden:true,alias:'목소리의 주인',hint:'4장, 라디오 속 목소리를 따라 찾아와요',match:[7,8],src:'story',look:{skin:'#e0b48e',hair:'#1f1c2a',top:'#3f3560'},eff:{hope:8,scav:.1},trait:v=>`희망 +${Math.round(v.hope)} · 뒤지기 수확 +${pc(v.scav)}%`,
   story:['재가 내린 밤에도 마이크를 끄지 않았다. 청취자가 한 명이라도 있을지 몰라서.','“여기는 심야 방송 한밤입니다.” 우리 무전기에 처음 잡힌 목소리가 그였다.','아무도 보내지 않은 신청곡 쪽지를 모은다. 그래도 매일 밤 한 곡씩 튼다.','하늘이가 사연을 보냈다. “우리 할머니 찾아 주세요.” 그는 그날 방송을 세 번 반복했다.','“이제 방송국은 여기예요.” 쉘터 한가운데에 낡은 스피커를 달았다.']},
  {name:'백설화',age:29,job:'전 기상캐스터',hidden:true,alias:'날씨를 아는 사람',match:[3,8],src:'gacha',look:{skin:'#f0c9a8',hair:'#5a3424',top:'#2f7a7a'},eff:{tap:.35,fever:1.5},trait:v=>`두드리는 힘 +${pc(v.tap)}% · 랜턴 피버 +${v.fever.toFixed(1)}초`,
   story:['재가 내리기 전날, 그녀는 “내일은 맑겠습니다”라고 방송했다.','그 한마디가 틀린 게 평생의 한이 됐다고 했다.','지금은 하늘 색만 보고 재폭풍이 몇 시에 올지 맞힌다. 한 번도 틀린 적이 없다.','은호의 라디오에서 예전 자기 목소리가 흘러나오자 한참을 울었다.','“내일은 맑겠습니다.” 이번엔 정말로 맑았다.']},
@@ -1757,7 +1794,10 @@ const STORY=[
  {ch:'4장',title:'잡음 속의 목소리',steps:[
     {goal:'라디오로 주파수 탐색 한 번 하기',done:rel(()=>S.gUses||0),rw:{batt:1},focus:'radio',hl:'[data-act="pull"][data-arg="1"]',hint:'아래 라디오 탭을 눌러 건전지로 다이얼을 돌려요',
    intro:[[ME,'창고 구석에서 낡은 라디오를 찾았다. 첫 밤 이후로 가끔 그 안에서 규칙적인 잡음이 새어 나온다.'],[ME,'다이얼을 돌리면 먼 곳의 신호가 잡힌다. 가끔은… 사람 목소리도.']],
-   outro:[[ME,'잡음 사이로 누군가의 목소리가 스쳐 갔다. “…등불… 계획… 중단…”'],[ME,'등불 계획? 처음 듣는 말이다. 이 랜턴과 무슨 상관이 있을까.'],[10,'…방금 거, 방송 주파수가 아니에요. 누가 일부러 같은 말을 되풀이해서 쏘고 있어요.',()=>!!S.sv[10]]]},
+   outro:[[ME,'잡음 사이로 누군가의 목소리가 스쳐 갔다. “…등불… 계획… 중단…”'],[ME,'등불 계획? 처음 듣는 말이다. 이 랜턴과 무슨 상관이 있을까.']]},
+    {goal:'목소리의 주인 맞이하기',done:()=>!!S.sv[10],rw:{batt:1},focus:null,hint:'라디오 속 목소리가 쉘터를 찾아오고 있어요',
+   intro:[[ME,'그 뒤로 밤마다 라디오에서 같은 목소리가 흘러나왔다. “여기는 심야 방송 한밤입니다.”'],[ME,'목소리는 우리 불빛을 봤다고 했다. 곧 찾아가겠다고.']],
+   outro:[[10,'차은호예요. 심야 방송 한밤… 듣는 사람이 한 명이라도 있을까 봐 마이크를 못 껐어요.'],[10,'이 라디오, 제가 손봐 드릴게요. 인두만 있으면 금방이에요.'],[10,'…그런데 아까 그 등불 어쩌고 하는 거, 방송 주파수가 아니에요. 누가 일부러 같은 말을 되풀이해서 쏘고 있어요.'],[ME,'그날 밤, 쉘터에 처음으로 음악이 흘렀다.']]},
     {goal:'첫 원정 보내기',done:rel(()=>S.expDone||0),rw:{rope:4},focus:'fExp',hint:'원정 버튼에서 팀을 꾸리고, 돌아오면 일지를 열어요',
    intro:[[G,'이 근처는 거의 다 털었어. 멀리 다녀오면 부품이랑 연료가 있을 거야.']],
    outro:[[G,'다녀왔네. 길 위에서 별걸 다 봤어.']]},
@@ -2304,8 +2344,8 @@ function renderSheet(){if(!sheetTab)return;let h='';const st=$('shBody').scrollT
     h+=row('snd','소리','두드리기, 자재 줍기, 라디오 잡음 같은 효과음')+row('vib','진동','두드릴 때 휴대폰이 살짝 떨려요')+row('calm','움직임 줄이기','흔들림·깜빡임 같은 애니메이션을 줄여요')+row('big','글자 크게','화면 글자와 창을 조금 크게 보여요');
     h+=`<div class="sec">저장</div><div class="d" style="margin-bottom:8px">진행은 이 브라우저에 자동으로 저장돼요. 브라우저 데이터를 지우면 사라지니, 다른 기기로 옮기거나 보관하려면 저장 코드를 만들어 두세요.</div><div class="btns" style="gap:8px"><button class="buy ghost" data-act="exp_save">저장 코드 만들기</button><button class="buy ghost" data-act="imp_save">저장 코드 불러오기</button></div>`;
     const cf=confirmKey==='reset';h+=`<div class="sec">게임</div><div class="row"><div><div class="t">새 게임</div><div class="d">새 지도에서 처음부터 다시 시작해요. 지금 진행은 사라집니다.</div></div><button class="buy ${cf?'warn':'ghost'}" data-act="reset">${cf?'정말 초기화':'새 게임'}</button></div>`;}
-  else{$('shTitle').textContent='일지';h+=`<div class="segs" role="tablist">${[['story','이야기'],['towns','동네'],['relic','도감'],['ach','업적'],['guide','안내서']].filter(([k])=>k!=='towns'||(S.tlog||[]).length).map(([k,n])=>`<button role="tab" class="seg${diaryTab===k?' on':''}" data-act="dseg" data-arg="${k}">${n}${k==='ach'&&ACH.some(([x])=>(S.ach||{})[x]===1)||segNew('diary',k)?'<i class="nw">N</i>':''}</button>`).join('')}</div>`;
-    if(diaryTab==='towns')h+=renderTowns();else if(diaryTab==='relic')h+=renderRelics();else if(diaryTab==='ach')h+=renderAch();else if(diaryTab==='guide')h+=renderGuide();else{
+  else{$('shTitle').textContent='일지';h+=`<div class="segs" role="tablist">${[['story','이야기'],['case','사건'],['towns','동네'],['relic','도감'],['ach','업적'],['guide','안내서']].filter(([k])=>(k!=='towns'||(S.tlog||[]).length)&&(k!=='case'||caseSeen())).map(([k,n])=>`<button role="tab" class="seg${diaryTab===k?' on':''}" data-act="dseg" data-arg="${k}">${n}${k==='ach'&&ACH.some(([x])=>(S.ach||{})[x]===1)||segNew('diary',k)?'<i class="nw">N</i>':''}</button>`).join('')}</div>`;
+    if(diaryTab==='case')h+=renderCases();else if(diaryTab==='towns')h+=renderTowns();else if(diaryTab==='relic')h+=renderRelics();else if(diaryTab==='ach')h+=renderAch();else if(diaryTab==='guide')h+=renderGuide();else{
     const doneN=Math.min(S.mi,STEPS.length);h+='<div class="sec">등불 일지</div>';
     STORY.forEach((c,ci)=>{const d=STEPS.filter(s=>s.ci===ci&&STEPS.indexOf(s)<doneN);if(!d.length)return;const fin=d.length===c.steps.length;h+=`<div class="entry log"><div class="n">${c.ch} · ${c.title}${fin?'':` <small>${d.length}/${c.steps.length}</small>`}</div><div class="p2">${d.map(s=>{const ol=s.outro.filter(l=>!l[2]||l[2]());return ol[ol.length-1][1];}).join(' ')}</div></div>`;});
     if(!doneN)h+='<div class="entry locked"><div class="p">첫 이야기를 끝내면 여기에 적혀요.</div></div>';
@@ -2755,7 +2795,7 @@ SKILLS.push(
 ROLE.push(['heart'],['scout'],['mech']);
 EXPQ.push(['“가는 길 내내 방송 멘트를 연습했어요. 들어 볼래요?”','“폐허 방송국에서 레코드판 몇 장을 챙겼어요.”'],['“바람 방향이 바뀌기 전에 돌아왔어요. 제 말 맞죠?”','“구름이 낮게 깔리는 쪽은 피해서 걸었어요.”'],['“시계방 셔터가 반쯤 열려 있더군. 부품을 좀 챙겼지.”','“천천히 걸어도 늦지 않았다네.”']);
 Object.assign(RESCUE,{10:{need:{},why:'라디오 잡음 너머에서 들리던 그 목소리가, 쉘터 앞에 찾아왔어요.'},11:{need:{},why:'하늘을 올려다보며 쉘터 앞에 서 있어요. “오늘 밤 재폭풍은 약할 거예요.”'},12:{need:{},why:'멈춘 시계를 한가득 짊어진 노인이 쉘터 앞에 앉아 쉬고 있어요.'}});
-const HIDDEN=[10,11,12],PITY=20,HRATE=.05;
+const HIDDEN=[11,12],PITY=20,HRATE=.05;
 const GTABLE=[['hidden',HRATE,'히든 생존자'],['gear',.10,'장비 (희귀 65% · 영웅 30% · 전설 5%)'],['rare',.22,'희귀 자재'],['voice',.08,'먼 곳의 목소리'],['memo',.05,'생존자의 사연'],['junk',.50,'잡음 속 물자']];
 const VOICES=['“…여기는 남쪽 저수지… 물은 있는데 불이 없어요…”','“…3시 14분… 모든 시계가… 멈췄…”','“…오늘의 날씨… 재… 내일은… 맑…”','“…누구든 이 방송을 듣는다면, 불을 켜 주세요…”','“…발전소 제어실… 아직 전원이… 살아…”','“…사랑해, 꼭 다시 만나…”'];
 const batt=()=>S.m.batt||0;
@@ -3240,7 +3280,7 @@ function tickLife(dt){const night=isNight()&&!DEFN;
   for(const k in S.sv){const id=+k,r=S.sv[id];if(r.at>=0&&!r.away&&!(r.hurt>0)&&!WALK[id]&&!isNight()&&Math.random()<dt/55){const[x,y]=tileC(r.at,0);WALK[id]={x,y,tx:x,ty:y,idle:0,brk:14+Math.random()*10,face:1};}}
   if(CHAT){CHAT.t+=dt;if(CHAT.t>CHAT.dur||!WALK[CHAT.a]||!WALK[CHAT.b])CHAT=null;}
   else{chatT-=dt;if(chatT<=0){chatT=9+Math.random()*9;const ids=Object.keys(WALK).map(Number);let best=null,bd=1e9;
-    for(let i=0;i<ids.length;i++)for(let j=i+1;j<ids.length;j++){const a=WALK[ids[i]],b=WALK[ids[j]],d=Math.hypot(a.x-b.x,a.y-b.y)+(PAIRS[pairKey(ids[i],ids[j])]?-60:0)+Math.random()*30;if(d<bd){bd=d;best=[ids[i],ids[j]];}}
+    for(let i=0;i<ids.length;i++)for(let j=i+1;j<ids.length;j++){if(pairKey(ids[i],ids[j])==='10-13')continue;const a=WALK[ids[i]],b=WALK[ids[j]],d=Math.hypot(a.x-b.x,a.y-b.y)+(PAIRS[pairKey(ids[i],ids[j])]?-60:0)+Math.random()*30;if(d<bd){bd=d;best=[ids[i],ids[j]];}}
     if(best&&bd<120){const[a,b]=best;const wa=WALK[a],wb=WALK[b];const mx=(wa.x+wb.x)/2,my=(wa.y+wb.y)/2;wa.tx=mx-12;wa.ty=my;wb.tx=mx+12;wb.ty=my;wa.idle=wb.idle=9;
       CHAT={a,b,t:0,dur:8,lines:convo(a,b)};}
     else if(ids.length){const a=ids[(Math.random()*ids.length)|0];CHAT={a,b:a,t:0,dur:4,solo:1,lines:[[a,isNight()?NIGHTLINE[(Math.random()*4)|0]:SMALL[a][(Math.random()*3)|0]]]};}}}}
@@ -3529,7 +3569,7 @@ function openMigrate(){const nr=REGIONS[nextRegion()],g=(S.gen||0)+1,n=Object.ke
     <div class="sec2" style="margin-top:6px">새로 얻는 것</div><div class="d"><b>등불의 기억 ${g}단계</b> · 모든 생산 +${g*10}% · 두드리는 힘 +${g*10}% (영구)<br>함께 온 사람 수만큼 침상 추가</div>
     <div class="btns" style="margin-top:14px"><button class="alt">조금 더 머물기</button><button data-act="migok">떠나기</button></div></div>`,true);}
 function migrate(){const old=S,g=(old.gen||0)+1,region=nextRegion();
-  const keep={pf:old.pf,playT:old.playT,pfAsk:old.pfAsk,qc:old.qc,sv:old.sv,party:old.party,inv:old.inv,iu:old.iu,relics:old.relics,ach:old.ach,title:old.title,kids:old.kids,dog:old.dog,endSeen:old.endSeen,conf:old.conf,hook:old.hook,tlog:old.tlog,rumor:old.rumor,sqN:old.sqN,pets:old.pets,petOn:old.petOn,stat:old.stat,gTotal:old.gTotal,gp:old.gp,heard:old.heard,found:old.found,mi:old.mi,storyI:old.storyI,
+  const keep={pf:old.pf,playT:old.playT,pfAsk:old.pfAsk,qc:old.qc,sv:old.sv,party:old.party,inv:old.inv,iu:old.iu,relics:old.relics,ach:old.ach,title:old.title,kids:old.kids,dog:old.dog,endSeen:old.endSeen,conf:old.conf,hook:old.hook,tlog:old.tlog,rumor:old.rumor,sqN:old.sqN,cases:old.cases,egg:old.egg,crow:old.crow,pets:old.pets,petOn:old.petOn,stat:old.stat,gTotal:old.gTotal,gp:old.gp,heard:old.heard,found:old.found,mi:old.mi,storyI:old.storyI,
     ug:old.ug||{best:0,runs:0,bestWith:{}},defWins:old.defWins,defs:old.defs,nights:old.nights,evDone:old.evDone,skillUses:old.skillUses,expDone:old.expDone,fevers:old.fevers,gUses:old.gUses};
   const carryM={batt:old.m.batt||0};for(const k of['plate','rope','wire','med'])carryM[k]=Math.floor((old.m[k]||0)/2);
   closeModal();closeSheet();closeRing();DEFN=null;UG=null;WALK={};CHAT=null;KW=[];
@@ -3608,7 +3648,8 @@ function tickClaim(){const m=mission();if(!m.done||!misDoneAt){misNudged=0;retur
 const OLD_GOALS=['구름을 두드려 땅 6칸 밝히기','폐허를 뒤져 목재 15개 모으기','작업대 만들기','텃밭 상자 만들기','구조 신호를 따라가 생존자 구하기','생존자를 모듈에 배치하기','작업대에서 철판 5개 만들기','쉘터를 판잣집으로 키우기','고물상 세우기','라디오로 주파수 탐색 한 번 하기','랜턴 피버 한 번 켜기','재폭풍 밤 한 번 버티기','방벽 세우기','생존자의 부탁 들어주기','생존자 스킬 한 번 쓰기','생존자에게 장비 하나 맞춰 주기','첫 원정 보내기','컨테이너 쉘터로 키우기','지하 구역 2층까지 내려가기','랜드마크 하나 복구하기','발전기 가동하기','대형 재폭풍 한 번 막아내기','생존자 5명 모으기','요새로 키우기','무전실 세우기','불빛의 도시 완성하기','목격자의 일기 7편 모두 찾기'];
 const V2_GOALS=["구름을 두드려 땅 6칸 밝히기", "폐허를 뒤져 목재 15개 모으기", "작업대 만들기", "텃밭 상자 만들기", "구조 신호를 따라가 생존자 구하기", "생존자를 모듈에 배치하기", "생존자 스킬 한 번 쓰기", "작업대에서 철판 5개 만들기", "쉘터를 판잣집으로 키우기", "고물상 세우기", "라디오로 주파수 탐색 한 번 하기", "랜턴 피버 한 번 켜기", "재폭풍 밤 한 번 버티기", "방벽 세우기", "생존자의 부탁 들어주기", "생존자에게 장비 하나 맞춰 주기", "컨테이너 쉘터로 키우기", "첫 원정 보내기", "지하 구역 2층까지 내려가기", "랜드마크 하나 복구하기", "발전기 가동하기", "대형 재폭풍 한 번 막아내기", "생존자 5명 모으기", "요새로 키우기", "무전실 세우기", "불빛의 도시 완성하기", "목격자의 일기 7편 모두 찾기"];
 // older saves stored the step index of an earlier story layout; map it through the goal text to today's layout
-function migrateSteps(){if(S.stepV===3)return;const list=S.stepV===2?V2_GOALS:OLD_GOALS;S.stepV=3;if(!(S.mi>0))return;const was=S.mi,sawIntro=(S.storyI==null?-1:S.storyI)>=was;let n;
+const V3_GOALS=["구름을 두드려 땅 6칸 밝히기", "폐허를 뒤져 목재 15개 모으기", "작업대 만들기", "텃밭 상자 만들기", "구조 신호를 따라가 생존자 구하기", "생존자를 모듈에 배치하기", "생존자 스킬 한 번 쓰기", "작업대에서 철판 5개 만들기", "쉘터를 판잣집으로 키우기", "재폭풍 밤 한 번 버티기", "방벽 세우기", "랜턴 피버 한 번 켜기", "고물상 세우기", "생존자의 부탁 들어주기", "생존자에게 장비 하나 맞춰 주기", "생존자 3명 모으기", "컨테이너 쉘터로 키우기", "라디오로 주파수 탐색 한 번 하기", "첫 원정 보내기", "랜드마크 하나 복구하기", "생존자 5명 모으기", "지하 구역 2층까지 내려가기", "발전기 가동하기", "지하 구역 4층까지 내려가기", "오재혁 구하기", "재혁의 이야기 듣기", "요새로 키우기", "대형 재폭풍 한 번 막아내기", "방벽을 모래주머니 방벽으로 올리기", "무전실 세우기", "불빛의 도시 완성하기", "탁미영 맞이하기", "등불 탑 토대 놓기", "등불 탑 기둥 세우기", "등불 탑에 전선 잇기", "등불 탑에 렌즈 올리기", "등불 탑에 불 켜기"];
+function migrateSteps(){if(S.stepV===4)return;const list=S.stepV===3?V3_GOALS:S.stepV===2?V2_GOALS:OLD_GOALS;S.stepV=4;if(!(S.mi>0))return;const was=S.mi,sawIntro=(S.storyI==null?-1:S.storyI)>=was;let n;
   if(was>=list.length)n=S.endSeen?STEPS.length:STEP_I('등불 탑 토대 놓기');else{n=STEP_I(list[was]);if(n<0)n=STEP_I('등불 탑 토대 놓기');}
   S.mi=n;S.storyI=sawIntro?n:n-1;}
 // ---- quiet repeats: after a few times, routine discoveries stop taking a toast
@@ -4777,6 +4818,188 @@ $('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="ac
 function tickGhost(){for(const id in WALK)if(!S.sv[id])delete WALK[id];if(CHAT&&(!S.sv[CHAT.a]||!S.sv[CHAT.b]))CHAT=null;const nk=(S.kids||[]).length;if(KW.length>nk)KW.length=nk;}
 {const r0=reset;reset=function(){const o=r0.apply(this,arguments);if(!Object.keys(S.sv).length){WALK={};CHAT=null;KW=[];}return o;};}
 
+// ================= 시즌 1: 은호 합류 · 사건 수첩 · 사라진 3분 · 까마귀 =================
+// Story bible: 은호 is the one behind every incident from 4장 on, and the game never says so.
+// Every incident happens around 3 a.m.; his alibi is always "방송 중이었어요". Clues only come to those who press.
+
+// ---- 진 (까마귀 막내) joins as a survivor ----
+const JIN=SURV.length;
+SURV.push({name:'진',age:15,job:'전 까마귀 정찰병',hidden:true,alias:'검은 새 표식의 아이',hint:'까마귀 무리와 마주친 뒤에 만날 수 있어요',match:[9,4],src:'story',look:{skin:'#dcae88',hs:0,hair:'#1b1714',top:'#2e2e36'},eff:{scav:.15,tap:.2},trait:v=>`뒤지기 수확 +${pc(v.scav)}% · 두드리는 힘 +${pc(v.tap)}%`,
+  story:['까마귀 무리에서 제일 어렸다. 제일 먼저 뛰고, 제일 늦게 먹었다.','팔뚝의 검은 새 표식을 소매로 가린다. 아무도 묻지 않아도.','하늘이가 처음으로 먼저 말을 걸었다. “형, 우산 같이 쓸래?”','독수리 대장 이야기가 나오면 입을 다문다. 미워하지도, 그리워하지도 못하는 얼굴로.','“여기선 불을 켜도 되는 거죠?” 처음으로 랜턴을 제 손으로 켰다.']});
+SURV[JIN].id=JIN;SURV[JIN].grade=2;
+SKILLS.push({n:'지름길',cd:100,d:'60초간 폐허 뒤지기 수확 ×1.8',fn:()=>{setBuff({k:'scav',m:1.8,t:60,label:'지름길'});toast('진이 아무도 모르는 뒷길로 앞장섰어요');return true;}});
+ROLE.push(['scout','guard']);
+EXPQ.push(['“까마귀들이 안 쓰는 길로 왔어요. 거긴 제가 다 알아요.”','“벽에 새 그림 있는 데는 이미 털린 데예요. 그냥 지나쳤어요.”']);
+SMALL[JIN]=['불 켜 놓고 자도 된다는 게 아직 이상해요.','대장은… 아니, 아무것도 아니에요.','하늘이가 자꾸 우산을 씌워 줘요.'];
+RESCUE[JIN]={need:{},why:'검은 새 표식을 소매로 가린 아이가 쉘터 앞에 서 있어요.'};
+while(P_ART.length<JIN)P_ART.push(P_ART[0]);
+P_ART.push(u=>`<g opacity=".3" fill="none" stroke="${PI_}" stroke-width="1.4"><path d="M8 30l8-6 6 4 6-4 8 6"/><path d="M90 20l7-5 5 3 5-3 7 5"/><path d="M96 44l5-3 4 2 4-2 5 3"/></g>`
+  +pBody('#2e2e36')+pF('M34 104C40 92 50 86 60 86C70 86 80 92 86 104L80 108C76 98 68 94 60 94C52 94 44 98 40 108Z','#3a3a44',1.3)+pLn('M60 104v36',1.2,'#55555f',.8)+pBodyShade(u)
+  +`<g transform="translate(28 122) scale(.9)"><path d="M0 4l6-4 4 3 4-3 6 4-6-1-4 3-4-3z" fill="#111" stroke="#111" stroke-width=".8"/></g>`
+  +pFace(u,{skin:'#dcae88',jaw:'narrow',eye:'sharp',iris:'#241a12',brow:['#1b1714',2.2,-.2],mouth:'neutral'})
+  +pF('M37 58C33 34 46 23 60 23C75 23 88 34 83 58C80 47 75 41 68 39C66 44 60 46 54 42C48 46 42 48 40 58Z','#1b1714')+pLn('M52 30Q49 38 46 44M66 28Q70 34 74 40',1,'#3a332c',.7));
+Object.assign(NPC,{crow:{n:'독수리',sub:'까마귀 무리의 우두머리',c:'#26262c',h:'#141414'},jin:{n:'진',sub:'까마귀 막내',c:'#2e2e36',h:'#1b1714'}});
+const CR_='npc:crow',JN_='npc:jin';
+
+// ---- scene gate: only when nothing else is on screen, and not right after another scene ----
+let scIdle=0;
+const s1On=()=>!S.gen&&S.mi<STEPS.length;
+const sceneFree=()=>modal.hidden&&!talk&&!mq.length&&!sheetTab&&!DEFN&&(S.mi>=STEPS.length||(S.storyI==null?-1:S.storyI)>=S.mi);
+const svIn=id=>!!S.sv[id];
+const svName=id=>SURV[id].name;
+
+// ---- 사건: 6 incidents. a = 추궁한다 (clue, their trust drops) · b = 감싼다 (trust rises, clue missed) · c = 덮어 둔다 ----
+const CASES=[
+ {ch:'3장',t:'사라지는 통조림',when:'해 질 녘',sus:3,susN:'새로 온 사람들',solved:1,
+  gate:()=>S.mi>=STEP_I('생존자 3명 모으기')&&svIn(3),
+  x:()=>[[G,'창고 통조림이 자꾸 한두 개씩 비어. 벌써 사흘째야.'],[G,'꼭 해 질 녘이야. 새로 온 사람 중에 누가 몰래 챙기는 거 아닌가 몰라.']],
+  a:{l:'해 질 녘에 창고를 지켜본다',r:()=>[[ME,'해가 기울자 창고 문이 삐걱 열렸다. 하늘이가 통조림을 안고 살금살금 나갔다.'],[3,'…미안해요. 쉘터 뒤에 떠돌이 개가 있는데, 너무 배고파 보였어요.']]},
+  b:{l:'모른 척 식량을 더 채워 둔다',r:()=>[[ME,'며칠 뒤, 하늘이가 쉘터 뒤에서 떠돌이 개에게 몰래 밥을 주는 걸 봤다.'],[3,'…들켰다. 얘 이름 지어 줘도 돼요?']]},
+  c:{l:'그냥 넘어간다',r:()=>[[ME,'며칠 뒤 해 질 녘, 쉘터 뒤에서 개 짖는 소리가 났다. 하늘이가 떠돌이 개를 끌어안고 있었다.']]},
+  end:()=>{if(!S.dog){S.dog=1;return'떠돌이 개가 식구가 됐어요. 이름은 ‘등불’';}return'';},
+  log:'범인은 하늘. 떠돌이 개에게 밥을 주고 있었다.'},
+ {ch:'4장',t:'돌아가 있는 다이얼',when:'새벽 3시 무렵',sus:3,susN:'새로 온 사람들',
+  gate:()=>S.mi>=STEP_I('첫 원정 보내기')&&svIn(10),
+  x:()=>[[G,'라디오 다이얼이 엉뚱한 데로 돌아가 있어. 구조 신호 잡아 두던 주파수였는데.'],svIn(3)?[G,'새벽 3시쯤 누가 만졌대. 하늘이가 전에도 다이얼 갖고 놀았잖아.']:[G,'새벽 3시쯤 누가 만졌대. 누군지는 몰라.'],[10,'전 그 시간에 방송 중이었어요. 제 송신기 앞에서요.']],
+  alibi:'은호: “그 시간엔 방송 중이었어요.”',
+  a:{l:'하늘이를 불러 묻는다',r:()=>[[3,'나 아니야! 그 시간엔 자고 있었단 말이야!'],[ME,'다이얼을 다시 봤다. 손잡이에 남은 손자국은 아이 손보다 훨씬 컸다.']],clue:'다이얼에 남은 손자국은 아이 손이 아니라 어른 손이었다.'},
+  b:{l:'하늘이 편을 든다',r:()=>[[3,'…믿어 줘서 고마워요. 진짜 나 아니에요.']]},
+  c:{l:'주파수만 다시 맞춰 둔다',r:()=>[[ME,'다이얼을 되돌려 놓았다. 누가 돌렸는지는 모른 채로.']]}},
+ {ch:'5장',t:'반쯤 끊긴 밧줄',when:'새벽 3시 무렵',sus:1,susN:'까마귀',
+  gate:()=>S.mi>=STEP_I('지하 구역 4층까지 내려가기'),
+  x:()=>[[G,'원정용 밧줄이 반쯤 끊겨 있었어. 그대로 썼으면 누구 하나 떨어졌을 거야.'],[G,'새벽 3시쯤 창고 쪽에서 발소리를 들었다는 사람이 있어.'],svIn(1)?[G,'도윤이가 요즘 밤마다 밖을 돌아다니잖아. 아니면… 까마귀 짓이든가.']:[G,'까마귀 놈들 짓일지도 몰라.']],
+  a:{l:()=>svIn(1)?'도윤을 불러 묻는다':'창고를 샅샅이 뒤진다',r:()=>[svIn(1)?[1,'밤에 나가는 건 배달하던 버릇이에요. 밧줄엔 손도 안 댔어요.']:[ME,'창고에는 발자국 하나 없었다.'],[ME,'끊긴 자리를 들여다봤다. 칼로 자른 게 아니었다. 뜨거운 걸 대서 녹여 끊은 자국이었다.']],clue:'밧줄은 칼이 아니라 뜨거운 것으로 녹여 끊겨 있었다.'},
+  b:{l:()=>svIn(1)?'도윤을 믿는다':'모두를 믿기로 한다',r:()=>[svIn(1)?[1,'…믿어 줘서 고마워요. 밤길은 제가 더 조심할게요.']:[ME,'아무도 의심하지 않기로 했다.']]},
+  c:{l:'까마귀 짓이라고 해 둔다',r:()=>[[ME,'다들 까마귀를 탓했다. 그게 제일 편했다.']]}},
+ {ch:'7장',t:'잘린 안테나',when:'새벽 3시 무렵',sus:6,susN:'까마귀',
+  gate:()=>hasMod(7)&&S.mi>=STEP_I('무전실 세우기'),
+  x:()=>[[G,'무전실 안테나 선이 잘렸어. 세운 지 며칠이나 됐다고.'],svIn(6)?[G,'새벽 3시 무렵이래. 철호가 그 시간에 공구 들고 나가는 걸 본 사람이 있어.']:[G,'새벽 3시 무렵이래. 까마귀가 또 다녀갔나.'],svIn(10)?[10,'그 시간엔 저 방송 중이었어요. 끊긴 줄도 몰랐네요.']:null].filter(Boolean),
+  alibi:'은호: “그 시간엔 방송 중이었어요.”',
+  a:{l:()=>svIn(6)?'철호를 불러 묻는다':'안테나를 샅샅이 살핀다',r:()=>[svIn(6)?[6,'공구는 방벽 고치러 들고 나간 거요. 전선은 내 일이 아니오.']:[ME,'안테나 아래에는 발자국 하나 없었다.'],[ME,'잘린 전선 끝을 만져 봤다. 납땜 인두를 댄 자국이 있었다. 쉘터에서 인두를 쓰는 사람은 많지 않다.']],clue:'잘린 전선 끝에 납땜 인두 자국이 남아 있었다.'},
+  b:{l:()=>svIn(6)?'철호를 믿는다':'모두를 믿기로 한다',r:()=>[svIn(6)?[6,'…고맙소. 선은 내가 다시 이어 두지.']:[ME,'아무도 의심하지 않기로 했다.']]},
+  c:{l:'까마귀 짓이라고 해 둔다',r:()=>[[ME,'까마귀가 무전을 막으려 한 거라고, 다들 그렇게 믿었다.']]}},
+ {ch:'8장',t:'뜯겨 나간 한 장',when:'새벽 3시 무렵',sus:9,susN:'재혁',
+  gate:()=>svIn(13)&&svIn(9)&&S.mi>=STEP_I('탁미영 맞이하기'),
+  x:()=>[[9,'…제 연구 노트에서 한 장이 뜯겨 나갔어요. 그날 새벽 기록이에요.'],[G,'새벽 3시쯤 재혁 자리에 불이 켜져 있었다던데. 자기가 찢어 놓고 모른 척하는 거 아냐?']],
+  a:{l:'재혁에게 따져 묻는다',r:()=>[[9,'제가 왜요! 그 장엔… 그날 새벽에 걸려 온 전화가 적혀 있었어요.'],[9,'3시 11분. 제어실에서 어딘가로 건 전화였어요. 누구한테 걸었는지까진 기억이 안 나요.']],clue:'뜯긴 장에는 그날 새벽 3시 11분의 통화 기록이 있었다.'},
+  b:{l:'재혁을 믿는다',r:()=>[[9,'…고마워요. 이번엔 도망치지 않을게요.']]},
+  c:{l:'종이 한 장일 뿐이라고 넘긴다',r:()=>[[ME,'종이 한 장. 그땐 그렇게 생각했다.']]}},
+ {ch:'9장',t:'기둥에 꽂힌 쪽지',when:'새벽 3시 무렵',sus:null,susN:'아무도 모름',
+  gate:()=>(S.tower||0)>=2,
+  x:()=>[[ME,'아침에 보니 탑 기둥에 쪽지가 꽂혀 있었다. “불은 오래가지 않아.”'],[G,'새벽 3시쯤 누가 다녀간 거야. 까마귀 놈들 짓인가?']],
+  a:{l:'모두를 모아 묻는다',r:()=>[[ME,'아무도 자기가 썼다고 하지 않았다. 대신 누군가 쪽지 뒷면을 가리켰다.'],[ME,'뒷면에 시간표가 인쇄돼 있었다. 03:00, 03:30, 04:00… 줄마다 곡 제목이 적혀 있었다.']],clue:'쪽지 뒷면은 시간과 곡 제목이 적힌 방송 큐시트였다.'},
+  b:{l:'쪽지를 불에 태운다',r:()=>[[ME,'쪽지를 불에 넣었다. 탑 아래에서 그런 말은 필요 없다.']]},
+  c:{l:'사건 수첩에 끼워 둔다',r:()=>[[ME,'쪽지를 사건 수첩 사이에 끼워 두었다.']]},
+  tail:[[ME,'며칠 뒤, 창고 구석에서 라벨 없는 카세트테이프가 나왔다.'],[ME,'틀어 보니 심야 방송이었다. 사건이 있던 그 밤의 방송이, 그대로 녹음돼 있었다.']],
+  tailClue:'창고에서 나온 테이프에 그 밤의 방송이 미리 녹음돼 있었다.'}];
+const caseSeen=()=>!!(S.cases&&Object.values(S.cases).some(r=>r.p))||!!(S.egg&&Object.keys(S.egg).length);
+const optL=o=>typeof o.l==='function'?o.l():o.l;
+function caseLines(ls){return ls.map(([w,t])=>{const sp=speaker(w);return`<div class="csl${sp.me?' me':''}"><span class="av${sp.me?' me':''}">${sp.av}</span><p>${sp.me?'':`<b>${sp.name}</b>`}${t}</p></div>`;}).join('');}
+let caseCur=-1;
+function openCase(k){const c=CASES[k];caseCur=k;S.cases=S.cases||{};S.cases[k]=S.cases[k]||{at:Date.now()};save();sfx('chime');
+  const sus=c.sus!=null&&svIn(c.sus)?svName(c.sus):c.susN;
+  openModal(`<div class="page case"><div class="tag">사건 ${k+1} · ${c.ch}</div><h3>${c.t}</h3><div class="cswhen">${c.when} · 의심받는 사람: <b>${sus}</b></div>
+    <div class="csb">${caseLines(c.x())}</div><div class="csq">어떻게 할까요?</div>
+    <div class="cso">${['a','b','c'].map(p=>`<button class="copt${p==='a'?' hi':''}" data-act="case" data-arg="${p}"><b>${optL(c[p])}</b><small>${p==='a'?(k?'진실에 다가가요 · 그 사람은 서운해해요':'범인을 찾아봐요'):p==='b'?'믿음이 깊어져요 · 단서를 놓칠 수 있어요':'조용히 넘어가요'}</small></button>`).join('')}</div></div>`,true);}
+function pickCase(p){const k=caseCur,c=CASES[k];if(!c)return;const o=c[p],R=S.cases[k];if(R.p)return;R.p=p;
+  const sid=c.sus!=null&&svIn(c.sus)?c.sus:null,fx=[];
+  if(k>0){if(p==='a'){if(k===5){for(const id in S.sv)S.sv[id].xp=Math.max(0,S.sv[id].xp-20);fx.push('모두 신뢰 -20');}else if(sid!=null){S.sv[sid].xp=Math.max(0,S.sv[sid].xp-60);fx.push(`${svName(sid)} 신뢰 -60`);}}
+    if(p==='b'){if(sid!=null){S.sv[sid].xp+=80;fx.push(`${svName(sid)} 신뢰 +80`);}else{S.hopeB=(S.hopeB||0)+2;fx.push('희망 +2');}}}
+  if(o.clue&&p==='a'){R.clue=1;fx.push('단서를 찾았어요');}
+  if(c.solved)R.solved=1;const e=c.end?c.end():'';if(e)fx.push(e);
+  let ls=o.r();if(c.tail){ls=ls.concat(c.tail);R.tail=1;}
+  recalc();save();caseCur=-1;
+  openModal(`<div class="page case done"><div class="tag">사건 ${k+1} · ${c.ch}</div><h3>${c.t}</h3><div class="csb">${caseLines(ls)}</div>
+    ${fx.length?`<div class="rqget big">${fx.map(t=>`<span class="rqfx${/-\d/.test(t)?' bad':''}">${t}</span>`).join('')}</div>`:''}
+    <div class="csnote">${c.solved?'<em class="stamp ok">해결</em>':'<em class="stamp">미해결</em>'} 사건 수첩에 적었어요</div><button class="rqok">닫기</button></div>`,true);
+  $('fDiary')&&pingEl($('fDiary'));}
+modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="case"]');if(!b)return;e.stopPropagation();pickCase(b.dataset.arg);},true);
+function tickCases(){if(!s1On())return false;S.cases=S.cases||{};
+  for(let k=0;k<CASES.length;k++){const R=S.cases[k];if(R&&(R.p||R.skip))continue;if(R&&!R.p){openCase(k);return true;}
+    if(k===0&&!svIn(3)&&S.mi>=STEP_I('첫 원정 보내기')){S.cases[0]={skip:1};continue;}
+    if(k>0&&!(S.cases[k-1]&&(S.cases[k-1].p||S.cases[k-1].skip)))return false;if(CASES[k].gate()){openCase(k);return true;}return false;}return false;}
+
+// ---- 사건 수첩 (diary tab) ----
+function renderCases(){S.cases=S.cases||{};const n=CASES.filter((c,k)=>S.cases[k]&&S.cases[k].p).length,sol=CASES.filter((c,k)=>S.cases[k]&&S.cases[k].solved).length;
+  let h=`<div class="sec">사건 수첩 <small>풀린 사건 ${sol} / ${CASES.length}</small></div><div class="d" style="margin-bottom:8px">쉘터에서 일어난 일을 적어 두는 수첩이에요. 단서는 사람을 추궁할 때만 모여요.</div>`;
+  CASES.forEach((c,k)=>{const R=S.cases[k];if(!R||!R.p){h+=`<div class="entry locked csn"><div class="n">사건 ${k+1} · ???</div><div class="p">${c.ch}에 무슨 일이 생길지도 몰라요.</div></div>`;return;}
+    const sus=c.sus!=null?svName(c.sus):c.susN,pick=optL(c[R.p]),clues=[];if(R.clue&&c[R.p].clue)clues.push(c[R.p].clue);if(R.tail&&c.tailClue)clues.push(c.tailClue);
+    h+=`<div class="entry csn${R.solved?' ok':''}"><em class="stamp${R.solved?' ok':''}">${R.solved?'해결':'미해결'}</em><div class="n">사건 ${k+1} · ${c.t} <small>${c.ch}</small></div>
+      <div class="cst"><span>때</span>${c.when}</div><div class="cst"><span>의심</span>${sus}</div>${c.alibi?`<div class="cst"><span>증언</span>${c.alibi}</div>`:''}<div class="cst"><span>내 선택</span>${pick}</div>
+      ${R.solved?`<div class="cst"><span>결말</span>${c.log}</div>`:clues.length?clues.map(t=>`<div class="csc">단서 · ${t}</div>`).join(''):'<div class="csc none">단서 없음</div>'}</div>`;});
+  const E=S.egg||{},got=['a','b','c'].filter(q=>E[q]).length;
+  if(got)h+=E.page?`<button class="entry cspage" data-act="eggpage"><div class="n">찢어진 페이지</div><div class="p">수첩 맨 뒤에 끼워져 있던 한 장.</div></button>`:`<div class="entry locked cspage"><div class="n">찢어진 페이지 · ${got}/3</div><div class="p">어딘가에 나머지 조각이 있어요.</div></div>`;
+  return h;}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act="eggpage"]');if(!b)return;e.stopPropagation();openEggPage();},true);
+
+// ---- 사라진 3분: three pieces → the hidden page ----
+function eggGet(q,msg){S.egg=S.egg||{};if(S.egg[q])return;S.egg[q]=1;save();const n=['a','b','c'].filter(x=>S.egg[x]).length;
+  if(n>=3&&!S.egg.page){S.egg.page=1;save();setTimeout(()=>{note({h:'찢어진 페이지를 찾았어요',t:'<small>일지 · 사건 수첩 맨 뒤에 끼워져 있어요</small>',kind:'story',ms:6000});},600);}
+  else note({h:`${msg} · ${n}/3`,t:'<small>어딘가 비어 있는 3분이 있어요</small>',kind:'story',ms:4200});}
+function openEggPage(){const c5=S.cases&&S.cases[4]&&S.cases[4].p;
+  openModal(`<div class="page case egg"><div class="tag">찢어진 페이지</div><div class="eggp"><p>03:11 관제실에서 전화.</p><p>대피 방송 요청.</p><p>…</p><p class="last">그날, 방송은 나가지 않았다.</p></div>${c5?'<div class="csnote">찢긴 자국이, 재혁의 노트에서 뜯겨 나간 자리와 꼭 맞는다.</div>':''}<button class="rqok">닫기</button></div>`,true);}
+// ① 03:11~03:14, the real clock: the radio catches a voice that breaks off
+const lost3=()=>{const d=new Date();return d.getHours()===3&&d.getMinutes()>=11&&d.getMinutes()<=14;};
+function eggRadio(){if(!lost3()||!(S.gUses||S.gTotal))return;const m=new Date().getMinutes();
+  openModal(`<div class="page case egg"><div class="tag">03:${m} · 잡음</div><div class="eggr"><p>…지직…</p><p>“여기는… 한밤… 지금 바로… 대피하—”</p><p>…지직—</p></div><div class="csnote">방송이 뚝 끊겼다. 시계를 보니 새벽 3시 ${m}분이었다.</div><button class="rqok">닫기</button></div>`,true);sfx('chime');eggGet('a','끊긴 방송');}
+{const o=openSheet;openSheet=function(t){const r=o.apply(this,arguments);if(t==='radio'&&lost3()&&!(S.egg&&S.egg.a))setTimeout(eggRadio,500);return r;};}
+// ② the radio lamp blinks ••• • • once the 무전실 is up. Tap it back in the same rhythm.
+{const o=renderRadio;renderRadio=function(){let h=o.apply(this,arguments);if(hasMod(7)&&!(S.egg&&S.egg.b))h=h.replace('<div class="radiobox">','<div class="radiobox"><button class="mlamp" data-act="mlamp" aria-label="작은 신호등"></button>');return h;};}
+let mTaps=[],mTo=0;
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act="mlamp"]');if(!b)return;e.stopPropagation();b.classList.remove('hit');void b.offsetWidth;b.classList.add('hit');mTaps.push(performance.now());clearTimeout(mTo);
+  mTo=setTimeout(()=>{const g=[];let n=1;for(let i=1;i<mTaps.length;i++){if(mTaps[i]-mTaps[i-1]>700){g.push(n);n=1;}else n++;}g.push(n);mTaps=[];
+    if(g.join()==='3,1,1'){sfx('chime');const l=document.querySelector('.mlamp');if(l)l.remove();openModal(`<div class="page case egg"><div class="tag">신호등</div><div class="eggr"><p>● ● ●　●　●</p></div><div class="csnote">깜빡임이 멈췄다. 3, 1, 1. 누군가 시각을 적어 둔 것 같았다.</div><button class="rqok">닫기</button></div>`,true);eggGet('b','세 번, 한 번, 한 번');}},2000);},true);
+// ③ 태식's own wristwatch stopped at 3:11, three minutes before all the others
+{const o=openSurv;openSurv=function(id){const r=o.apply(this,arguments);if(id===12&&trustLv(S.sv[12].xp)>=2){const st=modal.querySelector('.story');if(st&&!modal.querySelector('[data-act="watch"]'))st.insertAdjacentHTML('afterend','<button class="alt watch" data-act="watch">태식의 손목시계 살펴보기</button>');}return r;};}
+modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="watch"]');if(!b)return;e.stopPropagation();
+  openModal(`<div class="page case egg"><div class="tag">문태식의 손목시계</div><div class="eggr"><p>3시 11분.</p></div><div class="csl"><span class="av">${portrait(SURV[12])}</span><p><b>문태식</b>다른 시계는 다 3시 14분에 섰는데, 이 녀석만 3분 먼저 멈췄지. 이건 못 고치겠더군.</p></div><button class="rqok">닫기</button></div>`,true);eggGet('c','3분 먼저 멈춘 시계');},true);
+
+// ---- 까마귀: 흔적 (4장) → 접촉 (6장) → 습격 (7장) → 대치 (9장) ----
+const crow=()=>S.crow=S.crow||{};
+function crowMarks(){const C=crow();if(C.marks)return;const t=[];for(let i=0;i<N&&t.length<40;i++)if(S.rev[i]&&i!==C0&&dist(i)>4&&dist(i)<14&&S.ter[i]!==T.WATER)t.push(i);C.marks=t.sort(()=>Math.random()-.5).slice(0,3);}
+function tickCrow(){if(!s1On())return false;const C=crow();
+  if(!C.trace&&S.mi>=STEP_I('랜드마크 하나 복구하기')&&(S.expDone||0)>0){C.trace=1;crowMarks();save();
+    openTalk([[G,'원정 다녀온 사람들이 이상한 걸 봤대. 털린 건물 벽마다 검은 새가 그려져 있더래.'],[G,'우리보다 먼저 싹 쓸어 간 무리가 있는 거야. 이 근처 벽에도 몇 개 있더라고.'],[ME,'사람들은 그 무리를 ‘까마귀’라고 부르기 시작했다.']],{tag:'까마귀 · 흔적'});return true;}
+  if(C.trace&&!C.rel&&S.mi>=STEP_I('요새로 키우기')){openCrowMeet();return true;}
+  if(C.rel&&!C.stand&&(S.tower||0)>=3){C.stand=1;save();
+    openTalk([[ME,'탑 아래로 까마귀 무리가 몰려왔다. 맨 앞의 사내가 탑 꼭대기를 올려다봤다.'],[CR_,'독수리라고 하오. 쇼핑몰 경비팀장이었지. 사람 지키던 일이 이렇게 됐소.'],svIn(JIN)?[JIN,'…대장.']:null,[CR_,'불 잘 켰더군. 하나만 알아 두시오.'],[CR_,'빛은 우리만 부르는 게 아니야.'],[ME,'그는 싸우지 않고 돌아섰다. 멀어지면서, 오래된 라디오 시그널 음악을 흥얼거렸다.'],svIn(10)?[ME,'그 가락에 은호가 잠깐 멈춰 섰다. 아무 말도 하지 않았다.']:null].filter(Boolean),{tag:'까마귀 · 대치'});return true;}
+  if(C.jinDue&&!svIn(JIN)){C.jinDue=0;save();rescue(JIN,'visit');return true;}
+  return false;}
+function openCrowMeet(){const c=scaleCost({food:40,fuel:15},lvScale()),ok=canPay(c);sfx('chime');
+  openModal(`<div class="page case crow"><div class="tag">까마귀 · 접촉</div><h3>길을 막은 사람들</h3><div class="csb">${caseLines([[ME,'원정대가 돌아오는 길목을 검은 옷의 무리가 막아섰다. 벽에서 보던 검은 새가 그들 팔에 그려져 있었다.'],[CR_,'이 길은 우리 길이오. 지나가려면 몫을 내시오.'],[JN_,'…대장, 저 사람들이 그 랜턴 가진 쪽이에요.']])}</div>
+    <div class="csq">어떻게 할까요?</div><div class="cso">
+    <button class="copt hi" data-act="crow" data-arg="deal" ${ok?'':'disabled'}><b>통행료를 낸다</b><small>${ok?'':'자재가 모자라요 · '}${costHtml(c)}</small></button>
+    <button class="copt" data-act="crow" data-arg="fight"><b>맞선다</b><small>누군가 다칠 수 있어요</small></button>
+    <button class="copt" data-act="crow" data-arg="avoid"><b>돌아간다</b><small>먼 길로 돌아와요</small></button></div></div>`,true);}
+function pickCrow(k){const C=crow();if(C.rel)return;let ls=[],fx=[];
+  if(k==='deal'){const c=scaleCost({food:40,fuel:15},lvScale());if(!pay(c))return;C.rel='deal';ls=[[CR_,'약속은 지키지. 오늘은 그냥 보내 주겠소.'],[ME,'그들은 정말로 길을 비켜 줬다. 이상하게 예의 바른 도둑들이었다.']];fx.push(`통행료 · ${lootTxt(c)}`);}
+  else if(k==='fight'){C.rel='fight';const ids=Object.keys(S.sv).map(Number).filter(id=>!busy(id)&&id!==JIN);if(ids.length){const id=ids[(Math.random()*ids.length)|0];S.sv[id].hurt=180;fx.push(`${svName(id)} 다침`);}
+    const got=give(scaleCost({parts:10,scrap:25},lvScale()));fx.push(lootTxt(got));C.jinDue=1;
+    ls=[[ME,'한바탕 몸싸움 끝에 그들이 물러났다. 도망치다 넘어진 아이 하나가 남았다.'],[JN_,'…때리지 마요. 따라갈게요.']];}
+  else{C.rel='avoid';ls=[[ME,'원정대는 먼 길로 돌아왔다. 하루가 더 걸렸지만, 아무도 다치지 않았다.'],[G,'저놈들, 우리가 어디 사는지 알아냈을 거야.']];}
+  recalc();save();
+  openModal(`<div class="page case crow done"><div class="tag">까마귀 · 접촉</div><h3>길을 막은 사람들</h3><div class="csb">${caseLines(ls)}</div>${fx.length?`<div class="rqget big">${fx.map(t=>`<span class="rqfx${/다침|통행료/.test(t)?' bad':''}">${t}</span>`).join('')}</div>`:''}<button class="rqok">닫기</button></div>`,true);}
+modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="crow"]');if(!b)return;e.stopPropagation();if(!b.disabled)pickCrow(b.dataset.arg);},true);
+// 습격: the first big storm night of 7장, people slip in while everyone fights the ash
+{const o=endDefense;endDefense=function(){const r=o.apply(this,arguments);const C=crow();
+  if(s1On()&&!C.raid&&S.mi>=STEP_I('대형 재폭풍 한 번 막아내기')){C.raid=1;if(!C.rel)C.rel='avoid';const f=C.rel==='deal'?.04:.08,lost={};
+    for(const k of['wood','scrap','food','fuel']){const n=Math.floor((S.m[k]||0)*f);if(n>0){S.m[k]-=n;lost[k]=n;}}C.lost=lost;save();
+    setTimeout(()=>openTalk([[ME,'폭풍이 걷히자 창고 문이 열려 있었다. 바닥에 검은 새가 그려져 있었다.'],[G,'재 괴물이랑 싸우는 틈에 사람이 들어왔어. 까마귀야.'],C.rel==='deal'?[G,'통행료 낸 사이라고 조금만 가져간 모양이야. 웃기는 놈들이지.']:null,
+      Object.keys(lost).length?[ME,`창고에서 사라진 것: ${lootTxt(lost)}`]:null,!svIn(JIN)?[ME,'창고 구석에 아이 하나가 웅크리고 있었다. 무리가 두고 간 거였다.']:null,!svIn(JIN)?[JN_,'…버려진 거예요, 저. 여기 있게 해 주세요.']:null].filter(Boolean),{tag:'까마귀 · 습격'}),2400);
+    if(!svIn(JIN))C.jinDue=1;}
+  return r;};}
+// black-bird marks on the map, left by the 까마귀
+{const o=towerDraw;towerDraw=function(time){o.apply(this,arguments);const M=S.crow&&S.crow.marks;if(!M)return;ctx.save();ctx.fillStyle='rgba(20,18,22,.8)';
+  for(const i of M){if(!S.rev[i])continue;const[x,y]=tileC(i,2);ctx.beginPath();ctx.moveTo(x-9,y-3);ctx.quadraticCurveTo(x-4,y-7,x,y-1);ctx.quadraticCurveTo(x+4,y-7,x+9,y-3);ctx.quadraticCurveTo(x+4,y-4,x,y+1);ctx.quadraticCurveTo(x-4,y-4,x-9,y-3);ctx.fill();}ctx.restore();};}
+
+// ---- 은호: arrives in 4장 (and older saves that skipped the step still meet him) ----
+let ehT=0;
+function tickEunho(){if(svIn(10))return false;const st=mission().step,ji=STEP_I('목소리의 주인 맞이하기');
+  if((st&&st.goal==='목소리의 주인 맞이하기')||(S.mi>ji&&ji>=0)){rescue(10,'visit');return true;}return false;}
+
+function tickSeason(){if(!sceneFree()){scIdle=0;return;}if(++scIdle<6)return;
+  if(tickEunho()||tickCrow()||tickCases())scIdle=-40;}
+
 // ---------- loop ----------
 let last=performance.now(),acc=0,uiT=0,saveT=0;
 function renderMats(){const box=$('mats');if(!box.firstChild)box.innerHTML=BASE.map(k=>`<span class="mc" data-k="${k}" title="${MN[k].src}"><span class="top">${micon(k,15)}<b></b></span><i>${MN[k].n}</i></span>`).join('');
@@ -4794,7 +5017,7 @@ function frontierNearest(){let best=-1,bd=1e9;for(let i=0;i<N;i++)if(isFrontier(
 function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;
   tickProd(dt);tickBuff(dt);tickClock(dt);tickDefense(dt);tickLife(dt);tickKidWalk(dt);tickEvents(dt);tickSkills(dt);
   idle+=dt;if(fever>0){fever=Math.max(0,fever-dt);}else if(idle>.7&&combo>0)combo=Math.max(0,combo-dt*10);
-  acc+=dt;if(acc>=1){acc-=1;tickGhost();tickTwk();tickSide();tickACraft();tickSurv();tickExp();tickSites();tickQuests();tickBand();tickKids();tickPets();tickFinale();tickRegionStory();tickRegionHidden();tickTownEvents();tickDuty();tickAuto();tickAutoExp();tickAch();tickFeat();tickClaim();tickBeats();tickBatt();tickProfile();if(S.overT>0)S.overT--;if(S.hintT>0)S.hintT--;if(S.droneLv||S.overT>0){const i=frontierNearest();if(i>=0){damage(i,S.overT>0?Math.max(droneDmg(),tapPow())*4:droneDmg(),false);const[x,y]=tileC(i,14);burst(x,y,'#9fc6d2',4);}}}
+  acc+=dt;if(acc>=1){acc-=1;tickGhost();tickTwk();tickSide();tickACraft();tickSeason();tickSurv();tickExp();tickSites();tickQuests();tickBand();tickKids();tickPets();tickFinale();tickRegionStory();tickRegionHidden();tickTownEvents();tickDuty();tickAuto();tickAutoExp();tickAch();tickFeat();tickClaim();tickBeats();tickBatt();tickProfile();if(S.overT>0)S.overT--;if(S.hintT>0)S.hintT--;if(S.droneLv||S.overT>0){const i=frontierNearest();if(i>=0){damage(i,S.overT>0?Math.max(droneDmg(),tapPow())*4:droneDmg(),false);const[x,y]=tileC(i,14);burst(x,y,'#9fc6d2',4);}}}
   if(camTw){camTw.t+=dt;const p=camTw.t/camTw.dur,e=p<.35?p/.35:p>.7?1-(p-.7)/.3:1,s=e*e*(3-2*e);cam.z=camTw.back+(camTw.to-camTw.back)*s;if(p>=1){cam.z=camTw.back;camTw=null;}}
   if(aim>=0&&ptrs.size===0&&now-lastBtn<1500){const s=aimScreen(aim);if(s.x<70||s.x>cw-70||s.y<90||s.y>ch-160){const[wx,wy]=tileC(aim,12);cam.x+=(wx-cam.x)*.06;cam.y+=(wy-cam.y)*.06;}}
   for(const[k,v]of anims){const n=v+dt/1.2;if(n>=1)anims.delete(k);else{anims.set(k,n);if(Math.random()<.3){const[x,y]=tileC(k,4);parts.push({x:x+(Math.random()-.5)*40,y,vx:(Math.random()-.5)*.6,vy:-.4,life:.8,max:.8,smoke:1});}}}
