@@ -1137,6 +1137,10 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 @keyframes rot{0%,30%{transform:rotate(90deg)}60%,100%{transform:rotate(0deg)}}
 
 .d,.cb .d,.page p,.rl p,.tt.note small,.row small,.sline span{text-wrap:pretty}
+
+.btns.bx{gap:5px!important}
+.btns.bx .buy{min-height:34px!important;padding:4px 10px!important;white-space:nowrap}
+.btns.bx .buy.cmax small{font-size:11px;font-weight:600;opacity:.8;margin-left:2px}
 </style>
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
@@ -2175,8 +2179,8 @@ function upShelter(){if(S.lv>=5)return;const u=SHUP[S.lv-1],c=scaleCost(u.cost,c
   const R=S.lv+1;for(let y=CY-R;y<=CY+R;y++)for(let x=CX-R;x<=CX+R;x++){const i=y*W+x;if(x>=0&&y>=0&&x<W&&y<H&&!S.rev[i])reveal(i);}
   recalc();levelUp(S.lv);renderSheet();peekSheet(C0);save();}
 function upWalls(){if(S.walls>=3)return;const c=scaleCost(WALLS[S.walls].cost,costMult());if(S.lv<2||!pay(c))return;S.half=false;S.walls++;recalc();toast(`${jo(WALLS[S.walls-1].n,'을','를')} 둘렀어요`);renderSheet();peekSheet(C0);save();}
-function craft(k,times){const r=RECIPES[k];if(!wbL()||recipeLock(r))return;let n=0;for(let q=0;q<times;q++){if(!pay(r.inp()))break;n++;const extra=Math.random()<(D.E.craft||0)?1:0;give({[r.out]:(r.n||1)+extra});}
-  if(n)sfx('get');else toast('재료가 모자라요');renderSheet();save();}
+function craft(k,times){const r=RECIPES[k];if(!wbL()||recipeLock(r))return;let n=0,made=0;for(let q=0;q<times;q++){if(!pay(r.inp()))break;n++;const extra=Math.random()<(D.E.craft||0)?1:0;const got=give({[r.out]:(r.n||1)+extra});made+=got[r.out]||0;}
+  if(n){sfx('get');if(n>1)toast(`${MN[r.out].n} ${fmt(made)}개를 만들었어요`);}else toast('재료가 모자라요');renderSheet();save();}
 function buyUp(k){const u=UPG[k],c=u.cost();if(S[u.k]>=u.max||wbL()<u.wb()||!pay(c))return;S[u.k]++;renderSheet();save();}
 function reset(){if(confirmKey!=='reset'){confirmKey='reset';renderSheet();return;}confirmKey=null;fresh();aim=-1;closeRing();recalc();centerCam();closeSheet();misKey=null;renderMission();save();toast('새 땅에서 다시 시작해요');}
 function levelUp(lv){sfx('chime');$('stLv').textContent='Lv.'+lv;$('stNm').textContent=LVNAME[lv-1];
@@ -2245,7 +2249,7 @@ function renderShelter(){const L=S.lv;$('shTitle').textContent=`Lv.${L} ${LVNAME
   }else if(shTab==='craft'){
   h+='<div class="sec">작업대 가공</div>';
   if(!wbL())h+=emptyHtml(`<span class="th"><img src="${modThumb(1,0)}" alt=""></span>`,'작업대가 아직 없어요','작업대를 세우면 고철로 철판을, 천으로 밧줄을 만들 수 있어요');
-  else RECIPES.forEach((r,k)=>{const inp=r.inp(),lk=recipeLock(r);if(lk&&r.lv&&S.lv<r.lv-1)return;h+=card('r'+k,`<span class="th ico mat">${micon(r.out,28)}</span>`,`${r.nm||MN[r.out].n}<small>${r.nm?MN[r.out].n+' ':''}보유 ${S.m[r.out]||0}</small>`,r.d||'',lk?'':costHtml(inp)+`<span class="arrow">→ ${r.n||1}개</span>`,lk?lockBadge(lk):`<div class="btns bx">${btnCost('craft',k+':1','×1',inp)}${btnCost('craft',k+':5','×5',scaleCost(inp,5))}</div>`);});
+  else RECIPES.forEach((r,k)=>{const inp=r.inp(),lk=recipeLock(r);if(lk&&r.lv&&S.lv<r.lv-1)return;h+=card('r'+k,`<span class="th ico mat">${micon(r.out,28)}</span>`,`${r.nm||MN[r.out].n}<small>${r.nm?MN[r.out].n+' ':''}보유 ${S.m[r.out]||0}</small>`,r.d||'',lk?'':costHtml(inp)+`<span class="arrow">→ ${r.n||1}개</span>`,lk?lockBadge(lk):`<div class="btns bx">${btnCost('craft',k+':1','×1',inp)}${btnCost('craft',k+':10','×10',scaleCost(inp,10))}${craftMaxBtn(k)}</div>`);});
   h+=feastHtml();
   h+='<div class="sec">탐사 장비</div>';
   for(const k in UPG){const u=UPG[k],lv=S[u.k],mx=lv>=u.max,c=u.cost(),need=u.wb();
@@ -4721,6 +4725,12 @@ function dropNotes(re){for(let k=NQ.length-1;k>=0;k--)if(re.test(NQ[k].h))NQ.spl
 // small phones: the open sheet may use everything below the header (the mission card hides while it's open)
 function setHdr(){const h=document.querySelector('header'),st=$('stage');if(!h||!st)return;const v=Math.max(0,Math.round(h.getBoundingClientRect().bottom-$('app').getBoundingClientRect().top));$('app').style.setProperty('--hdr',v+'px');}
 {const o1=openSheet;openSheet=function(){const r=o1.apply(this,arguments);requestAnimationFrame(setHdr);return r;};window.addEventListener('resize',setHdr);setTimeout(setHdr,300);}
+// crafting: how many can be made right now (materials and storage room), capped per press
+function craftMax(k){const r=RECIPES[k];if(!r||!wbL()||recipeLock(r))return 0;const inp=r.inp();let n=999;
+  for(const m in inp){if(inp[m]>0)n=Math.min(n,Math.floor((S.m[m]||0)/inp[m]));}
+  if(!MN[r.out].tier){const room=Math.max(0,D.cap-(S.m[r.out]||0));n=Math.min(n,Math.floor(room/(r.n||1)));}
+  return Math.max(0,n);}
+function craftMaxBtn(k){const n=craftMax(k),ok=n>=2;return`<button class="buy cmax${ok?'':' off'}" data-act="craft" data-arg="${k}:${n}" ${ok?'':'disabled'}>최대 <small>×${fmt(n)}</small></button>`;}
 
 // ---------- loop ----------
 let last=performance.now(),acc=0,uiT=0,saveT=0;
