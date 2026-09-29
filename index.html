@@ -4773,6 +4773,9 @@ $('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="ac
   if(S.acraft[k]){const r=RECIPES[k];toast(`${MN[r.out].n} 자동 가공을 켰어요 · 다음 건설에 쓸 재료는 남겨 둬요`);}renderSheet();save();},true);
 // while a craft button is held, the list doesn't redraw under the finger
 {const r0=renderSheet;renderSheet=function(){if(CH)return;return r0.apply(this,arguments);};}
+// people on the map must be people you have: starting over (or any load) leaves no walkers behind
+function tickGhost(){for(const id in WALK)if(!S.sv[id])delete WALK[id];if(CHAT&&(!S.sv[CHAT.a]||!S.sv[CHAT.b]))CHAT=null;const nk=(S.kids||[]).length;if(KW.length>nk)KW.length=nk;}
+{const r0=reset;reset=function(){const o=r0.apply(this,arguments);if(!Object.keys(S.sv).length){WALK={};CHAT=null;KW=[];}return o;};}
 
 // ---------- loop ----------
 let last=performance.now(),acc=0,uiT=0,saveT=0;
@@ -4791,7 +4794,7 @@ function frontierNearest(){let best=-1,bd=1e9;for(let i=0;i<N;i++)if(isFrontier(
 function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;
   tickProd(dt);tickBuff(dt);tickClock(dt);tickDefense(dt);tickLife(dt);tickKidWalk(dt);tickEvents(dt);tickSkills(dt);
   idle+=dt;if(fever>0){fever=Math.max(0,fever-dt);}else if(idle>.7&&combo>0)combo=Math.max(0,combo-dt*10);
-  acc+=dt;if(acc>=1){acc-=1;tickTwk();tickSide();tickACraft();tickSurv();tickExp();tickSites();tickQuests();tickBand();tickKids();tickPets();tickFinale();tickRegionStory();tickRegionHidden();tickTownEvents();tickDuty();tickAuto();tickAutoExp();tickAch();tickFeat();tickClaim();tickBeats();tickBatt();tickProfile();if(S.overT>0)S.overT--;if(S.hintT>0)S.hintT--;if(S.droneLv||S.overT>0){const i=frontierNearest();if(i>=0){damage(i,S.overT>0?Math.max(droneDmg(),tapPow())*4:droneDmg(),false);const[x,y]=tileC(i,14);burst(x,y,'#9fc6d2',4);}}}
+  acc+=dt;if(acc>=1){acc-=1;tickGhost();tickTwk();tickSide();tickACraft();tickSurv();tickExp();tickSites();tickQuests();tickBand();tickKids();tickPets();tickFinale();tickRegionStory();tickRegionHidden();tickTownEvents();tickDuty();tickAuto();tickAutoExp();tickAch();tickFeat();tickClaim();tickBeats();tickBatt();tickProfile();if(S.overT>0)S.overT--;if(S.hintT>0)S.hintT--;if(S.droneLv||S.overT>0){const i=frontierNearest();if(i>=0){damage(i,S.overT>0?Math.max(droneDmg(),tapPow())*4:droneDmg(),false);const[x,y]=tileC(i,14);burst(x,y,'#9fc6d2',4);}}}
   if(camTw){camTw.t+=dt;const p=camTw.t/camTw.dur,e=p<.35?p/.35:p>.7?1-(p-.7)/.3:1,s=e*e*(3-2*e);cam.z=camTw.back+(camTw.to-camTw.back)*s;if(p>=1){cam.z=camTw.back;camTw=null;}}
   if(aim>=0&&ptrs.size===0&&now-lastBtn<1500){const s=aimScreen(aim);if(s.x<70||s.x>cw-70||s.y<90||s.y>ch-160){const[wx,wy]=tileC(aim,12);cam.x+=(wx-cam.x)*.06;cam.y+=(wy-cam.y)*.06;}}
   for(const[k,v]of anims){const n=v+dt/1.2;if(n>=1)anims.delete(k);else{anims.set(k,n);if(Math.random()<.3){const[x,y]=tileC(k,4);parts.push({x:x+(Math.random()-.5)*40,y,vx:(Math.random()-.5)*.6,vy:-.4,life:.8,max:.8,smoke:1});}}}
