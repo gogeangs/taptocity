@@ -1,0 +1,33 @@
+{
+ "name": "탭투시티 — 재 속의 등불",
+ "short_name": "탭투시티",
+ "description": "랜턴 하나로 한 칸씩 밝히며 쉘터를 키우는 탭 게임",
+ "lang": "ko",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "portrait",
+ "background_color": "#0d0b08",
+ "theme_color": "#3a2618",
+ "categories": [
+  "games"
+ ],
+ "icons": [
+  {
+   "src": "icons/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icons/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "icons/icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
