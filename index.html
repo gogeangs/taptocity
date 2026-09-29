@@ -1060,10 +1060,6 @@ header{background:linear-gradient(180deg,#312920,#211e1c);padding:10px 12px 0;bo
 
 /* The shelter identity and the next action should read before the small stats. */
 header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(233,166,79,.21),transparent 65%),linear-gradient(180deg,#292a2e,#191b20)}
-.brandline{display:flex;align-items:center;gap:10px;margin:0 2px 11px;color:#fff2d4}
-.brandmark{display:grid;place-items:center;width:31px;height:31px;flex:none;border-radius:9px;background:#e6a94e;color:#322515;font-size:21px;box-shadow:0 0 16px rgba(231,165,74,.28)}
-.brandline strong{display:block;font:700 18px/1.1 var(--serif);letter-spacing:-.04em}.brandline small{display:block;margin-top:3px;color:#bdafa0;font:10px/1 var(--body);letter-spacing:.04em}
-.brandstatus{margin-left:auto;align-self:flex-start;padding-top:3px;color:#b8a58b;font:700 9px/1.1 var(--body);letter-spacing:.15em}
 .hud{background:transparent;border:0!important;box-shadow:none;border-radius:0!important;padding:0!important;gap:8px!important}
 .town{gap:8px!important;align-items:stretch!important}.town .mats{gap:5px!important;align-items:stretch}
 .mc{background:linear-gradient(155deg,rgba(255,246,223,.1),rgba(255,242,213,.035));border:1px solid rgba(246,215,163,.14);border-radius:10px;min-height:42px;justify-content:center;gap:3px;padding:3px 1px!important}
@@ -1085,12 +1081,24 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 .tabs{left:114px;min-height:75px;padding:6px 5px;align-items:stretch;background:rgba(22,25,30,.96);border-color:rgba(235,190,117,.35);border-radius:17px}
 .tab{justify-content:center;color:#c9c2b4;font-size:11px;min-height:60px}.tab svg{width:25px;height:25px}.tab.on{background:linear-gradient(180deg,#f1bd65,#d88e3e);color:#28221e;box-shadow:0 2px 10px rgba(233,170,70,.28)}
 .page,.sh-body{color:#332a22}.sh-head{background:linear-gradient(180deg,#fff4d9,#f3e7ca)}
-@media(max-width:380px){header{padding:9px 9px 0}.brandline{margin-bottom:8px}.brandline strong{font-size:16px}.brandstatus{font-size:8px}.town{gap:4px!important}.town .mats{gap:3px!important}.mc{min-height:38px}.mc .top{font-size:13px!important}.mc i{font-size:8px!important}#pfBtn,#setBtn{width:35px!important;height:46px!important}.tape .m{font-size:13px!important}#lamp{left:8px;width:87px}.tabs{left:104px;right:7px}.tab{font-size:10px}}
+@media(max-width:380px){header{padding:9px 9px 0}.town{gap:4px!important}.town .mats{gap:3px!important}.mc{min-height:38px}.mc .top{font-size:13px!important}.mc i{font-size:8px!important}#pfBtn,#setBtn{width:35px!important;height:46px!important}.tape .m{font-size:13px!important}#lamp{left:8px;width:87px}.tabs{left:104px;right:7px}.tab{font-size:10px}}
+
+
+/* sheets end above the taller tab bar; the lantern stays put below them */
+#sheet{bottom:calc(96px + env(safe-area-inset-bottom,0px))!important;max-height:calc(100% - 140px)!important;border-radius:24px!important}
+#stage:has(#sheet.open) #lamp,#stage:has(#sheet.open) #lampTxt{opacity:1;pointer-events:auto}
+/* pop-ups dim the whole screen, header included */
+#modal{position:fixed!important;inset:0!important;z-index:60!important}
+/* the mission card is calm paper; it turns amber only when the reward is ready */
+.tape{background:linear-gradient(180deg,#fbf2de,#f0e1bf)!important;border:1px solid rgba(169,77,53,.4)!important;box-shadow:0 6px 18px rgba(0,0,0,.38)!important}
+.tape.done{background:linear-gradient(115deg,#f4bd65,#f2d493 55%,#e9c380)!important;border-color:#ffdda2!important}
+/* dots stay visible on the active (amber) tab */
+.tab.on .dot{background:#fff6e2!important;box-shadow:0 0 0 2px #c9772f!important}
+@media(max-width:360px){.tab .cnt{display:none}.tab{font-size:11px!important}.mc .top svg,.mc .top .mi{display:none!important}.mc .top{font-size:13.5px!important}}
 </style>
 
 <div id="app">
   <header>
-    <div class="brandline"><span class="brandmark" aria-hidden="true">✦</span><div><strong>탭투시티</strong><small>재 속의 등불</small></div><span class="brandstatus">생존 기록</span></div>
     <div class="hud">
       <div class="town"><button id="pfBtn" class="lamp" aria-label="내 프로필"></button><button class="mats" id="mats" aria-label="자재 전체 보기" aria-expanded="false"></button><button id="setBtn" aria-label="설정"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
       <div class="lvrow"><b id="lv">Lv.1 텐트</b><div class="inkbar"><i id="bar"></i></div><span id="barL"></span><small id="pop" hidden>생존자 0</small></div>
@@ -1798,7 +1806,7 @@ function focusTarget(){const m=mission();if(!modal.hidden)return null;
   if(st.hl){const h=document.querySelector(st.hl);if(h&&h.offsetParent)return{hl:h};if(sheetTab==='shelter'){const want=st.hl.includes('craft')?'craft':'build',sg=document.querySelector(`[data-act="seg"][data-arg="${want}"]`);if(sg&&!sg.classList.contains('on'))return{hl:sg};}}
   if(sheetTab||ringTile>=0)return null;
   const f=st.focus,el=id=>({el:$(id),t:''});
-  if(f==='lamp')return{el:$('lamp'),t:'두드리기'};if(f==='fExp')return{el:$('fExp'),t:'원정'};if(f==='radio')return{el:$('radio'),t:'라디오'};if(f==='fSurv')return{el:$('fSurv'),t:'생존자'};if(f==='clock')return isNight()?null:{el:$('clock'),t:'밤을 기다려요'};
+  if(f==='lamp')return{el:$('lamp'),t:'여기를 눌러요'};if(f==='fExp')return{el:$('fExp'),t:'원정'};if(f==='radio')return{el:$('radio'),t:'라디오'};if(f==='fSurv')return{el:$('fSurv'),t:'생존자'};if(f==='clock')return isNight()?null:{el:$('clock'),t:'밤을 기다려요'};
   if(f==='ev'){const b=$('evBtn');return b.hidden?null:{el:b,t:'부탁'};}
   if(f==='skills'){const b=document.querySelector('#skills .sk[data-id]');return b?{el:b,t:'스킬'}:null;}
   const near=(ok)=>{let best=-1,bd=1e9;for(let i=0;i<N;i++)if(ok(i)){const d=dist(i);if(d<bd){bd=d;best=i;}}return best;};
@@ -4658,7 +4666,7 @@ function hud(){renderMats();renderClock();renderDefBar();tickDusk();canvasLabel(
   $('lv').textContent=`Lv.${S.lv} ${LVNAME[S.lv-1]}`;
   $('pop').textContent=`생존자 ${bedsUsed()}/${bedsMax()} · 희망 ${D.hope}`;{const bp=$('buffP');if(bp){const on=!!(S.buff&&S.buff.t>0);bp.hidden=!on;if(on)bp.textContent=`✦ ${S.buff.label} ${Math.ceil(S.buff.t)}초`;}}
   let f=1;if(S.lv<5){const u=SHUP[S.lv-1],c=scaleCost(u.cost,costMult());const parts=Object.entries(c).map(([k,v])=>Math.min(1,(S.m[k]||0)/v));parts.push(Math.min(1,modCount()/u.need));f=parts.reduce((a,v)=>a+v,0)/parts.length;}$('bar').style.width=(f*100)+'%';{const bl=$('barL');if(bl){const t=S.lv<5?`${LVNAME[S.lv]}까지 ${Math.floor(f*100)}%`:'불빛의 도시 완성';if(bl.textContent!==t)bl.textContent=t;}}
-  $('sLbl').textContent=`생존자 ${Object.keys(S.sv).length}`;$('skills').classList.toggle('can',Object.keys(S.sv).length>S.party.length);if(!$('matsAll').hidden)renderMatsAll();$('exDot').hidden=!Object.values(S.exp).some(x=>Date.now()>=x.end);renderSkills();if(sheetTab==='exp')updExpBars();$('svDot').hidden=!svNew;
+  $('sLbl').innerHTML=`생존자<span class="cnt"> ${Object.keys(S.sv).length}</span>`;$('skills').classList.toggle('can',Object.keys(S.sv).length>S.party.length);if(!$('matsAll').hidden)renderMatsAll();$('exDot').hidden=!Object.values(S.exp).some(x=>Date.now()>=x.end);renderSkills();if(sheetTab==='exp')updExpBars();$('svDot').hidden=!svNew;
   $('rdDot').hidden=!((S.m.batt||0)>=5);
   $('upDot').hidden=!(S.lv<5&&modCount()>=SHUP[S.lv-1].need&&canPay(scaleCost(SHUP[S.lv-1].cost,costMult())))&&!(freeSlot()>=0&&MOD_ORDER.some(id=>!hasMod(id)&&S.lv>=MODS[id].req&&canPay(modCost(id,0))));
   if(sheetTab==='shelter'){const now=JSON.stringify(S.m);if(now!==hud.lastM){hud.lastM=now;renderSheet();}}
