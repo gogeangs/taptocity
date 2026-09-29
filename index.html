@@ -3487,11 +3487,11 @@ function tickAutoExp(now){if(!S.autoExp||!autoExpOpen())return;if(!now&&++autoEx
 // Each move adds '등불의 기억' (+10% production, +10% tap power) and the next town has its own rules.
 const REGIONS={
  desert:{n:'메마른 사막 도시',d:'물이 없어요 · 식량 생산 ×0.7 · 연료가 1.5배 잘 나와요 · 맑은 날이 잦아요',prod:{food:.7},scav:{fuel:1.5},wx:{normal:.3,clear:.4,acid:0,cold:.1,wind:.2},
-  talk:[[ME,'모래바람 너머로 녹슨 급유탑이 늘어선 도시가 보였다. 물은 한 방울도 없다.'],[G,'대신 연료는 넘쳐요. 불은 꺼지지 않겠네요.']]},
+  talk:[[ME,'모래바람 너머로 녹슨 급유탑이 늘어선 도시가 보였다. 물은 한 방울도 없다.'],[G,'대신 연료는 넘치네. 불은 안 꺼지겠어.']]},
  factory:{n:'녹슨 공단 지대',d:'대형 재폭풍이 두 밤마다 와요 · 고철·부품 수확 ×1.4',scav:{scrap:1.4,parts:1.4},big:2,
-  talk:[[ME,'굴뚝이 숲처럼 서 있는 공단. 재가 가장 짙게 쌓인 곳이다.'],[G,'쓸 만한 부품은 많은데… 밤이 무섭겠어요. 방벽부터 세워요.']]},
+  talk:[[ME,'굴뚝이 숲처럼 서 있는 공단. 재가 가장 짙게 쌓인 곳이다.'],[G,'쓸 만한 부품은 많은데… 밤이 무섭겠어. 방벽부터 세우자고.']]},
  snow:{n:'눈 덮인 산골 마을',d:'한파가 자주 와요 · 목재 수확 ×1.5 · 연료를 아껴 써요',scav:{wood:1.5},wx:{normal:.3,clear:.15,acid:.05,cold:.4,wind:.1},
-  talk:[[ME,'재 위에 눈이 내려 온 세상이 잿빛 눈밭이다. 숲이 남아 있다.'],[G,'땔감 걱정은 없겠어요. 대신 추위가 문제예요.']]}};
+  talk:[[ME,'재 위에 눈이 내려 온 세상이 잿빛 눈밭이다. 숲이 남아 있다.'],[G,'땔감 걱정은 없겠네. 대신 추위가 문제야.']]}};
 const RORDER=['desert','factory','snow'];
 const REG=()=>S.region&&REGIONS[S.region];
 const regScav=k=>{const r=REG();let v=r&&r.scav&&r.scav[k]||1;const pk=S.rq&&S.rq.pick;if(pk==='keep'&&k==='fuel')v*=1.3;if(pk==='fix'&&(k==='parts'||k==='wire'))v*=1.3;return v;};
@@ -3618,7 +3618,7 @@ function quietToast(m){const i=QUIET.findIndex(r=>r.test(m));if(i<0)return false
 function effParty(){const used=new Set(S.party),out=[];for(const id of S.party){if(id!=null&&busy(id)){const sub=Object.keys(S.sv).map(Number).filter(j=>!used.has(j)&&!busy(j)).sort((a,b)=>gradeOf(b)-gradeOf(a))[0];if(sub!=null){used.add(sub);out.push({id:sub,sub:id});continue;}}out.push({id,sub:null});}return out;}
 // ---- progress beats on the long climbs to Lv.4 / Lv.5
 const BEAT_GOALS=['요새로 키우기','불빛의 도시 완성하기','컨테이너 쉘터로 키우기'];
-const BEAT_LINES=[[G,'벽 한쪽이 벌써 올라갔어요. 조금만 더요.'],[G,'오늘 모은 걸로 기둥을 세웠어요. 모양이 나와요.'],[ME,'쉘터에 새 기둥이 하나 더 섰다. 사람들이 올려다보며 웃었다.'],[G,'이제 반쯤 왔어요. 밤에 불빛이 멀리서도 보일 거예요.'],[ME,'망치 소리가 밤늦게까지 이어졌다. 아무도 피곤하다고 하지 않았다.'],[G,'거의 다 됐어요! 마지막 자재만 모으면 돼요.']];
+const BEAT_LINES=[[G,'벽 한쪽이 벌써 올라갔어. 조금만 더 하자고.'],[G,'오늘 모은 걸로 기둥을 세웠지. 모양이 나온다.'],[ME,'쉘터에 새 기둥이 하나 더 섰다. 사람들이 올려다보며 웃었다.'],[G,'이제 반쯤 왔어. 밤엔 불빛이 멀리서도 보일 거야.'],[ME,'망치 소리가 밤늦게까지 이어졌다. 아무도 피곤하다고 하지 않았다.'],[G,'거의 다 됐어! 마지막 자재만 모으면 돼.']];
 function lvProgress(){if(S.lv>=5)return 1;const u=SHUP[S.lv-1],c=scaleCost(u.cost,costMult());const parts=Object.entries(c).map(([k,v])=>Math.min(1,(S.m[k]||0)/v));parts.push(Math.min(1,modCount()/u.need));return parts.reduce((a,v)=>a+v,0)/parts.length;}
 function tickBeats(){const m=mission();if(!m.step||m.done||!BEAT_GOALS.includes(m.txt))return;S.beats=S.beats||{};const k=m.txt,n=S.beats[k]||0,f=lvProgress(),th=[.3,.55,.8];
   if(n<th.length&&f>=th[n]){S.beats[k]=n+1;const got=give({...scaleCost({scrap:12,wood:12,food:10},lvScale()),batt:1}),[w,t]=BEAT_LINES[(BEAT_GOALS.indexOf(k)*2+n)%BEAT_LINES.length],sp=speaker(w);
@@ -4317,7 +4317,7 @@ function openConf(){if(S.conf!=null||!S.sv[9])return;confShown=true;const s=SURV
     <button class="alt" data-act="confb"><b>지켜본다</b><small>“당장 믿긴 어려워요. 행동으로 보여 줘요.”</small></button></div></div>`,true);}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="confa"],[data-act="confb"]');if(!b)return;e.stopPropagation();const a=b.dataset.act==='confa';
   S.conf=a?'a':'b';if(S.sv[9]){if(a){S.sv[9].xp+=150;S.hopeB=(S.hopeB||0)+3;}else setBuff({k:'all',m:1.15,t:600,label:'재혁의 속죄'});}recalc();save();closeModal();
-  setTimeout(()=>openTalk(a?[[9,'…고마워요. 이번엔 제대로 해낼게요.'],[G,'대신 약속해요. 다시는 혼자 숨기지 않기로.']]:[[9,'알겠어요. 말보다 손으로 갚을게요.'],[ME,'그날부터 재혁은 누구보다 먼저 일어나 발전기를 돌렸다. (10분간 모든 생산 +15%)']],{}),250);},true);
+  setTimeout(()=>openTalk(a?[[9,'…고마워요. 이번엔 제대로 해낼게요.'],[G,'대신 약속하게. 다시는 혼자 숨기지 않기로.']]:[[9,'알겠어요. 말보다 손으로 갚을게요.'],[ME,'그날부터 재혁은 누구보다 먼저 일어나 발전기를 돌렸다. (10분간 모든 생산 +15%)']],{}),250);},true);
 
 // ---------- 등불 탑 ----------
 const heartCount=()=>(BONDS.filter(b=>b.ids.every(j=>S.sv[j])).length)+Object.values(S.sv).filter(r=>r.q&&r.q.done).length+Object.keys(S.pets||{}).filter(k=>petLv(k)>=3).length+(S.kids||[]).filter(k=>k.g>=1).length;
@@ -4438,32 +4438,32 @@ function npcSpeaker(k){const P=NPC[k]||NPC.desert;return{av:`<svg viewBox="0 0 4
 const D_='npc:desert',F_='npc:factory',W_='npc:snow';
 const REG_STORY={
  desert:[
-  {i:[[ME,'모래 먼지 속에 녹슨 급유탑이 줄지어 서 있다. 품에 안은 불씨 상자가 아직 따뜻하다.'],[G,'우선 우리 자리부터 밝혀요. 신호를 보낸 사람이 어딘가 있을 거예요.']],o:[[D_,'정말 왔구먼! 불빛 보고 뛰어나왔소. 내가 라디오로 부른 급유탑지기 두식이오.']]},
+  {i:[[ME,'모래 먼지 속에 녹슨 급유탑이 줄지어 서 있다. 품에 안은 불씨 상자가 아직 따뜻하다.'],[G,'우선 우리 자리부터 밝히자고. 신호 보낸 사람이 어딘가 있을 거야.']],o:[[D_,'정말 왔구먼! 불빛 보고 뛰어나왔소. 내가 라디오로 부른 급유탑지기 두식이오.']]},
   {i:[[D_,'여긴 물이 귀해. 대신 기름은 넘친다오. 불이 꺼질 걱정은 없을 거요.']],o:[[ME,'두 번째 판잣집. 처음보다 손이 훨씬 빨랐다.']]},
   {i:[[D_,'마을 사람들이 급유탑 밑 지하 탱크에 숨어 있소. 연료를 모아 불을 밝혀 주면 나올 거요.']],o:[[D_,'…저기 봐요. 사람들이 하나둘 올라오고 있어.']]},
-  {i:[[G,'여기 사람들까지 지키려면 더 튼튼해야 해요.']],o:[[D_,'이 모래 도시에 벽이 선 건 처음이오.']]},
+  {i:[[G,'여기 사람들까지 지키려면 더 튼튼해야 해.']],o:[[D_,'이 모래 도시에 벽이 선 건 처음이오.']]},
   {i:[[13,'여기서도 탑을 세울 수 있어요. 가져온 불씨면 충분해요.']],o:[[ME,'사막 한가운데, 두 번째 불빛의 도시가 섰다.']]},
   {i:[[D_,'우리 손주들한테 별을 보여 줄 수 있을까?']],o:[[D_,'…고맙소. 이 불은 이제 우리가 지키겠소.'],[ME,'불씨는 나눈다고 줄지 않는다. 늘어날 뿐이다.']]}],
  factory:[
-  {i:[[ME,'굴뚝이 숲처럼 서 있는 공단. 재가 가장 짙게 쌓인 곳이다.'],[G,'밤이 무서운 곳이래요. 서둘러 불빛부터 켜요.']],o:[[F_,'…빛? 진짜 빛이네. 공단 반장 마석이다. 여기선 다들 밤마다 싸우지.']]},
+  {i:[[ME,'굴뚝이 숲처럼 서 있는 공단. 재가 가장 짙게 쌓인 곳이다.'],[G,'밤이 무서운 곳이라더군. 서둘러 불빛부터 켜자.']],o:[[F_,'…빛? 진짜 빛이네. 공단 반장 마석이다. 여기선 다들 밤마다 싸우지.']]},
   {i:[[F_,'재 괴물이 이틀에 한 번씩 몰려온다. 벽부터 세워.']],o:[[ME,'철판이 넘치는 동네라, 판잣집 절반이 쇳덩이다.']]},
   {i:[[F_,'우리도 같이 싸우겠다. 대신 버텨 내는 걸 보여 줘.']],o:[[F_,'두 번을 버텼어. …좋아, 우리도 너희를 믿는다.']]},
   {i:[[9,'이 공장들… 등불 계획 부품을 만들던 곳이에요.']],o:[[F_,'그 계획 때문에 재가 왔다는 건 들었다. 그래도 불을 들고 온 건 너희다.']]},
-  {i:[[G,'여기 사람들 손재주면 탑도 금방 올라가겠어요.']],o:[[ME,'굴뚝 사이로 탑의 뼈대가 올라간다.']]},
+  {i:[[G,'여기 사람들 손재주면 탑도 금방 올라가겠구먼.']],o:[[ME,'굴뚝 사이로 탑의 뼈대가 올라간다.']]},
   {i:[[F_,'쇠 두드리는 소리가 오늘은 하나도 안 무섭군.']],o:[[F_,'빛이다. 우리 공단에도.'],[ME,'이 불은 마석이 지키기로 했다.']]}],
  snow:[
-  {i:[[ME,'재 위에 눈이 내려 온 세상이 잿빛 눈밭이다.'],[G,'추위가 제일 무서워요. 불부터 켜요.']],o:[[W_,'어머, 불빛이다! 얘들아! …산골 분교 선생 은솔이에요.']]},
+  {i:[[ME,'재 위에 눈이 내려 온 세상이 잿빛 눈밭이다.'],[G,'추위가 제일 무서워. 불부터 켜자.']],o:[[W_,'어머, 불빛이다! 얘들아! …산골 분교 선생 은솔이에요.']]},
   {i:[[W_,'분교 아이들 열둘이 교실 난로 하나로 버티고 있어요.']],o:[[ME,'판잣집 난로 옆에 작은 신발들이 줄지어 놓였다.']]},
   {i:[[W_,'장작만 있으면 겨울을 날 수 있어요. 숲은 아직 남아 있어요.']],o:[[W_,'장작 타는 냄새, 아이들 웃음소리. 정말 오랜만이에요.']]},
   {i:[[3,'선생님, 저도 여기 애들이랑 같이 공부해도 돼요?']],o:[[W_,'교실이 조금 좁아졌네요. 좋은 쪽으로요.']]},
-  {i:[[G,'눈 속에서도 빛나는 도시를 만들어 봐요.']],o:[[ME,'눈밭 위로 불빛이 번져, 마을 전체가 금빛이 됐다.']]},
+  {i:[[G,'눈 속에서도 빛나는 도시를 만들어 보자고.']],o:[[ME,'눈밭 위로 불빛이 번져, 마을 전체가 금빛이 됐다.']]},
   {i:[[W_,'아이들한테 별 이야기를 해 줬어요. 진짜로 보고 싶대요.']],o:[[W_,'보여요! 별이 보여요!'],[ME,'세 번째 불씨. 이제 불빛이 불빛을 부른다.']]}]};
 // later trips go round again; keep the words general so nobody greets us twice
 const RS_AGAIN=[
   {i:[[ME,'또 다른 동네. 불씨 상자를 내려놓고 랜턴을 든다.']],o:[[ME,'구름 사이로 우리를 지켜보던 눈들이 하나둘 다가온다.']]},
-  {i:[[G,'몇 번째 판잣집인지 이제 세지도 않아요.']],o:[[ME,'익숙한 망치 소리. 그래도 매번 새롭다.']]},
-  {i:[[G,'이 동네 사람들이 제일 필요한 걸 먼저 모아요.']],o:[[ME,'숨어 있던 사람들이 불빛 아래로 모였다.']]},
-  {i:[[G,'지킬 사람이 늘었어요. 벽을 올려요.']],o:[[ME,'요새가 섰다. 이 동네에도.']]},
+  {i:[[G,'몇 번째 판잣집인지 이제 세지도 않아.']],o:[[ME,'익숙한 망치 소리. 그래도 매번 새롭다.']]},
+  {i:[[G,'이 동네 사람들한테 제일 필요한 것부터 모으자.']],o:[[ME,'숨어 있던 사람들이 불빛 아래로 모였다.']]},
+  {i:[[G,'지킬 사람이 늘었어. 벽을 올리자고.']],o:[[ME,'요새가 섰다. 이 동네에도.']]},
   {i:[[13,'불씨는 여전히 따뜻해요. 탑을 세울 준비가 됐어요.']],o:[[ME,'또 하나의 불빛의 도시.']]},
   {i:[[ME,'탑 아래 모인 얼굴들이 낯설지 않다.']],o:[[ME,'불이 켜졌다. 이 동네의 불은 이제 이 동네 사람들이 지킨다.']]}];
 const regArc=()=>(S.gen||0)<=3&&REG_STORY[S.region]?REG_STORY[S.region]:RS_AGAIN;
