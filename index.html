@@ -1124,8 +1124,18 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 .ughint{margin-top:8px;text-align:center;font:600 12.5px var(--body);color:#b0452a}
 .page [data-act="duty"]{min-height:36px}
 #ringLabel.rl{width:min(300px,calc(100% - 140px))!important}
+
+@media (max-height:760px){#sheet{max-height:calc(100% - var(--hdr,150px) - 10px)!important}#app:has(#sheet.open) .tape{display:none!important}}
+#rotHint{display:none}
+@media (orientation:landscape) and (max-height:520px){
+ #rotHint{display:flex;position:fixed;inset:0;z-index:999;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#15171b;color:#f5e4c1;text-align:center;padding:24px;font:600 16px/1.5 var(--body)}
+ #rotHint svg{width:64px;height:64px;animation:rot 2.2s ease-in-out infinite}
+ #rotHint small{font:400 13px var(--body);color:#bdae94}
+}
+@keyframes rot{0%,30%{transform:rotate(90deg)}60%,100%{transform:rotate(0deg)}}
 </style>
 
+<div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <div id="app">
   <header>
     <div class="hud">
@@ -4704,6 +4714,9 @@ function dropNotes(re){for(let k=NQ.length-1;k>=0;k--)if(re.test(NQ[k].h))NQ.spl
 {const e0=endDefense;endDefense=function(){dropNotes(/몰려와요|쳐들어와요|쳐들어온다/);return e0.apply(this,arguments);};}
 // the level-up stamp gets the stage to itself
 {const l0=levelUp;levelUp=function(){if(ringTile>=0)closeRing();return l0.apply(this,arguments);};}
+// small phones: the open sheet may use everything below the header (the mission card hides while it's open)
+function setHdr(){const h=document.querySelector('header'),st=$('stage');if(!h||!st)return;const v=Math.max(0,Math.round(h.getBoundingClientRect().bottom-$('app').getBoundingClientRect().top));$('app').style.setProperty('--hdr',v+'px');}
+{const o1=openSheet;openSheet=function(){const r=o1.apply(this,arguments);requestAnimationFrame(setHdr);return r;};window.addEventListener('resize',setHdr);setTimeout(setHdr,300);}
 
 // ---------- loop ----------
 let last=performance.now(),acc=0,uiT=0,saveT=0;
