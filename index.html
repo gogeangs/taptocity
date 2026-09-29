@@ -23,14 +23,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
 <style>
+@font-face{font-family:"TTC Sans";src:url(fonts/ttc-sans.woff2) format("woff2");font-weight:100 900;font-display:swap;ascent-override:102.5%;descent-override:27.5%;line-gap-override:0%}
+
 :root{
   color-scheme:dark;
   --ink:#0d0b08; --leather:#3a2618;
   --paper:#efe3c4; --sepia:#3b2a1a; --sepia-2:#6e5638;
   --amber:#f3a53a; --glow:#ffcf7a; --rust:#b0452a;
   --serif:"Gowun Batang",Georgia,serif;
-  --body:"Noto Sans KR",system-ui,-apple-system,sans-serif;
-  --pen:"Noto Sans KR",system-ui,-apple-system,sans-serif;
+  --body:"TTC Sans","Noto Sans KR",system-ui,-apple-system,sans-serif;
+  --pen:"TTC Sans","Noto Sans KR",system-ui,-apple-system,sans-serif;
 }
 html,body{height:100%}
 [hidden]{display:none!important}
@@ -1133,6 +1135,8 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
  #rotHint small{font:400 13px var(--body);color:#bdae94}
 }
 @keyframes rot{0%,30%{transform:rotate(90deg)}60%,100%{transform:rotate(0deg)}}
+
+.d,.cb .d,.page p,.rl p,.tt.note small,.row small,.sline span{text-wrap:pretty}
 </style>
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
@@ -2072,7 +2076,7 @@ function draw(time){perfTick(time);
   for(const g of glows){const a=g.life/g.max,r=g.r*(1.3-a*.3),gr=ctx.createRadialGradient(g.x,g.y,0,g.x,g.y,r);gr.addColorStop(0,`rgba(255,190,90,${.35*a})`);gr.addColorStop(1,'rgba(255,150,50,0)');ctx.fillStyle=gr;ctx.fillRect(g.x-r,g.y-r,r*2,r*2);}
   ctx.restore();
   for(const p of parts){const a=Math.max(0,p.life/p.max);
-    if(p.text){ctx.font=`700 ${Math.round((p.size||22)*.78)}px "Noto Sans KR",system-ui,sans-serif`;ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle=`rgba(13,11,8,${a*.8})`;ctx.strokeText(p.text,p.x,p.y);ctx.fillStyle=p.col.replace('A',a);ctx.fillText(p.text,p.x,p.y);}
+    if(p.text){ctx.font=`700 ${Math.round((p.size||22)*.78)}px "TTC Sans","Noto Sans KR",system-ui,sans-serif`;ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle=`rgba(13,11,8,${a*.8})`;ctx.strokeText(p.text,p.x,p.y);ctx.fillStyle=p.col.replace('A',a);ctx.fillText(p.text,p.x,p.y);}
     else if(p.ring){const rr=p.r0+(p.r1-p.r0)*(1-Math.pow(a,2));ctx.strokeStyle=`rgba(${p.c},${a*.9})`;ctx.lineWidth=2.5*a+.5;ctx.beginPath();ctx.ellipse(p.x,p.y,rr,rr*.55,0,0,7);ctx.stroke();}
     else if(p.puff){ctx.fillStyle=`rgba(58,50,42,${a*.6})`;ctx.beginPath();ctx.arc(p.x,p.y,p.r*(1.7-a*.7),0,7);ctx.fill();}
     else if(p.smoke){ctx.fillStyle=`rgba(150,145,140,${a*.35})`;ctx.beginPath();ctx.arc(p.x,p.y,3+(1-a)*8,0,7);ctx.fill();}
@@ -3235,7 +3239,7 @@ function drawLife(time){const list=Object.entries(WALK).sort((a,b)=>a[1].y-b[1].
   if(isNight()&&list.length){const[cx,cy]=tileC(C0);glowPts.push([cx,cy+14,70,'255,170,80',.25]);}
   for(const[id,w]of list)drawPerson(SURV[id],w.x,w.y,time,w.mv,w.face);}
 function drawBubbles(time){bubbleHit=[];if(!CHAT)return;const C=CHAT,k=Math.min(C.lines.length-1,Math.floor(C.t/(C.dur/C.lines.length))),[who,txt]=C.lines[k],w=WALK[who];if(!w)return;
-  const s=toScreen(w.x,w.y-26),z=1;ctx.save();ctx.setTransform(dpr,0,0,dpr,0,0);ctx.font='600 12px "Noto Sans KR",system-ui,sans-serif';
+  const s=toScreen(w.x,w.y-26),z=1;ctx.save();ctx.setTransform(dpr,0,0,dpr,0,0);ctx.font='600 12px "TTC Sans","Noto Sans KR",system-ui,sans-serif';
   const t=txt.length>18?txt.slice(0,17)+'…':txt,tw=ctx.measureText(t).width+(C.solo?16:30),bx=Math.max(8,Math.min(cw-tw-8,s.x-tw/2)),by=s.y-26;
   ctx.fillStyle='rgba(239,227,196,.96)';ctx.strokeStyle='#3b2a1a';ctx.lineWidth=1.4;ctx.beginPath();ctx.roundRect?ctx.roundRect(bx,by,tw,22,9):ctx.rect(bx,by,tw,22);ctx.fill();ctx.stroke();
   ctx.beginPath();ctx.moveTo(s.x-4,by+22);ctx.lineTo(s.x,by+28);ctx.lineTo(s.x+4,by+22);ctx.fill();
