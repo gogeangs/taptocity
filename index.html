@@ -1184,6 +1184,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 @keyframes mlamp{0%,4%,8%,16%,24%{background:#ffd46a;box-shadow:0 0 12px #ffd46a}2%,6%,10%,18%,26%,100%{background:#5a3a20;box-shadow:inset 0 0 4px rgba(0,0,0,.5)}}
 .btns .watch,.page .watch{display:block;width:100%;margin:8px 0}
 .segs:has(.seg:nth-child(5)){grid-template-columns:repeat(3,1fr)}
+.svrow.mem .fc{filter:grayscale(1) sepia(.35);opacity:.85}.svrow.mem small.ep{display:block;white-space:normal;font-style:italic;margin-top:2px}
 .entry.odd{padding:8px 12px}.entry.odd .n{font-size:12.5px;color:var(--sepia-2)}.entry.odd .p{font-size:13.5px;white-space:normal;overflow:visible;text-overflow:clip;display:block;-webkit-line-clamp:unset}
 .segs:has(.seg:nth-child(7)){grid-template-columns:repeat(4,1fr)}
 </style>
@@ -1676,7 +1677,7 @@ function sprinkle(){const r=mulberry(S.seed+5);S.lm={};S.trace={};
   SURV.forEach((s0,k)=>{if(s0.hidden)return;for(let g=0;g<500;g++){const i=(r()*N)|0,d=dist(i);if(d<3||d>15||!free(i))continue;S.ter[i]=T.TRACE;S.trace[i]=k;break;}});
   LMS.forEach((l,k)=>{for(let g=0;g<900;g++){const a=r()*Math.PI*2,rad=l.d+Math.floor(g/150)*.6,x=Math.round(CX+Math.cos(a)*rad),y=Math.round(CY+Math.sin(a)*rad);if(x<1||y<1||x>=W-1||y>=H-1)continue;const i=y*W+x;if(!free(i))continue;S.ter[i]=T.LM;S.lm[i]={k,ok:false};break;}});}
 function placeSignals(){S.sig={};const r=mulberry(S.seed+77);
-  SURV.forEach(s=>{if(s.src!=='sig'||S.sv[s.id])return;for(let t=0;t<900;t++){const a=r()*Math.PI*2,rad=s.d+Math.floor(t/150)*.8,x=Math.round(CX+Math.cos(a)*rad),y=Math.round(CY+Math.sin(a)*rad);
+  SURV.forEach(s=>{if(s.src!=='sig'||S.sv[s.id]||isDead(s.id))return;for(let t=0;t<900;t++){const a=r()*Math.PI*2,rad=s.d+Math.floor(t/150)*.8,x=Math.round(CX+Math.cos(a)*rad),y=Math.round(CY+Math.sin(a)*rad);
     if(x<1||y<1||x>=W-1||y>=H-1)continue;const i=y*W+x;if(S.rev[i]||isSlot(i)||S.ter[i]===T.WATER||S.ter[i]===T.DIARY||S.ter[i]===T.SILO||S.sig[i]!==undefined)continue;S.sig[i]=s.id;break;}});}
 function load(snap){try{const raw=snap||JSON.parse(localStorage.getItem(KEY)||'null');if(raw&&raw.ter&&raw.ter.length===N&&raw.m){S=raw;if(!S.camp)S.camp={};try{fixDiaries();}catch(e){}if(!S.inv)S.inv=[];if(!S.ug)S.ug={best:0,runs:0,bestWith:{}};return true;}}catch(e){}fresh();return false;}
 function save(){S.t=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
@@ -1686,6 +1687,7 @@ const D={E:{},hope:0,cap:60,prod:{},eat:0,green:new Array(N).fill(0),modAt:new M
 const nb4=i=>{const x=i%W,y=i/W|0,o=[];if(x>0)o.push(i-1);if(x<W-1)o.push(i+1);if(y>0)o.push(i-W);if(y<H-1)o.push(i+W);return o};
 const isFrontier=i=>!S.rev[i]&&nb4(i).some(j=>S.rev[j]);
 const revCount=()=>S.rev.reduce((a,v)=>a+v,0);
+const isDead=id=>!!(S&&S.dead&&S.dead.some(d=>d.id===id));
 const busy=id=>{const r=S.sv[id];return!!(r&&(r.away||r.hurt>0));};
 const modAtTile=i=>{const k=D.modAt.get(i);return k==null?null:S.mods[k];};
 const hasMod=(id,l=0)=>Object.values(S.mods).some(m=>m.id===id&&m.l>=l);
@@ -1883,7 +1885,7 @@ function speaker(w){if(typeof w==='string'&&w.startsWith('npc:'))return npcSpeak
   if((id===ME||id==null)&&S.pf&&S.pf.set)return{av:pfSVG(),name:pfName(),sub:S.title&&S.title!=='등불지기'?`등불지기 · ${S.title}`:'등불지기'};
   if(id===ME||id==null)return{av:'<svg viewBox="0 0 40 40" width="40" height="40" fill="none" stroke="#efe3c4" stroke-width="2" stroke-linejoin="round"><path d="M14 11h12M16 11V8h8v3M13 13h14l-2 17H15z"/><path d="M16 30h8v3h-8z" fill="#efe3c4"/><path d="M20 17c3 3 3 6 0 8-3-2-3-5 0-8z" fill="#ffcf7a" stroke="none"/></svg>',name:'나',sub:'등불지기',me:true};
   const s=SURV[id];return{av:portrait(s),name:s.name,sub:s.job};}
-function openTalk(lines,opt={}){lines=lines.filter(l=>!l[2]||l[2]());if(!lines.length)return;talk={lines,k:0,opt};renderTalk(true);}
+function openTalk(lines,opt={}){lines=lines.filter(l=>(!l[2]||l[2]())&&!(typeof l[0]==='number'&&isDead(l[0])));if(!lines.length)return;talk={lines,k:0,opt};renderTalk(true);}
 function renderTalk(first){const{lines,k,opt}=talk,[w,t]=lines[k],sp=speaker(w),last=k===lines.length-1;
   const card=opt.card&&k===0?`<div class="chcard"><div class="tag">${opt.card[0]}</div><h3>${opt.card[1]}</h3></div>`:'';
   const rw=last&&opt.reward&&Object.keys(opt.reward).length?`<div class="fx">보상 · ${lootTxt(opt.reward)}</div>`:'';
@@ -2325,7 +2327,7 @@ function renderSheet(){if(!sheetTab)return;let h='';const st=$('shBody').scrollT
       h+=`<div class="pick">${portrait(s)}<div><div class="t">${s.name} ${gradeTag(id)}<span class="badge ${ok?'':'m'}">${ok?`딱 맞음 ×${(2+pw(id).w).toFixed(2)}`:'×1.3'}</span></div><div class="d">${s.job} · ${where}<br>${s.trait(effOf(id))}</div></div>${here?`<button class="buy ghost" data-act="unasg" data-arg="${i}">해제</button>`:`<button class="buy" data-act="asg" data-arg="${id}">배치</button>`}</div>`;}}
   else if(sheetTab==='surv'){svNew=false;const n=Object.keys(S.sv).length;$('shTitle').textContent=`생존자 수첩 ${n}/${SURV.length}`;
     const canUp=id=>{const nx=nextStep(id);return!!nx&&trustLv(S.sv[id].xp)>=nx.need&&canPay(nx.cost);};
-    const met=SURV.filter(s=>S.sv[s.id]),unmet=SURV.filter(s=>!S.sv[s.id]);
+    const met=SURV.filter(s=>S.sv[s.id]),unmet=SURV.filter(s=>!S.sv[s.id]&&!isDead(s.id));
     const FL={all:[()=>true,'전체'],work:[s=>S.sv[s.id].at>=0&&!busy(s.id),'일하는 중'],rest:[s=>S.sv[s.id].at<0&&!busy(s.id),'쉬는 사람'],up:[s=>canUp(s.id),'강화 가능']};
     h=survTools();
     h+=`<div class="fchips">${Object.entries(FL).map(([k,[f,nm]])=>`<button class="fchip${survF===k?' on':''}" data-act="sf" data-arg="${k}">${nm} <i>${met.filter(f).length}</i></button>`).join('')}</div>`;
@@ -2335,6 +2337,7 @@ function renderSheet(){if(!sheetTab)return;let h='';const st=$('shBody').scrollT
     else if(!list.length)h+='<div class="emptyline"><span>여기에 해당하는 생존자가 없어요</span></div>';
     h+=list.map(s=>{const r=S.sv[s.id],st=r.away?'원정 중':r.hurt>0?'다쳐서 쉬는 중':r.at>=0?`${workName(r.at)}에서 일하는 중`:restLabel(s.id);
       return`<button class="svrow g${gradeOf(s.id)}${s.hidden?' hid':''}" data-act="sv" data-arg="${s.id}"><span class="fc">${portrait(s)}</span><span class="mid"><b>${s.name} ${gradeTag(s.id)}</b><small>${s.job} · ${st}</small>${trustDots(trustLv(r.xp))}</span><span class="eqs">${SLOTK.map(sl=>{const u=(r.eq||{})[sl];const it=u!=null&&itemAt(u);return it?gicon(it.t,14):`<span class="gi e">${SLOTSVG[sl]}</span>`;}).join('')}</span>${canUp(s.id)?'<i class="updot" title="강화 가능"></i>':''}</button>`;}).join('');
+    h+=memorialHtml();
     if(unmet.length)h+=`<div class="sec">아직 만나지 못한 사람 ${unmet.length}</div>`+unmet.map(s=>`<div class="svrow locked${s.hidden?' hid':''}"><span class="fc">${portrait(s,true)}</span><span class="mid"><b>${gradeTag(s.id,1)} ${s.hidden?s.alias:'???'}</b><small>${s.hidden?(s.hint?s.hint:s.src==='deep'?'지하 15층, 발전소 지하 가장 깊은 곳에 있대요':'주파수 탐색에서만 만나요'):Object.values(S.camp).some(c=>c.id===s.id)?'구조를 기다리고 있어요 · 지도의 ! ? 표시를 눌러요':s.src==='sig'?'구름 속 구조 신호를 따라가 보세요':`희망 ${Math.ceil(s.hope*(1-D.visitDisc))} 이상이면 찾아와요${s.need!=null&&!S.sv[s.need]?' · 먼저 만나야 할 사람이 있어요':''}`}</small></span></div>`).join('');
     if((S.kids||[]).length)h+=`<div class="sec">아이들</div>`+(S.kids||[]).map(k=>`<div class="svrow kid"><span class="fc kidf" style="background:${k.look.top}"><i style="background:${k.look.skin}"></i></span><span class="mid"><b>${k.n}</b><small>${k.g<1?`자라는 중 ${Math.round(k.g*100)}% · 희망 +2`:k.job?`${KJOB[k.job].n} · ${KJOB[k.job].d}`:'무엇을 배울지 정해 주세요'}</small><div class="pbar"><i style="width:${k.g*100}%"></i></div></span></div>`).join('')+('');
     h+=`<div class="sec">등급</div><div class="grl">${GR.slice(0,4).map((G,g)=>`<span><span class="gr g${g}">${G.n}</span> 효과 ×${G.m}</span>`).join('')}<span>등급마다 1~5성 · 등급은 처음보다 최대 2단계까지</span></div>`;
@@ -2776,7 +2779,7 @@ function doRescue(i){const c=S.camp[i];if(!c||c.hp>0||bedsMax()-bedsUsed()<=0)re
   const[cx,cy]=tileC(i,14);burst(cx,cy,'#ffd98a',30);glow(cx,cy,160);setTimeout(()=>rescue(c.id,c.visit?'visit':'sig'),250);}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="camp"]');if(!b)return;e.stopPropagation();if(!b.disabled)doRescue(+b.dataset.arg);},true);
 function visitorTile(){let best=-1,bd=1e9;for(let i=0;i<N;i++){if(!S.rev[i]||isSlot(i)||S.ter[i]===T.WATER||S.ter[i]===T.LM||S.site[i]&&S.site[i].c>0||S.camp[i])continue;const d=Math.abs(dist(i)-3.2)+speck[i]*.3;if(d<bd){bd=d;best=i;}}return best;}
-function tickVisitors(){for(const s of SURV){if(s.src!=='visit'||S.sv[s.id]||Object.values(S.camp).some(c=>c.id===s.id))continue;
+function tickVisitors(){for(const s of SURV){if(s.src!=='visit'||S.sv[s.id]||isDead(s.id)||Object.values(S.camp).some(c=>c.id===s.id))continue;
   if(D.hope>=s.hope*(1-D.visitDisc)&&(s.need==null||S.sv[s.need])){const t=visitorTile();if(t>=0)makeCamp(t,s.id,true);break;}}}
 function drawCamp(i,time){const c=S.camp[i],s=SURV[c.id];
   if(c.hp>0){const f=c.hp/c.max;[[.14,.2,.4,.34,10],[.5,.14,.8,.3,14],[.18,.6,.38,.82,8],[.62,.58,.86,.8,12]].forEach(([a,b,cc,d,h],k)=>{if(f>k*.25)box(a,b,cc,d,0,h*(.6+f*.4),k%2?'#7c766c':'#8a8479');});}
@@ -2800,7 +2803,7 @@ const HIDDEN=[11,12],PITY=20,HRATE=.05;
 const GTABLE=[['hidden',HRATE,'히든 생존자'],['gear',.10,'장비 (희귀 65% · 영웅 30% · 전설 5%)'],['rare',.22,'희귀 자재'],['voice',.08,'먼 곳의 목소리'],['memo',.05,'생존자의 사연'],['junk',.50,'잡음 속 물자']];
 const VOICES=['“…여기는 남쪽 저수지… 물은 있는데 불이 없어요…”','“…3시 14분… 모든 시계가… 멈췄…”','“…오늘의 날씨… 재… 내일은… 맑…”','“…누구든 이 방송을 듣는다면, 불을 켜 주세요…”','“…발전소 제어실… 아직 전원이… 살아…”','“…사랑해, 꼭 다시 만나…”'];
 const batt=()=>S.m.batt||0;
-function rollOne(){S.gp=(S.gp||0)+1;S.gTotal=(S.gTotal||0)+1;const left=HIDDEN.filter(id=>!S.sv[id]&&!Object.values(S.camp).some(c=>c.id===id));
+function rollOne(){S.gp=(S.gp||0)+1;S.gTotal=(S.gTotal||0)+1;const left=HIDDEN.filter(id=>!S.sv[id]&&!isDead(id)&&!Object.values(S.camp).some(c=>c.id===id));
   let r=Math.random(),k='junk';if(left.length&&(S.gp>=PITY||r<HRATE))k='hidden';else{r=Math.random();k=r<10/95?'gear':r<32/95?'rare':r<40/95?'voice':r<45/95?'memo':'junk';}
   if(k==='hidden'){S.gp=0;const id=left[(Math.random()*left.length)|0];return{k,id};}
   if(k==='gear'){const q=Math.random(),it=dropGear(q<.05?3:q<.35?2:1);return{k,t:it.t};}
@@ -3570,7 +3573,7 @@ function openMigrate(){const nr=REGIONS[nextRegion()],g=(S.gen||0)+1,n=Object.ke
     <div class="sec2" style="margin-top:6px">새로 얻는 것</div><div class="d"><b>등불의 기억 ${g}단계</b> · 모든 생산 +${g*10}% · 두드리는 힘 +${g*10}% (영구)<br>함께 온 사람 수만큼 침상 추가</div>
     <div class="btns" style="margin-top:14px"><button class="alt">조금 더 머물기</button><button data-act="migok">떠나기</button></div></div>`,true);}
 function migrate(){const old=S,g=(old.gen||0)+1,region=nextRegion();
-  const keep={pf:old.pf,playT:old.playT,pfAsk:old.pfAsk,qc:old.qc,sv:old.sv,party:old.party,inv:old.inv,iu:old.iu,relics:old.relics,ach:old.ach,title:old.title,kids:old.kids,dog:old.dog,endSeen:old.endSeen,conf:old.conf,hook:old.hook,tlog:old.tlog,rumor:old.rumor,sqN:old.sqN,cases:old.cases,odd:old.odd,egg:old.egg,crow:old.crow,pets:old.pets,petOn:old.petOn,stat:old.stat,gTotal:old.gTotal,gp:old.gp,heard:old.heard,found:old.found,mi:old.mi,storyI:old.storyI,
+  const keep={pf:old.pf,playT:old.playT,pfAsk:old.pfAsk,qc:old.qc,sv:old.sv,party:old.party,inv:old.inv,iu:old.iu,relics:old.relics,ach:old.ach,title:old.title,kids:old.kids,dog:old.dog,endSeen:old.endSeen,conf:old.conf,hook:old.hook,tlog:old.tlog,rumor:old.rumor,sqN:old.sqN,cases:old.cases,odd:old.odd,dead:old.dead,egg:old.egg,crow:old.crow,pets:old.pets,petOn:old.petOn,stat:old.stat,gTotal:old.gTotal,gp:old.gp,heard:old.heard,found:old.found,mi:old.mi,storyI:old.storyI,
     ug:old.ug||{best:0,runs:0,bestWith:{}},defWins:old.defWins,defs:old.defs,nights:old.nights,evDone:old.evDone,skillUses:old.skillUses,expDone:old.expDone,fevers:old.fevers,gUses:old.gUses};
   const carryM={batt:old.m.batt||0};for(const k of['plate','rope','wire','med'])carryM[k]=Math.floor((old.m[k]||0)/2);
   closeModal();closeSheet();closeRing();DEFN=null;UG=null;WALK={};CHAT=null;KW=[];
@@ -4566,7 +4569,7 @@ P_ART.push(
   +pF('M36 62C32 36 46 24 60 24C76 24 88 36 84 62C82 50 78 44 72 42C66 46 56 46 50 42C44 44 40 50 38 62Z','#6b3a2a')
   +pF('M34 48C36 30 48 22 60 22C72 22 84 30 86 48C80 40 72 36 60 36C48 36 40 40 34 48Z','#d9483b',1.3)+pLn('M40 40Q60 30 80 40',1.2,'#f1ece0',.8));
 // the signal appears in its own town once two town goals are done
-function tickRegionHidden(){if(!S.gen||!S.region||(S.rmi||0)<2)return;const s=SURV.find(x=>x.src==='region'&&x.region===S.region);if(!s||S.sv[s.id]||S.rhs===S.gen)return;
+function tickRegionHidden(){if(!S.gen||!S.region||(S.rmi||0)<2)return;const s=SURV.find(x=>x.src==='region'&&x.region===S.region);if(!s||S.sv[s.id]||isDead(s.id)||S.rhs===S.gen)return;
   if(Object.values(S.sig||{}).includes(s.id)||Object.values(S.camp||{}).some(c=>c.id===s.id))return;
   const c=[];for(let i=0;i<N;i++){if(S.rev[i]||isSlot(i)||S.ter[i]===T.WATER||S.ter[i]===T.DIARY||S.ter[i]===T.SILO||S.ter[i]===T.LM||S.sig[i]!==undefined)continue;const d=dist(i);if(d>=8&&d<=12)c.push(i);}
   if(!c.length)return;const i=c[(Math.random()*c.length)|0];S.sig[i]=s.id;S.rhs=S.gen;save();
@@ -5052,6 +5055,30 @@ function catchShadow(){if(!SHD||SHD.got)return;SHD.got=true;SHD.t=Math.max(SHD.t
 function renderOdd(){const L=S.odd||[];if(!L.length)return'';const nm={shadow:'그림자',radio:'라디오',light:'불빛',missing:'사라진 물건',steps:'발자국',absent:'빈자리',knock:'노크'};
   return`<div class="sec">수상한 밤 <small>${L.length}번</small></div><div class="d" style="margin-bottom:6px">모두 새벽 3시 무렵이었어요.</div>`+L.map(o=>`<div class="entry odd"><div class="n">${o.n}번째 밤 · ${nm[o.k]||''}</div><div class="p">${o.t}</div></div>`).join('');}
 {const o=renderCases;renderCases=function(){const h=o.apply(this,arguments);const i=h.indexOf('<button class="entry cspage"')>=0?h.indexOf('<button class="entry cspage"'):h.indexOf('<div class="entry locked cspage"');return i>=0?h.slice(0,i)+renderOdd()+h.slice(i):h+renderOdd();};}
+
+// ================= 잃은 사람들: in every new town, one survivor does not come back =================
+// Only on a big ash storm or a raid night, from the town's second goal on. Chance grows with each such night, so it always happens once.
+// Never: 만수 (the guide), 하늘·진 (children), 은호 (Season 1's hidden villain), 재혁·미영 (Season 2 leads), 태식 before his watch is seen.
+const LAST={1:'“배달 완료.” 늘 하던 그 말이 마지막 말이 됐다.',2:'마지막까지 다친 사람 손을 잡고 있었다. 그 손은 깨끗이 씻겨 있었다.',4:'씨앗 봉투 하나가 남았다. 봉투엔 우리 쉘터 이름이 적혀 있었다.',
+ 5:'국밥 솥에 불씨가 아직 남아 있었다. 누군가 그 불로 아침을 지었다.',6:'줄자 하나가 남았다. 방벽 치수가 빼곡히 적혀 있었다.',7:'마지막 그림은 쉘터였다. 한 사람도 빠짐없이 그려져 있었다. 자기만 빼고.',
+ 8:'“다음 사람이 있으니까.” 그는 그렇게 말하고 불 속으로 먼저 들어갔다.',11:'“내일은 맑겠습니다.” 그녀의 마지막 예보는 틀리지 않았다.',12:'멈춘 시계 하나가 남았다. 이번엔 아무도 태엽을 감지 않았다.',
+ 14:'약초 씨앗이 가방 가득 남았다. 봄이 오면 심기로 했다.',15:'용접 불꽃이 꺼졌다. 그가 고쳐 둔 문은 아직 튼튼하다.',16:'“구조는 끝나지 않아요.” 그녀가 묶어 둔 매듭은 끝내 풀리지 않았다.'};
+const SAFE=()=>[0,3,9,10,13,JIN].concat(S.egg&&S.egg.c?[]:[12]);
+function deathPick(){const safe=SAFE(),ids=Object.keys(S.sv).map(Number).filter(id=>!safe.includes(id)&&!S.sv[id].away);if(Object.keys(S.sv).length<5||!ids.length)return null;
+  const w=id=>(S.sv[id].hurt>0?2:1)*(S.sv[id].at>=0?1.5:1);let tot=0;for(const id of ids)tot+=w(id);let r=Math.random()*tot;for(const id of ids){r-=w(id);if(r<=0)return id;}return ids[0];}
+function killSurv(id){const r=S.sv[id];if(!r)return;if(r.at>=0)delete S.asg[r.at];delete S.sv[id];S.party=S.party.filter(x=>x!==id);delete S.cd[id];delete WALK[id];if(CHAT&&(CHAT.a===id||CHAT.b===id))CHAT=null;
+  S.dead=S.dead||[];S.dead.push({id,g:S.gen||0,town:REG()?REG().n:'',at:Date.now()});recalc();renderSkills(true);save();}
+{const o=endDefense;endDefense=function(win){const D2=DEFN,r=o.apply(this,arguments);
+  if(S.gen&&D2&&(S.rmi||0)>=1&&!(S.deathG||{})[S.gen]){S.deathTry=S.deathTry||{};const n=S.deathTry[S.gen]=(S.deathTry[S.gen]||0)+1,p=win===false?.8:[.3,.5,.75][n-1]||1;
+    if(Math.random()<p){const id=deathPick();if(id!=null){(S.deathG=S.deathG||{})[S.gen]=1;const nm=SURV[id].name,raid=D2.raid,where=S.sv[id].at>=0?workName(S.sv[id].at):'방벽';killSurv(id);
+      tlog(`${jo(nm,'을','를')} 잃었다.`);
+      setTimeout(()=>openTalk([raid?[ME,`${jo(raid,'이','가')} 물러간 새벽, ${jo(nm,'이','가')} 쓰러져 있었다.`]:[ME,`폭풍이 걷힌 새벽, ${jo(nm,'이','가')} 보이지 않았다.`],
+        raid?[G,`아이들 숨겨 둔 창고 문을 혼자 막고 있었대. 끝까지 비키지 않았다고.`]:[G,`…${where} 옆에서 찾았어. 끝까지 불을 지키고 있었더라고.`],
+        [ME,LAST[id]||'그가 앉던 자리는 한동안 비워 두었다.'],[ME,`우리는 ${nm}의 이름을 탑 아래 돌에 새겼다. 그리고 다시 불을 켰다.`]],{tag:`${REG()?REG().n+' · ':''}잃은 사람`}),2600);}}}
+  return r;};}
+function memorialHtml(){const L=S.dead||[];if(!L.length)return'';
+  return`<div class="sec">잃은 사람들 ${L.length}</div>`+L.map(d=>{const s=SURV[d.id];return`<div class="svrow locked mem"><span class="fc">${portrait(s)}</span><span class="mid"><b>${s.name}</b><small>${s.job}${d.town?` · ${d.town}에서`:''}</small><small class="ep">${LAST[d.id]||''}</small></span></div>`;}).join('');}
+{const o=rescue;rescue=function(id){if(isDead(id))return;return o.apply(this,arguments);};}
 
 // ---------- loop ----------
 let last=performance.now(),acc=0,uiT=0,saveT=0;
