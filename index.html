@@ -1117,6 +1117,13 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 .svhero .svnav{position:absolute!important;right:0;bottom:0;margin:0!important;gap:4px}
 .svhero .svnav button{width:32px!important;height:32px!important;font-size:17px!important}
 .svhero .svtr{padding-right:76px}
+
+.page .mem{background:#fbf4e4!important;color:var(--sepia)!important;border:1.5px solid rgba(59,42,26,.25)!important;min-height:44px}
+.page .mem.on{background:linear-gradient(180deg,#f4c267,#e0a24a)!important;border-color:#8a5a20!important;color:#2a1d10!important;font-weight:700}
+.page .mem.on::after{content:"✓";margin-left:auto;font-weight:700;color:#5a3510}
+.ughint{margin-top:8px;text-align:center;font:600 12.5px var(--body);color:#b0452a}
+.page [data-act="duty"]{min-height:36px}
+#ringLabel.rl{width:min(300px,calc(100% - 140px))!important}
 </style>
 
 <div id="app">
@@ -2189,8 +2196,8 @@ function placeRing(){if(ringTile<0)return;const[wx,wy]=tileC(ringTile),s=toScree
 // keep the info card clear of the ring buttons: put it wherever there is more room, and shrink it to fit
 function fitRL(){const l=$('ringLabel');if(l.hidden||!ringEl.children.length)return;let t=1e9,b=-1e9;for(const k of ringEl.children){const r=k.getBoundingClientRect();t=Math.min(t,r.top);b=Math.max(b,r.bottom+16);}
   const par=(l.offsetParent||document.body).getBoundingClientRect(),db=par.bottom-parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--rlb')||158);
-  const up=t-(par.top+58)-8,dn=db-8-b,low=dn>up,mh=Math.max(96,Math.floor(low?dn:up));
-  if(l.classList.contains('low')!==low)l.classList.toggle('low',low);const v=mh+'px';if(l.style.maxHeight!==v)l.style.maxHeight=v;
+  let tm=par.top+58;for(const id of ['clock','sq','evBtn']){const e=$(id);if(e&&!e.hidden&&e.offsetParent){const r=e.getBoundingClientRect();if(r.height)tm=Math.max(tm,r.bottom+8);}}const up=t-tm-8,dn=db-8-b,low=dn>up,mh=Math.max(96,Math.floor(low?dn:up));
+  if(l.classList.contains('low')!==low)l.classList.toggle('low',low);const tp=low?'':Math.round(tm-par.top)+'px';if(l.style.top!==tp)l.style.top=tp;const v=mh+'px';if(l.style.maxHeight!==v)l.style.maxHeight=v;
   }
 ringEl.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b||b.classList.contains('lock'))return;const a=b.dataset.act,g=+b.dataset.arg;
   if((a==='up'||a==='lm')&&b.classList.contains('poor')){toast('자재가 조금 모자라요');return;}
@@ -2486,7 +2493,7 @@ const flakes=Array.from({length:70},()=>({x:Math.random(),y:Math.random(),v:.04+
 function drawFlakes(nt){if(reduce)return;ctx.fillStyle=`rgba(170,165,158,${.45*nt})`;for(const f of flakes){f.y+=f.v*.016*6;f.x+=.0015;if(f.y>1){f.y=0;f.x=Math.random();}if(f.x>1)f.x=0;ctx.fillRect(f.x*cw,f.y*ch,f.s,f.s);}}
 function renderClock(){const el=$('clock'),p=phase(),n=isNight(),st=n&&stormOn();el.classList.toggle('night',n);el.classList.toggle('storm',st);
   const left=n?CYCLE-p:DAY-p,mm=Math.floor(left/60),ss=String(Math.floor(left%60)).padStart(2,'0');
-  $('clockTxt').textContent=n?(st?`재폭풍 · 새벽까지 ${mm}:${ss}`:`고요한 밤 · ${mm}:${ss}`):(bigNightNext()?`낮 · 대형 재폭풍 ${mm}:${ss}`:`낮 · 밤까지 ${mm}:${ss}`);if(DEFN)$('clockTxt').textContent='대형 재폭풍 · 쉘터를 지켜요';$('clock').classList.toggle('big',bigNightNext()&&!isNight()||!!DEFN);$('clockTxt').textContent=WX[wxK()].ic+' '+WX[wxK()].n+' · '+$('clockTxt').textContent;}
+  $('clockTxt').textContent=n?(st?`재폭풍 · 새벽까지 ${mm}:${ss}`:`고요한 밤 · ${mm}:${ss}`):(bigNightNext()?`낮 · 대형 재폭풍 ${mm}:${ss}`:`낮 · 밤까지 ${mm}:${ss}`);if(DEFN)$('clockTxt').textContent='대형 재폭풍 · 쉘터를 지켜요';$('clock').classList.toggle('big',bigNightNext()&&!isNight()||!!DEFN);$('clockTxt').textContent=WX[wxK()].ic+' '+(isNight()||DEFN?'':WX[wxK()].n+' · ')+$('clockTxt').textContent;}
 function holdAsh(id){const p=ptrs.get(id);if(!p||p.moved)return;const i=S.ash[p.ash]?p.ash:ashAt(p.x,p.y);if(i<0)return;p.ash=i;hitAsh(i,tapPow()*(fever>0?2:1));p.hold=setTimeout(()=>holdAsh(id),110);}
 
 
@@ -2962,7 +2969,7 @@ function renderPrep(first){const free=Object.keys(S.sv).map(Number).filter(id=>!
     ${(S.ug.ck||[]).length?`<div class="ugstart"><span>시작 층</span>${[1,...(S.ug.ck||[])].map(f=>`<button class="pfo${(ugPrep.start||1)===f?' on':''}" data-act="ugs" data-arg="${f}">${f}층${f>1?` · ${ugTheme(f).n}`:''}</button>`).join('')}</div>`:''}
     <div class="fuelrow"><span>${micon('fuel',16)} 연료 챙기기</span><button class="alt" data-act="ugf" data-arg="-1" ${ugPrep.fuel<=0?'disabled':''}>−</button><b>${ugPrep.fuel}</b><button class="alt" data-act="ugf" data-arg="1" ${ugPrep.fuel>=Math.min(10,S.m.fuel||0)?'disabled':''}>+</button></div>
     <div class="d" style="margin:-4px 0 12px">랜턴 기름 <b>${oil}</b> · 어두운 칸을 한 번 두드릴 때마다 1씩 써요. 연료 1개 = 기름 3</div>
-    <div class="btns"><button class="alt">취소</button><button data-act="ugo" ${t.length?'':'disabled'}>내려가기</button></div></div>`;
+    <div class="btns"><button class="alt">취소</button><button data-act="ugo" ${t.length?'':'disabled'}>내려가기</button></div>${t.length?'':'<div class="ughint">함께 갈 사람을 골라 주세요 (최대 3명)</div>'}</div>`;
   if(first)openModal(h);else{modal.innerHTML=h;}}
 function ugStart(){const t=ugPrep.team.filter(id=>S.sv[id]&&!busy(id));if(!t.length)return;if(ugPrep.fuel&&!pay({fuel:ugPrep.fuel}))return;
   const oil=ugOil0(t,ugPrep.fuel),st=(ugPrep.start&&ugCkOk(ugPrep.start))?ugPrep.start:1;const upk=ugPrep.pet&&S.petOn&&petHere(S.petOn)?S.petOn:null;if(upk)pets()[upk].away='ug';UG={pet:upk,team:t,oil:oil+(st>1?12:0),max:oil+(st>1?12:0),floor:st-1,carry:{},gear:[],hurt:[],found:[],keys:0,msg:st>1?`쉼터에서 다시 출발했다 · ${ugTheme(st).n}`:'랜턴을 들고 계단을 내려갔다.'};S.ug.runs++;ugFloor();sfx('reveal');renderUG();}
@@ -4691,6 +4698,12 @@ function siteAimPick(){const st=mission().step;if(!st||st.focus!=='site'||UG||DE
 {const o0=openSheet;openSheet=function(t){const A=S.ack=S.ack||{};if(t==='shelter')A.up=1;if(t==='radio')A.rdAt=Math.max(5,S.m.batt||0);return o0.apply(this,arguments);};}
 // the effect chip rides inside the clock pill instead of taking its own row
 {const c=$('clock'),b=$('buffP');if(c&&b)c.appendChild(b);}
+// finished warnings leave the queue so the result shows right away
+function dropNotes(re){for(let k=NQ.length-1;k>=0;k--)if(re.test(NQ[k].h))NQ.splice(k,1);
+  if(NCUR&&re.test(NCUR.h)){const d=document.querySelector('#toasts .tt.note[data-h]');if(d&&re.test(d.dataset.h)){d.classList.add('out');}}}
+{const e0=endDefense;endDefense=function(){dropNotes(/몰려와요|쳐들어와요|쳐들어온다/);return e0.apply(this,arguments);};}
+// the level-up stamp gets the stage to itself
+{const l0=levelUp;levelUp=function(){if(ringTile>=0)closeRing();return l0.apply(this,arguments);};}
 
 // ---------- loop ----------
 let last=performance.now(),acc=0,uiT=0,saveT=0;
