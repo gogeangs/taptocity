@@ -1095,6 +1095,28 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 /* dots stay visible on the active (amber) tab */
 .tab.on .dot{background:#fff6e2!important;box-shadow:0 0 0 2px #c9772f!important}
 @media(max-width:360px){.tab .cnt{display:none}.tab{font-size:11px!important}.mc .top svg,.mc .top .mi{display:none!important}.mc .top{font-size:13.5px!important}}
+
+/* notes live near the bottom, above the skill bar, instead of over the top of the map */
+#toasts{top:auto!important;bottom:calc(196px + env(safe-area-inset-bottom,0px))!important;translate:none!important}
+#stage.sqon #toasts,#stage.sqon:has(#evBtn:not([hidden])) #toasts{translate:none!important}
+/* effect chip inside the clock pill */
+#clock .bufp{position:static!important;top:auto!important;left:auto!important;display:inline-block!important;flex:none;margin-left:4px;padding:3px 8px;border:0;border-radius:99px;background:rgba(243,165,58,.22);color:#ffd98a;font:700 11px/1.2 var(--body);box-shadow:none}
+#clock .bufp[hidden]{display:none!important}
+#clock span#clockTxt{min-width:0}
+/* readable minimum sizes */
+.mc i{font-size:11px!important}
+.tape .chap{font-size:11.5px!important}
+.lvrow #barL{font-size:11.5px!important}
+.sqm small{font-size:11.5px}.sqp em{font-size:11px}
+@media(max-width:360px){.mc i{font-size:10px!important}}
+/* 'full' shows as the tile border only */
+.mc.full i::after{content:none!important}
+/* one badge colour everywhere */
+.seg .nw,.stabs .seg .nw{background:var(--amber)!important}
+/* survivor prev/next sit at the corner of the header instead of their own row */
+.svhero .svnav{position:absolute!important;right:0;bottom:0;margin:0!important;gap:4px}
+.svhero .svnav button{width:32px!important;height:32px!important;font-size:17px!important}
+.svhero .svtr{padding-right:76px}
 </style>
 
 <div id="app">
@@ -3546,8 +3568,9 @@ function holdHide(){setTimeout(()=>{if(!ptrs.size&&!lampHold)hcEl.hidden=true;},
 // mission reward: nudge after a while, then auto-claim so the story never stalls
 let misNudged=0;
 function tickClaim(){const m=mission();if(!m.done||!misDoneAt){misNudged=0;return;}const t=(performance.now()-misDoneAt)/1000;
-  if(t>10&&!misNudged){misNudged=1;note({h:'미션 완료!',t:'<small>위쪽 미션 줄의 ‘받기’를 눌러 보상을 받아요</small>',kind:'ach',ms:4500});}
-  if(t>30&&modal.hidden&&!sheetTab&&!DEFN&&!UG&&!ptrs.size&&!lampHold){misDoneAt=0;misNudged=0;note({h:'보상을 자동으로 받았어요',t:'<small>다음부터는 미션 줄의 ‘받기’를 눌러도 돼요</small>',kind:'ach',ms:3500});$('claim').click();}}
+  const auto=S.mi<8&&!S.gen?6:25;
+  if(t>10&&t<auto&&!misNudged){misNudged=1;note({h:'미션 완료!',t:'<small>위쪽 미션 줄의 ‘받기’를 눌러 보상을 받아요</small>',kind:'ach',ms:4500});}
+  if(t>auto&&modal.hidden&&!sheetTab&&!DEFN&&!UG){misDoneAt=0;misNudged=0;note({h:'미션 보상을 챙겨 뒀어요',t:'<small>미션 카드가 주황으로 바뀌면 눌러서 바로 받을 수 있어요</small>',kind:'ach',ms:3500});$('claim').click();}}
 // ---- story order v2: remap saved progress by goal text (skill moved to ch2, expedition to ch6, big storm to ch7)
 const OLD_GOALS=['구름을 두드려 땅 6칸 밝히기','폐허를 뒤져 목재 15개 모으기','작업대 만들기','텃밭 상자 만들기','구조 신호를 따라가 생존자 구하기','생존자를 모듈에 배치하기','작업대에서 철판 5개 만들기','쉘터를 판잣집으로 키우기','고물상 세우기','라디오로 주파수 탐색 한 번 하기','랜턴 피버 한 번 켜기','재폭풍 밤 한 번 버티기','방벽 세우기','생존자의 부탁 들어주기','생존자 스킬 한 번 쓰기','생존자에게 장비 하나 맞춰 주기','첫 원정 보내기','컨테이너 쉘터로 키우기','지하 구역 2층까지 내려가기','랜드마크 하나 복구하기','발전기 가동하기','대형 재폭풍 한 번 막아내기','생존자 5명 모으기','요새로 키우기','무전실 세우기','불빛의 도시 완성하기','목격자의 일기 7편 모두 찾기'];
 const V2_GOALS=["구름을 두드려 땅 6칸 밝히기", "폐허를 뒤져 목재 15개 모으기", "작업대 만들기", "텃밭 상자 만들기", "구조 신호를 따라가 생존자 구하기", "생존자를 모듈에 배치하기", "생존자 스킬 한 번 쓰기", "작업대에서 철판 5개 만들기", "쉘터를 판잣집으로 키우기", "고물상 세우기", "라디오로 주파수 탐색 한 번 하기", "랜턴 피버 한 번 켜기", "재폭풍 밤 한 번 버티기", "방벽 세우기", "생존자의 부탁 들어주기", "생존자에게 장비 하나 맞춰 주기", "컨테이너 쉘터로 키우기", "첫 원정 보내기", "지하 구역 2층까지 내려가기", "랜드마크 하나 복구하기", "발전기 가동하기", "대형 재폭풍 한 번 막아내기", "생존자 5명 모으기", "요새로 키우기", "무전실 세우기", "불빛의 도시 완성하기", "목격자의 일기 7편 모두 찾기"];
@@ -4658,6 +4681,17 @@ function sqGo(){const q=S.sq;if(!q)return;if(sqDone()){claimSq();return;}const g
   if(aim>=0)camFly(aim,22);pingEl($('lamp'));}
 {const d=document.createElement('button');d.id='sq';d.className='sq';d.hidden=true;d.setAttribute('aria-label','생존자 의뢰');$('stage').appendChild(d);d.onclick=e=>{e.stopPropagation();sqGo();};}
 
+// ================= UX pass 3 =================
+// While the goal is "폐허를 뒤져…", the lantern aims at the nearest ruin with loot instead of the clouds.
+function siteAimPick(){const st=mission().step;if(!st||st.focus!=='site'||UG||DEFN)return false;
+  if(aim>=0&&siteLive(aim))return true;let best=-1,bd=1e9;for(const k in S.site){const i=+k;if(!siteLive(i))continue;const d=dist(i);if(d<bd){bd=d;best=i;}}
+  if(best<0)return false;aim=best;if(!onScreen(best))camFly(best,18);return true;}
+{const e0=ensureAim;ensureAim=function(){if(siteAimPick())return true;return e0();};}
+// a dot you've already looked at goes quiet until something new happens
+{const o0=openSheet;openSheet=function(t){const A=S.ack=S.ack||{};if(t==='shelter')A.up=1;if(t==='radio')A.rdAt=Math.max(5,S.m.batt||0);return o0.apply(this,arguments);};}
+// the effect chip rides inside the clock pill instead of taking its own row
+{const c=$('clock'),b=$('buffP');if(c&&b)c.appendChild(b);}
+
 // ---------- loop ----------
 let last=performance.now(),acc=0,uiT=0,saveT=0;
 function renderMats(){const box=$('mats');if(!box.firstChild)box.innerHTML=BASE.map(k=>`<span class="mc" data-k="${k}" title="${MN[k].src}"><span class="top">${micon(k,15)}<b></b></span><i>${MN[k].n}</i></span>`).join('');
@@ -4667,8 +4701,8 @@ function hud(){renderMats();renderClock();renderDefBar();tickDusk();canvasLabel(
   $('pop').textContent=`생존자 ${bedsUsed()}/${bedsMax()} · 희망 ${D.hope}`;{const bp=$('buffP');if(bp){const on=!!(S.buff&&S.buff.t>0);bp.hidden=!on;if(on)bp.textContent=`✦ ${S.buff.label} ${Math.ceil(S.buff.t)}초`;}}
   let f=1;if(S.lv<5){const u=SHUP[S.lv-1],c=scaleCost(u.cost,costMult());const parts=Object.entries(c).map(([k,v])=>Math.min(1,(S.m[k]||0)/v));parts.push(Math.min(1,modCount()/u.need));f=parts.reduce((a,v)=>a+v,0)/parts.length;}$('bar').style.width=(f*100)+'%';{const bl=$('barL');if(bl){const t=S.lv<5?`${LVNAME[S.lv]}까지 ${Math.floor(f*100)}%`:'불빛의 도시 완성';if(bl.textContent!==t)bl.textContent=t;}}
   $('sLbl').innerHTML=`생존자<span class="cnt"> ${Object.keys(S.sv).length}</span>`;$('skills').classList.toggle('can',Object.keys(S.sv).length>S.party.length);if(!$('matsAll').hidden)renderMatsAll();$('exDot').hidden=!Object.values(S.exp).some(x=>Date.now()>=x.end);renderSkills();if(sheetTab==='exp')updExpBars();$('svDot').hidden=!svNew;
-  $('rdDot').hidden=!((S.m.batt||0)>=5);
-  $('upDot').hidden=!(S.lv<5&&modCount()>=SHUP[S.lv-1].need&&canPay(scaleCost(SHUP[S.lv-1].cost,costMult())))&&!(freeSlot()>=0&&MOD_ORDER.some(id=>!hasMod(id)&&S.lv>=MODS[id].req&&canPay(modCost(id,0))));
+  {const bt=S.m.batt||0,A=S.ack=S.ack||{};if(bt<5)A.rdAt=0;$('rdDot').hidden=!(bt>=5&&(!A.rdAt||bt>=A.rdAt+10));}
+  {const c=!!(S.lv<5&&modCount()>=SHUP[S.lv-1].need&&canPay(scaleCost(SHUP[S.lv-1].cost,costMult())))||!!(freeSlot()>=0&&MOD_ORDER.some(id=>!hasMod(id)&&S.lv>=MODS[id].req&&canPay(modCost(id,0)))),A=S.ack=S.ack||{};if(!c)A.up=0;$('upDot').hidden=!c||!!A.up;}
   if(sheetTab==='shelter'){const now=JSON.stringify(S.m);if(now!==hud.lastM){hud.lastM=now;renderSheet();}}
   renderMission();tickStory();tickNav();}
 function frontierNearest(){let best=-1,bd=1e9;for(let i=0;i<N;i++)if(isFrontier(i)){const d=dist(i)+speck[i]*1.5;if(d<bd){bd=d;best=i;}}return best;}

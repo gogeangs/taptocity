@@ -15,7 +15,7 @@ function ui(){const box=$('ttcCloud');if(!box)return;const u=st.user;
     h=`<div class="row setrow"><div><div class="t">${g?'구글 계정에 저장 중':'이 기기로 자동 저장 중'}</div><div class="d">${g?`${em} · 다른 기기에서 같은 계정으로 로그인하면 이어서 할 수 있어요`:'구글 계정을 연결하면 휴대폰을 바꿔도 진행이 이어져요'}${st.last?`<br>마지막 저장 ${when(st.last)}`:''}${st.msg?`<br><b>${st.msg}</b>`:''}</div></div></div>
       <div class="btns" style="gap:8px">${g?`<button class="buy ghost" data-cloud="now">지금 저장</button><button class="buy ghost" data-cloud="out">로그아웃</button>`:`<button class="buy" data-cloud="google">구글 계정 연결</button><button class="buy ghost" data-cloud="now">지금 저장</button>`}</div>`;}
   box.innerHTML=h;}
-function inject(){const t=$('shTitle'),b=$('shBody');if(!t||!b||t.textContent!=='설정'||$('ttcCloud'))return;
+function inject(){if(!st.ok)return;const t=$('shTitle'),b=$('shBody');if(!t||!b||t.textContent!=='설정'||$('ttcCloud'))return;
   const s=document.createElement('div');s.innerHTML='<div class="sec">클라우드 저장</div><div id="ttcCloud"></div>';const first=b.querySelector('.sec');
   if(first)b.insertBefore(s,first);else b.appendChild(s);ui();}
 new MutationObserver(inject).observe(document.documentElement,{childList:true,subtree:true});
