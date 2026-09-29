@@ -939,6 +939,20 @@ html,body{overscroll-behavior:none}
 .sh-body{overflow-x:hidden;overscroll-behavior:contain}
 .svtools,.fchips,.segs{overscroll-behavior-x:contain}
 #sheet,#modal,.page{overscroll-behavior:contain}
+
+.mc[hidden]{display:none!important}
+.bufp{position:absolute;left:12px;top:72px;z-index:2;background:rgba(58,38,24,.9);border:1.5px solid rgba(243,165,58,.55);color:#ffd98a;border-radius:99px;padding:5px 10px;font:600 12px/1 var(--body);white-space:nowrap;pointer-events:none}
+.bufp[hidden]{display:none}
+#stage:has(#sheet.open) #lamp,#stage:has(#sheet.open) #lampTxt,#stage:has(#sheet.open) .zoom,#stage:has(#sheet.open) #skills,#stage:has(#sheet.open) .bufp{opacity:0;pointer-events:none}
+#lamp,#lampTxt,.zoom,#skills{transition:opacity .15s}
+.svtools,.fchips{flex-wrap:wrap;overflow:visible}
+.exp .top b::before{display:none}
+.svrow .updot{width:17px;height:17px;background:#5b8a3a;box-shadow:none;display:grid;place-items:center;animation:none}
+.svrow .updot::after{content:"▲";font:700 8px/1 var(--body);color:#fff}
+.svnav{position:static!important;justify-content:flex-end;margin-top:8px}
+.svnav button{width:36px!important;height:36px!important}
+@media (max-width:360px){.tab span:last-child,.tab #sLbl,.tab #dLbl{font-size:11.5px!important}}
+.store .st2 small{font-size:12px!important}
 </style>
 
 <div id="app">
@@ -960,7 +974,7 @@ html,body{overscroll-behavior:none}
     <div id="toasts" aria-live="polite"></div>
     <div id="placeBar" hidden></div>
     <div id="defBar" hidden></div>
-    <div id="clock" aria-live="polite"><i></i><span id="clockTxt">낮</span></div>
+    <div id="clock" aria-live="polite"><i></i><span id="clockTxt">낮</span></div><div id="buffP" class="bufp" hidden></div>
     <button id="evBtn" hidden></button>
     <div id="ringLabel" class="rl" hidden></div>
     <div id="skills"></div>
@@ -1712,6 +1726,8 @@ function cyl(u,v,r,z0,h,col){const[x,y]=P(u,v,z0),hh=h*ZS;ctx.fillStyle=shade(co
 let glowPts=[];
 function lamp(u,v,h=22){const[x0,y0]=P(u,v,0),[x1,y1]=P(u,v,h);ctx.strokeStyle='#2b2a2a';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();ctx.fillStyle='#ffe3a3';ctx.beginPath();ctx.arc(x1,y1,2,0,7);ctx.fill();glowPts.push([x1,y1,28,'255,200,120',.5]);}
 
+// loot twinkles: only the 3 live sites nearest the middle of the screen, so the map isn't covered in sparkles
+let twk=new Set();function tickTwk(){const c=toWorld(cw/2,ch*.55),m=pickTile(c.x,c.y);const x0=m>=0?m%W:CX,y0=m>=0?(m/W|0):CY,a=[];for(const k in S.site){const i=+k;if(siteLive(i))a.push([Math.hypot(i%W-x0,(i/W|0)-y0),i]);}a.sort((p,q)=>p[0]-q[0]);twk=new Set(a.slice(0,3).map(p=>p[1]));}
 // ---------- shelter, modules, sites ----------
 function campfire(u,v,time){const[x,y]=P(u,v,0);ctx.fillStyle='#6b665f';for(let k=0;k<6;k++){const a=k/6*Math.PI*2;ctx.beginPath();ctx.ellipse(x+Math.cos(a)*6,y+Math.sin(a)*3,2.2,1.5,0,0,7);ctx.fill();}
   ctx.strokeStyle='#5a3a24';ctx.lineWidth=2.2;ctx.beginPath();ctx.moveTo(x-5,y+1);ctx.lineTo(x+5,y-2);ctx.moveTo(x-4,y-2);ctx.lineTo(x+4,y+2);ctx.stroke();
@@ -1795,7 +1811,7 @@ function drawSite(i,t,time){const s=S.site[i],live=s&&s.c>0;
     for(let q=0;q<3;q++){const u=.26+((s1*37+q*.31)%1)*.4,v=.28+((s2*29+q*.43)%1)*.4,h=2.5+((s1*11+q*.7)%1)*4;box(u,v,u+.07+q*.02,v+.06,0,h,['#8f877b','#9a7050','#7a8086'][(q+(s2*3|0))%3]);}
     ctx.strokeStyle='#7f5c3a';ctx.lineWidth=2.4;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(...P(.3+s2*.12,.64,3));ctx.lineTo(...P(.62,.36+s1*.12,8));ctx.stroke();
     if(s1>.5){ctx.strokeStyle='#5a4a3c';ctx.lineWidth=1.1;ctx.beginPath();ctx.moveTo(...P(.44,.5,5));ctx.lineTo(...P(.4,.44,15));ctx.moveTo(...P(.5,.52,5));ctx.lineTo(...P(.52,.46,13));ctx.stroke();}}
-  if(live&&!reduce){const tw=(Math.sin(time/420+i*2.3)+1)/2;if(tw>.7){const a=(tw-.7)/.3,[x,y]=P(.5,.5,18),r=3+a*3;ctx.strokeStyle=`rgba(255,230,170,${a})`;ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(x-r,y);ctx.lineTo(x+r,y);ctx.moveTo(x,y-r);ctx.lineTo(x,y+r);ctx.stroke();}}}
+  if(live&&!reduce&&twk.has(i)){const tw=(Math.sin(time/420+i*2.3)+1)/2;if(tw>.7){const a=(tw-.7)/.3,[x,y]=P(.5,.5,18),r=3+a*3;ctx.strokeStyle=`rgba(255,230,170,${a})`;ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(x-r,y);ctx.lineTo(x+r,y);ctx.moveTo(x,y-r);ctx.lineTo(x,y+r);ctx.stroke();}}}
 function wallSeg(a,b,lv){const h=[11,8,17][lv-1];
   if(lv===1){ctx.strokeStyle='#6d4a2c';ctx.lineWidth=2.6;ctx.lineCap='round';ctx.beginPath();for(let q=0;q<=6;q++){const f=q/6,x=a[0]+(b[0]-a[0])*f,y=a[1]+(b[1]-a[1])*f;ctx.moveTo(x,y);ctx.lineTo(x,y-h-(q%2)*2);}ctx.stroke();
     ctx.strokeStyle='#8a6440';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(a[0],a[1]-h*.55);ctx.lineTo(b[0],b[1]-h*.55);ctx.stroke();return;}
@@ -3332,7 +3348,7 @@ modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="migok"]'
 
 // ---------- UX helpers: NEW badges, hold hint, sheet peek, dusk warning, save codes, guidebook ----------
 const FEAT=[
- {k:'radio',tab:'radio',sheet:'radio',on:()=>batt()>0,msg:'라디오에 건전지를 넣을 수 있어요',h:'주파수 탐색'},
+ {k:'radio',tab:'radio',sheet:'radio',on:()=>batt()>=3&&S.mi>=2,msg:'라디오에 건전지를 넣을 수 있어요',h:'주파수 탐색'},
  {k:'bag',tab:'fSurv',sheet:'surv',on:()=>(S.inv||[]).length>0,msg:'생존자에게 장비를 맞춰 줄 수 있어요',h:'장비'},
  {k:'quest',tab:'fSurv',sheet:'surv',on:()=>Object.values(S.sv).some(r=>r.q),msg:'생존자의 개인 이야기가 열렸어요',h:'개인 이야기'},
  {k:'deco',tab:'fUp',sheet:'shelter',seg:'deco',on:()=>S.lv>=2,msg:'쉘터 화면 ‘꾸미기’ 탭에서 장식을 놓을 수 있어요',h:'쉘터 꾸미기'},
@@ -3410,7 +3426,7 @@ function tickBeats(){const m=mission();if(!m.step||m.done||!BEAT_GOALS.includes(
   if(n<th.length&&f>=th[n]){S.beats[k]=n+1;const got=give({...scaleCost({scrap:12,wood:12,food:10},lvScale()),batt:1}),[w,t]=BEAT_LINES[(BEAT_GOALS.indexOf(k)*2+n)%BEAT_LINES.length],sp=speaker(w);
     note({h:`${sp.name} · ${Math.round(th[n]*100)}% 왔어요`,t:`“${t}”<br><small>작은 보상 · ${lootTxt(got)}</small>`,kind:'story',ms:5200});sfx('chime');save();}}
 // ---- battery nudge
-let battNudged=0;function tickBatt(){const b=S.m.batt||0;const on=b>=10&&S.feat&&S.feat.radio;const rb=$('radio');if(rb)rb.classList.toggle('pile',!!on);if(on&&b>=battNudged+15){battNudged=b;note({h:`건전지가 ${b}개 쌓였어요`,t:'<small>라디오에서 5번 탐색하면 희귀 이상 물자가 하나는 꼭 나와요</small>',kind:'new',ms:4500});}}
+let battNudged=0;function tickBatt(){const b=S.m.batt||0;const on=b>=10&&S.feat&&S.feat.radio;const rb=$('radio');if(rb)rb.classList.remove('pile');if(on&&b>=battNudged+15){battNudged=b;note({h:`건전지가 ${b}개 쌓였어요`,t:'<small>라디오에서 5번 탐색하면 희귀 이상 물자가 하나는 꼭 나와요</small>',kind:'new',ms:4500});}}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="talkskip"]');if(!b||!talk)return;e.stopPropagation();talk.k=talk.lines.length-1;renderTalk();},true);
 // ---- phone back button / Esc closes the top layer instead of leaving the game
 let navOn=false,navIgnore=0;
@@ -3819,7 +3835,7 @@ function drawSite(i,t,time){const s=S.site[i],live=s&&s.c>0;
     for(let q=0;q<3;q++){const u=.26+((s1*37+q*.31)%1)*.4,v=.28+((s2*29+q*.43)%1)*.4,h=2.5+((s1*11+q*.7)%1)*4;box(u,v,u+.07+q*.02,v+.06,0,h,['#8f877b','#9a7050','#7a8086'][(q+(s2*3|0))%3]);}
     ctx.strokeStyle='#7f5c3a';ctx.lineWidth=2.4;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(...P(.3+s2*.12,.64,3));ctx.lineTo(...P(.62,.36+s1*.12,8));ctx.stroke();
     if(s1>.5){ctx.strokeStyle='#5a4a3c';ctx.lineWidth=1.1;ctx.beginPath();ctx.moveTo(...P(.44,.5,5));ctx.lineTo(...P(.4,.44,15));ctx.moveTo(...P(.5,.52,5));ctx.lineTo(...P(.52,.46,13));ctx.stroke();}}
-  if(live&&!reduce){const tw=(Math.sin(time/420+i*2.3)+1)/2;if(tw>.7){const a=(tw-.7)/.3,[x,y]=P(.5,.5,18),r=3+a*3;ctx.strokeStyle=`rgba(255,230,170,${a})`;ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(x-r,y);ctx.lineTo(x+r,y);ctx.moveTo(x,y-r);ctx.lineTo(x,y+r);ctx.stroke();}}}
+  if(live&&!reduce&&twk.has(i)){const tw=(Math.sin(time/420+i*2.3)+1)/2;if(tw>.7){const a=(tw-.7)/.3,[x,y]=P(.5,.5,18),r=3+a*3;ctx.strokeStyle=`rgba(255,230,170,${a})`;ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(x-r,y);ctx.lineTo(x+r,y);ctx.moveTo(x,y-r);ctx.lineTo(x,y+r);ctx.stroke();}}}
 
 // ================= PETS (펫) =================
 // Strays leave tracks on revealed land; bring food a few times and they follow you home.
@@ -4407,13 +4423,13 @@ const RUMOR={share:'“물을 나눠 준 사람들 이야기, 여기까지 들�
 // ---------- loop ----------
 let last=performance.now(),acc=0,uiT=0,saveT=0;
 function renderMats(){const box=$('mats');if(!box.firstChild)box.innerHTML=BASE.map(k=>`<span class="mc" data-k="${k}" title="${MN[k].src}"><span class="top">${micon(k,15)}<b></b></span><i>${MN[k].n}</i></span>`).join('');
-  box.querySelectorAll('.mc').forEach(el=>{const k=el.dataset.k,v=S.m[k]||0;const pv=+el.dataset.v||0;el.dataset.v=v;if(v>pv&&pv>=0&&el.dataset.v0){el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');}el.dataset.v0=1;el.classList.toggle('zero',v<=0);el.querySelector('b').textContent=fmtS(v);el.style.setProperty('--f',Math.min(1,v/Math.max(1,D.cap)).toFixed(3));el.classList.toggle('full',v>=D.cap);el.classList.toggle('low',k==='food'&&v<=5&&D.eat>0);});}
+  box.querySelectorAll('.mc').forEach(el=>{const k=el.dataset.k,v=S.m[k]||0;const pv=+el.dataset.v||0;el.dataset.v=v;if(v>pv&&pv>=0&&el.dataset.v0){el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');}el.dataset.v0=1;if(v>0){S.seenM=S.seenM||{};S.seenM[k]=1;}el.hidden=v<=0&&!(S.seenM&&S.seenM[k])&&!S.gen&&S.lv<3;el.classList.toggle('zero',v<=0);el.querySelector('b').textContent=fmtS(v);el.style.setProperty('--f',Math.min(1,v/Math.max(1,D.cap)).toFixed(3));el.classList.toggle('full',v>=D.cap);el.classList.toggle('low',k==='food'&&v<=5&&D.eat>0);});}
 function hud(){renderMats();renderClock();renderDefBar();tickDusk();canvasLabel();
   $('lv').textContent=`Lv.${S.lv} ${LVNAME[S.lv-1]}`;
-  $('pop').textContent=`생존자 ${bedsUsed()}/${bedsMax()} · 희망 ${D.hope}`;if(S.buff)$('clockTxt').textContent+=` · ${S.buff.label} ${Math.ceil(S.buff.t)}초`;
+  $('pop').textContent=`생존자 ${bedsUsed()}/${bedsMax()} · 희망 ${D.hope}`;{const bp=$('buffP');if(bp){const on=!!(S.buff&&S.buff.t>0);bp.hidden=!on;if(on)bp.textContent=`✦ ${S.buff.label} ${Math.ceil(S.buff.t)}초`;}}
   let f=1;if(S.lv<5){const u=SHUP[S.lv-1],c=scaleCost(u.cost,costMult());const parts=Object.entries(c).map(([k,v])=>Math.min(1,(S.m[k]||0)/v));parts.push(Math.min(1,modCount()/u.need));f=parts.reduce((a,v)=>a+v,0)/parts.length;}$('bar').style.width=(f*100)+'%';{const bl=$('barL');if(bl){const t=S.lv<5?`${LVNAME[S.lv]}까지 ${Math.floor(f*100)}%`:'불빛의 도시 완성';if(bl.textContent!==t)bl.textContent=t;}}
   $('sLbl').textContent=`생존자 ${Object.keys(S.sv).length}`;$('skills').classList.toggle('can',Object.keys(S.sv).length>S.party.length);if(!$('matsAll').hidden)renderMatsAll();$('exDot').hidden=!Object.values(S.exp).some(x=>Date.now()>=x.end);renderSkills();if(sheetTab==='exp')updExpBars();$('svDot').hidden=!svNew;
-  $('rdDot').hidden=!((S.m.batt||0)>0);
+  $('rdDot').hidden=!((S.m.batt||0)>=5);
   $('upDot').hidden=!(S.lv<5&&modCount()>=SHUP[S.lv-1].need&&canPay(scaleCost(SHUP[S.lv-1].cost,costMult())))&&!(freeSlot()>=0&&MOD_ORDER.some(id=>!hasMod(id)&&S.lv>=MODS[id].req&&canPay(modCost(id,0))));
   if(sheetTab==='shelter'){const now=JSON.stringify(S.m);if(now!==hud.lastM){hud.lastM=now;renderSheet();}}
   renderMission();tickStory();tickNav();}
@@ -4421,7 +4437,7 @@ function frontierNearest(){let best=-1,bd=1e9;for(let i=0;i<N;i++)if(isFrontier(
 function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;
   tickProd(dt);tickBuff(dt);tickClock(dt);tickDefense(dt);tickLife(dt);tickKidWalk(dt);tickEvents(dt);tickSkills(dt);
   idle+=dt;if(fever>0){fever=Math.max(0,fever-dt);}else if(idle>.7&&combo>0)combo=Math.max(0,combo-dt*10);
-  acc+=dt;if(acc>=1){acc-=1;tickSurv();tickExp();tickSites();tickQuests();tickBand();tickKids();tickPets();tickFinale();tickRegionStory();tickRegionHidden();tickTownEvents();tickDuty();tickAuto();tickAutoExp();tickAch();tickFeat();tickClaim();tickBeats();tickBatt();tickProfile();if(S.overT>0)S.overT--;if(S.hintT>0)S.hintT--;if(S.droneLv||S.overT>0){const i=frontierNearest();if(i>=0){damage(i,S.overT>0?Math.max(droneDmg(),tapPow())*4:droneDmg(),false);const[x,y]=tileC(i,14);burst(x,y,'#9fc6d2',4);}}}
+  acc+=dt;if(acc>=1){acc-=1;tickTwk();tickSurv();tickExp();tickSites();tickQuests();tickBand();tickKids();tickPets();tickFinale();tickRegionStory();tickRegionHidden();tickTownEvents();tickDuty();tickAuto();tickAutoExp();tickAch();tickFeat();tickClaim();tickBeats();tickBatt();tickProfile();if(S.overT>0)S.overT--;if(S.hintT>0)S.hintT--;if(S.droneLv||S.overT>0){const i=frontierNearest();if(i>=0){damage(i,S.overT>0?Math.max(droneDmg(),tapPow())*4:droneDmg(),false);const[x,y]=tileC(i,14);burst(x,y,'#9fc6d2',4);}}}
   if(camTw){camTw.t+=dt;const p=camTw.t/camTw.dur,e=p<.35?p/.35:p>.7?1-(p-.7)/.3:1,s=e*e*(3-2*e);cam.z=camTw.back+(camTw.to-camTw.back)*s;if(p>=1){cam.z=camTw.back;camTw=null;}}
   if(aim>=0&&ptrs.size===0&&now-lastBtn<1500){const s=aimScreen(aim);if(s.x<70||s.x>cw-70||s.y<90||s.y>ch-160){const[wx,wy]=tileC(aim,12);cam.x+=(wx-cam.x)*.06;cam.y+=(wy-cam.y)*.06;}}
   for(const[k,v]of anims){const n=v+dt/1.2;if(n>=1)anims.delete(k);else{anims.set(k,n);if(Math.random()<.3){const[x,y]=tileC(k,4);parts.push({x:x+(Math.random()-.5)*40,y,vx:(Math.random()-.5)*.6,vy:-.4,life:.8,max:.8,smoke:1});}}}
