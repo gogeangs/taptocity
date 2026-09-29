@@ -1138,13 +1138,16 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 .d,.cb .d,.page p,.rl p,.tt.note small,.row small,.sline span{text-wrap:pretty}
 
-.cqty{display:flex;align-items:center;gap:6px;margin:-2px 0 10px}
-.cqty span{font:600 12.5px var(--body);color:var(--sepia-2);margin-right:2px}
-.cqty .cq{all:unset;cursor:pointer;padding:7px 14px;border-radius:99px;border:1.5px solid rgba(59,42,26,.25);background:#fbf4e4;font:700 13px/1 var(--body);color:var(--sepia)}
-.cqty .cq.on{background:#352a20;color:#f8e8c8;border-color:#352a20}
-.buy.cbtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:78px;white-space:nowrap}
-.buy.cbtn small{font-size:11.5px;font-weight:700;opacity:.8}
-.buy.cbtn small.why{font-weight:600;opacity:.7}
+.chint{margin:-4px 0 10px;font:12.5px/1.5 var(--body);color:var(--sepia-2)}.chint b{color:#4f6e2f}
+.cbwrap{display:flex;flex-direction:column;align-items:stretch;gap:6px;min-width:84px}
+.buy.cbtn{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:44px;white-space:nowrap;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.buy.cbtn small.why{font-size:11px;font-weight:600;opacity:.7}
+.buy.cbtn .ccnt{font:800 16px/1 var(--body)}.buy.cbtn.holding{filter:brightness(1.08);transform:translateY(2px)}
+.buy.cbtn small{font-size:10.5px;font-weight:600;opacity:.75}
+.acr{all:unset;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;padding:5px 8px;border-radius:99px;border:1.5px solid rgba(59,42,26,.22);font:700 12px/1 var(--body);color:var(--sepia-2);background:#fbf4e4}
+.acr i{width:24px;height:14px;border-radius:99px;background:rgba(59,42,26,.25);position:relative;flex:none}
+.acr i::after{content:"";position:absolute;left:2px;top:2px;width:10px;height:10px;border-radius:50%;background:#fff;transition:left .15s}
+.acr.on{color:#2f4a1a;border-color:#6f9646;background:#eef3df}.acr.on i{background:#6f9646}.acr.on i::after{left:12px}
 </style>
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
@@ -1720,7 +1723,7 @@ const STORY=[
    intro:[[G,'저도 잘하는 게 하나 있어요. 필요할 때 불러 줘요.']],
    outro:[[G,'어때요, 아직 쓸 만하죠?']]}]},
  {ch:'2장',title:'첫 번째 밤',steps:[
-    {goal:'작업대에서 철판 5개 만들기',done:()=>(S.got.plate||0)>=5,rw:{parts:6},focus:'center',hl:'[data-act="craft"][data-arg^="0:"]',hint:'쉘터 화면 아래 ‘작업대 가공’에서 고철로 만들어요',
+    {goal:'작업대에서 철판 5개 만들기',done:()=>(S.got.plate||0)>=5,rw:{parts:6},focus:'center',hl:'[data-cb="0"]',hint:'쉘터 화면 아래 ‘작업대 가공’에서 고철로 만들어요',
    intro:[[G,'고철을 두드려 펴면 철판이 돼요. 쉘터를 키우려면 꼭 있어야 해요.']],
    outro:[[G,'반듯하네요. 이걸로 벽을 세울 수 있겠어요.']]},
     {goal:'쉘터를 판잣집으로 키우기',done:()=>S.lv>=2,rw:{wood:20,cloth:10},focus:'center',hl:'[data-act="shup"]',hint:'모듈 3개와 목재·고철·천이 필요해요',
@@ -2251,7 +2254,7 @@ function renderShelter(){const L=S.lv;$('shTitle').textContent=`Lv.${L} ${LVNAME
   else{const c=scaleCost(WALLS[S.walls].cost,costMult());h+=card('wall',`<span class="th ico">${ICO.wall}</span>`,`${WALLS[S.walls].n}${S.walls?pips(S.walls-1):''}`,S.lv<2?'쉘터 Lv.2에 열려요':'밤마다 쉘터 모듈을 덮치는 재를 줄여요',S.lv<2?'':costHtml(c),S.lv<2?lockBadge('Lv.2'):btnCost('wall',0,'세우기',c),S.lv<2?'locked':'');}
   h+=migrateHtml();
   }else if(shTab==='craft'){
-  h+='<div class="sec">작업대 가공</div>'+(wbL()?craftQtyHtml():'');
+  h+='<div class="sec">작업대 가공</div>'+(wbL()?craftHintHtml():'');
   if(!wbL())h+=emptyHtml(`<span class="th"><img src="${modThumb(1,0)}" alt=""></span>`,'작업대가 아직 없어요','작업대를 세우면 고철로 철판을, 천으로 밧줄을 만들 수 있어요');
   else RECIPES.forEach((r,k)=>{const inp=r.inp(),lk=recipeLock(r);if(lk&&r.lv&&S.lv<r.lv-1)return;h+=card('r'+k,`<span class="th ico mat">${micon(r.out,28)}</span>`,`${r.nm||MN[r.out].n}<small>${r.nm?MN[r.out].n+' ':''}보유 ${S.m[r.out]||0}</small>`,r.d||'',lk?'':costHtml(inp)+`<span class="arrow">→ ${r.n||1}개</span>`,lk?lockBadge(lk):craftBtn(k));});
   h+=feastHtml();
@@ -3549,6 +3552,7 @@ const FEAT=[
  {k:'relic',tab:'fDiary',sheet:'diary',seg:'relic',on:()=>(S.relics||[]).length>0,msg:'일지 ‘폐허 도감’에서 유물을 볼 수 있어요',h:'폐허 도감'},
  {k:'auto',tab:'fSurv',sheet:'surv',on:()=>S.lv>=3,msg:'생존자 수첩 맨 위에서 버튼 한 번으로 일터를 채울 수 있어요',h:'자동 배치'},
  {k:'autoexp',tab:'fExp',sheet:'exp',on:()=>S.lv>=4,msg:'원정 탭 맨 위에서 자동 원정을 켤 수 있어요',h:'자동 원정'},
+ {k:'acraft',tab:'fUp',sheet:'shelter',seg:'craft',on:()=>acraftOpen(),msg:'가공·제작에서 레시피마다 자동 가공을 켤 수 있어요 (쉘터 Lv.4 · 작업대 2단계)',h:'자동 가공'},
  {k:'migrate',tab:'fUp',sheet:'shelter',seg:'build',on:()=>!!S.endSeen&&S.lv>=5,msg:'쉘터 화면에서 새 동네로 떠날 수 있어요',h:'이주'}];
 function tickFeat(){if(!S.feat){S.feat={};for(const f of FEAT)if(f.on())S.feat[f.k]=2;}for(const f of FEAT){if(S.feat[f.k])continue;if(f.on()){S.feat[f.k]=1;note({h:`새 기능 · ${f.h}`,t:`<small>${f.msg}</small>`,ms:5000});}}
   const tabs={};for(const f of FEAT)if(S.feat[f.k]===1)tabs[f.tab]=1;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('isnew',!!tabs[b.id]));}
@@ -4734,13 +4738,41 @@ function craftMax(k){const r=RECIPES[k];if(!r||!wbL()||recipeLock(r))return 0;co
   for(const m in inp){if(inp[m]>0)n=Math.min(n,Math.floor((S.m[m]||0)/inp[m]));}
   if(!MN[r.out].tier){const room=Math.max(0,D.cap-(S.m[r.out]||0));n=Math.min(n,Math.floor(room/(r.n||1)));}
   return Math.max(0,n);}
-// one quantity choice for the whole list, one button per recipe
-const CQ=[[1,'1개'],[10,'10개'],['max','최대']];
-function craftQty(){return S.craftQ==null?1:S.craftQ;}
-function craftQtyHtml(){const q=craftQty();return`<div class="cqty"><span>한 번에</span>${CQ.map(([v,l])=>`<button class="cq${q===v?' on':''}" data-act="cq" data-arg="${v}">${l}</button>`).join('')}</div>`;}
-function craftBtn(k){const mx=craftMax(k),q=craftQty(),n=q==='max'?mx:Math.min(q,mx),ok=n>=1;
-  return`<button class="buy cbtn${ok?'':' off'}" data-act="craft" data-arg="${k}:${n}" ${ok?'':'disabled'}>만들기${ok&&q!==1?` <small>×${fmt(n)}</small>`:''}${ok?'':'<small class="why">재료 부족</small>'}</button>`;}
-$('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="cq"]');if(!b)return;e.stopImmediatePropagation();const v=b.dataset.arg;S.craftQ=v==='max'?'max':+v;sfx('tap');renderSheet();save();},true);
+// crafting: tap = 1, hold = keeps going and speeds up; one button per recipe
+function craftHintHtml(){return`<div class="chint">탭하면 1개 · 꾹 누르면 계속 만들어요${acraftOpen()?' · <b>자동</b>을 켜면 남는 재료를 알아서 가공해요':''}</div>`;}
+function craftBtn(k){const ok=craftMax(k)>=1;
+  return`<div class="cbwrap"><button class="buy cbtn${ok?'':' off'}" data-cb="${k}" ${ok?'':'disabled'}>만들기${ok?'':'<small class="why">재료 부족</small>'}</button>${acraftOpen()?`<button class="acr${(S.acraft||{})[k]?' on':''}" data-act="acr" data-arg="${k}"><i></i>자동</button>`:''}</div>`;}
+function craftQuiet(k,n){const r=RECIPES[k];let made=0,c=0;for(let q=0;q<n;q++){if(!pay(r.inp()))break;c++;const extra=Math.random()<(D.E.craft||0)?1:0;const got=give({[r.out]:(r.n||1)+extra});made+=got[r.out]||0;}return{c,made};}
+let CH=null;
+function chStop(){if(!CH)return;clearTimeout(CH.t);const h=CH;CH=null;if(h.made>1)toast(`${MN[RECIPES[h.k].out].n} ${fmt(h.made)}개를 만들었어요`);renderSheet();save();}
+function chStep(){if(!CH)return;const mx=craftMax(CH.k);if(mx<1){chStop();return;}
+  CH.n++;const batch=Math.min(mx,Math.max(1,Math.floor(Math.pow(1.45,CH.n-1))));const r=craftQuiet(CH.k,batch);CH.made+=r.made;if(!r.c){chStop();return;}
+  if(CH.b)CH.b.innerHTML=`<b class="ccnt">+${fmt(CH.made)}</b><small>만드는 중</small>`;
+  const own=CH.card&&CH.card.querySelector('.t small');if(own)own.textContent=own.textContent.replace(/보유 [\d,.만억k]+/,'보유 '+fmt(S.m[RECIPES[CH.k].out]||0));
+  if(CH.n%3===0)sfx('get');buzz();CH.t=setTimeout(chStep,CH.n<3?260:110);}
+$('shBody').addEventListener('pointerdown',e=>{const b=e.target.closest('[data-cb]');if(!b||b.disabled)return;e.preventDefault();const k=+b.dataset.cb;
+  const r=craftQuiet(k,1);if(!r.c){toast('재료가 모자라요');return;}sfx('get');
+  b.classList.add('holding');b.innerHTML=`<b class="ccnt">+${fmt(r.made)}</b><small>만드는 중</small>`;
+  CH={k,n:0,made:r.made,b,card:b.closest('.mcard')};CH.t=setTimeout(chStep,380);
+  const own=CH.card&&CH.card.querySelector('.t small');if(own)own.textContent=own.textContent.replace(/보유 [\d,.만억k]+/,'보유 '+fmt(S.m[RECIPES[k].out]||0));},true);
+for(const ev of ['pointerup','pointercancel','pointerleave'])$('shBody').addEventListener(ev,()=>chStop(),true);
+window.addEventListener('pointerup',()=>chStop());
+$('shBody').addEventListener('contextmenu',e=>{if(e.target.closest('[data-cb]'))e.preventDefault();});
+// auto-craft: from workbench level 2, each recipe can quietly turn surplus into product; what the next build needs is kept aside
+const acraftOpen=()=>wbL()>=2&&(S.lv>=4||!!S.gen);
+function acReserve(m){let need=0;const add=c=>{if(c&&c[m])need=Math.max(need,c[m]);};
+  if(S.lv<5)add(scaleCost(SHUP[S.lv-1].cost,costMult()));if(typeof towerOpen==='function'&&towerOpen())add(scaleCost(towerNext().cost,costMult()));
+  for(const id of MOD_ORDER)if(!hasMod(id)&&S.lv>=MODS[id].req)add(modCost(id,0));
+  return Math.max(need,MN[m]&&!MN[m].tier?Math.floor(D.cap*.25):0);}
+function tickACraft(){if(!acraftOpen()||!S.acraft)return;const per=wbL()>=3?2:1;let any=false;
+  for(const k in S.acraft){if(!S.acraft[k])continue;const r=RECIPES[k];if(!r||recipeLock(r))continue;const inp=r.inp();
+    let n=per;for(const m in inp){if(inp[m]>0)n=Math.min(n,Math.floor(Math.max(0,(S.m[m]||0)-acReserve(m))/inp[m]));}
+    n=Math.min(n,craftMax(+k));if(n>0){const got=craftQuiet(+k,n);if(got.c)any=true;}}
+  if(any&&sheetTab==='shelter'&&shTab==='craft'&&!CH&&Math.random()<.2)renderSheet();}
+$('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="acr"]');if(!b)return;e.stopImmediatePropagation();const k=b.dataset.arg;S.acraft=S.acraft||{};S.acraft[k]=!S.acraft[k];sfx('tap');
+  if(S.acraft[k]){const r=RECIPES[k];toast(`${MN[r.out].n} 자동 가공을 켰어요 · 다음 건설에 쓸 재료는 남겨 둬요`);}renderSheet();save();},true);
+// while a craft button is held, the list doesn't redraw under the finger
+{const r0=renderSheet;renderSheet=function(){if(CH)return;return r0.apply(this,arguments);};}
 
 // ---------- loop ----------
 let last=performance.now(),acc=0,uiT=0,saveT=0;
@@ -4759,7 +4791,7 @@ function frontierNearest(){let best=-1,bd=1e9;for(let i=0;i<N;i++)if(isFrontier(
 function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;
   tickProd(dt);tickBuff(dt);tickClock(dt);tickDefense(dt);tickLife(dt);tickKidWalk(dt);tickEvents(dt);tickSkills(dt);
   idle+=dt;if(fever>0){fever=Math.max(0,fever-dt);}else if(idle>.7&&combo>0)combo=Math.max(0,combo-dt*10);
-  acc+=dt;if(acc>=1){acc-=1;tickTwk();tickSide();tickSurv();tickExp();tickSites();tickQuests();tickBand();tickKids();tickPets();tickFinale();tickRegionStory();tickRegionHidden();tickTownEvents();tickDuty();tickAuto();tickAutoExp();tickAch();tickFeat();tickClaim();tickBeats();tickBatt();tickProfile();if(S.overT>0)S.overT--;if(S.hintT>0)S.hintT--;if(S.droneLv||S.overT>0){const i=frontierNearest();if(i>=0){damage(i,S.overT>0?Math.max(droneDmg(),tapPow())*4:droneDmg(),false);const[x,y]=tileC(i,14);burst(x,y,'#9fc6d2',4);}}}
+  acc+=dt;if(acc>=1){acc-=1;tickTwk();tickSide();tickACraft();tickSurv();tickExp();tickSites();tickQuests();tickBand();tickKids();tickPets();tickFinale();tickRegionStory();tickRegionHidden();tickTownEvents();tickDuty();tickAuto();tickAutoExp();tickAch();tickFeat();tickClaim();tickBeats();tickBatt();tickProfile();if(S.overT>0)S.overT--;if(S.hintT>0)S.hintT--;if(S.droneLv||S.overT>0){const i=frontierNearest();if(i>=0){damage(i,S.overT>0?Math.max(droneDmg(),tapPow())*4:droneDmg(),false);const[x,y]=tileC(i,14);burst(x,y,'#9fc6d2',4);}}}
   if(camTw){camTw.t+=dt;const p=camTw.t/camTw.dur,e=p<.35?p/.35:p>.7?1-(p-.7)/.3:1,s=e*e*(3-2*e);cam.z=camTw.back+(camTw.to-camTw.back)*s;if(p>=1){cam.z=camTw.back;camTw=null;}}
   if(aim>=0&&ptrs.size===0&&now-lastBtn<1500){const s=aimScreen(aim);if(s.x<70||s.x>cw-70||s.y<90||s.y>ch-160){const[wx,wy]=tileC(aim,12);cam.x+=(wx-cam.x)*.06;cam.y+=(wy-cam.y)*.06;}}
   for(const[k,v]of anims){const n=v+dt/1.2;if(n>=1)anims.delete(k);else{anims.set(k,n);if(Math.random()<.3){const[x,y]=tileC(k,4);parts.push({x:x+(Math.random()-.5)*40,y,vx:(Math.random()-.5)*.6,vy:-.4,life:.8,max:.8,smoke:1});}}}
