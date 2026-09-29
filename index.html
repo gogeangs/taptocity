@@ -1185,6 +1185,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 .btns .watch,.page .watch{display:block;width:100%;margin:8px 0}
 .segs:has(.seg:nth-child(5)){grid-template-columns:repeat(3,1fr)}
 .svrow.mem .fc{filter:grayscale(1) sepia(.35);opacity:.85}.svrow.mem small.ep{display:block;white-space:normal;font-style:italic;margin-top:2px}
+.bond.cut{opacity:.7}.bond.cut b{color:var(--sepia-2)}
 .entry.odd{padding:8px 12px}.entry.odd .n{font-size:12.5px;color:var(--sepia-2)}.entry.odd .p{font-size:13.5px;white-space:normal;overflow:visible;text-overflow:clip;display:block;-webkit-line-clamp:unset}
 .segs:has(.seg:nth-child(7)){grid-template-columns:repeat(4,1fr)}
 </style>
@@ -1398,7 +1399,7 @@ const BNAME=Object.fromEntries(Object.entries(MODS).map(([k,v])=>[k,v.n]));
 // ---------- hidden survivors: only reachable through the radio ----------
 SURV.push(
  {name:'차은호',age:36,job:'심야 라디오 DJ',hidden:true,alias:'목소리의 주인',hint:'4장, 라디오 속 목소리를 따라 찾아와요',match:[7,8],src:'story',look:{skin:'#e0b48e',hair:'#1f1c2a',top:'#3f3560'},eff:{hope:8,scav:.1},trait:v=>`희망 +${Math.round(v.hope)} · 뒤지기 수확 +${pc(v.scav)}%`,
-  story:['재가 내린 밤에도 마이크를 끄지 않았다. 청취자가 한 명이라도 있을지 몰라서.','“여기는 심야 방송 한밤입니다.” 우리 무전기에 처음 잡힌 목소리가 그였다.','아무도 보내지 않은 신청곡 쪽지를 모은다. 그래도 매일 밤 한 곡씩 튼다.','하늘이가 사연을 보냈다. “우리 할머니 찾아 주세요.” 그는 그날 방송을 세 번 반복했다.','“이제 방송국은 여기예요.” 쉘터 한가운데에 낡은 스피커를 달았다.']},
+  story:['재가 내린 밤에도 마이크를 끄지 않았다. 청취자가 한 명이라도 있을지 몰라서.','“여기는 심야 방송 한밤입니다.” 우리 라디오에 처음 잡힌 방송이 그였다.','아무도 보내지 않은 신청곡 쪽지를 모은다. 그래도 매일 밤 한 곡씩 튼다.','하늘이가 사연을 보냈다. “우리 할머니 찾아 주세요.” 그는 그날 방송을 세 번 반복했다.','“이제 방송국은 여기예요.” 쉘터 한가운데에 낡은 스피커를 달았다.']},
  {name:'백설화',age:29,job:'전 기상캐스터',hidden:true,alias:'날씨를 아는 사람',match:[3,8],src:'gacha',look:{skin:'#f0c9a8',hair:'#5a3424',top:'#2f7a7a'},eff:{tap:.35,fever:1.5},trait:v=>`두드리는 힘 +${pc(v.tap)}% · 랜턴 피버 +${v.fever.toFixed(1)}초`,
   story:['재가 내리기 전날, 그녀는 “내일은 맑겠습니다”라고 방송했다.','그 한마디가 틀린 게 평생의 한이 됐다고 했다.','지금은 하늘 색만 보고 재폭풍이 몇 시에 올지 맞힌다. 한 번도 틀린 적이 없다.','은호의 라디오에서 예전 자기 목소리가 흘러나오자 한참을 울었다.','“내일은 맑겠습니다.” 이번엔 정말로 맑았다.']},
  {name:'문태식',age:77,job:'시계공',hidden:true,alias:'멈춘 시계를 든 노인',match:[1,5],src:'gacha',look:{skin:'#d9a882',hair:'#ece8e0',top:'#6a4a2e'},eff:{craft:.35,cost:.06},trait:v=>`가공할 때 ${pc(v.craft)}% 확률로 하나 더 · 건설 자재 -${pc(v.cost)}%`,
@@ -1833,20 +1834,20 @@ const STORY=[
  {ch:'7장',title:'무너지지 않는 쉘터',steps:[
     {goal:'대형 재폭풍 한 번 막아내기',done:rel(()=>S.defWins||0),rw:{plate:10,batt:2},focus:'clock',hint:'세 번째 밤마다 와요. 다가오는 재 괴물을 두드리고, 랜턴탑과 방벽으로 버텨요',
    intro:[[G,'사흘에 한 번씩 하늘이 유난히 붉어져. 그런 밤엔 재가 뭉쳐서 괴물처럼 쉘터로 기어 온다고.'],[G,'랜턴탑이 가까이 온 놈을 태우고, 일하는 사람들도 같이 막을 거야. 방벽이 튼튼할수록 덜 다치고.']],
-   outro:[[ME,'새벽이 왔다. 쉘터는 무너지지 않았다.'],[G,'우리, 제법 강해졌구먼.']]},
+   outro:[[ME,'새벽이 왔다. 쉘터는 무너지지 않았다.'],[G,'우리, 제법 강해졌구먼.'],[G,'…창고 털린 것만 빼면 말이야.',()=>!!(S.crow&&S.crow.raid)]]},
   {goal:'방벽을 모래주머니 방벽으로 올리기',done:()=>S.walls>=2,rw:{plate:15},focus:'center',hl:'[data-act="wall"]',hint:'철판과 천이 필요해요',
    intro:[[G,'요즘 재 괴물이 점점 커져. 나무 울타리로는 어림없어.']],
    outro:[[ME,'모래주머니를 쌓아 올리자 쉘터가 한결 단단해 보였다.']]},
     {goal:'무전실 세우기',done:()=>hasMod(7),rw:{parts:30},focus:'center',hl:'[data-act="mbuild"][data-arg="7"]',hint:'전선은 작업대(2단계)에서 조립하거나 벙커·원정에서 구해요',
    intro:[[ME,'라디오로는 한 마디씩밖에 안 들린다. 안테나를 세우고 제대로 된 무전실을 차리자.']],
-   outro:[[ME,'잡음 사이로 목소리가 들렸다. “…발전소… 아직… 누구 없나…”'],[ME,'살아남은 건 우리만이 아니었다.'],[10,'마이크 잡는 건 제 전문이죠. 매일 밤 이 주파수로 불러 볼게요. 누가 듣고 있을 거예요.',()=>!!S.sv[10]]]}]},
+   outro:[[ME,'잡음 사이로 목소리가 들렸다. “…발전소… 아직… 누구 없나…”'],[ME,'살아남은 건 우리만이 아니었다.'],[10,'이제 방송은 여기서 할게요. 무전실 안테나면 훨씬 멀리까지 닿을 거예요.',()=>!!S.sv[10]]]}]},
  {ch:'8장',title:'불빛의 도시',steps:[
     {goal:'불빛의 도시 완성하기',done:()=>S.lv>=5,rw:{food:100,plate:40},focus:'center',hl:'[data-act="shup"]',hint:'전선·약품은 작업대에서 만들거나 벙커·원정에서 구해요',
    intro:[[G,'그 목소리에 답하려면 멀리서도 보이는 불이 있어야지. 쉘터를 끝까지 올려 보자고.'],[9,'발전소까지 닿을 만큼 밝으면… 누군가 답할지도 몰라요.']],
    outro:[[ME,'쉘터의 불빛이 구름을 뚫고 지평선까지 닿았다.'],[ME,'멀리 발전소 쪽에서, 작은 불빛 하나가 깜빡이며 답했다.']]},
   {goal:'탁미영 맞이하기',done:()=>!!S.sv[13],rw:{fuel:30},focus:null,hint:'발전소 쪽 빛을 따라 누군가 오고 있어요',
    intro:[[ME,'발전소 쪽 불빛이 사흘째 같은 박자로 깜빡인다.'],[11,'구름 흐름을 보면 저 불빛은 발전소 제어동 쪽이에요. 내일은 바람도 이쪽으로 불어요. 누가 오기 딱 좋은 날씨예요.',()=>!!S.sv[11]],[9,'저건… 제어실 신호예요. 누가 아직 거기 있어요!']],
-   outro:[[13,'이 불빛을 보고 왔어요. 원자로는 아직, 아주 천천히 빛을 내고 있어요.'],[13,'제대로 받아 줄 곳만 있으면 돼요. 재를 걷는 빛을, 이번엔 제대로.'],[9,'…미영 씨. 살아 있었군요.'],[13,'그날 재혁 씨는 떠났고, 저는 제어실에 남아 출력을 붙잡고 있었어요. 한동안 많이 원망했어요.'],[13,'그런데 이 불빛을 보니까… 다시 해 볼 수 있을 것 같아요. 이번엔 같이요.'],[ME,'두 사람은 한참 말이 없었다. 그러다 누가 먼저랄 것도 없이 낡은 설계도를 펼쳤다.']]}]},
+   outro:[[13,'이 불빛을 보고 왔어요. 원자로는 아직, 아주 천천히 빛을 내고 있어요.'],[13,'제대로 받아 줄 곳만 있으면 돼요. 재를 걷는 빛을, 이번엔 제대로.'],[9,'…미영 씨. 살아 있었군요.'],[13,'그날 재혁 씨는 떠났고, 저는 제어실에 남아 출력을 붙잡고 있었어요. 한동안 많이 원망했어요.'],[13,'그런데 이 불빛을 보니까… 다시 해 볼 수 있을 것 같아요. 이번엔 같이요.'],[ME,'두 사람은 한참 말이 없었다. 그러다 누가 먼저랄 것도 없이 낡은 설계도를 펼쳤다.'],[ME,'환영 자리에 은호만 보이지 않았다. 방송 준비 중이라고 했다.',()=>!!S.sv[10]]]}]},
  {ch:'9장',title:'등불 탑',steps:[
   {goal:'등불 탑 토대 놓기',done:()=>(S.tower||0)>=1,rw:{batt:2},focus:'center',hl:'[data-act="tower"]',hint:'쉘터 화면 ‘건설’ 맨 위 등불 탑에서 쌓아요',
    intro:[[13,'쉘터 한가운데 탑을 세워요. 원자로의 빛을 받아서, 구름 위로 쏘아 올릴 거예요.'],[9,'설계는 저희가 할게요. 쌓는 건… 모두의 몫이에요.']],
@@ -1862,7 +1863,7 @@ const STORY=[
    outro:[[ME,'처음부터 들고 있던 이 랜턴이, 모든 이야기의 시작이었다.']]},
   {goal:'등불 탑에 불 켜기',done:()=>(S.tower||0)>=5,rw:{batt:5},focus:'center',hl:'[data-act="tower"]',hint:'쉘터 화면 ‘건설’ 맨 위 등불 탑에서 쌓아요',
    intro:[[ME,'모두가 탑 아래 모였다. 누군가는 울고, 누군가는 웃었다.'],[9,'준비됐어요. 스위치는… 등불지기가 올려 줘요.']],
-   outro:[[ME,'탑 꼭대기에 첫 불이 들어왔다. 쉘터 위 구름이 조금 옅어졌다.'],[13,'아직 시작이에요. 탑이 높아질수록 빛은 더 멀리 닿아요.'],[ME,'한 층씩, 한 칸씩. 우리는 계속 쌓아 올리기로 했다.']]}]}];
+   outro:[[ME,'탑 꼭대기에 첫 불이 들어왔다. 쉘터 위 구름이 조금 옅어졌다.'],[ME,'그때, 지평선 너머에서 불빛 하나가 깜빡였다. 우리 탑이 아니었다.'],[13,'…다른 분소예요. 등불 계획은 여기 하나가 아니었어요.'],[13,'아직 시작이에요. 탑이 높아질수록 빛은 더 멀리 닿아요.'],[ME,'한 층씩, 한 칸씩. 우리는 계속 쌓아 올리기로 했다.']]}]}];
 const STEP_I=g=>STEPS.findIndex(s=>s.goal===g);
 const STEPS=STORY.flatMap((c,ci)=>c.steps.map((s,si)=>({...s,ci,si,first:si===0})));
 // counting goals start from zero when the step begins, so things done earlier don't finish them at once
@@ -2341,7 +2342,7 @@ function renderSheet(){if(!sheetTab)return;let h='';const st=$('shBody').scrollT
     if(unmet.length)h+=`<div class="sec">아직 만나지 못한 사람 ${unmet.length}</div>`+unmet.map(s=>`<div class="svrow locked${s.hidden?' hid':''}"><span class="fc">${portrait(s,true)}</span><span class="mid"><b>${gradeTag(s.id,1)} ${s.hidden?s.alias:'???'}</b><small>${s.hidden?(s.hint?s.hint:s.src==='deep'?'지하 15층, 발전소 지하 가장 깊은 곳에 있대요':'주파수 탐색에서만 만나요'):Object.values(S.camp).some(c=>c.id===s.id)?'구조를 기다리고 있어요 · 지도의 ! ? 표시를 눌러요':s.src==='sig'?'구름 속 구조 신호를 따라가 보세요':`희망 ${Math.ceil(s.hope*(1-D.visitDisc))} 이상이면 찾아와요${s.need!=null&&!S.sv[s.need]?' · 먼저 만나야 할 사람이 있어요':''}`}</small></span></div>`).join('');
     if((S.kids||[]).length)h+=`<div class="sec">아이들</div>`+(S.kids||[]).map(k=>`<div class="svrow kid"><span class="fc kidf" style="background:${k.look.top}"><i style="background:${k.look.skin}"></i></span><span class="mid"><b>${k.n}</b><small>${k.g<1?`자라는 중 ${Math.round(k.g*100)}% · 희망 +2`:k.job?`${KJOB[k.job].n} · ${KJOB[k.job].d}`:'무엇을 배울지 정해 주세요'}</small><div class="pbar"><i style="width:${k.g*100}%"></i></div></span></div>`).join('')+('');
     h+=`<div class="sec">등급</div><div class="grl">${GR.slice(0,4).map((G,g)=>`<span><span class="gr g${g}">${G.n}</span> 효과 ×${G.m}</span>`).join('')}<span>등급마다 1~5성 · 등급은 처음보다 최대 2단계까지</span></div>`;
-    h+='<div class="sec">인연</div>'+BONDS.map(b=>{const on=b.ids.every(id=>S.sv[id]);return`<div class="bond ${on?'on':''}"><b>${on?b.name:'???'}</b> · ${on?`${b.txt} ${b.d}`:b.ids.map(id=>S.sv[id]?SURV[id].name:'???').join(' + ')+' 모두 모이면 열려요'}</div>`;}).join('');}
+    h+='<div class="sec">인연</div>'+BONDS.map(b=>{const on=b.ids.every(id=>S.sv[id]);if(b.ids.some(id=>isDead(id))&&b.ids.every(id=>S.sv[id]||isDead(id)))return`<div class="bond cut"><b>끊어진 인연 · ${b.name}</b> · ${b.ids.map(id=>SURV[id].name).join(' + ')}</div>`;return`<div class="bond ${on?'on':''}"><b>${on?b.name:'???'}</b> · ${on?`${b.txt} ${b.d}`:b.ids.map(id=>S.sv[id]?SURV[id].name:'???').join(' + ')+' 모두 모이면 열려요'}</div>`;}).join('');}
   else if(sheetTab==='settings'){$('shTitle').textContent='설정';
     const SI={snd:'<path d="M4 10v4h4l5 4V6L8 10z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>',vib:'<rect x="8" y="3" width="8" height="18" rx="2"/><path d="M4 8v8M20 8v8"/>',calm:'<path d="M3 12h4l2-5 4 10 2-5h6"/>',big:'<path d="M4 19L9 5l5 14M6 14h6"/><path d="M15 19l3-8 3 8M16 16h4"/>'};
     const row=(k,n,d)=>`<div class="row setrow"><span class="sic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${SI[k]}</svg></span><div><div class="t">${n}</div><div class="d">${d}</div></div><button class="tgl${SET[k]?' on':''}" data-act="set" data-arg="${k}" role="switch" aria-checked="${!!SET[k]}"><i></i></button></div>`;
@@ -4854,7 +4855,7 @@ const svName=id=>SURV[id].name;
 
 // ---- 사건: 6 incidents. a = 추궁한다 (clue, their trust drops) · b = 감싼다 (trust rises, clue missed) · c = 덮어 둔다 ----
 const CASES=[
- {ch:'3장',t:'사라지는 통조림',when:'해 질 녘',sus:3,susN:'새로 온 사람들',solved:1,
+ {ch:'3장',t:'사라지는 통조림',when:'해 질 녘',sus:3,susN:'새로 온 사람들',solved:1,tut:1,
   gate:()=>S.mi>=STEP_I('생존자 3명 모으기')&&svIn(3),
   x:()=>[[G,'창고 통조림이 자꾸 한두 개씩 비어. 벌써 사흘째야.'],[G,'꼭 해 질 녘이야. 새로 온 사람 중에 누가 몰래 챙기는 거 아닌가 몰라.']],
   a:{l:'해 질 녘에 창고를 지켜본다',r:()=>[[ME,'해가 기울자 창고 문이 삐걱 열렸다. 하늘이가 통조림을 안고 살금살금 나갔다.'],[3,'…미안해요. 쉘터 뒤에 떠돌이 개가 있는데, 너무 배고파 보였어요.']]},
@@ -4864,31 +4865,31 @@ const CASES=[
   log:'범인은 하늘. 떠돌이 개에게 밥을 주고 있었다.'},
  {ch:'4장',t:'돌아가 있는 다이얼',when:'새벽 3시 무렵',sus:3,susN:'새로 온 사람들',
   gate:()=>S.mi>=STEP_I('첫 원정 보내기')&&svIn(10),
-  x:()=>[[G,'라디오 다이얼이 엉뚱한 데로 돌아가 있어. 구조 신호 잡아 두던 주파수였는데.'],svIn(3)?[G,'새벽 3시쯤 누가 만졌대. 하늘이가 전에도 다이얼 갖고 놀았잖아.']:[G,'새벽 3시쯤 누가 만졌대. 누군지는 몰라.'],[10,'전 그 시간에 방송 중이었어요. 제 송신기 앞에서요.']],
+  x:()=>[[G,'라디오 다이얼이 엉뚱한 데로 돌아가 있어. “등불 계획 중단”이 되풀이되던 그 주파수에 맞춰 뒀었는데.'],svIn(3)?[G,'새벽 3시쯤 누가 만졌대. 하늘이가 전에도 다이얼 갖고 놀았잖아.']:[G,'새벽 3시쯤 누가 만졌대. 누군지는 몰라.'],[10,'전 그 시간에 방송 중이었어요. 제 송신기 앞에서요.']],
   alibi:'은호: “그 시간엔 방송 중이었어요.”',
   a:{l:'하늘이를 불러 묻는다',r:()=>[[3,'나 아니야! 그 시간엔 자고 있었단 말이야!'],[ME,'다이얼을 다시 봤다. 손잡이에 남은 손자국은 아이 손보다 훨씬 컸다.']],clue:'다이얼에 남은 손자국은 아이 손이 아니라 어른 손이었다.'},
   b:{l:'하늘이 편을 든다',r:()=>[[3,'…믿어 줘서 고마워요. 진짜 나 아니에요.']]},
   c:{l:'주파수만 다시 맞춰 둔다',r:()=>[[ME,'다이얼을 되돌려 놓았다. 누가 돌렸는지는 모른 채로.']]}},
  {ch:'5장',t:'반쯤 끊긴 밧줄',when:'새벽 3시 무렵',sus:1,susN:'까마귀',
   gate:()=>S.mi>=STEP_I('지하 구역 4층까지 내려가기'),
-  x:()=>[[G,'원정용 밧줄이 반쯤 끊겨 있었어. 그대로 썼으면 누구 하나 떨어졌을 거야.'],[G,'새벽 3시쯤 창고 쪽에서 발소리를 들었다는 사람이 있어.'],svIn(1)?[G,'도윤이가 요즘 밤마다 밖을 돌아다니잖아. 아니면… 까마귀 짓이든가.']:[G,'까마귀 놈들 짓일지도 몰라.']],
+  x:()=>[[G,'지하 기록실로 내려가는 밧줄이 반쯤 끊겨 있었어. 그대로 썼으면 누구 하나 떨어졌을 거야.'],[G,'새벽 3시쯤 창고 쪽에서 발소리를 들었다는 사람이 있어.'],svIn(1)?[G,'도윤이가 요즘 밤마다 밖을 돌아다니잖아. 아니면… 까마귀 짓이든가.']:[G,'까마귀 놈들 짓일지도 몰라.']],
   a:{l:()=>svIn(1)?'도윤을 불러 묻는다':'창고를 샅샅이 뒤진다',r:()=>[svIn(1)?[1,'밤에 나가는 건 배달하던 버릇이에요. 밧줄엔 손도 안 댔어요.']:[ME,'창고에는 발자국 하나 없었다.'],[ME,'끊긴 자리를 들여다봤다. 칼로 자른 게 아니었다. 뜨거운 걸 대서 녹여 끊은 자국이었다.']],clue:'밧줄은 칼이 아니라 뜨거운 것으로 녹여 끊겨 있었다.'},
   b:{l:()=>svIn(1)?'도윤을 믿는다':'모두를 믿기로 한다',r:()=>[svIn(1)?[1,'…믿어 줘서 고마워요. 밤길은 제가 더 조심할게요.']:[ME,'아무도 의심하지 않기로 했다.']]},
   c:{l:'까마귀 짓이라고 해 둔다',r:()=>[[ME,'다들 까마귀를 탓했다. 그게 제일 편했다.']]}},
  {ch:'7장',t:'잘린 안테나',when:'새벽 3시 무렵',sus:6,susN:'까마귀',
   gate:()=>hasMod(7)&&S.mi>=STEP_I('무전실 세우기'),
-  x:()=>[[G,'무전실 안테나 선이 잘렸어. 세운 지 며칠이나 됐다고.'],svIn(6)?[G,'새벽 3시 무렵이래. 철호가 그 시간에 공구 들고 나가는 걸 본 사람이 있어.']:[G,'새벽 3시 무렵이래. 까마귀가 또 다녀갔나.'],svIn(10)?[10,'그 시간엔 저 방송 중이었어요. 끊긴 줄도 몰랐네요.']:null].filter(Boolean),
+  x:()=>[[G,'발전소 목소리가 잡힌 바로 그날 밤이야. 무전실 안테나 선이 잘렸어.'],svIn(6)?[G,'새벽 3시 무렵이래. 철호가 그 시간에 공구 들고 나가는 걸 본 사람이 있어.']:[G,'새벽 3시 무렵이래. 까마귀가 또 다녀갔나.'],svIn(10)?[10,'그 시간엔 저 방송 중이었어요. 끊긴 줄도 몰랐네요.']:null].filter(Boolean),
   alibi:'은호: “그 시간엔 방송 중이었어요.”',
   a:{l:()=>svIn(6)?'철호를 불러 묻는다':'안테나를 샅샅이 살핀다',r:()=>[svIn(6)?[6,'공구는 방벽 고치러 들고 나간 거요. 전선은 내 일이 아니오.']:[ME,'안테나 아래에는 발자국 하나 없었다.'],[ME,'잘린 전선 끝을 만져 봤다. 납땜 인두를 댄 자국이 있었다. 쉘터에서 인두를 쓰는 사람은 많지 않다.']],clue:'잘린 전선 끝에 납땜 인두 자국이 남아 있었다.'},
   b:{l:()=>svIn(6)?'철호를 믿는다':'모두를 믿기로 한다',r:()=>[svIn(6)?[6,'…고맙소. 선은 내가 다시 이어 두지.']:[ME,'아무도 의심하지 않기로 했다.']]},
   c:{l:'까마귀 짓이라고 해 둔다',r:()=>[[ME,'까마귀가 무전을 막으려 한 거라고, 다들 그렇게 믿었다.']]}},
  {ch:'8장',t:'뜯겨 나간 한 장',when:'새벽 3시 무렵',sus:9,susN:'재혁',
   gate:()=>svIn(13)&&svIn(9)&&S.mi>=STEP_I('탁미영 맞이하기'),
-  x:()=>[[9,'…제 연구 노트에서 한 장이 뜯겨 나갔어요. 그날 새벽 기록이에요.'],[G,'새벽 3시쯤 재혁 자리에 불이 켜져 있었다던데. 자기가 찢어 놓고 모른 척하는 거 아냐?']],
+  x:()=>[[9,'…제 연구 노트에서 한 장이 뜯겨 나갔어요. 그날 새벽 기록이에요.'],[G,'새벽 3시쯤 재혁 자리에 불이 켜져 있었다던데. 자기가 찢어 놓고 모른 척하는 거 아냐?'],[ME,'그날 새벽 제어실에 있었던 미영에게 물어보려 했지만, 그 밤 이야기가 나오자 그녀는 조용히 자리를 떴다.']],
   a:{l:'재혁에게 따져 묻는다',r:()=>[[9,'제가 왜요! 그 장엔… 그날 새벽에 걸려 온 전화가 적혀 있었어요.'],[9,'3시 11분. 제어실에서 어딘가로 건 전화였어요. 누구한테 걸었는지까진 기억이 안 나요.']],clue:'뜯긴 장에는 그날 새벽 3시 11분의 통화 기록이 있었다.'},
   b:{l:'재혁을 믿는다',r:()=>[[9,'…고마워요. 이번엔 도망치지 않을게요.']]},
   c:{l:'종이 한 장일 뿐이라고 넘긴다',r:()=>[[ME,'종이 한 장. 그땐 그렇게 생각했다.']]}},
- {ch:'9장',t:'기둥에 꽂힌 쪽지',when:'새벽 3시 무렵',sus:null,susN:'아무도 모름',
+ {ch:'9장',t:'기둥에 꽂힌 쪽지',when:'새벽 3시 무렵',sus:null,susN:'아무도 모름',all:1,
   gate:()=>(S.tower||0)>=2,
   x:()=>[[ME,'아침에 보니 탑 기둥에 쪽지가 꽂혀 있었다. “불은 오래가지 않아.”'],[G,'새벽 3시쯤 누가 다녀간 거야. 까마귀 놈들 짓인가?']],
   a:{l:'모두를 모아 묻는다',r:()=>[[ME,'아무도 자기가 썼다고 하지 않았다. 대신 누군가 쪽지 뒷면을 가리켰다.'],[ME,'뒷면에 시간표가 인쇄돼 있었다. 03:00, 03:30, 04:00… 줄마다 곡 제목이 적혀 있었다.']],clue:'쪽지 뒷면은 시간과 곡 제목이 적힌 방송 큐시트였다.'},
@@ -4899,36 +4900,62 @@ const CASES=[
 const caseSeen=()=>!!(S.cases&&Object.values(S.cases).some(r=>r.p))||!!(S.odd&&S.odd.length)||!!(S.egg&&Object.keys(S.egg).length);
 const optL=o=>typeof o.l==='function'?o.l():o.l;
 function caseLines(ls){return ls.map(([w,t])=>{const sp=speaker(w);return`<div class="csl${sp.me?' me':''}"><span class="av${sp.me?' me':''}">${sp.av}</span><p>${sp.me?'':`<b>${sp.name}</b>`}${t}</p></div>`;}).join('');}
-let caseCur=-1;
-function openCase(k){const c=CASES[k];caseCur=k;S.cases=S.cases||{};S.cases[k]=S.cases[k]||{at:Date.now()};save();sfx('chime');
+// one more incident in each new town: 은호 is still cutting ties, far from the first shelter
+const TGATE=()=>(S.rmi||0)>=3;
+const TCASES={
+ desert:{ch:'사막 도시',t:'빠진 진공관',when:'새벽 3시 무렵',sus:14,susN:'마을 사람',gate:TGATE,
+  x:()=>[[D_,'급유탑 무전기가 죽었소. 누가 진공관을 쏙 빼 갔어. 당신들을 부른 바로 그 무전기요.'],[D_,'새벽 3시쯤이었소. 우리 마을 사람들은 그 시간에 탱크 밑에서 자고 있었는데.'],svIn(10)?[10,'저는 그 시간에 방송 중이었어요. 사막에서도 잘 들렸다면서요?']:null].filter(Boolean),
+  alibi:'은호: “그 시간엔 방송 중이었어요.”',
+  a:{l:()=>svIn(14)?'한별에게 따져 묻는다':'마을 사람들을 불러 묻는다',r:()=>[svIn(14)?[14,'진공관이요? 전 약초밖에 몰라요. 정말이에요.']:[D_,'우리 사람들은 아니오. 그 무전기가 유일한 희망이었는데.'],[ME,'며칠 뒤, 빠진 진공관이 나왔다. 사막 마을이 아니라 우리 쉘터 공구함 안에서.']],clue:'빠진 진공관이 우리 쉘터 공구함에서 나왔다.'},
+  b:{l:()=>svIn(14)?'한별을 믿는다':'마을 사람들을 믿는다',r:()=>[svIn(14)?[14,'…고마워요. 무전기는 두식 할아버지랑 다시 맞춰 볼게요.']:[D_,'…믿어 줘서 고맙소.']]},
+  c:{l:'모래바람 탓이라고 해 둔다',r:()=>[[ME,'모래바람이 진공관을 날려 버렸다고, 다들 그렇게 넘어갔다.']]}},
+ factory:{ch:'녹슨 공단',t:'끊긴 확성기',when:'새벽 3시 무렵',sus:15,susN:'공단 사람들',gate:TGATE,
+  x:()=>[[F_,'공단 확성기 선이 끊겼다. 밤마다 흩어진 사람들을 불러 모으던 확성기다.'],[F_,'새벽 3시에. 불꽃 다루는 놈 짓이라고들 하더군.'],svIn(10)?[10,'그 시간엔 방송 중이었어요. 확성기 대신 제 방송 들으시면 되죠.']:null].filter(Boolean),
+  alibi:'은호: “그 시간엔 방송 중이었어요.”',
+  a:{l:()=>svIn(15)?'도진을 불러 묻는다':'공단 사람들을 불러 묻는다',r:()=>[svIn(15)?[15,'…내 불꽃이면 저렇게 얌전히 안 끊겨.']:[F_,'우리 사람들은 그 시간에 자고 있었다.'],[ME,'끊긴 자리를 살폈다. 용접 불꽃이 아니었다. 가느다란 인두로 녹여 낸 자국이었다.']],clue:'확성기 선은 용접이 아니라 가느다란 인두로 녹여 끊겨 있었다.'},
+  b:{l:()=>svIn(15)?'도진을 믿는다':'공단 사람들을 믿는다',r:()=>[svIn(15)?[15,'…말없이 다시 이어 두지.']:[F_,'…믿어 줘서 고맙다.']]},
+  c:{l:'재 괴물 탓이라고 해 둔다',r:()=>[[ME,'재 괴물이 선을 갉아 먹었다고, 다들 그렇게 믿기로 했다.']]}},
+ snow:{ch:'눈 덮인 산골',t:'사라진 녹음테이프',when:'새벽 3시 무렵',sus:null,susN:'분교 아이들',gate:TGATE,
+  x:()=>[[W_,'교실 서랍에 둔 테이프가 없어졌어요. 재가 내린 그날 밤, 아이들 재우려고 틀어 둔 라디오를 녹음한 거예요.'],[W_,'새벽 3시쯤 누가 교실에 들어왔대요. 아이들 중 하나가 장난친 걸까요…'],svIn(10)?[10,'저는 그 시간에 방송 중이었어요.']:null].filter(Boolean),
+  alibi:'은호: “그 시간엔 방송 중이었어요.”',
+  a:{l:'아이들을 모아 묻는다',r:()=>[[W_,'아이들은 아무도 몰랐어요. 그런데… 이상한 게 하나 있어요.'],[W_,'그 테이프, 3시 11분부터 3분 동안 아무 소리도 없었어요. 방송이 끊긴 줄 알았죠.']],clue:'사라진 테이프에는 그날 밤 3시 11분부터 3분 동안 아무 소리도 없었다.'},
+  b:{l:'아이들을 믿는다',r:()=>[[W_,'그래요. 우리 애들이 그럴 리 없죠.']]},
+  c:{l:'그냥 잊어버리자고 한다',r:()=>[[ME,'테이프 한 개쯤이야. 은솔 선생님도 곧 웃었다.']]}}};
+const cOf=k=>TCASES[k]||CASES[k];
+const cNo=k=>TCASES[k]?CASES.length+1+RORDER.indexOf(k):+k+1;
+const cKeys=()=>CASES.map((c,k)=>k).concat(RORDER.filter(r=>S.cases&&S.cases[r]&&S.cases[r].p));
+let caseCur=null;
+function openCase(k){const c=cOf(k);caseCur=k;S.cases=S.cases||{};S.cases[k]=S.cases[k]||{at:Date.now()};save();sfx('chime');
   const sus=c.sus!=null&&svIn(c.sus)?svName(c.sus):c.susN;
-  openModal(`<div class="page case"><div class="tag">사건 ${k+1} · ${c.ch}</div><h3>${c.t}</h3><div class="cswhen">${c.when} · 의심받는 사람: <b>${sus}</b></div>
+  openModal(`<div class="page case"><div class="tag">사건 ${cNo(k)} · ${c.ch}</div><h3>${c.t}</h3><div class="cswhen">${c.when} · 의심받는 사람: <b>${sus}</b></div>
     <div class="csb">${caseLines(c.x())}</div><div class="csq">어떻게 할까요?</div>
-    <div class="cso">${['a','b','c'].map(p=>`<button class="copt${p==='a'?' hi':''}" data-act="case" data-arg="${p}"><b>${optL(c[p])}</b><small>${p==='a'?(k?'진실에 다가가요 · 그 사람은 서운해해요':'범인을 찾아봐요'):p==='b'?'믿음이 깊어져요 · 단서를 놓칠 수 있어요':'조용히 넘어가요'}</small></button>`).join('')}</div></div>`,true);}
-function pickCase(p){const k=caseCur,c=CASES[k];if(!c)return;const o=c[p],R=S.cases[k];if(R.p)return;R.p=p;
+    <div class="cso">${['a','b','c'].map(p=>`<button class="copt${p==='a'?' hi':''}" data-act="case" data-arg="${p}"><b>${optL(c[p])}</b><small>${p==='a'?(c.tut?'범인을 찾아봐요':'진실에 다가가요 · 그 사람은 서운해해요'):p==='b'?'믿음이 깊어져요 · 단서를 놓칠 수 있어요':'조용히 넘어가요'}</small></button>`).join('')}</div></div>`,true);}
+function pickCase(p){const k=caseCur,c=cOf(k);if(!c)return;const o=c[p],R=S.cases[k];if(R.p)return;R.p=p;
   const sid=c.sus!=null&&svIn(c.sus)?c.sus:null,fx=[];
-  if(k>0){if(p==='a'){if(k===5){for(const id in S.sv)S.sv[id].xp=Math.max(0,S.sv[id].xp-20);fx.push('모두 신뢰 -20');}else if(sid!=null){S.sv[sid].xp=Math.max(0,S.sv[sid].xp-60);fx.push(`${svName(sid)} 신뢰 -60`);}}
+  if(!c.tut){if(p==='a'){if(c.all){for(const id in S.sv)S.sv[id].xp=Math.max(0,S.sv[id].xp-20);fx.push('모두 신뢰 -20');}else if(sid!=null){S.sv[sid].xp=Math.max(0,S.sv[sid].xp-60);fx.push(`${svName(sid)} 신뢰 -60`);}}
     if(p==='b'){if(sid!=null){S.sv[sid].xp+=80;fx.push(`${svName(sid)} 신뢰 +80`);}else{S.hopeB=(S.hopeB||0)+2;fx.push('희망 +2');}}}
   if(o.clue&&p==='a'){R.clue=1;fx.push('단서를 찾았어요');}
   if(c.solved)R.solved=1;const e=c.end?c.end():'';if(e)fx.push(e);
   let ls=o.r();if(c.tail){ls=ls.concat(c.tail);R.tail=1;}
-  recalc();save();caseCur=-1;
-  openModal(`<div class="page case done"><div class="tag">사건 ${k+1} · ${c.ch}</div><h3>${c.t}</h3><div class="csb">${caseLines(ls)}</div>
+  recalc();save();caseCur=null;
+  openModal(`<div class="page case done"><div class="tag">사건 ${cNo(k)} · ${c.ch}</div><h3>${c.t}</h3><div class="csb">${caseLines(ls)}</div>
     ${fx.length?`<div class="rqget big">${fx.map(t=>`<span class="rqfx${/-\d/.test(t)?' bad':''}">${t}</span>`).join('')}</div>`:''}
     <div class="csnote">${c.solved?'<em class="stamp ok">해결</em>':'<em class="stamp">미해결</em>'} 사건 수첩에 적었어요</div><button class="rqok">닫기</button></div>`,true);
   $('fDiary')&&pingEl($('fDiary'));}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="case"]');if(!b)return;e.stopPropagation();pickCase(b.dataset.arg);},true);
-function tickCases(){if(!s1On())return false;S.cases=S.cases||{};
+function tickCases(){S.cases=S.cases||{};
+  if(S.gen&&S.region&&TCASES[S.region]&&svIn(10)){const k=S.region,R=S.cases[k];if(R&&R.p)return false;if(R||TCASES[k].gate()){openCase(k);return true;}return false;}
+  if(!s1On())return false;
   for(let k=0;k<CASES.length;k++){const R=S.cases[k];if(R&&(R.p||R.skip))continue;if(R&&!R.p){openCase(k);return true;}
     if(k===0&&!svIn(3)&&S.mi>=STEP_I('첫 원정 보내기')){S.cases[0]={skip:1};continue;}
     if(k>0&&!(S.cases[k-1]&&(S.cases[k-1].p||S.cases[k-1].skip)))return false;if(CASES[k].gate()){openCase(k);return true;}return false;}return false;}
 
 // ---- 사건 수첩 (diary tab) ----
-function renderCases(){S.cases=S.cases||{};const n=CASES.filter((c,k)=>S.cases[k]&&S.cases[k].p).length,sol=CASES.filter((c,k)=>S.cases[k]&&S.cases[k].solved).length;
-  let h=`<div class="sec">사건 수첩 <small>풀린 사건 ${sol} / ${CASES.length}</small></div><div class="d" style="margin-bottom:8px">쉘터에서 일어난 일을 적어 두는 수첩이에요. 단서는 사람을 추궁할 때만 모여요.</div>`;
-  CASES.forEach((c,k)=>{const R=S.cases[k];if(!R||!R.p){h+=`<div class="entry locked csn"><div class="n">사건 ${k+1} · ???</div><div class="p">${c.ch}에 무슨 일이 생길지도 몰라요.</div></div>`;return;}
+function renderCases(){S.cases=S.cases||{};const KS=cKeys(),sol=KS.filter(k=>S.cases[k]&&S.cases[k].solved).length;
+  let h=`<div class="sec">사건 수첩 <small>풀린 사건 ${sol} / ${KS.length}</small></div><div class="d" style="margin-bottom:8px">쉘터에서 일어난 일을 적어 두는 수첩이에요. 단서는 사람을 추궁할 때만 모여요.</div>`;
+  KS.forEach(k=>{const c=cOf(k),R=S.cases[k];if(!R||!R.p){h+=`<div class="entry locked csn"><div class="n">사건 ${cNo(k)} · ???</div><div class="p">${c.ch}에 무슨 일이 생길지도 몰라요.</div></div>`;return;}
     const sus=c.sus!=null?svName(c.sus):c.susN,pick=optL(c[R.p]),clues=[];if(R.clue&&c[R.p].clue)clues.push(c[R.p].clue);if(R.tail&&c.tailClue)clues.push(c.tailClue);
-    h+=`<div class="entry csn${R.solved?' ok':''}"><em class="stamp${R.solved?' ok':''}">${R.solved?'해결':'미해결'}</em><div class="n">사건 ${k+1} · ${c.t} <small>${c.ch}</small></div>
+    h+=`<div class="entry csn${R.solved?' ok':''}"><em class="stamp${R.solved?' ok':''}">${R.solved?'해결':'미해결'}</em><div class="n">사건 ${cNo(k)} · ${c.t} <small>${c.ch}</small></div>
       <div class="cst"><span>때</span>${c.when}</div><div class="cst"><span>의심</span>${sus}</div>${c.alibi?`<div class="cst"><span>증언</span>${c.alibi}</div>`:''}<div class="cst"><span>내 선택</span>${pick}</div>
       ${R.solved?`<div class="cst"><span>결말</span>${c.log}</div>`:clues.length?clues.map(t=>`<div class="csc">단서 · ${t}</div>`).join(''):'<div class="csc none">단서 없음</div>'}</div>`;});
   const E=S.egg||{},got=['a','b','c'].filter(q=>E[q]).length;
@@ -4941,7 +4968,7 @@ function eggGet(q,msg){S.egg=S.egg||{};if(S.egg[q])return;S.egg[q]=1;save();cons
   if(n>=3&&!S.egg.page){S.egg.page=1;save();setTimeout(()=>{note({h:'찢어진 페이지를 찾았어요',t:'<small>일지 · 사건 수첩 맨 뒤에 끼워져 있어요</small>',kind:'story',ms:6000});},600);}
   else note({h:`${msg} · ${n}/3`,t:'<small>어딘가 비어 있는 3분이 있어요</small>',kind:'story',ms:4200});}
 function openEggPage(){const c5=S.cases&&S.cases[4]&&S.cases[4].p;
-  openModal(`<div class="page case egg"><div class="tag">찢어진 페이지</div><div class="eggp"><p>03:11 관제실에서 전화.</p><p>대피 방송 요청.</p><p>…</p><p class="last">그날, 방송은 나가지 않았다.</p></div>${c5?'<div class="csnote">찢긴 자국이, 재혁의 노트에서 뜯겨 나간 자리와 꼭 맞는다.</div>':''}<button class="rqok">닫기</button></div>`,true);}
+  openModal(`<div class="page case egg"><div class="tag">찢어진 페이지</div><div class="eggp"><p>03:11 제어실에서 전화.</p><p>대피 방송 요청.</p><p>…</p><p class="last">그날, 방송은 나가지 않았다.</p></div>${c5?'<div class="csnote">찢긴 자국이, 재혁의 노트에서 뜯겨 나간 자리와 꼭 맞는다.</div>':''}<button class="rqok">닫기</button></div>`,true);}
 // ① 03:11~03:14, the real clock: the radio catches a voice that breaks off
 const lost3=()=>{const d=new Date();return d.getHours()===3&&d.getMinutes()>=11&&d.getMinutes()<=14;};
 function eggRadio(){if(!lost3()||!(S.gUses||S.gTotal))return;const m=new Date().getMinutes();
@@ -5001,21 +5028,23 @@ let ehT=0;
 function tickEunho(){if(svIn(10))return false;const st=mission().step,ji=STEP_I('목소리의 주인 맞이하기');
   if((st&&st.goal==='목소리의 주인 맞이하기')||(S.mi>ji&&ji>=0)){rescue(10,'visit');return true;}return false;}
 
+function tickEnding(){if(S.gen||!S.endSeen||S.ehEnd||S.mi<STEPS.length||!svIn(10))return false;S.ehEnd=1;save();
+  openTalk([[ME,'그날 밤에도 심야 방송이 흘렀다.'],[10,'여기는 심야 방송 한밤. 오늘 탑에 불을 켠 모든 분께, 마지막 곡 보내 드립니다.'],[ME,'노래가 끝나고도 방송은 꺼지지 않았다. 한참 동안, 잡음만 흘렀다.']],{tag:'그날 밤'});return true;}
 function tickSeason(){tickOdd();if(!sceneFree()){scIdle=0;return;}if(++scIdle<6)return;
-  if(tickEunho()||tickCrow()||tickCases())scIdle=-40;}
+  if(tickEunho()||tickCrow()||tickCases()||tickEnding())scIdle=-40;}
 
 // ================= 수상한 밤: once 은호 is here, strange things happen around "새벽 3시" =================
 // Night is 50s; its 5/8 mark reads as 03:00. Half the nights carry one small oddity. None of them says who.
 const noteFirst=o=>{if(NCUR&&!NQ.some(q=>q.h===o.h))NQ.unshift(o);else note(o);};
 const ODD_AT=DAY+31,ODD_ITEMS=['녹은 납 부스러기','구겨진 신청곡 쪽지','이어폰 한 짝','손때 묻은 카세트 라벨'];
 let oddPlan=null,oddNightSeen=-1,oddUntil=0,SHD=null,oddDawn=null;
-const oddOn=()=>s1On()&&svIn(10);
+const oddOn=()=>svIn(10)&&(s1On()||!!S.gen);
 function oddLog(k,t){S.odd=S.odd||[];S.odd.unshift({n:S.nightCount||0,k,t});if(S.odd.length>20)S.odd.length=20;save();}
 const modTile=id=>{for(const[t,k]of D.modAt)if(S.mods[k]&&S.mods[k].id===id)return t;return-1;};
 function oddPick(){const last=S.oddLast,pool=[['shadow',3],['radio',(S.gUses||S.gTotal)?2:0],['light',hasMod(7)?2:0],['missing',2],['steps',2],['absent',Object.keys(S.sv).length>=4?2:0],['knock',1]].filter(([k,w])=>w&&k!==last);
   let tot=0;for(const[,w]of pool)tot+=w;let r=Math.random()*tot;for(const[k,w]of pool){r-=w;if(r<=0)return k;}return'knock';}
 function tickOdd(){if(!oddOn())return;const n=isNight(),nc=S.nightCount||0;
-  if(n&&oddNightSeen!==nc){oddNightSeen=nc;oddPlan=!DEFN&&Math.random()<.5?{k:oddPick(),done:0}:null;}
+  if(n&&oddNightSeen!==nc){oddNightSeen=nc;oddPlan=!DEFN&&Math.random()<(S.gen?.3:.5)?{k:oddPick(),done:0}:null;}
   if(n&&oddPlan&&!oddPlan.done&&phase()>=ODD_AT&&!DEFN){oddPlan.done=1;S.oddLast=oddPlan.k;runOdd(oddPlan.k);}
   if(!n&&oddDawn){const f=oddDawn;oddDawn=null;setTimeout(f,2600);}}
 function runOdd(k){oddUntil=performance.now()+9000;sfx('tap');
@@ -5030,7 +5059,7 @@ function runOdd(k){oddUntil=performance.now()+9000;sfx('tap');
   if(k==='steps'){const e=edgeTiles();const to=e.length?e[(Math.random()*e.length)|0]:C0;S.oddSteps={to,n:nc0()};
     oddDawn=()=>{noteFirst({h:'아침 · 발자국',t:'<small>쉘터에서 어둠 쪽으로 발자국이 이어져 있어요. 돌아온 발자국은 없어요.</small>',kind:'story',ms:5500});};oddLog(k,'쉘터에서 어둠 쪽으로 발자국이 났다. 돌아온 발자국은 없었다.');return;}
   if(k==='absent'){const ids=Object.keys(S.sv).map(Number).filter(id=>id!==10&&id!==JIN);const who=Math.random()<.5?10:ids[(Math.random()*ids.length)|0],rep=ids.filter(id=>id!==who)[0];
-    const alibi=who===10?'“방송하느라 무전실에 있었죠. 다들 들었잖아요?”':who===1?'“바람 좀 쐬고 왔어요. 배달하던 버릇이라.”':'“잠이 안 와서요. 잠깐 걸었어요.”';
+    const alibi=who===10?(hasMod(7)?'“방송하느라 무전실에 있었죠. 다들 들었잖아요?”':'“송신기 앞에서 방송 중이었어요. 다들 들었잖아요?”'):who===1?'“바람 좀 쐬고 왔어요. 배달하던 버릇이라.”':'“잠이 안 와서요. 잠깐 걸었어요.”';
     oddDawn=()=>{noteFirst({h:`아침 · ${svName(rep)}`,t:`<small>“어젯밤 ${jo(svName(who),'이','가')} 자리에 없었어요.” ${svName(who)}: ${alibi}</small>`,kind:'story',ms:6500});};
     oddLog(k,`새벽에 ${svName(who)}의 자리가 비어 있었다. ${svName(who)}: ${alibi}`);}}
 const nc0=()=>S.nightCount||0;
