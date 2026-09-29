@@ -1138,9 +1138,13 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 .d,.cb .d,.page p,.rl p,.tt.note small,.row small,.sline span{text-wrap:pretty}
 
-.btns.bx{gap:5px!important}
-.btns.bx .buy{min-height:34px!important;padding:4px 10px!important;white-space:nowrap}
-.btns.bx .buy.cmax small{font-size:11px;font-weight:600;opacity:.8;margin-left:2px}
+.cqty{display:flex;align-items:center;gap:6px;margin:-2px 0 10px}
+.cqty span{font:600 12.5px var(--body);color:var(--sepia-2);margin-right:2px}
+.cqty .cq{all:unset;cursor:pointer;padding:7px 14px;border-radius:99px;border:1.5px solid rgba(59,42,26,.25);background:#fbf4e4;font:700 13px/1 var(--body);color:var(--sepia)}
+.cqty .cq.on{background:#352a20;color:#f8e8c8;border-color:#352a20}
+.buy.cbtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:78px;white-space:nowrap}
+.buy.cbtn small{font-size:11.5px;font-weight:700;opacity:.8}
+.buy.cbtn small.why{font-weight:600;opacity:.7}
 </style>
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
@@ -2247,9 +2251,9 @@ function renderShelter(){const L=S.lv;$('shTitle').textContent=`Lv.${L} ${LVNAME
   else{const c=scaleCost(WALLS[S.walls].cost,costMult());h+=card('wall',`<span class="th ico">${ICO.wall}</span>`,`${WALLS[S.walls].n}${S.walls?pips(S.walls-1):''}`,S.lv<2?'쉘터 Lv.2에 열려요':'밤마다 쉘터 모듈을 덮치는 재를 줄여요',S.lv<2?'':costHtml(c),S.lv<2?lockBadge('Lv.2'):btnCost('wall',0,'세우기',c),S.lv<2?'locked':'');}
   h+=migrateHtml();
   }else if(shTab==='craft'){
-  h+='<div class="sec">작업대 가공</div>';
+  h+='<div class="sec">작업대 가공</div>'+(wbL()?craftQtyHtml():'');
   if(!wbL())h+=emptyHtml(`<span class="th"><img src="${modThumb(1,0)}" alt=""></span>`,'작업대가 아직 없어요','작업대를 세우면 고철로 철판을, 천으로 밧줄을 만들 수 있어요');
-  else RECIPES.forEach((r,k)=>{const inp=r.inp(),lk=recipeLock(r);if(lk&&r.lv&&S.lv<r.lv-1)return;h+=card('r'+k,`<span class="th ico mat">${micon(r.out,28)}</span>`,`${r.nm||MN[r.out].n}<small>${r.nm?MN[r.out].n+' ':''}보유 ${S.m[r.out]||0}</small>`,r.d||'',lk?'':costHtml(inp)+`<span class="arrow">→ ${r.n||1}개</span>`,lk?lockBadge(lk):`<div class="btns bx">${btnCost('craft',k+':1','×1',inp)}${btnCost('craft',k+':10','×10',scaleCost(inp,10))}${craftMaxBtn(k)}</div>`);});
+  else RECIPES.forEach((r,k)=>{const inp=r.inp(),lk=recipeLock(r);if(lk&&r.lv&&S.lv<r.lv-1)return;h+=card('r'+k,`<span class="th ico mat">${micon(r.out,28)}</span>`,`${r.nm||MN[r.out].n}<small>${r.nm?MN[r.out].n+' ':''}보유 ${S.m[r.out]||0}</small>`,r.d||'',lk?'':costHtml(inp)+`<span class="arrow">→ ${r.n||1}개</span>`,lk?lockBadge(lk):craftBtn(k));});
   h+=feastHtml();
   h+='<div class="sec">탐사 장비</div>';
   for(const k in UPG){const u=UPG[k],lv=S[u.k],mx=lv>=u.max,c=u.cost(),need=u.wb();
@@ -4730,7 +4734,13 @@ function craftMax(k){const r=RECIPES[k];if(!r||!wbL()||recipeLock(r))return 0;co
   for(const m in inp){if(inp[m]>0)n=Math.min(n,Math.floor((S.m[m]||0)/inp[m]));}
   if(!MN[r.out].tier){const room=Math.max(0,D.cap-(S.m[r.out]||0));n=Math.min(n,Math.floor(room/(r.n||1)));}
   return Math.max(0,n);}
-function craftMaxBtn(k){const n=craftMax(k),ok=n>=2;return`<button class="buy cmax${ok?'':' off'}" data-act="craft" data-arg="${k}:${n}" ${ok?'':'disabled'}>최대 <small>×${fmt(n)}</small></button>`;}
+// one quantity choice for the whole list, one button per recipe
+const CQ=[[1,'1개'],[10,'10개'],['max','최대']];
+function craftQty(){return S.craftQ==null?1:S.craftQ;}
+function craftQtyHtml(){const q=craftQty();return`<div class="cqty"><span>한 번에</span>${CQ.map(([v,l])=>`<button class="cq${q===v?' on':''}" data-act="cq" data-arg="${v}">${l}</button>`).join('')}</div>`;}
+function craftBtn(k){const mx=craftMax(k),q=craftQty(),n=q==='max'?mx:Math.min(q,mx),ok=n>=1;
+  return`<button class="buy cbtn${ok?'':' off'}" data-act="craft" data-arg="${k}:${n}" ${ok?'':'disabled'}>만들기${ok&&q!==1?` <small>×${fmt(n)}</small>`:''}${ok?'':'<small class="why">재료 부족</small>'}</button>`;}
+$('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="cq"]');if(!b)return;e.stopImmediatePropagation();const v=b.dataset.arg;S.craftQ=v==='max'?'max':+v;sfx('tap');renderSheet();save();},true);
 
 // ---------- loop ----------
 let last=performance.now(),acc=0,uiT=0,saveT=0;
