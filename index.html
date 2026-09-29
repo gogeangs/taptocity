@@ -1006,6 +1006,25 @@ body{-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:anywhe
 .rqfx.bad{color:#b0452a;background:rgba(176,69,42,.12)}
 .rqget.big{margin:0 0 14px}.rqget.big .rqfx{font-size:13px;padding:6px 10px}
 .page.req .rqok{width:100%}
+
+.sq{all:unset;box-sizing:border-box;position:absolute;left:12px;top:70px;z-index:3;display:flex;align-items:center;gap:8px;width:min(300px,calc(100% - 84px));padding:4px 10px 4px 4px;border-radius:14px;background:rgba(241,229,198,.96);color:var(--sepia);border:1.5px solid rgba(59,42,26,.25);box-shadow:0 3px 10px rgba(0,0,0,.35);cursor:pointer}
+.sq[hidden]{display:none}
+.sqav{width:32px;height:32px;border-radius:50%;overflow:hidden;flex:none;background:#e6d8b6}
+.sqav svg{width:100%;height:auto;display:block}
+.sqm{display:flex;flex-direction:column;min-width:0;flex:1;gap:1px}
+.sqm small{font:600 10.5px/1.1 var(--body);color:var(--rust)}
+.sqm small i{font-style:normal;color:var(--sepia-2);font-weight:400;margin-left:3px}
+.sqm b{font:700 13px/1.25 var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sqp{position:relative;flex:none;width:64px;height:18px;border-radius:99px;background:rgba(59,42,26,.12);overflow:hidden}
+.sqp i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#c9a24a,#f3a53a);border-radius:99px}
+.sqp em{position:relative;display:block;text-align:center;font:600 10.5px/18px var(--body);font-style:normal;color:var(--sepia)}
+.sqgo{flex:none;font:700 13px/1 var(--body);color:#fff;background:var(--rust);border-radius:99px;padding:7px 12px;animation:sqb 1.2s ease-in-out infinite}
+.sq.done{border-color:var(--rust)}
+@keyframes sqb{50%{transform:scale(1.06)}}
+#stage.sqon #evBtn,#stage.sqon .bufp{top:122px!important}
+#stage.sqon #toasts{translate:0 52px}
+#stage.sqon:has(#evBtn:not([hidden])) #toasts{translate:0 104px}
+#stage:has(#sheet.open) .sq{opacity:0;pointer-events:none}
 </style>
 
 <div id="app">
@@ -3386,7 +3405,7 @@ function openMigrate(){const nr=REGIONS[nextRegion()],g=(S.gen||0)+1,n=Object.ke
     <div class="sec2" style="margin-top:6px">새로 얻는 것</div><div class="d"><b>등불의 기억 ${g}단계</b> · 모든 생산 +${g*10}% · 두드리는 힘 +${g*10}% (영구)<br>함께 온 사람 수만큼 침상 추가</div>
     <div class="btns" style="margin-top:14px"><button class="alt">조금 더 머물기</button><button data-act="migok">떠나기</button></div></div>`,true);}
 function migrate(){const old=S,g=(old.gen||0)+1,region=nextRegion();
-  const keep={pf:old.pf,playT:old.playT,pfAsk:old.pfAsk,qc:old.qc,sv:old.sv,party:old.party,inv:old.inv,iu:old.iu,relics:old.relics,ach:old.ach,title:old.title,kids:old.kids,dog:old.dog,endSeen:old.endSeen,conf:old.conf,hook:old.hook,tlog:old.tlog,rumor:old.rumor,pets:old.pets,petOn:old.petOn,stat:old.stat,gTotal:old.gTotal,gp:old.gp,heard:old.heard,found:old.found,mi:old.mi,storyI:old.storyI,
+  const keep={pf:old.pf,playT:old.playT,pfAsk:old.pfAsk,qc:old.qc,sv:old.sv,party:old.party,inv:old.inv,iu:old.iu,relics:old.relics,ach:old.ach,title:old.title,kids:old.kids,dog:old.dog,endSeen:old.endSeen,conf:old.conf,hook:old.hook,tlog:old.tlog,rumor:old.rumor,sqN:old.sqN,pets:old.pets,petOn:old.petOn,stat:old.stat,gTotal:old.gTotal,gp:old.gp,heard:old.heard,found:old.found,mi:old.mi,storyI:old.storyI,
     ug:old.ug||{best:0,runs:0,bestWith:{}},defWins:old.defWins,defs:old.defs,nights:old.nights,evDone:old.evDone,skillUses:old.skillUses,expDone:old.expDone,fevers:old.fevers,gUses:old.gUses};
   const carryM={batt:old.m.batt||0};for(const k of['plate','rope','wire','med'])carryM[k]=Math.floor((old.m[k]||0)/2);
   closeModal();closeSheet();closeRing();DEFN=null;UG=null;WALK={};CHAT=null;KW=[];
@@ -4521,6 +4540,54 @@ function chooseEv(k){const e=evCur;if(!e)return;const o=k?e.b:e.a,c=evCost(o);if
   openModal(`<div class="page req done"><div class="rqh"><span class="rqav">${sv?portrait(sv):''}</span><div><div class="tag">부탁을 들어줬어요</div><h3>${e.t}</h3></div></div>
     <p class="rqsay">${o.r}</p><div class="rqget big">${evChips(sum)}</div><button class="rqok">좋아요</button></div>`,true);}
 
+// ================= 생존자 의뢰: small side jobs between story goals =================
+// One at a time, a survivor asks for a 3~5 minute job. The reward is whatever the next big build is short of.
+const SQ_ON=()=>Object.keys(S.sv).length>=2&&(S.lv>=2||!!S.gen);
+const gotN=k=>(S.got&&S.got[k])||0;
+const SQT={
+ wood:{ok:()=>true,n:()=>Math.round(70*lvScale()),v:()=>gotN('wood'),t:n=>`목재 ${fmt(n)}개 모으기`,go:'lamp',say:['“장작이 모자라요. 오늘 밤 불 좀 넉넉히 피우고 싶어요.”','“침상 다리가 또 부러졌어요. 나무가 필요해요.”']},
+ scrap:{ok:()=>true,n:()=>Math.round(70*lvScale()),v:()=>gotN('scrap'),t:n=>`고철 ${fmt(n)}개 모으기`,go:'lamp',say:['“고철만 있으면 이것저것 고쳐 볼게요.”','“녹슨 거라도 좋아요. 쇠붙이 좀 모아 와요.”']},
+ food:{ok:()=>true,n:()=>Math.round(60*lvScale()),v:()=>gotN('food'),t:n=>`식량 ${fmt(n)}개 모으기`,go:'lamp',say:['“창고가 비어 가요. 아이들 먹을 거라도 채워 둬요.”','“오늘은 제대로 한 끼 차려 보고 싶어요.”']},
+ plate:{ok:()=>wbL()>=1&&S.lv>=2,n:()=>Math.round(12*lvScale()),v:()=>gotN('plate'),t:n=>`철판 ${fmt(n)}장 만들기`,go:'craft',say:['“지붕에 구멍이 났어요. 철판으로 덮어야 해요.”','“철판 몇 장만 있으면 문을 단단히 달 수 있어요.”']},
+ rope:{ok:()=>wbL()>=1&&S.lv>=2,n:()=>Math.round(8*lvScale()),v:()=>gotN('rope'),t:n=>`밧줄 ${fmt(n)}개 만들기`,go:'craft',say:['“빨랫줄이 끊어졌어요. 밧줄 좀 꼬아 줄래요?”','“망루에 올라갈 밧줄이 필요해요.”']},
+ reveal:{ok:()=>{let f=0;for(let i=0;i<N;i++)if(isFrontier(i))f++;return f>=30;},n:()=>10+S.lv*2,v:()=>revCount(),t:n=>`어둠 ${n}칸 걷어내기`,go:'lamp',say:['“저 너머에 뭐가 있는지 궁금해요. 조금만 더 밝혀 줘요.”','“구름 속에서 뭔가 반짝였어요. 가까이 가 봐요.”']},
+ exp:{ok:()=>S.expDone>0||S.mi>STEP_I('첫 원정 보내기'),n:()=>1,v:()=>S.expDone||0,t:()=>'원정 한 번 다녀오기',go:'fExp',say:['“지도에 표시해 둔 곳이 있어요. 누가 다녀와 줄래요?”','“멀리서 연기가 올라와요. 확인해 봐야겠어요.”']},
+ ug:{ok:()=>ugOpen()&&S.ug&&S.ug.runs>0,n:()=>1,v:()=>(S.ug&&S.ug.runs)||0,t:()=>'지하 구역 한 번 내려가기',go:'fExp',say:['“지하에서 이상한 소리가 났대요. 한번 내려가 봐요.”','“지하철역 매점에 통조림이 남아 있을지도 몰라요.”']},
+ radio:{ok:()=>(S.m.batt||0)>=3,n:()=>3,v:()=>S.gTotal||0,t:n=>`주파수 탐색 ${n}번 하기`,go:'radio',say:['“라디오에서 누가 부르는 것 같았어요. 다이얼 좀 돌려 봐요.”','“건전지 아껴서 뭐 해요. 신호 좀 찾아봐요!”']},
+ ev:{ok:()=>(S.evDone||0)>0,n:()=>1,v:()=>S.evDone||0,t:()=>'생존자의 부탁 하나 들어주기',go:'ev',say:['“다들 말은 안 해도 부탁이 하나씩 있을 거예요.”']},
+ night:{ok:()=>(S.nights||0)>0,n:()=>1,v:()=>S.nights||0,t:()=>'재폭풍 밤 한 번 버티기',go:'clock',say:['“오늘 밤도 무사히 넘겨요. 그럼 한잔해요.”']},
+ feast:{ok:()=>feastOpen()&&Date.now()>(S.feastAt||0)+FEAST_CD,n:()=>1,v:()=>S.feasts||0,t:()=>'마을 잔치 한 번 열기',go:'craft',say:['“요즘 다들 지쳤어요. 잔치 한번 열어요!”']}};
+function sqPickWho(){const ids=Object.keys(S.sv).map(Number).filter(id=>!S.sv[id].away);const a=ids.length?ids:Object.keys(S.sv).map(Number);return a[(Math.random()*a.length)|0];}
+function sqNew(){const last=S.sq&&S.sq.k,ks=Object.keys(SQT).filter(k=>k!==last&&SQT[k].ok());if(!ks.length)return;
+  const w=k=>['wood','scrap','food','reveal'].includes(k)?1:1.4;let tot=0;ks.forEach(k=>tot+=w(k));let r=Math.random()*tot,k=ks[0];for(const q of ks){r-=w(q);if(r<=0){k=q;break;}}
+  const T=SQT[k],n=T.n();S.sq={k,n,b:T.v(),at:Date.now(),who:sqPickWho(),say:T.say[(Math.random()*T.say.length)|0]};save();renderSq(true);}
+const sqProg=()=>{const q=S.sq;if(!q||!SQT[q.k])return 0;return Math.max(0,Math.min(q.n,SQT[q.k].v()-q.b));};
+const sqDone=()=>!!S.sq&&sqProg()>=S.sq.n;
+// the reward follows what the next shelter step or tower floor still needs
+function sqReward(){const tgt=S.lv<5?scaleCost(SHUP[S.lv-1].cost,costMult()):(typeof towerNext==='function'&&towerOpen()?scaleCost(towerNext().cost,costMult()):null);const rw={};
+  if(tgt){let best=null,bv=0;for(const k in tgt){if(k==='batt')continue;const miss=tgt[k]-(S.m[k]||0);if(miss<=0)continue;const f=miss/tgt[k];if(f>bv){bv=f;best=k;}}
+    if(best){const miss=tgt[best]-(S.m[best]||0);rw[best]=Math.max(1,Math.min(miss,Math.round(tgt[best]*(MN[best].tier?.03:.04))));}}
+  if(!Object.keys(rw).length)Object.assign(rw,scaleCost({scrap:15,wood:15},lvScale()));
+  rw.batt=1;return rw;}
+function claimSq(){if(!sqDone())return;const rw=sqReward(),bonus=((S.sqN||0)+1)%3===0;const got=give(rw);let extra='';
+  if(bonus){give({batt:3});const it=dropGear(S.lv>=4?2:1);extra=` · 보급 상자: 건전지 +3 · ${GEAR[it.t].n}`;}
+  if(S.sv[S.sq.who])S.sv[S.sq.who].xp+=40;S.sqN=(S.sqN||0)+1;const who=S.sv[S.sq.who]?SURV[S.sq.who].name:'';
+  const r=$('sq').getBoundingClientRect();for(const k in got)flyMat(k,null,null,r.left+r.width-40,r.top+r.height/2);sfx('chime');
+  note({h:`${who?who+'의 ':''}의뢰 완료`,t:`<small>${lootTxt(got)}${who?` · ${who} 신뢰 +40`:''}${extra}</small>`,kind:'ach',ms:4500});
+  S.sq=null;S.sqAt=Date.now()+60000;save();renderSq(true);}
+let sqKey='';
+function renderSq(force){const el=$('sq');if(!el)return;const q=S.sq,on=!!q&&SQ_ON();$('stage').classList.toggle('sqon',on);el.hidden=!on;if(!on)return;
+  const T=SQT[q.k],p=sqProg(),d=p>=q.n,who=S.sv[q.who]?SURV[q.who]:null,key=[q.k,q.n,p,d,q.who].join('|');if(!force&&key===sqKey)return;sqKey=key;
+  el.classList.toggle('done',d);
+  el.innerHTML=`<span class="sqav">${who?portrait(who):''}</span><span class="sqm"><small>${who?who.name:'쉘터'}의 의뢰 <i>${((S.sqN||0)%3)+1}/3</i></small><b>${T.t(q.n)}</b></span>${d?'<span class="sqgo">받기</span>':`<span class="sqp"><i style="width:${(p/q.n*100).toFixed(1)}%"></i><em>${fmt(p)}/${fmt(q.n)}</em></span>`}`;}
+function tickSide(){if(!SQ_ON())return renderSq();if(!S.sq&&Date.now()>(S.sqAt||0))sqNew();else if(S.sq&&!SQT[S.sq.k]){S.sq=null;}else if(S.sq&&!sqDone()&&Date.now()-(S.sq.at||Date.now())>10*60000){sqNew();}renderSq();}
+function sqGo(){const q=S.sq;if(!q)return;if(sqDone()){claimSq();return;}const g=SQT[q.k].go,who=S.sv[q.who]?SURV[q.who].name:'';
+  toast(`${who?who+': ':''}${q.say.replace(/^“|”$/g,'')}`);
+  if(g==='craft'){goShelter('craft');return;}if(g==='fExp'){openSheet('exp');return;}if(g==='radio'){openSheet('radio');return;}
+  if(sheetTab)closeSheet();if(g==='ev'){const b=$('evBtn');if(!b.hidden)b.click();return;}if(g==='clock'){pingEl($('clock'));return;}
+  if(aim>=0)camFly(aim,22);pingEl($('lamp'));}
+{const d=document.createElement('button');d.id='sq';d.className='sq';d.hidden=true;d.setAttribute('aria-label','생존자 의뢰');$('stage').appendChild(d);d.onclick=e=>{e.stopPropagation();sqGo();};}
+
 // ---------- loop ----------
 let last=performance.now(),acc=0,uiT=0,saveT=0;
 function renderMats(){const box=$('mats');if(!box.firstChild)box.innerHTML=BASE.map(k=>`<span class="mc" data-k="${k}" title="${MN[k].src}"><span class="top">${micon(k,15)}<b></b></span><i>${MN[k].n}</i></span>`).join('');
@@ -4538,7 +4605,7 @@ function frontierNearest(){let best=-1,bd=1e9;for(let i=0;i<N;i++)if(isFrontier(
 function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;
   tickProd(dt);tickBuff(dt);tickClock(dt);tickDefense(dt);tickLife(dt);tickKidWalk(dt);tickEvents(dt);tickSkills(dt);
   idle+=dt;if(fever>0){fever=Math.max(0,fever-dt);}else if(idle>.7&&combo>0)combo=Math.max(0,combo-dt*10);
-  acc+=dt;if(acc>=1){acc-=1;tickTwk();tickSurv();tickExp();tickSites();tickQuests();tickBand();tickKids();tickPets();tickFinale();tickRegionStory();tickRegionHidden();tickTownEvents();tickDuty();tickAuto();tickAutoExp();tickAch();tickFeat();tickClaim();tickBeats();tickBatt();tickProfile();if(S.overT>0)S.overT--;if(S.hintT>0)S.hintT--;if(S.droneLv||S.overT>0){const i=frontierNearest();if(i>=0){damage(i,S.overT>0?Math.max(droneDmg(),tapPow())*4:droneDmg(),false);const[x,y]=tileC(i,14);burst(x,y,'#9fc6d2',4);}}}
+  acc+=dt;if(acc>=1){acc-=1;tickTwk();tickSide();tickSurv();tickExp();tickSites();tickQuests();tickBand();tickKids();tickPets();tickFinale();tickRegionStory();tickRegionHidden();tickTownEvents();tickDuty();tickAuto();tickAutoExp();tickAch();tickFeat();tickClaim();tickBeats();tickBatt();tickProfile();if(S.overT>0)S.overT--;if(S.hintT>0)S.hintT--;if(S.droneLv||S.overT>0){const i=frontierNearest();if(i>=0){damage(i,S.overT>0?Math.max(droneDmg(),tapPow())*4:droneDmg(),false);const[x,y]=tileC(i,14);burst(x,y,'#9fc6d2',4);}}}
   if(camTw){camTw.t+=dt;const p=camTw.t/camTw.dur,e=p<.35?p/.35:p>.7?1-(p-.7)/.3:1,s=e*e*(3-2*e);cam.z=camTw.back+(camTw.to-camTw.back)*s;if(p>=1){cam.z=camTw.back;camTw=null;}}
   if(aim>=0&&ptrs.size===0&&now-lastBtn<1500){const s=aimScreen(aim);if(s.x<70||s.x>cw-70||s.y<90||s.y>ch-160){const[wx,wy]=tileC(aim,12);cam.x+=(wx-cam.x)*.06;cam.y+=(wy-cam.y)*.06;}}
   for(const[k,v]of anims){const n=v+dt/1.2;if(n>=1)anims.delete(k);else{anims.set(k,n);if(Math.random()<.3){const[x,y]=tileC(k,4);parts.push({x:x+(Math.random()-.5)*40,y,vx:(Math.random()-.5)*.6,vy:-.4,life:.8,max:.8,smoke:1});}}}
