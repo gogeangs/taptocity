@@ -1074,7 +1074,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 .lvrow{background:rgba(6,8,12,.32);border-radius:8px;padding:6px 9px;gap:8px!important}.lvrow #lv{font-size:12px!important}.lvrow #barL{font-size:10px;color:#d7c7aa}.inkbar{height:5px}
 .tape{position:relative;margin:10px 0 -19px!important;padding:10px 13px 10px 16px!important;min-height:43px!important;background:linear-gradient(115deg,#f4bd65,#f2d493 55%,#e9c380);border:1px solid #ffdda2;border-radius:13px;color:#36271b;box-shadow:0 8px 24px rgba(0,0,0,.42),inset 0 1px rgba(255,255,255,.55)}
 .tape::before{display:block;content:"";position:absolute;top:8px;bottom:8px;left:6px;width:3px;height:auto;background:#804029;border-radius:3px;transform:none}.tape::after{display:none}
-.tape .m{font-size:15px!important;line-height:1.3;font-weight:700}.tape .chap{display:block;width:max-content;margin:0 0 4px;padding:0!important;background:none;color:#804029;font-size:10px!important;letter-spacing:.08em}.tape .chap i{color:#804029}.tape .more{color:#604937}
+.tape .m{font-size:15px!important;line-height:1.3;font-weight:700}.tape .chap{display:block;width:max-content;margin:0 0 4px;padding:0!important;background:none;color:#804029;font-size:10px!important;letter-spacing:.08em}.tape .chap i{color:#804029}.tape .goal{display:inline;background:none;border:0;border-radius:0;margin:0;padding:0;text-decoration:none}.tape .more{color:#604937}
 .tape.done{margin-bottom:-34px!important}.tape.done .m{font-size:13px!important}.tape.done .chap{display:inline;margin-right:6px}
 #stage{background:#1c1e23}
 #clock{top:30px;padding:8px 12px;background:rgba(23,26,32,.93);border-color:rgba(255,215,147,.4);font-size:12px}
@@ -1090,7 +1090,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="app">
   <header>
-    <div class="brandline"><span class="brandmark" aria-hidden="true">✦</span><div><strong>탭투시티</strong><small>재 속의 등불</small></div><span class="brandstatus">SHELTER · 01</span></div>
+    <div class="brandline"><span class="brandmark" aria-hidden="true">✦</span><div><strong>탭투시티</strong><small>재 속의 등불</small></div><span class="brandstatus">생존 기록</span></div>
     <div class="hud">
       <div class="town"><button id="pfBtn" class="lamp" aria-label="내 프로필"></button><button class="mats" id="mats" aria-label="자재 전체 보기" aria-expanded="false"></button><button id="setBtn" aria-label="설정"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
       <div class="lvrow"><b id="lv">Lv.1 텐트</b><div class="inkbar"><i id="bar"></i></div><span id="barL"></span><small id="pop" hidden>생존자 0</small></div>
