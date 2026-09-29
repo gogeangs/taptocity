@@ -1025,6 +1025,38 @@ body{-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:anywhe
 #stage.sqon #toasts{translate:0 52px}
 #stage.sqon:has(#evBtn:not([hidden])) #toasts{translate:0 104px}
 #stage:has(#sheet.open) .sq{opacity:0;pointer-events:none}
+
+/* Visual system: a quiet field HUD around the ash-covered map. */
+:root{--ink:#101012;--paper:#f5ead0;--sepia:#30281f;--sepia-2:#73634e;--leather:#29231e;--amber:#edb85b;--glow:#ffda91;--rust:#a94d35}
+#app{box-shadow:0 0 0 1px rgba(255,255,255,.07),0 24px 80px rgba(0,0,0,.45)}
+header{background:linear-gradient(180deg,#312920,#211e1c);padding:10px 12px 0;box-shadow:0 8px 24px rgba(0,0,0,.38)}
+.hud{background:rgba(255,255,255,.035);border:1px solid rgba(255,225,174,.19)!important;border-radius:16px!important;padding:8px 10px 9px!important;gap:8px!important;box-shadow:inset 0 1px rgba(255,255,255,.055)}
+.town{gap:10px!important}.town .mats{gap:2px!important}.mc{padding:4px 0 7px;min-width:0}.mc .top{color:#f8e9c8;font-family:var(--body);font-size:13px}.mc i{color:#b9aa92}
+.mc::after{left:12%;right:12%;height:2px;background:linear-gradient(90deg,var(--amber) calc(var(--f,0)*100%),rgba(255,235,198,.12) 0)}
+.lvrow{gap:9px!important}.lvrow #lv{color:#ffdf9e!important;font-size:12px!important}.lvrow #barL{color:#cabb9f;font-size:11px}
+.inkbar{height:4px;background:rgba(0,0,0,.32)}.inkbar i{background:linear-gradient(90deg,#d98b4b,#ffd68a);box-shadow:0 0 9px rgba(255,192,91,.5)}
+#setBtn{color:#ead8b9;opacity:.86}#setBtn:active{opacity:1}
+.tape{margin:8px 3px -13px;padding:9px 12px;background:linear-gradient(135deg,#fff1d4,#e7d4aa);border:1px solid rgba(103,73,42,.35);border-radius:10px;box-shadow:0 6px 15px rgba(0,0,0,.32);min-height:28px}
+.tape::before,.tape::after{display:none}.tape .m{font-size:13px;line-height:1.35}.tape .chap{background:#954633;border-radius:5px!important;font-size:10px!important;padding:3px 6px 2px}.tape .more{color:#8a7256}
+#stage{background:#171515}
+#clock,.zoom button,.bufp{background:rgba(31,28,26,.88);border:1px solid rgba(255,229,187,.3);box-shadow:0 5px 15px rgba(0,0,0,.3);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+#clock{color:#f5e4c1;font:600 12px/1.3 var(--body);padding:8px 11px 8px 8px;max-width:calc(100% - 112px)}#clock i{width:13px;height:13px;flex:none}
+.zoom{right:12px;gap:8px}.zoom button{width:42px;height:42px;color:#f4dfb9;border-radius:13px}
+#lamp{left:12px;bottom:calc(11px + env(safe-area-inset-bottom,0px));width:88px;border-radius:18px;background:linear-gradient(155deg,rgba(56,43,29,.96),rgba(29,26,24,.96));border:1px solid rgba(255,215,143,.55);box-shadow:0 7px 22px rgba(0,0,0,.5),inset 0 1px rgba(255,237,198,.12);padding:5px 0 7px}
+#lamp svg{width:66px;height:66px;filter:drop-shadow(0 0 9px rgba(246,167,61,.5))}#lamp span{font-size:12px;margin-top:-1px;color:#ffe1a2;text-shadow:none}
+.tabs{left:110px;right:10px;bottom:calc(11px + env(safe-area-inset-bottom,0px));gap:2px;padding:6px 4px;background:rgba(31,29,27,.95);border:1px solid rgba(255,227,180,.25);border-radius:18px;box-shadow:0 7px 22px rgba(0,0,0,.52),inset 0 1px rgba(255,255,255,.06);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.tab{color:#bdae94;min-height:44px;gap:4px;font-size:10.5px;transition:background .16s,color .16s,transform .16s}.tab svg{width:22px;height:22px}.tab.on{color:#ffdb91;background:rgba(237,184,91,.15);box-shadow:inset 0 0 0 1px rgba(237,184,91,.32)}.tab:active{transform:scale(.94)}
+#sheet{background:#f5ead0;border:1px solid rgba(255,250,229,.62);border-bottom:0;border-radius:24px 24px 0 0;box-shadow:0 -18px 45px rgba(0,0,0,.54)}#sheet::before{display:none}#sheet .grab{margin:9px auto -2px;background:#bda987;width:38px}
+.sh-head{padding:10px 14px 11px;border-bottom:1px solid rgba(67,48,26,.12)}.sh-head h2{font-family:var(--body);font-size:18px;letter-spacing:-.04em}#shIcon{background:#342c24;border-radius:11px}#shClose{background:rgba(60,43,26,.09)!important}
+.sh-body{padding:12px 16px 20px}.row{border-bottom:1px solid rgba(59,42,26,.13)}
+#modal{background:rgba(6,6,8,.75);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
+.page{background:#f5ead0;background-image:none!important;border:1px solid rgba(255,255,255,.6);border-radius:20px!important;box-shadow:0 24px 70px rgba(0,0,0,.62);padding:22px 20px 18px}
+.page h3{font-family:var(--body);font-size:21px;letter-spacing:-.045em}.page .tag,.sec{letter-spacing:.08em}.page p{background-image:none;border-bottom:1px solid rgba(90,70,40,.12);line-height:1.65}
+.page > button,.page .btns button,.buy{font-family:var(--body);font-weight:700;min-height:40px;border-radius:10px!important}.page > button:not(.alt),.page .btns button:not(.alt){background:#352a20;color:#f8e8c8}.page button:active,.buy:active{filter:brightness(1.13)}
+.card,.st2,.shx{border-radius:12px!important}.tt.note{background-image:none;border:1px solid rgba(79,56,30,.12);border-radius:13px}
+.rl{background-image:none!important;background:#f5ead0;border:1px solid rgba(255,255,255,.5)}
+@media(max-width:380px){header{padding-inline:8px}.hud{padding-inline:7px!important}.tabs{left:104px;right:7px}.tab{font-size:10px}#lamp{left:8px;width:86px}.mc i{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.tab{transition:none}}
 </style>
 
 <div id="app">
