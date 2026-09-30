@@ -131,3 +131,30 @@ and reduced motion. The prior profile/upgrade/expedition/underground/defense reg
 Offline production shell retained 29 entries. Physical iPhone Safari is not available in this
 environment and remains an explicit verification limitation.
 Fresh production play also retained progress across reload with no page errors.
+
+## Cohesive interface and expressive dialogue
+
+Facilities now use one bordered card with a larger illustration and separate effect, cost and action.
+The panel palette uses a gray-green base, ivory cards and slate actions; amber is reserved for the
+lantern, major upgrades and dialogue progression. Survivor rows prioritize portrait, name, role and
+status; grade, trust and equipment remain in the existing detail screen. Player portraits retain
+all saved customization indices with redrawn eyes, jaw planes, hair strokes and clothing folds,
+a tighter portrait composition, and a subtle static ink edge filter. Selected frames and pets
+fit the revised composition.
+
+`world-panorama.webp` contains nine purpose-composed horizontal locations. Frame boundaries are
+measured at x=0/724/1448/2172 and y=0/258/494/724; panels use a two-pixel inset to avoid seams.
+`founder-expressions.webp` contains calm, worried and resolved portraits for Park Mansu (0),
+Choi Seojin (2), Seo Yuna (7) and Oh Jaehyeok (9), in that column order. The three expression rows
+are selected by an explicit authored-line table; unmatched lines remain calm. Other characters
+keep their existing portraits. Loading failures retain the previous artwork.
+
+Both atlases used the built-in image-generation tool with existing art as reference, encoded
+as WebP quality 90. Exact prompts are in `world-panorama-prompt.md` and
+`founder-expressions-prompt.md`. Player portrait updates are native SVG code, preserving customization.
+
+Verification: 12 distinct expression views, preserved survivor detail information, hair/clothing
+selection and saving, 82 customization options, 18 facility upgrades, expedition departure,
+defense hit, four underground floors, save roundtrip and malformed import rejection. Mobile
+Chromium views at 320/390px were inspected. Offline and HTTP 503 reload used 31 shell cache entries.
+Physical iPhone Safari remains unverified. No balance, unlock or save schema changes.
