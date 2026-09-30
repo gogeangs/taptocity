@@ -48,3 +48,20 @@ an image. Keep fixture/debug state setters outside the production repository.
 plus one depleted state for each category. See [exploration-prompt.md](exploration-prompt.md)
 for the exact built-in generation prompt, source dimensions and mapping. The renderer uses
 measured frames to avoid clipping at the generated atlas gutters.
+
+## Landmarks and regional landscapes
+
+`landmarks.webp` contains five columns (school, water tower, gas station, library,
+subway entrance) and two rows (ruined, restored). Measured frames in `design.js`
+account for unequal generated gutters. The restored atlas is selected from existing
+`S.lm[i].ok`; hit heights follow the displayed sprite, with native art as loading fallback.
+See [landmarks-prompt.md](landmarks-prompt.md) for the exact generation prompt.
+
+Regional ground, water, background, fog and vegetation use the native canvas renderer:
+muted sand and dry shrubs for desert, cool concrete and sparse growth for factory,
+pale ground and snowy pines for snow. Fog caching includes the region and zoom.
+No saved-state schema or resource balance changes are required.
+
+Verification: five roof touch targets, restoration costs/effects, occlusion,
+320 px and 390 px layouts, same-zoom regional fog changes, and offline reload with
+all 20 shell entries. Temporary test fixtures are kept outside the production repository.
