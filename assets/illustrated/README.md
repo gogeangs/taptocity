@@ -93,3 +93,24 @@ art remains the loading fallback, and the thumbnail cache separates loaded/fallb
 Generation used the built-in image tool. Exact prompts: [settlement-props-prompt.md](settlement-props-prompt.md)
 and [companions-prompt.md](companions-prompt.md). WebP quality 90, original alpha preserved.
 No adoption rules, placement costs, exploration rewards, pet effects or save migrations changed.
+
+## Final presentation pass: items 4–7
+
+- `regional-npcs.webp`: Dusik, Maseok and Eunsol portraits; existing roles and dialogue preserved.
+- `module-upgrades.webp`: 18 upgrade exteriors for nine facilities. Stage one uses the previous atlas;
+  stages two and three use measured frames in `chapter-design.js`. Map picking and UI previews follow stage.
+- `ash-foes.webp`: normal/brute idle and impact poses, facing the shelter. Existing damage rules remain.
+- `world-scenes.webp`: nine locations shared by expedition cards, underground zones and chapter openings.
+
+These four atlases were generated using the built-in image tool; exact prompts are in the corresponding
+`*-prompt.md` files. WebP quality 90; alpha retained for facilities and enemies.
+The customizable player portrait retains all saved indices, with native SVG ink contours and quieter colors.
+The editor exposes selection state and larger controls. Underground controls use one readable Korean font,
+consistent square tiles and compact layouts; scenes remain separate from actionable UI.
+
+Verification: isolated Chromium at 390×844 and 320×640; all 82 profile options rendered, profile saved,
+18 native facility upgrades charged the expected costs and retained picking, expedition team departed,
+floors 1/5/10/15 consumed oil on exploration, and defense tapping reduced enemy HP. Chapter art appears
+only on the opening line. No page errors in these paths. Production-shell offline reload loaded 29 cached
+entries including all four new atlases. Corrected the existing navigation cache write to pass a Response.
+No save schema or balance changes.
