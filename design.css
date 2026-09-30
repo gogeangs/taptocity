@@ -119,3 +119,6 @@ input,textarea,select{font-size:16px!important}
 @keyframes scene-arrive{from{opacity:.4}to{opacity:1}}
 @media(max-height:700px){.talk .tfoot{bottom:-16px}.page{max-height:calc(var(--play-height,100dvh) - 20px - env(safe-area-inset-bottom,0px))!important}}
 @media(prefers-reduced-motion:reduce){.talk .who,.talk>p,.chapter-opening .story-scene{animation:none!important}}
+
+/* Achievement rows must include their padding within the panel width. */
+.achrow{box-sizing:border-box;grid-template-columns:minmax(0,1fr) auto}.achrow small{overflow-wrap:anywhere}
