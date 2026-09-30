@@ -74,3 +74,22 @@ Walking follows facing direction; children have smaller proportions and quicker 
 Workers use repair tools, a hoe, water bucket or notes according to assigned facility.
 Reduced motion freezes all figure animation. Generated children retain their saved colors;
 no survivor, movement, productivity or save schema changes are made by the renderer.
+
+## Settlement props and companion animals
+
+`settlement-props.webp` provides 16 transparent sprites: tent, rescue rubble, searchable
+and cleared rubble, three bunker entrances and a depleted hatch, then pot, flag, bench,
+lamp, wind chime, string lights, mural and memorial statue. `settlement.js` stores measured
+frames and physical map sizes. Decoration purchase rows use matching previews.
+Wood, sandbag and metal perimeter walls retain connected canvas geometry with new colors,
+material seams, grain, rivets and rust marks.
+
+`companions.webp` provides all 11 pets in existing PKEYS order (dog, cat, crow, goat,
+hedgehog, silver fox, turtle, owl, fennec, robot dog, bear cub). Map and UI share one
+renderer; dynamic collar colors, facing, movement bounce, hidden silhouettes and the
+silver fox's night glow are preserved. Pet tapping uses illustrated body height. Native
+art remains the loading fallback, and the thumbnail cache separates loaded/fallback art.
+
+Generation used the built-in image tool. Exact prompts: [settlement-props-prompt.md](settlement-props-prompt.md)
+and [companions-prompt.md](companions-prompt.md). WebP quality 90, original alpha preserved.
+No adoption rules, placement costs, exploration rewards, pet effects or save migrations changed.
