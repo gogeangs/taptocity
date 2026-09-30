@@ -3538,7 +3538,7 @@ function tickAutoExp(now){if(!S.autoExp||!autoExpOpen())return;if(!now&&++autoEx
 // Each move adds '등불의 기억' (+10% production, +10% tap power) and the next town has its own rules.
 const REGIONS={
  desert:{n:'메마른 사막 도시',d:'물이 없어요 · 식량 생산 ×0.7 · 연료가 1.5배 잘 나와요 · 맑은 날이 잦아요',prod:{food:.7},scav:{fuel:1.5},wx:{normal:.3,clear:.4,acid:0,cold:.1,wind:.2},
-  talk:[[ME,'모래바람 너머로 녹슨 급유탑이 늘어선 도시가 보였다. 물은 한 방울도 없다.'],[G,'대신 연료는 넘치네. 불은 안 꺼지겠어.']]},
+  talk:[[ME,'탑에 대답하던 그 먼 불빛을 따라 며칠을 걸었다.'],[ME,'모래바람 너머로 녹슨 급유탑이 늘어선 도시가 보였다. 물은 한 방울도 없다.'],[G,'대신 연료는 넘치네. 불은 안 꺼지겠어.']]},
  factory:{n:'녹슨 공단 지대',d:'대형 재폭풍이 두 밤마다 와요 · 고철·부품 수확 ×1.4',scav:{scrap:1.4,parts:1.4},big:2,
   talk:[[ME,'굴뚝이 숲처럼 서 있는 공단. 재가 가장 짙게 쌓인 곳이다.'],[G,'쓸 만한 부품은 많은데… 밤이 무섭겠어. 방벽부터 세우자고.']]},
  snow:{n:'눈 덮인 산골 마을',d:'한파가 자주 와요 · 목재 수확 ×1.5 · 연료를 아껴 써요',scav:{wood:1.5},wx:{normal:.3,clear:.15,acid:.05,cold:.4,wind:.1},
@@ -4490,7 +4490,7 @@ function npcSpeaker(k){const P=NPC[k]||NPC.desert;return{av:`<svg viewBox="0 0 4
 const D_='npc:desert',F_='npc:factory',W_='npc:snow';
 const REG_STORY={
  desert:[
-  {i:[[ME,'모래 먼지 속에 녹슨 급유탑이 줄지어 서 있다. 품에 안은 불씨 상자가 아직 따뜻하다.'],[G,'우선 우리 자리부터 밝히자고. 신호 보낸 사람이 어딘가 있을 거야.']],o:[[D_,'정말 왔구먼! 불빛 보고 뛰어나왔소. 내가 라디오로 부른 급유탑지기 두식이오.']]},
+  {i:[[ME,'모래 먼지 속에 녹슨 급유탑이 줄지어 서 있다. 품에 안은 불씨 상자가 아직 따뜻하다.'],[G,'우선 우리 자리부터 밝히자고. 신호 보낸 사람이 어딘가 있을 거야.']],o:[[D_,'정말 왔구먼! 불빛 보고 뛰어나왔소. 내가 라디오로 부른 급유탑지기 두식이오.'],[D_,'저 급유탑 꼭대기 불? 우리가 켠 게 아니오. 원래부터 가끔, 혼자 켜졌지.']]},
   {i:[[D_,'여긴 물이 귀해. 대신 기름은 넘친다오. 불이 꺼질 걱정은 없을 거요.']],o:[[ME,'두 번째 판잣집. 처음보다 손이 훨씬 빨랐다.']]},
   {i:[[D_,'마을 사람들이 급유탑 밑 지하 탱크에 숨어 있소. 연료를 모아 불을 밝혀 주면 나올 거요.']],o:[[D_,'…저기 봐요. 사람들이 하나둘 올라오고 있어.']]},
   {i:[[G,'여기 사람들까지 지키려면 더 튼튼해야 해.']],o:[[D_,'이 모래 도시에 벽이 선 건 처음이오.']]},
@@ -4500,7 +4500,7 @@ const REG_STORY={
   {i:[[ME,'굴뚝이 숲처럼 서 있는 공단. 재가 가장 짙게 쌓인 곳이다.'],[G,'밤이 무서운 곳이라더군. 서둘러 불빛부터 켜자.']],o:[[F_,'…빛? 진짜 빛이네. 공단 반장 마석이다. 여기선 다들 밤마다 싸우지.']]},
   {i:[[F_,'재 괴물이 이틀에 한 번씩 몰려온다. 벽부터 세워.']],o:[[ME,'철판이 넘치는 동네라, 판잣집 절반이 쇳덩이다.']]},
   {i:[[F_,'우리도 같이 싸우겠다. 대신 버텨 내는 걸 보여 줘.']],o:[[F_,'두 번을 버텼어. …좋아, 우리도 너희를 믿는다.']]},
-  {i:[[9,'이 공장들… 등불 계획 부품을 만들던 곳이에요.']],o:[[F_,'그 계획 때문에 재가 왔다는 건 들었다. 그래도 불을 들고 온 건 너희다.']]},
+  {i:[[9,'여기서 만든 렌즈가 다른 분소로도 갔어요. 몇 곳이나 되는지는… 저도 몰라요.']],o:[[F_,'그 계획 때문에 재가 왔다는 건 들었다. 그래도 불을 들고 온 건 너희다.']]},
   {i:[[G,'여기 사람들 손재주면 탑도 금방 올라가겠구먼.']],o:[[ME,'굴뚝 사이로 탑의 뼈대가 올라간다.']]},
   {i:[[F_,'쇠 두드리는 소리가 오늘은 하나도 안 무섭군.']],o:[[F_,'빛이다. 우리 공단에도.'],[ME,'이 불은 마석이 지키기로 했다.']]}],
  snow:[
@@ -4871,7 +4871,7 @@ const CASES=[
   log:'범인은 하늘. 떠돌이 개에게 밥을 주고 있었다.'},
  {ch:'4장',t:'돌아가 있는 다이얼',when:'새벽 3시 무렵',sus:3,susN:'새로 온 사람들',
   gate:()=>S.mi>=STEP_I('첫 원정 보내기')&&svIn(10),
-  x:()=>[[G,'라디오 다이얼이 엉뚱한 데로 돌아가 있어. “등불 계획 중단”이 되풀이되던 그 주파수에 맞춰 뒀었는데.'],svIn(3)?[G,'새벽 3시쯤 누가 만졌대. 하늘이가 전에도 다이얼 갖고 놀았잖아.']:[G,'새벽 3시쯤 누가 만졌대. 누군지는 몰라.'],[10,'전 그 시간에 방송 중이었어요. 제 송신기 앞에서요.']],
+  x:()=>[[G,'라디오 다이얼이 엉뚱한 데로 돌아가 있어. “등불 계획 중단”이 되풀이되던 그 주파수에 맞춰 뒀었는데.'],svIn(3)?[G,'새벽 3시쯤 누가 만졌대. 하늘이가 라디오 앞에 자주 앉아 있잖아. 할머니 목소리 나올까 봐.']:[G,'새벽 3시쯤 누가 만졌대. 누군지는 몰라.'],[10,'전 그 시간에 방송 중이었어요. 제 송신기 앞에서요.']],
   alibi:'은호: “그 시간엔 방송 중이었어요.”',
   a:{l:'하늘이를 불러 묻는다',r:()=>[[3,'나 아니야! 그 시간엔 자고 있었단 말이야!'],[ME,'다이얼을 다시 봤다. 손잡이에 남은 손자국은 아이 손보다 훨씬 컸다.']],clue:'다이얼에 남은 손자국은 아이 손이 아니라 어른 손이었다.'},
   b:{l:'하늘이 편을 든다',r:()=>[[3,'…믿어 줘서 고마워요. 진짜 나 아니에요.']]},
@@ -4901,8 +4901,8 @@ const CASES=[
   a:{l:'모두를 모아 묻는다',r:()=>[[ME,'아무도 자기가 썼다고 하지 않았다. 대신 누군가 쪽지 뒷면을 가리켰다.'],[ME,'뒷면에 시간표가 인쇄돼 있었다. 03:00, 03:30, 04:00… 줄마다 곡 제목이 적혀 있었다.']],clue:'쪽지 뒷면은 시간과 곡 제목이 적힌 방송 큐시트였다.'},
   b:{l:'쪽지를 불에 태운다',r:()=>[[ME,'쪽지를 불에 넣었다. 탑 아래에서 그런 말은 필요 없다.']]},
   c:{l:'사건 수첩에 끼워 둔다',r:()=>[[ME,'쪽지를 사건 수첩 사이에 끼워 두었다.']]},
-  tail:[[ME,'며칠 뒤, 창고 구석에서 라벨 없는 카세트테이프가 나왔다.'],[ME,'틀어 보니 심야 방송이었다. 사건이 있던 그 밤의 방송이, 그대로 녹음돼 있었다.']],
-  tailClue:'창고에서 나온 테이프에 그 밤의 방송이 미리 녹음돼 있었다.'}];
+  tail:[[ME,'며칠 뒤, 창고 구석에서 라벨 없는 카세트테이프가 나왔다.'],[ME,'틀어 보니 사건이 있던 그 밤의 심야 방송이었다. 그런데 라벨의 날짜는 그 전날이었다.']],
+  tailClue:'그 밤의 방송 테이프는 하루 전날 녹음된 것이었다.'}];
 const caseSeen=()=>!!(S.cases&&Object.values(S.cases).some(r=>r.p))||!!(S.odd&&S.odd.length)||!!(S.egg&&Object.keys(S.egg).length);
 const optL=o=>typeof o.l==='function'?o.l():o.l;
 function caseLines(ls){return ls.map(([w,t])=>{const sp=speaker(w);return`<div class="csl${sp.me?' me':''}"><span class="av${sp.me?' me':''}">${sp.av}</span><p>${sp.me?'':`<b>${sp.name}</b>`}${t}</p></div>`;}).join('');}
@@ -4974,11 +4974,11 @@ function eggGet(q,msg){S.egg=S.egg||{};if(S.egg[q])return;S.egg[q]=1;save();cons
   if(n>=3&&!S.egg.page){S.egg.page=1;save();setTimeout(()=>{note({h:'찢어진 페이지를 찾았어요',t:'<small>일지 · 사건 수첩 맨 뒤에 끼워져 있어요</small>',kind:'story',ms:6000});},600);}
   else note({h:`${msg} · ${n}/3`,t:'<small>어딘가 비어 있는 3분이 있어요</small>',kind:'story',ms:4200});}
 function openEggPage(){const c5=S.cases&&S.cases[4]&&S.cases[4].p;
-  openModal(`<div class="page case egg"><div class="tag">찢어진 페이지</div><div class="eggp"><p>03:11 제어실에서 전화.</p><p>대피 방송 요청.</p><p>…</p><p class="last">그날, 방송은 나가지 않았다.</p></div>${c5?'<div class="csnote">찢긴 자국이, 재혁의 노트에서 뜯겨 나간 자리와 꼭 맞는다.</div>':''}<button class="rqok">닫기</button></div>`,true);}
+  openModal(`<div class="page case egg"><div class="tag">찢어진 페이지</div><div class="eggp"><p>03:11 제어실 → 방송국 전화.</p><p>대피 방송 요청.</p><p>…</p><p class="last">그날, 방송은 나가지 않았다.</p></div>${c5?'<div class="csnote">찢긴 자국이, 재혁의 노트에서 뜯겨 나간 자리와 꼭 맞는다.</div>':''}<button class="rqok">닫기</button></div>`,true);}
 // ① 03:11~03:14, the real clock: the radio catches a voice that breaks off
 const lost3=()=>{const d=new Date();return d.getHours()===3&&d.getMinutes()>=11&&d.getMinutes()<=14;};
 function eggRadio(){if(!lost3()||!(S.gUses||S.gTotal))return;const m=new Date().getMinutes();
-  openModal(`<div class="page case egg"><div class="tag">03:${m} · 잡음</div><div class="eggr"><p>…지직…</p><p>“여기는… 한밤… 지금 바로… 대피하—”</p><p>…지직—</p></div><div class="csnote">방송이 뚝 끊겼다. 시계를 보니 새벽 3시 ${m}분이었다.</div><button class="rqok">닫기</button></div>`,true);sfx('chime');eggGet('a','끊긴 방송');}
+  openModal(`<div class="page case egg"><div class="tag">03:${m} · 잡음</div><div class="eggr"><p>…지직… 지직…</p><p>(한참 동안 잡음만 흐른다)</p><p>“…여기는 한밤. 지금 바로 대피하—”</p></div><div class="csnote">목소리는 거기서 뚝 끊겼다. 끊긴 시각은 3시 14분이었다.</div><button class="rqok">닫기</button></div>`,true);sfx('chime');eggGet('a','끊긴 방송');}
 {const o=openSheet;openSheet=function(t){const r=o.apply(this,arguments);if(t==='radio'&&lost3()&&!(S.egg&&S.egg.a))setTimeout(eggRadio,500);return r;};}
 // ② the radio lamp blinks ••• • • once the 무전실 is up. Tap it back in the same rhythm.
 {const o=renderRadio;renderRadio=function(){let h=o.apply(this,arguments);if(hasMod(7)&&!(S.egg&&S.egg.b))h=h.replace('<div class="radiobox">','<div class="radiobox"><button class="mlamp" data-act="mlamp" aria-label="작은 신호등"></button>');return h;};}
@@ -4999,7 +4999,7 @@ function tickCrow(){if(!s1On())return false;const C=crow();
     openTalk([[G,'원정 다녀온 사람들이 이상한 걸 봤대. 털린 건물 벽마다 검은 새가 그려져 있더래.'],[G,'우리보다 먼저 싹 쓸어 간 무리가 있는 거야. 이 근처 벽에도 몇 개 있더라고.'],[ME,'사람들은 그 무리를 ‘까마귀’라고 부르기 시작했다.']],{tag:'까마귀 · 흔적'});return true;}
   if(C.trace&&!C.rel&&S.mi>=STEP_I('요새로 키우기')){openCrowMeet();return true;}
   if(C.rel&&!C.stand&&(S.tower||0)>=3){C.stand=1;save();
-    openTalk([[ME,'탑 아래로 까마귀 무리가 몰려왔다. 맨 앞의 사내가 탑 꼭대기를 올려다봤다.'],[CR_,'독수리라고 하오. 쇼핑몰 경비팀장이었지. 사람 지키던 일이 이렇게 됐소.'],svIn(JIN)?[JIN,'…대장.']:null,[CR_,'불 잘 켰더군. 하나만 알아 두시오.'],[CR_,'빛은 우리만 부르는 게 아니야.'],[ME,'그는 싸우지 않고 돌아섰다. 멀어지면서, 오래된 라디오 시그널 음악을 흥얼거렸다.'],svIn(10)?[ME,'그 가락에 은호가 잠깐 멈춰 섰다. 아무 말도 하지 않았다.']:null].filter(Boolean),{tag:'까마귀 · 대치'});return true;}
+    openTalk([[ME,'탑 아래로 까마귀 무리가 몰려왔다. 맨 앞의 사내가 탑 꼭대기를 올려다봤다.'],[CR_,'독수리라고 하오. 쇼핑몰 경비팀장이었지. 사람 지키던 일이 이렇게 됐소.'],svIn(JIN)?[JIN,'…대장.']:null,[CR_,C.rel==='deal'?'통행료 낸 사이니 오늘은 손대지 않겠소.':C.rel==='fight'?'그날 빚은 잊지 않았소. 하지만 오늘은 싸우러 온 게 아니오.':'그때 길을 비켜 줘서 여기까지 왔지.'],[CR_,'불 잘 켰더군. 하나만 알아 두시오.'],[CR_,'빛은 우리만 부르는 게 아니야.'],[ME,'그는 싸우지 않고 돌아섰다. 멀어지면서, 오래된 라디오 시그널 음악을 흥얼거렸다.'],svIn(10)?[ME,'그 가락에 은호가 잠깐 멈춰 섰다. 아무 말도 하지 않았다.']:null].filter(Boolean),{tag:'까마귀 · 대치'});return true;}
   if(C.jinDue&&!svIn(JIN)){C.jinDue=0;save();rescue(JIN,'visit');return true;}
   return false;}
 function openCrowMeet(){const c=scaleCost({food:40,fuel:15},lvScale()),ok=canPay(c);sfx('chime');
@@ -5045,7 +5045,7 @@ const noteFirst=o=>{if(NCUR&&!NQ.some(q=>q.h===o.h))NQ.unshift(o);else note(o);}
 const ODD_AT=DAY+31,ODD_ITEMS=['녹은 납 부스러기','구겨진 신청곡 쪽지','이어폰 한 짝','손때 묻은 카세트 라벨'];
 let oddPlan=null,oddNightSeen=-1,oddUntil=0,SHD=null,oddDawn=null;
 const oddOn=()=>svIn(10)&&(s1On()||!!S.gen);
-function oddLog(k,t){S.odd=S.odd||[];S.odd.unshift({n:S.nightCount||0,k,t});if(S.odd.length>20)S.odd.length=20;save();}
+function oddLog(k,t){S.odd=S.odd||[];S.odd.unshift({n:S.nightCount||0,r:REG()?REG().n:'',k,t});if(S.odd.length>20)S.odd.length=20;save();}
 const modTile=id=>{for(const[t,k]of D.modAt)if(S.mods[k]&&S.mods[k].id===id)return t;return-1;};
 function oddPick(){const last=S.oddLast,pool=[['shadow',3],['radio',(S.gUses||S.gTotal)?2:0],['light',hasMod(7)?2:0],['missing',2],['steps',2],['absent',Object.keys(S.sv).length>=4?2:0],['knock',1]].filter(([k,w])=>w&&k!==last);
   let tot=0;for(const[,w]of pool)tot+=w;let r=Math.random()*tot;for(const[k,w]of pool){r-=w;if(r<=0)return k;}return'knock';}
@@ -5088,7 +5088,7 @@ function catchShadow(){if(!SHD||SHD.got)return;SHD.got=true;SHD.t=Math.max(SHD.t
 // the clock reads 새벽 3시 while something is going on
 {const o=renderClock;renderClock=function(){o.apply(this,arguments);if(isNight()&&performance.now()<oddUntil){const t=$('clockTxt');const m=t.textContent.match(/\d+:\d\d/);t.textContent='새벽 3시'+(m?' · '+m[0]:'');}};}
 function renderOdd(){const L=S.odd||[];if(!L.length)return'';const nm={shadow:'그림자',radio:'라디오',light:'불빛',missing:'사라진 물건',steps:'발자국',absent:'빈자리',knock:'노크'};
-  return`<div class="sec">수상한 밤 <small>${L.length}번</small></div><div class="d" style="margin-bottom:6px">모두 새벽 3시 무렵이었어요.</div>`+L.map(o=>`<div class="entry odd"><div class="n">${o.n}번째 밤 · ${nm[o.k]||''}</div><div class="p">${o.t}</div></div>`).join('');}
+  return`<div class="sec">수상한 밤 <small>${L.length}번</small></div><div class="d" style="margin-bottom:6px">모두 새벽 3시 무렵이었어요.</div>`+L.map(o=>`<div class="entry odd"><div class="n">${o.r?o.r+' · ':''}${o.n}번째 밤 · ${nm[o.k]||''}</div><div class="p">${o.t}</div></div>`).join('');}
 {const o=renderCases;renderCases=function(){const h=o.apply(this,arguments);const i=h.indexOf('<button class="entry cspage"')>=0?h.indexOf('<button class="entry cspage"'):h.indexOf('<div class="entry locked cspage"');return i>=0?h.slice(0,i)+renderOdd()+h.slice(i):h+renderOdd();};}
 
 // ================= 잃은 사람들: in every new town, one survivor does not come back =================
@@ -5109,7 +5109,7 @@ function killSurv(id){const r=S.sv[id];if(!r)return;if(r.at>=0)delete S.asg[r.at
       tlog(`${jo(nm,'을','를')} 잃었다.`);
       setTimeout(()=>openTalk([raid?[ME,`${jo(raid,'이','가')} 물러간 새벽, ${jo(nm,'이','가')} 쓰러져 있었다.`]:[ME,`폭풍이 걷힌 새벽, ${jo(nm,'이','가')} 보이지 않았다.`],
         raid?[G,`아이들 숨겨 둔 창고 문을 혼자 막고 있었대. 끝까지 비키지 않았다고.`]:[G,`…${where} 옆에서 찾았어. 끝까지 불을 지키고 있었더라고.`],
-        [ME,LAST[id]||'그가 앉던 자리는 한동안 비워 두었다.'],[ME,`우리는 ${nm}의 이름을 탑 아래 돌에 새겼다. 그리고 다시 불을 켰다.`]],{tag:`${REG()?REG().n+' · ':''}잃은 사람`}),2600);}}}
+        [ME,LAST[id]||'그가 앉던 자리는 한동안 비워 두었다.'],[ME,`우리는 ${nm}의 이름을 쉘터 문설주에 새겼다. 그리고 다시 불을 켰다.`]],{tag:`${REG()?REG().n+' · ':''}잃은 사람`}),2600);}}}
   return r;};}
 function memorialHtml(){const L=S.dead||[];if(!L.length)return'';
   return`<div class="sec">잃은 사람들 ${L.length}</div>`+L.map(d=>{const s=SURV[d.id];return`<div class="svrow locked mem"><span class="fc">${portrait(s)}</span><span class="mid"><b>${s.name}</b><small>${s.job}${d.town?` · ${d.town}에서`:''}</small><small class="ep">${LAST[d.id]||''}</small></span></div>`;}).join('');}
