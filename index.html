@@ -1216,7 +1216,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 </style>
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
-<link rel="stylesheet" href="design.css?v=20261001-audit">
+<link rel="stylesheet" href="design.css?v=20261001-cohesion">
 <div id="app">
   <header>
     <div class="hud">
@@ -1259,7 +1259,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
   </div>
 </div>
 
-<script src="chapter-design.js?v=20261001-chapters"></script>
+<script src="chapter-design.js?v=20261001-cohesion"></script>
 <script src="settlement.js?v=20261001-props-pets"></script>
 <script src="people.js?v=20261001-people"></script>
 <script src="design.js?v=20261002-landmarks"></script>
@@ -1910,14 +1910,38 @@ $('claim').onclick=e=>{e.stopPropagation();const m=mission();if(!m.done)return;s
   if(st){const last=st.si===STORY[st.ci].steps.length-1;if(last)openTalk(st.outro,{tag:`${STORY[st.ci].ch} 끝`,reward:got,chain:true});else{const ol=st.outro.filter(l=>!l[2]||l[2]());if(ol.length>1){openTalk(ol,{tag:`${STORY[st.ci].ch} · ${STORY[st.ci].title}`,reward:got,chain:true});return;}const[w,t]=ol[ol.length-1],sp=speaker(w);note({h:`등불 일지 · ${sp.name}`,t:`“${t}”<br><small>보상 · ${lootTxt(got)}</small>`,kind:'story',ms:5200});setTimeout(tickStory,900);}}
   else toast(`보상: ${lootTxt(got)}`);};
 
+// Curated expressions follow authored lines, never keyword sentiment guesses.
+const DIALOGUE_MOOD={
+ '허, 불빛 보고 버텼지. 이 근처에 산 사람이 있을 줄은 몰랐네.':'resolved',
+ '하늘 색 좀 봐. 해 지면 재폭풍이 온다.':'worried',
+ '붉게 번지는 재를 제때 걷어내야 해. 안 그러면 밝힌 땅 도로 뺏겨.':'worried',
+ '버텼다! 이 근처에서 밤을 넘긴 불빛은 우리뿐일 거야.':'resolved',
+ '…그걸 왜 이제야 말하나?':'worried',
+ '…다들 모였으니 말할게요. 지하에서 찾은 기록, 등불 계획. 저도 그 팀에 있었어요.':'worried',
+ '재를 걷어낼 빛을 만들자고 했어요. 새벽 3시 14분, 출력이 폭주했고… 빛 대신 재가 하늘을 덮었죠.':'worried',
+ '무서웠어요. 여기서 쫓겨날까 봐. 하지만 그 빛을 제대로 켜는 법도… 아마 저만 알아요.':'worried',
+ '…고마워요. 이번엔 제대로 해낼게요.':'resolved',
+ '알겠어요. 말보다 손으로 갚을게요.':'resolved',
+ '설계는 저희가 할게요. 쌓는 건… 모두의 몫이에요.':'resolved',
+ '준비됐어요. 스위치는… 등불지기가 올려 줘요.':'resolved',
+ '손 좀 보여 줘요. 또 화상 입었죠?':'worried',
+ '별거 아닌 게 제일 무서운 거예요.':'worried',
+ '팔찌에는 ‘김은비, 7세’라고 적혀 있었어요. 원정 간 동네에서 그 아이 가족을 만났어요.':'worried',
+ '이제야 이름을 불러 줄 수 있게 됐네요.':'resolved',
+ '벽화 제목은 ‘다시 켜지는 불’이에요.':'resolved',
+ '모두의 얼굴을 그려 넣었어요. 물론 당신도요.':'resolved',
+ '이번엔 제가 고칠게요. 이 장치로, 재를 조금씩 걷어낼 수 있어요.':'resolved',
+ '…잊을 수가 없죠.':'worried',
+ '…고마워요. 이번엔 도망치지 않을게요.':'resolved'
+};
 // scene player: one line per page, "다음" advances
 let talk=null;
-function speaker(w){if(typeof w==='string'&&w.startsWith('npc:'))return npcSpeaker(w.slice(4));if(typeof w==='number'&&!S.sv[w])w=G;const id=w===G?guideId():w;
+function speaker(w,emotion='calm'){if(typeof w==='string'&&w.startsWith('npc:'))return npcSpeaker(w.slice(4));if(typeof w==='number'&&!S.sv[w])w=G;const id=w===G?guideId():w;
   if((id===ME||id==null)&&S.pf&&S.pf.set)return{av:pfSVG(),name:pfName(),sub:S.title&&S.title!=='등불지기'?`등불지기 · ${S.title}`:'등불지기'};
   if(id===ME||id==null)return{av:'<svg viewBox="0 0 40 40" width="40" height="40" fill="none" stroke="#efe3c4" stroke-width="2" stroke-linejoin="round"><path d="M14 11h12M16 11V8h8v3M13 13h14l-2 17H15z"/><path d="M16 30h8v3h-8z" fill="#efe3c4"/><path d="M20 17c3 3 3 6 0 8-3-2-3-5 0-8z" fill="#ffcf7a" stroke="none"/></svg>',name:'나',sub:'등불지기',me:true};
-  const s=SURV[id];return{av:portrait(s),name:s.name,sub:s.job};}
+  const s=SURV[id];return{av:(window.TTCFinal&&TTCFinal.expression(s.id,emotion,s.name))||portrait(s),name:s.name,sub:s.job};}
 function openTalk(lines,opt={}){lines=lines.filter(l=>(!l[2]||l[2]())&&!(typeof l[0]==='number'&&isDead(l[0])));if(!lines.length)return;talk={lines,k:0,opt};renderTalk(true);}
-function renderTalk(first){const{lines,k,opt}=talk,[w,t]=lines[k],sp=speaker(w),last=k===lines.length-1;
+function renderTalk(first){const{lines,k,opt}=talk,[w,t]=lines[k],sp=speaker(w,lines[k][3]||DIALOGUE_MOOD[t]||'calm'),last=k===lines.length-1;
   const card=opt.card&&k===0?`<div class="chcard"><div class="tag">${opt.card[0]}</div><h3>${opt.card[1]}</h3></div>`:'';
   const rw=last&&opt.reward&&Object.keys(opt.reward).length?`<div class="fx">보상 · ${lootTxt(opt.reward)}</div>`:'';
   const goal=last&&opt.goal?`<div class="goal"><b>할 일</b> ${opt.goal}</div>`:'';
@@ -2316,7 +2340,7 @@ ringEl.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b
 // ---------- sheets ----------
 const sheet=$('sheet');let sheetTab=null;
 function syncTabs(){const map={surv:'fSurv',gear:'fSurv',party:'fSurv',exp:'fExp',shelter:'fUp',assign:'fUp',radio:'radio',diary:'fDiary'};document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',map[sheetTab]===b.id));if(sheetTab)seeFeat(sheetTab,sheetTab==='shelter'?shTab:sheetTab==='diary'?diaryTab:null);}
-function openSheet(t){const same=sheetTab===t;if(t==='shelter'&&!same)shTab=shDefault();sheetTab=t;confirmKey=null;closeRing();if(!same)$('shBody').scrollTop=0;renderSheet();sheet.classList.add('open');sheet.setAttribute('aria-hidden','false');syncTabs();}
+function openSheet(t){const same=sheetTab===t;if(t==='shelter'&&!same)shTab=shDefault();sheetTab=t;confirmKey=null;closeRing();if(!same)$('shBody').scrollTop=0;renderSheet();sheet.dataset.view=t;sheet.classList.add('open');sheet.setAttribute('aria-hidden','false');syncTabs();}
 function closeSheet(){sheetTab=null;sheet.classList.remove('open');sheet.setAttribute('aria-hidden','true');syncTabs();}
 $('shClose').onclick=closeSheet;$('fUp').onclick=()=>sheetTab==='shelter'?closeSheet():openSheet('shelter');$('fDiary').onclick=()=>sheetTab==='diary'?closeSheet():openSheet('diary');
 const btnCost=(act,arg,label,cost,dis,why)=>{const poor=!canPay(cost);return`<button class="buy${dis||poor?' off':''}" data-act="${act}" data-arg="${arg}" ${dis||poor?'disabled':''}>${label}${dis&&why?`<small>${why}</small>`:poor&&!dis?'<small>자재 부족</small>':''}</button>`;};
@@ -2378,7 +2402,7 @@ function renderSheet(){if(!sheetTab)return;let h='';const st=$('shBody').scrollT
     if(!n)h+=emptyHtml(`<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 3v18"/><path d="M8 7l4-4 4 4"/><circle cx="12" cy="21" r="1"/></svg>`,'아직 구조한 생존자가 없어요','구름 위로 솟은 흰 빛기둥을 찾아가 잔해를 치우면 만날 수 있어요');
     else if(!list.length)h+='<div class="emptyline"><span>여기에 해당하는 생존자가 없어요</span></div>';
     h+=list.map(s=>{const r=S.sv[s.id],st=r.away?'원정 중':r.hurt>0?'다쳐서 쉬는 중':r.at>=0?`${workName(r.at)}에서 일하는 중`:restLabel(s.id);
-      return`<button class="svrow g${gradeOf(s.id)}${s.hidden?' hid':''}" data-act="sv" data-arg="${s.id}"><span class="fc">${portrait(s)}</span><span class="mid"><b>${s.name} ${gradeTag(s.id)}</b><small>${s.job} · ${st}</small>${trustDots(trustLv(r.xp))}</span><span class="eqs">${SLOTK.map(sl=>{const u=(r.eq||{})[sl];const it=u!=null&&itemAt(u);return it?gicon(it.t,14):`<span class="gi e">${SLOTSVG[sl]}</span>`;}).join('')}</span>${canUp(s.id)?'<i class="updot" title="강화 가능"></i>':''}</button>`;}).join('');
+      return`<button class="svrow resident-row g${gradeOf(s.id)}${s.hidden?' hid':''}" data-act="sv" data-arg="${s.id}" aria-label="${s.name}, ${s.job}, ${st}, 상세 보기"><span class="fc">${portrait(s)}</span><span class="mid"><b>${s.name}</b><small class="resident-role">${s.job}</small><span class="resident-status${r.hurt>0?' injured':''}">${st}</span></span><span class="resident-side">${canUp(s.id)?'<span class="ready-label">강화 가능</span>':''}<span class="resident-arrow" aria-hidden="true">›</span></span></button>`;}).join('');
     h+=memorialHtml();
     if(unmet.length)h+=`<div class="sec">아직 만나지 못한 사람 ${unmet.length}</div>`+unmet.map(s=>`<div class="svrow locked${s.hidden?' hid':''}"><span class="fc">${portrait(s,true)}</span><span class="mid"><b>${gradeTag(s.id,1)} ${s.hidden?s.alias:'???'}</b><small>${s.hidden?(s.hint?s.hint:s.src==='deep'?'지하 15층, 발전소 지하 가장 깊은 곳에 있대요':'주파수 탐색에서만 만나요'):Object.values(S.camp).some(c=>c.id===s.id)?'구조를 기다리고 있어요 · 지도의 ! ? 표시를 눌러요':s.src==='sig'?'구름 속 구조 신호를 따라가 보세요':`희망 ${Math.ceil(s.hope*(1-D.visitDisc))} 이상이면 찾아와요${s.need!=null&&!S.sv[s.need]?' · 먼저 만나야 할 사람이 있어요':''}`}</small></span></div>`).join('');
     if((S.kids||[]).length)h+=`<div class="sec">아이들</div>`+(S.kids||[]).map(k=>`<div class="svrow kid"><span class="fc kidf" style="background:${k.look.top}"><i style="background:${k.look.skin}"></i></span><span class="mid"><b>${k.n}</b><small>${k.g<1?`자라는 중 ${Math.round(k.g*100)}% · 희망 +2`:k.job?`${KJOB[k.job].n} · ${KJOB[k.job].d}`:'무엇을 배울지 정해 주세요'}</small><div class="pbar"><i style="width:${k.g*100}%"></i></div></span></div>`).join('')+('');
@@ -3941,7 +3965,7 @@ const pfVal=(k,p=pf())=>PFO[k].o[p[k]||0];
 function pfLocked(k,i){const o=PFO[k].o[i];if(o[2]==='pet')return S.pets&&S.pets[o[0]]?'':'펫을 데려오면';if(o[2]==='ug10')return((S.ug||{}).best||0)>=10?'':'지하 10층';if(o[2]==='ug15')return((S.ug||{}).best||0)>=15?'':'지하 15층';if(k==='hat'&&o[2]!=null){const r=S.sv[o[2]];return r&&trustLv(r.xp)>=3?'':`${SURV[o[2]].name} 신뢰도 3`;}
   if(k==='frame'&&o[2]){if(o[2]==='lv3')return S.lv>=3||S.gen?'':'쉘터 Lv.3';if(o[2]==='lv5')return S.lv>=5||S.gen?'':'불빛의 도시';if(o[2]==='gen1')return S.gen?'':'이주 1번';}return'';}
 const HAIR={
- short:{f:'M38 56C36 33 48 25 62 25C76 25 86 33 84 53C82 45 78 40 70 38C62 36 52 38 46 42C42 46 40 50 40 58Z'},
+ short:{f:'M38 57L35 48L38 40L36 38L42 33L41 29L49 29L52 24L58 26L64 22L67 25L75 26L78 30L84 33L82 39L85 43L82 53L78 47L76 40L70 38L65 40L63 36L54 39L49 43L45 42L41 50L40 59Z'},
  bob:{b:'M35 60C31 34 46 25 60 25C77 25 90 35 85 62C83 70 81 75 78 78L42 78C39 73 36 67 35 60Z',f:'M37 57C37 35 50 27 62 27C75 27 85 35 83 53C77 42 67 38 57 40C50 42 44 48 40 59Z'},
  long:{b:'M33 58C29 30 46 23 60 23C76 23 91 32 87 58C87 80 93 102 98 124L84 118C82 102 80 90 80 78L40 78C40 90 38 102 36 118L22 124C27 102 33 80 33 58Z',f:'M39 58C39 38 50 30 62 30C74 30 83 38 82 56C78 46 70 40 62 40C54 42 46 48 42 60Z'},
  bangs:{b:'M36 60C33 40 46 30 60 30C74 30 87 40 84 60C84 70 82 78 78 82L42 82C38 78 36 70 36 60Z',f:'M39 58C38 41 49 33 60 33C71 33 82 41 81 58C79 51 75 47 71 48L67 43.5L63 48L59 42.5L55 48L50 43.5L47 49C43 49 41 52 39 58Z'},
@@ -3959,12 +3983,12 @@ function pfHat(k,u){switch(k){
  case'miner':return pF('M33 50C33 29 46 22 60 22C74 22 87 29 87 50Z','#6a6f73')+pF('M28 50Q60 44 92 50L92 55Q60 49 28 55Z','#4a4f53',1.2)+`<rect x="53" y="30" width="14" height="10" rx="3" fill="#e0b441" stroke="${PI_}" stroke-width="1.1"/><circle cx="60" cy="35" r="3" fill="#fff3c0"/>`+pLn('M40 36Q44 28 52 25',2,'#fff',.35);
  case'fire':return pF('M31 51C31 25 46 17 60 17C74 17 89 25 89 51Z','#9a2f22')+pF('M22 51Q60 42 98 51Q100 57.5 91 57.5Q60 50.5 29 57.5Q20 57.5 22 51Z','#7a241a',1.3)+pF('M51 26L69 26L71 38L60 45L49 38Z','#e0b441',1.1);
  default:return'';}}
-function pfWear(k,c,u){let s=pBody(c);
+function pfWear(k,c,u){let s=pF('M8 140L14 118L28 109L43 102L50 99L68 99L82 104L98 112L108 127L112 140Z',c,1.15);
   if(k==='coat')s+=pF('M44 101L58 129L51 140L32 140C33 124 37 110 44 101Z',shadeHex(c,.82),1.2)+pF('M76 101L62 129L69 140L88 140C87 124 83 110 76 101Z',shadeHex(c,.82),1.2)+`<circle cx="60" cy="126" r="1.8" fill="${PI_}"/><circle cx="60" cy="135" r="1.8" fill="${PI_}"/>`;
   else if(k==='hoodie')s+=pF('M34 106Q60 92 86 106Q60 100 34 106Z',shadeHex(c,.8),1.2)+pLn('M54 104L53 120M66 104L67 120',1.3,'#e6d9bd')+pF('M44 126h32v10h-32z',shadeHex(c,.88),1.1);
   else if(k==='scarf')s+=pF('M44 96Q60 106 76 96L78 106Q60 116 42 106Z','#b0452a')+pF('M64 106L70 128L62 130L58 110Z','#9a3a28',1.1)+pLn('M47 101Q60 108 73 101',.8,'#e0b441',.7);
   else if(k==='vest')s+=pF('M44 101L54 140L36 140C36 124 38 110 44 101Z','#e8742a',1.2)+pF('M76 101L66 140L84 140C84 124 82 110 76 101Z','#e8742a',1.2)+pF('M38 124L52 124L52 128L37 128Z','#dcdcdc',.8)+pF('M82 124L68 124L68 128L83 128Z','#dcdcdc',.8);
-  return s+pBodyShade(u);}
+  return s+pBodyShade(u)+pSh(u,'M16 122L31 114L24 139L11 139ZM90 111L105 123L111 139L92 139Z',.38)+pLn('M20 124l9 -7M17 131l9 -8M33 119l-3 18M37 112l-2 7M86 113l5 18M96 125l-3 10M40 134l7 -3M76 130l8 6',.65,PI_,.65);}
 const shadeHex=(h,f)=>{const p=parseInt(h.slice(1),16),c=[p>>16,(p>>8)&255,p&255].map(v=>Math.max(0,Math.min(255,Math.round(v*f))));return'#'+c.map(v=>v.toString(16).padStart(2,'0')).join('');};
 function pfAcc(k,sk){switch(k){
  case'glasses':return`<circle cx="51" cy="60" r="7" fill="rgba(255,255,255,.18)" stroke="#3a3a3a" stroke-width="1.7"/><circle cx="69" cy="60" r="7" fill="rgba(255,255,255,.18)" stroke="#3a3a3a" stroke-width="1.7"/>`+pLn('M58 59.5Q60 58 62 59.5M44 58.5L39 56.5M76 58.5L81 56.5',1.6,'#3a3a3a');
@@ -3974,32 +3998,33 @@ function pfAcc(k,sk){switch(k){
  default:return'';}}
 function pfFrame(k){if(k==='wood')return`<rect x="3" y="3" width="114" height="134" fill="none" stroke="#8a5a30" stroke-width="5"/><rect x="6" y="6" width="108" height="128" fill="none" stroke="#5a3a1c" stroke-width="1"/>`;
   if(k==='gold')return GOLDF;if(k==='deep')return`<rect x="3.5" y="3.5" width="113" height="133" fill="none" stroke="#3f6f8a" stroke-width="4"/><rect x="7" y="7" width="106" height="126" fill="none" stroke="#8fc8e0" stroke-width="1" stroke-dasharray="3 3"/>`;if(k==='lamp')return`<rect x="4" y="4" width="112" height="132" fill="none" stroke="#f3a53a" stroke-width="3"/>${[[10,10],[110,10],[10,130],[110,130]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="4" fill="#ffcf7a" stroke="${PI_}" stroke-width=".9"/>`).join('')}`;return'';}
+function pfInkHair(path,color,u,layer){if(!path)return'';const id='hair'+u+layer;return`<defs><clipPath id="${id}"><path d="${path}"/></clipPath></defs>`+pF(path,color,1.1)+`<g clip-path="url(#${id})">`+pLn('M31 64Q32 32 60 23M35 68Q33 32 65 25M40 73Q35 38 70 26M44 81Q36 46 69 31M44 38Q58 28 80 34M48 34Q68 25 85 41M65 29Q87 34 83 69M71 35Q88 48 81 83M80 70Q81 95 89 118M36 72Q34 98 28 123',.65,shadeHex(color,1.7),.52)+pLn('M38 52l-2 7M46 33l5 -4M54 28l6 -2M73 31l7 3M80 43l3 5M33 86l-4 20M84 94l5 20',.8,'#171e22',.8)+`</g>`;}
 function pfInkFace(u,o){const sk=o.skin,hair=o.brow[0],j={
- soft:'M39 53L42 40Q49 30 61 31L74 36L81 48L80 68L74 79L61 88L48 82L40 69Z',
- square:'M38 53L41 40Q49 30 61 31L75 36L82 48L81 72L76 82L65 88L51 85L41 78Z',
+ soft:'M39 52L42 40L49 34L60 31L73 36L80 47L80 67L73 80L62 88L49 83L42 74L39 63Z',
+ square:'M38 53L41 40L49 33L61 31L75 36L82 48L81 72L76 82L65 88L51 85L41 78Z',
  round:'M39 55Q40 37 58 34Q76 33 81 51L80 69Q76 84 61 87Q45 84 40 70Z',
- narrow:'M41 53L44 40Q52 30 62 31L74 38L79 50L78 71L71 83L61 91L49 81L42 68Z'};
- return pF('M40 55L34 56L35 65L41 69M80 55L86 57L84 65L78 68',sk,1)
- +pF('M51 78L50 101L60 108L70 100L68 78Z',sk,1.2)
- +pSh(u,'M51 85L67 84L67 95L53 100Z',.5)+pF(j[o.jaw]||j.soft,sk,1.35)
- +pSh(u,'M73 39L80 50L79 69L72 81L61 88L69 76L72 59Z',.3)
- +pLn('M43 53L49 51L56 52M65 51L71 50L77 52',1.8,hair)
- +`<g transform="translate(9 9) scale(.84 .85)">${pEye(50,60,o.eye,o.iris)}${pEye(70,59.4,o.eye,o.iris)}</g>`
- +pLn('M61 59L59 69L63 71M57 71L59 72',.95)
- +pSh(u,'M64 61L67 71L62 72Z',.2)
- +`<g transform="translate(4 4) scale(.94 .94)">${pMouth[o.mouth]||pMouth.neutral}</g>`
- +pLn('M43 68l3 3M43 72l3 2M74 68l3 -2M73 72l3 -2M54 84l5 1',.55,PI_,.35);}
+ narrow:'M41 53L44 40L52 33L62 31L74 38L79 50L78 71L71 83L61 91L49 81L42 68Z'};
+ let h=pF('M40 54L35 54L34 61L37 67L41 69M79 54L84 53L86 59L83 66L78 69',sk,.8)+pF('M51 77L50 97L43 101L59 110L72 102L68 96L69 78Z',sk,1.1)
+ +pF('M52 83L69 80L68 95L54 104Z',shadeHex(sk,.68),.4)+pSh(u,'M52 84L68 82L67 97L53 103Z',.48)+pF(j[o.jaw]||j.soft,sk,1.05)
+ +`<path d="M73 37L80 48L80 67L73 80L62 88L67 77L71 68L71 50Z" fill="${shadeHex(sk,.80)}"/>`
+ +`<path d="M45 50L50 45L57 46L57 50L49 53ZM65 47L72 44L78 48L76 51L68 51Z" fill="${shadeHex(sk,.91)}"/>`
+ +pLn('M43 53L48 51L55 52M65 51L71 49L77 51',1.4,hair)+pLn('M43 52l3 -1M47 51l3 -1M67 50l3 -1M72 49l3 1',.5,hair,.8);
+ for(const [x,y]of [[49.5,59],[70,58]]){if(o.eye==='happy')h+=pLn(`M${x-5} ${y+1}q5 -4 10 -.5`,1.05);else{const wide=o.eye==='wide',tired=o.eye==='tired',sharp=o.eye==='sharp',rise=wide?3.5:tired?1.3:2.4;h+=`<path d="M${x-5} ${y}Q${x} ${y-rise} ${x+5} ${y-1}Q${x} ${y+2.4} ${x-5} ${y}Z" fill="#eee8d8"/><ellipse cx="${x+.7}" cy="${y-.2}" rx="1.65" ry="${wide?2.3:1.8}" fill="#343536"/>`+pLn(`M${x-5.4} ${y}Q${x} ${y-rise} ${x+5.4} ${y-(sharp?1.7:.8)}`,1.05)+pLn(`M${x-3.7} ${y+3.5}l6 -.5`,.45,PI_,.58);}}
+ const mouths={smile:'M54 77L59 78.5L64 78L68 75.5',soft:'M55 77L61 77.8L66 76.5',neutral:'M54 77.5L60 77L67 78',grin:'M53 75Q61 79 68 74L65 79L58 81Z',laugh:'M53 74Q61 78 68 73Q65 84 59 83Z'};
+ h+=pLn('M61 57L59 64L57 69L62 71M64 69l2 1',.75)+`<path d="M63 59L66 68L62 71L60 69Z" fill="${shadeHex(sk,.8)}"/>`+pF(mouths[o.mouth]||mouths.neutral,['grin','laugh'].includes(o.mouth)?'#e4d8c4':'none',.85)
+ +pLn('M57 82l6 .2M43 66l4 2M43 69l4 2M44 73l3 2M74 65l3 -2M73 68l4 -2M71 73l4 -3M72 76l-2 3M54 88l3 5M54 92l3 4M56 94l3 4M36 57l2 5M82 56l-1 6',.5,PI_,.57);
+ return h;}
 function pfSVG(p=pf(),cls=''){const u='pf'+(++_pid),sk=pfVal('skin',p),hair=HAIR[pfVal('hair',p)[0]]||{},hc=pfVal('hairC',p),hat=pfVal('hat',p)[0];
   const face={skin:sk,jaw:pfVal('jaw',p)[0],eye:pfVal('eye',p)[0],mouth:pfVal('mouth',p)[0],iris:'#3a2618',brow:[hc==='#e6e0d4'?'#9a948a':hc,2.2,.4]};
   const hideHair=hat==='hood';
-  return`<svg viewBox="0 0 120 140" class="ink-profile ${cls}" role="img" aria-label="등불지기 초상화">${pDefs(u)}<rect width="120" height="140" fill="${pfVal('bg',p)[0]}" opacity=".85"/>`
+  return`<svg viewBox="12 16 96 118" class="ink-profile ${cls}" role="img" aria-label="등불지기 초상화">${pDefs(u)}<defs><filter id="ink${u}" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".55" numOctaves="2" seed="7" result="grain"/><feDisplacementMap in="SourceGraphic" in2="grain" scale=".38" xChannelSelector="R" yChannelSelector="G"/></filter></defs><rect width="120" height="140" fill="#e8e0cf"/><rect width="120" height="140" fill="${pfVal('bg',p)[0]}" opacity=".24"/><g filter="url(#ink${u})">`
    +`<g opacity=".22" fill="none" stroke="${PI_}" stroke-width="1.1"><path d="M96 20h14v18h-14zM99 20v-4h8v4M100 26q3 4 6 0"/></g>`
-   +(hat==='hood'?pfHat('hood',u):'')+(hair.b&&!hideHair?pF(hair.b,hc):'')
+   +(hat==='hood'?pfHat('hood',u):'')+(hair.b&&!hideHair?pfInkHair(hair.b,hc,u,'b'):'')
    +pfWear(pfVal('wear',p)[0],pfVal('wearC',p),u)+pfInkFace(u,face)
-   +(hair.f&&!hideHair&&!['bus','rider','hard','fire','miner'].includes(hat)?pF(hair.f,hc,hair.o?1:1.5):'')
+   +(hair.f&&!hideHair&&!['bus','rider','hard','fire','miner'].includes(hat)?pfInkHair(hair.f,hc,u,'f'):'')
    +(hat!=='hood'?pfHat(hat,u):'')+pfAcc(pfVal('acc',p)[0],sk)
-   +`<path d="M17 128l12 -6M22 132l8 -5M92 124l9 -4M92 129l12 -5" fill="none" stroke="#292f32" stroke-width=".7" opacity=".35"/>`+pfPet(pfVal('pet',p)[0])+pfFrame(pfVal('frame',p)[0])+`<rect x="1.5" y="1.5" width="117" height="137" fill="none" stroke="${PI_}" stroke-width="3" opacity=".35"/></svg>`;}
-const pfPet=k=>!k||k==='none'||!(S.pets&&S.pets[k])?'':`<image href="${petImg(k,S.pets[k].c||0,120)}" x="62" y="80" width="62" height="62"/>`;
+   +`<path d="M17 128l12 -6M22 132l8 -5M92 124l9 -4M92 129l12 -5" fill="none" stroke="#292f32" stroke-width=".7" opacity=".35"/>`+`</g>`+pfPet(pfVal('pet',p)[0])+`<g transform="translate(12 16) scale(.8 .843)">`+pfFrame(pfVal('frame',p)[0])+`</g><rect x="13" y="17" width="94" height="116" fill="none" stroke="${PI_}" stroke-width="3" opacity=".35"/></svg>`;}
+const pfPet=k=>!k||k==='none'||!(S.pets&&S.pets[k])?'':`<image href="${petImg(k,S.pets[k].c||0,120)}" x="58" y="78" width="48" height="48"/>`;
 const LANTERN_AV='<svg viewBox="0 0 40 40" width="40" height="40" fill="none" stroke="#efe3c4" stroke-width="2" stroke-linejoin="round"><path d="M14 11h12M16 11V8h8v3M13 13h14l-2 17H15z"/><path d="M16 30h8v3h-8z" fill="#efe3c4"/><path d="M20 17c3 3 3 6 0 8-3-2-3-5 0-8z" fill="#ffcf7a" stroke="none"/></svg>';
 function pfAvatar(){return S.pf&&S.pf.set?pfSVG():LANTERN_AV;}
 function renderPfBtn(){const b=$('pfBtn');if(!b)return;const k=JSON.stringify(S.pf||0);if(b.dataset.k===k)return;b.dataset.k=k;b.innerHTML=pfAvatar();b.classList.toggle('lamp',!(S.pf&&S.pf.set));}
