@@ -1190,6 +1190,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 @media (max-width:360px){#sq .sqm b{font-size:13px;letter-spacing:-.02em}.svrow .mid small{white-space:normal;overflow:visible;text-overflow:clip}}
 @media (max-height:640px){.page.case{padding:14px 14px 12px}.page.case .csb{gap:6px;margin-bottom:8px}.csl .av{width:32px;height:32px}.csl p{font-size:13.5px;padding:6px 9px}.page .copt{padding:9px 12px}.copt b{font-size:14.5px}.cswhen{margin-bottom:8px}}
 #toasts{margin-bottom:var(--tlift,0px);transition:margin-bottom .2s ease}
+#skills{margin-bottom:var(--slift,0px);transition:margin-bottom .2s ease,opacity .15s}
 .bond.cut{opacity:.7}.bond.cut b{color:var(--sepia-2)}
 .entry.odd{padding:8px 12px}.entry.odd .n{font-size:12.5px;color:var(--sepia-2)}.entry.odd .p{font-size:13.5px;white-space:normal;overflow:visible;text-overflow:clip;display:block;-webkit-line-clamp:unset}
 .segs:has(.seg:nth-child(7)){grid-template-columns:repeat(4,1fr)}
@@ -5129,11 +5130,14 @@ modal.addEventListener('click',e=>{if(e.target===modal&&modal.querySelector('.pa
 // the first dangerous night in each new town says out loud that someone may not come back
 function tickDeathWarn(){if(!S.gen||(S.deathG||{})[S.gen]||S.deathWarn===S.gen||(S.rmi||0)<1)return;const warn=!isNight()&&!DEFN&&(bigNightNext()||!!S.raid)&&revCount()>=16&&phase()>DAY-12;if(!warn)return;
   S.deathWarn=S.gen;save();noteFirst({h:'오늘 밤, 모두 돌아올 수 있을까요',t:'<small>이 동네에서는 누군가를 잃을 수도 있어요. 방벽과 랜턴탑이 튼튼하고, 다친 사람이 쉬고 있을수록 안전해요</small>',kind:'story',ms:7000});}
-// ---- notes step aside when the guide pointer sits where they are ----
-let tLift=0;
-{const o=updateGuide;updateGuide=function(){const r=o.apply(this,arguments);const g=$('guide'),tb=$('toasts');let want=0;
-  if(g&&tb&&!g.hidden&&tb.children.length){const gr=g.getBoundingClientRect(),tr=tb.getBoundingClientRect(),top=tr.top+tLift,bot=tr.bottom+tLift;
-    const hx=Math.min(gr.right,tr.right)-Math.max(gr.left,tr.left);if(hx>0&&gr.top<bot+6&&gr.bottom>top-6)want=Math.min(300,Math.ceil(bot-gr.top+10));}
+// ---- notes and the skill portraits step aside when the guide pointer sits where they are ----
+let tLift=0,sLift=0;
+{const o=updateGuide;updateGuide=function(){const r=o.apply(this,arguments);const g=$('guide'),tb=$('toasts'),sk=$('skills');let want=0,sw=0;
+  const gOn=g&&!g.hidden,gr=gOn?g.getBoundingClientRect():null;
+  if(gOn&&sk&&sk.children.length){const kr=sk.getBoundingClientRect(),top=kr.top+sLift,bot=kr.bottom+sLift;const hx=Math.min(gr.right,kr.right)-Math.max(gr.left,kr.left);if(hx>0&&gr.top<bot+4&&gr.bottom>top-4)sw=Math.min(120,Math.ceil(bot-gr.top+8));}
+  if(Math.abs(sw-sLift)>2||(sw===0&&sLift)){sLift=sw;sk&&sk.style.setProperty('--slift',sw+'px');}
+  if(tb&&tb.children.length){if(gOn){const tr=tb.getBoundingClientRect(),top=tr.top+tLift,bot=tr.bottom+tLift;const hx=Math.min(gr.right,tr.right)-Math.max(gr.left,tr.left);if(hx>0&&gr.top<bot+6&&gr.bottom>top-6)want=Math.min(300,Math.ceil(bot-gr.top+10));}
+    want=Math.max(want,sLift);}
   if(Math.abs(want-tLift)>2||(want===0&&tLift)){tLift=want;tb.style.setProperty('--tlift',want+'px');}return r;};}
 
 // ---------- loop ----------
