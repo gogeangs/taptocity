@@ -114,3 +114,20 @@ floors 1/5/10/15 consumed oil on exploration, and defense tapping reduced enemy 
 only on the opening line. No page errors in these paths. Production-shell offline reload loaded 29 cached
 entries including all four new atlases. Corrected the existing navigation cache write to pass a Response.
 No save schema or balance changes.
+
+## Playability follow-up
+
+The October 1 polish pass adds visual-viewport sizing, 44px camera/close targets, input sizing,
+and contained panel scrolling. Faded buildings no longer intercept taps intended for the tile
+behind them. Starting a second pointer cancels held actions; blur/visibility changes release
+all gesture state. Settings includes a replayable control guide. Dialogue has a progress track,
+short reduced-motion-aware transitions, and preserves focus on Next rather than Skip.
+Critical font/shelter/portrait preloads begin earlier; service-worker writes retain their lifetime,
+failed navigation responses do not replace the offline copy, and cleanup only removes game caches.
+
+Verification: Chromium touch emulation at 390×844, 320×640 and 390×420, no horizontal guide
+overflow, reachable guide action, occlusion picking, interrupted gesture cleanup, dialogue focus
+and reduced motion. The prior profile/upgrade/expedition/underground/defense regression paths passed.
+Offline production shell retained 29 entries. Physical iPhone Safari is not available in this
+environment and remains an explicit verification limitation.
+Fresh production play also retained progress across reload with no page errors.
