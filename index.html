@@ -5139,6 +5139,11 @@ let tLift=0,sLift=0;
   if(tb&&tb.children.length){if(gOn){const tr=tb.getBoundingClientRect(),top=tr.top+tLift,bot=tr.bottom+tLift;const hx=Math.min(gr.right,tr.right)-Math.max(gr.left,tr.left);if(hx>0&&gr.top<bot+6&&gr.bottom>top-6)want=Math.min(300,Math.ceil(bot-gr.top+10));}
     want=Math.max(want,sLift);}
   if(Math.abs(want-tLift)>2||(want===0&&tLift)){tLift=want;tb.style.setProperty('--tlift',want+'px');}return r;};}
+// ---- small talk for the town survivors (missing lines froze the game when one of them walked alone) ----
+Object.assign(SMALL,{14:['선인장 즙, 한 모금 해 볼래요?','약은 떨어져도 약초는 자라요.','모래알이 또 어디 갔지?'],
+ 15:['…고쳐 뒀어.','불꽃은 조용히 튀는 게 좋아.','쇠 냄새가 나야 잠이 와.'],
+ 16:['매듭 하나 더 배워 볼래요?','오늘 길은 제가 먼저 밟아 볼게요.','눈 밑 얼음 조심해요.']});
+for(const s of SURV)if(!SMALL[s.id])SMALL[s.id]=['…','오늘도 무사히.','불빛이 따뜻하네.'];
 
 // ---------- loop ----------
 let last=performance.now(),acc=0,uiT=0,saveT=0;
