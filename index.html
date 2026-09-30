@@ -1185,6 +1185,10 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 .btns .watch,.page .watch{display:block;width:100%;margin:8px 0}
 .segs:has(.seg:nth-child(5)){grid-template-columns:repeat(3,1fr)}
 .svrow.mem .fc{filter:grayscale(1) sepia(.35);opacity:.85}.svrow.mem small.ep{display:block;white-space:normal;font-style:italic;margin-top:2px}
+#skills{bottom:calc(106px + env(safe-area-inset-bottom,0px))}
+.tgl{position:relative}.tgl::after{content:"";position:absolute;inset:-9px -6px}
+@media (max-width:360px){#sq .sqm b{font-size:13px;letter-spacing:-.02em}.svrow .mid small{white-space:normal;overflow:visible;text-overflow:clip}}
+@media (max-height:640px){.page.case{padding:14px 14px 12px}.page.case .csb{gap:6px;margin-bottom:8px}.csl .av{width:32px;height:32px}.csl p{font-size:13.5px;padding:6px 9px}.page .copt{padding:9px 12px}.copt b{font-size:14.5px}.cswhen{margin-bottom:8px}}
 .bond.cut{opacity:.7}.bond.cut b{color:var(--sepia-2)}
 .entry.odd{padding:8px 12px}.entry.odd .n{font-size:12.5px;color:var(--sepia-2)}.entry.odd .p{font-size:13.5px;white-space:normal;overflow:visible;text-overflow:clip;display:block;-webkit-line-clamp:unset}
 .segs:has(.seg:nth-child(7)){grid-template-columns:repeat(4,1fr)}
@@ -2374,7 +2378,7 @@ $('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act]');
 $('fSurv').onclick=()=>sheetTab==='surv'?closeSheet():openSheet('surv');$('pfBtn').onclick=()=>{if(sheetTab==='profile')closeSheet();else{pfTab='me';openSheet('profile');}};
 $('fExp').onclick=()=>{if(sheetTab==='exp')closeSheet();else{expPlan=null;openSheet('exp');}};
 const modal=$('modal'),mq=[];
-function openModal(h,force){if((!modal.hidden||HOLDING)&&!force){mq.push(h);return;}modal.innerHTML=h;const pg=modal.querySelector('.page');if(pg&&!pg.classList.contains('talk')&&!pg.classList.contains('radio-spin'))pg.insertAdjacentHTML('afterbegin','<button class="mx" aria-label="닫기">✕</button>');modal.hidden=false;modal.scrollTop=0;const b=modal.querySelector('button:last-of-type');b&&b.focus();}
+function openModal(h,force){if((!modal.hidden||HOLDING)&&!force){mq.push(h);return;}modal.innerHTML=h;const pg=modal.querySelector('.page');if(pg&&!pg.classList.contains('talk')&&!pg.classList.contains('radio-spin')&&!pg.classList.contains('nox'))pg.insertAdjacentHTML('afterbegin','<button class="mx" aria-label="닫기">✕</button>');modal.hidden=false;modal.scrollTop=0;const b=modal.querySelector('button:last-of-type');b&&b.focus();}
 function closeModal(){modal.hidden=true;if(mq.length)setTimeout(()=>openModal(mq.shift()),150);}
 modal.addEventListener('click',e=>{const b=e.target.closest('button');if(b&&b.dataset.act==='gift'){if(!b.disabled)gift(+b.dataset.arg);return;}if(b&&b.dataset.act==='party'){toggleParty(+b.dataset.arg);openSurv(+b.dataset.arg,true);return;}if(b&&b.dataset.act==='ev'){if(!b.disabled)chooseEv(+b.dataset.arg);return;}if(b||e.target===modal)closeModal();});
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="talk"]');if(!b||!talk)return;e.stopPropagation();if(talk.k<talk.lines.length-1){talk.k++;renderTalk();}else{const g=talk.opt.goal,chn=talk.opt.chain;talk=null;closeModal();if(g)panGuide=performance.now();if(chn)setTimeout(tickStory,60);}},true);
@@ -4927,7 +4931,7 @@ const cKeys=()=>CASES.map((c,k)=>k).concat(RORDER.filter(r=>S.cases&&S.cases[r]&
 let caseCur=null;
 function openCase(k){const c=cOf(k);caseCur=k;S.cases=S.cases||{};S.cases[k]=S.cases[k]||{at:Date.now()};save();sfx('chime');
   const sus=c.sus!=null&&svIn(c.sus)?svName(c.sus):c.susN;
-  openModal(`<div class="page case"><div class="tag">사건 ${cNo(k)} · ${c.ch}</div><h3>${c.t}</h3><div class="cswhen">${c.when} · 의심받는 사람: <b>${sus}</b></div>
+  openModal(`<div class="page case nox"><div class="tag">사건 ${cNo(k)} · ${c.ch}</div><h3>${c.t}</h3><div class="cswhen">${c.when} · 의심받는 사람: <b>${sus}</b></div>
     <div class="csb">${caseLines(c.x())}</div><div class="csq">어떻게 할까요?</div>
     <div class="cso">${['a','b','c'].map(p=>`<button class="copt${p==='a'?' hi':''}" data-act="case" data-arg="${p}"><b>${optL(c[p])}</b><small>${p==='a'?(c.tut?'범인을 찾아봐요':'진실에 다가가요 · 그 사람은 서운해해요'):p==='b'?'믿음이 깊어져요 · 단서를 놓칠 수 있어요':'조용히 넘어가요'}</small></button>`).join('')}</div></div>`,true);}
 function pickCase(p){const k=caseCur,c=cOf(k);if(!c)return;const o=c[p],R=S.cases[k];if(R.p)return;R.p=p;
@@ -4941,7 +4945,7 @@ function pickCase(p){const k=caseCur,c=cOf(k);if(!c)return;const o=c[p],R=S.case
   openModal(`<div class="page case done"><div class="tag">사건 ${cNo(k)} · ${c.ch}</div><h3>${c.t}</h3><div class="csb">${caseLines(ls)}</div>
     ${fx.length?`<div class="rqget big">${fx.map(t=>`<span class="rqfx${/-\d/.test(t)?' bad':''}">${t}</span>`).join('')}</div>`:''}
     <div class="csnote">${c.solved?'<em class="stamp ok">해결</em>':'<em class="stamp">미해결</em>'} 사건 수첩에 적었어요</div><button class="rqok">닫기</button></div>`,true);
-  $('fDiary')&&pingEl($('fDiary'));}
+  S.caseNew=1;save();$('fDiary')&&pingEl($('fDiary'));}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="case"]');if(!b)return;e.stopPropagation();pickCase(b.dataset.arg);},true);
 function tickCases(){S.cases=S.cases||{};
   if(S.gen&&S.region&&TCASES[S.region]&&svIn(10)){const k=S.region,R=S.cases[k];if(R&&R.p)return false;if(R||TCASES[k].gate()){openCase(k);return true;}return false;}
@@ -4953,7 +4957,7 @@ function tickCases(){S.cases=S.cases||{};
 // ---- 사건 수첩 (diary tab) ----
 function renderCases(){S.cases=S.cases||{};const KS=cKeys(),sol=KS.filter(k=>S.cases[k]&&S.cases[k].solved).length;
   let h=`<div class="sec">사건 수첩 <small>풀린 사건 ${sol} / ${KS.length}</small></div><div class="d" style="margin-bottom:8px">쉘터에서 일어난 일을 적어 두는 수첩이에요. 단서는 사람을 추궁할 때만 모여요.</div>`;
-  KS.forEach(k=>{const c=cOf(k),R=S.cases[k];if(!R||!R.p){h+=`<div class="entry locked csn"><div class="n">사건 ${cNo(k)} · ???</div><div class="p">${c.ch}에 무슨 일이 생길지도 몰라요.</div></div>`;return;}
+  KS.forEach(k=>{const c=cOf(k),R=S.cases[k];if(!R||!R.p){const gone=S.gen||S.mi>=STEPS.length;h+=`<div class="entry locked csn"><div class="n">사건 ${cNo(k)} · ???</div><div class="p">${gone?'이 쉘터에서는 적히지 않은 페이지예요.':c.ch+'에 무슨 일이 생길지도 몰라요.'}</div></div>`;return;}
     const sus=c.sus!=null?svName(c.sus):c.susN,pick=optL(c[R.p]),clues=[];if(R.clue&&c[R.p].clue)clues.push(c[R.p].clue);if(R.tail&&c.tailClue)clues.push(c.tailClue);
     h+=`<div class="entry csn${R.solved?' ok':''}"><em class="stamp${R.solved?' ok':''}">${R.solved?'해결':'미해결'}</em><div class="n">사건 ${cNo(k)} · ${c.t} <small>${c.ch}</small></div>
       <div class="cst"><span>때</span>${c.when}</div><div class="cst"><span>의심</span>${sus}</div>${c.alibi?`<div class="cst"><span>증언</span>${c.alibi}</div>`:''}<div class="cst"><span>내 선택</span>${pick}</div>
@@ -4997,7 +5001,7 @@ function tickCrow(){if(!s1On())return false;const C=crow();
   if(C.jinDue&&!svIn(JIN)){C.jinDue=0;save();rescue(JIN,'visit');return true;}
   return false;}
 function openCrowMeet(){const c=scaleCost({food:40,fuel:15},lvScale()),ok=canPay(c);sfx('chime');
-  openModal(`<div class="page case crow"><div class="tag">까마귀 · 접촉</div><h3>길을 막은 사람들</h3><div class="csb">${caseLines([[ME,'원정대가 돌아오는 길목을 검은 옷의 무리가 막아섰다. 벽에서 보던 검은 새가 그들 팔에 그려져 있었다.'],[CR_,'이 길은 우리 길이오. 지나가려면 몫을 내시오.'],[JN_,'…대장, 저 사람들이 그 랜턴 가진 쪽이에요.']])}</div>
+  openModal(`<div class="page case crow nox"><div class="tag">까마귀 · 접촉</div><h3>길을 막은 사람들</h3><div class="csb">${caseLines([[ME,'원정대가 돌아오는 길목을 검은 옷의 무리가 막아섰다. 벽에서 보던 검은 새가 그들 팔에 그려져 있었다.'],[CR_,'이 길은 우리 길이오. 지나가려면 몫을 내시오.'],[JN_,'…대장, 저 사람들이 그 랜턴 가진 쪽이에요.']])}</div>
     <div class="csq">어떻게 할까요?</div><div class="cso">
     <button class="copt hi" data-act="crow" data-arg="deal" ${ok?'':'disabled'}><b>통행료를 낸다</b><small>${ok?'':'자재가 모자라요 · '}${costHtml(c)}</small></button>
     <button class="copt" data-act="crow" data-arg="fight"><b>맞선다</b><small>누군가 다칠 수 있어요</small></button>
@@ -5030,7 +5034,7 @@ function tickEunho(){if(svIn(10))return false;const st=mission().step,ji=STEP_I(
 
 function tickEnding(){if(S.gen||!S.endSeen||S.ehEnd||S.mi<STEPS.length||!svIn(10))return false;S.ehEnd=1;save();
   openTalk([[ME,'그날 밤에도 심야 방송이 흘렀다.'],[10,'여기는 심야 방송 한밤. 오늘 탑에 불을 켠 모든 분께, 마지막 곡 보내 드립니다.'],[ME,'노래가 끝나고도 방송은 꺼지지 않았다. 한참 동안, 잡음만 흘렀다.']],{tag:'그날 밤'});return true;}
-function tickSeason(){tickOdd();if(!sceneFree()){scIdle=0;return;}if(++scIdle<6)return;
+function tickSeason(){tickOdd();tickDeathWarn();if(!sceneFree()){scIdle=0;return;}if(++scIdle<6)return;
   if(tickEunho()||tickCrow()||tickCases()||tickEnding())scIdle=-40;}
 
 // ================= 수상한 밤: once 은호 is here, strange things happen around "새벽 3시" =================
@@ -5098,7 +5102,7 @@ function deathPick(){const safe=SAFE(),ids=Object.keys(S.sv).map(Number).filter(
 function killSurv(id){const r=S.sv[id];if(!r)return;if(r.at>=0)delete S.asg[r.at];delete S.sv[id];S.party=S.party.filter(x=>x!==id);delete S.cd[id];delete WALK[id];if(CHAT&&(CHAT.a===id||CHAT.b===id))CHAT=null;
   S.dead=S.dead||[];S.dead.push({id,g:S.gen||0,town:REG()?REG().n:'',at:Date.now()});recalc();renderSkills(true);save();}
 {const o=endDefense;endDefense=function(win){const D2=DEFN,r=o.apply(this,arguments);
-  if(S.gen&&D2&&(S.rmi||0)>=1&&!(S.deathG||{})[S.gen]){S.deathTry=S.deathTry||{};const n=S.deathTry[S.gen]=(S.deathTry[S.gen]||0)+1,p=win===false?.8:[.3,.5,.75][n-1]||1;
+  if(S.gen&&D2&&(S.rmi||0)>=1&&!(S.deathG||{})[S.gen]){S.deathTry=S.deathTry||{};const n=S.deathTry[S.gen]=(S.deathTry[S.gen]||0)+1,p=win===false?.8:([.3,.5,.75][n-1]||1)*(n<4&&D2.hp>=80?.5:1);
     if(Math.random()<p){const id=deathPick();if(id!=null){(S.deathG=S.deathG||{})[S.gen]=1;const nm=SURV[id].name,raid=D2.raid,where=S.sv[id].at>=0?workName(S.sv[id].at):'방벽';killSurv(id);
       tlog(`${jo(nm,'을','를')} 잃었다.`);
       setTimeout(()=>openTalk([raid?[ME,`${jo(raid,'이','가')} 물러간 새벽, ${jo(nm,'이','가')} 쓰러져 있었다.`]:[ME,`폭풍이 걷힌 새벽, ${jo(nm,'이','가')} 보이지 않았다.`],
@@ -5108,6 +5112,22 @@ function killSurv(id){const r=S.sv[id];if(!r)return;if(r.at>=0)delete S.asg[r.at
 function memorialHtml(){const L=S.dead||[];if(!L.length)return'';
   return`<div class="sec">잃은 사람들 ${L.length}</div>`+L.map(d=>{const s=SURV[d.id];return`<div class="svrow locked mem"><span class="fc">${portrait(s)}</span><span class="mid"><b>${s.name}</b><small>${s.job}${d.town?` · ${d.town}에서`:''}</small><small class="ep">${LAST[d.id]||''}</small></span></div>`;}).join('');}
 {const o=rescue;rescue=function(id){if(isDead(id))return;return o.apply(this,arguments);};}
+
+// ---- UX: choice pages can't be dismissed by accident; the notebook marks new pages; the shadow shows where it is; death is telegraphed ----
+modal.addEventListener('click',e=>{if(e.target===modal&&modal.querySelector('.page.nox')){e.stopPropagation();}},true);
+{const o=closeTop;closeTop=function(){if(!modal.hidden&&modal.querySelector('.page.nox'))return true;return o.apply(this,arguments);};}
+{const o=renderSheet;renderSheet=function(){if(sheetTab==='diary'&&diaryTab==='case'&&S.caseNew){S.caseNew=0;save();}const r=o.apply(this,arguments);
+  if(sheetTab==='diary'&&S.caseNew){const b=document.querySelector('[data-act="dseg"][data-arg="case"]');if(b&&!b.querySelector('.nw'))b.insertAdjacentHTML('beforeend','<i class="nw">N</i>');}return r;};}
+// off-screen shadow: a small marker on the screen edge; tapping it looks that way
+{const o=drawBubbles;drawBubbles=function(time){o.apply(this,arguments);if(!SHD||SHD.light!=null||SHD.got)return;const[x,y]=shadowPos(),p=toScreen(x,y-14);
+  if(p.x>=20&&p.x<=cw-20&&p.y>=200&&p.y<=ch-200){SHD.mk=null;return;}const mx=Math.max(28,Math.min(cw-28,p.x)),my=Math.max(210,Math.min(ch-210,p.y));SHD.mk=[mx,my];
+  ctx.save();ctx.setTransform(dpr,0,0,dpr,0,0);const a=.65+.35*Math.sin(time/180);ctx.globalAlpha=a;ctx.fillStyle='rgba(18,14,22,.92)';ctx.strokeStyle='#efe3c4';ctx.lineWidth=2;ctx.beginPath();ctx.arc(mx,my,15,0,7);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#efe3c4';ctx.beginPath();ctx.arc(mx,my-4,3.4,0,7);ctx.fill();ctx.beginPath();ctx.moveTo(mx-5,my+8);ctx.quadraticCurveTo(mx,my-2,mx+5,my+8);ctx.fill();ctx.restore();};}
+{const o=bubbleAt;bubbleAt=function(sx,sy){if(SHD&&SHD.mk&&!SHD.got&&Math.hypot(sx-SHD.mk[0],sy-SHD.mk[1])<26){const[x,y]=shadowPos();cam.x=x;cam.y=y-10;SHD.mk=null;return{chat:{look:1}};}return o.apply(this,arguments);};}
+{const o=openChat;openChat=function(C){if(C&&C.look)return;return o.apply(this,arguments);};}
+// the first dangerous night in each new town says out loud that someone may not come back
+function tickDeathWarn(){if(!S.gen||(S.deathG||{})[S.gen]||S.deathWarn===S.gen||(S.rmi||0)<1)return;const warn=!isNight()&&!DEFN&&(bigNightNext()||!!S.raid)&&revCount()>=16&&phase()>DAY-12;if(!warn)return;
+  S.deathWarn=S.gen;save();noteFirst({h:'오늘 밤, 모두 돌아올 수 있을까요',t:'<small>이 동네에서는 누군가를 잃을 수도 있어요. 방벽과 랜턴탑이 튼튼하고, 다친 사람이 쉬고 있을수록 안전해요</small>',kind:'story',ms:7000});}
 
 // ---------- loop ----------
 let last=performance.now(),acc=0,uiT=0,saveT=0;
