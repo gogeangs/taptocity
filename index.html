@@ -1149,8 +1149,15 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 .acr i::after{content:"";position:absolute;left:2px;top:2px;width:10px;height:10px;border-radius:50%;background:#fff;transition:left .15s}
 .acr.on{color:#2f4a1a;border-color:#6f9646;background:#eef3df}.acr.on i{background:#6f9646}.acr.on i::after{left:12px}
 
+#placeBar{top:70px!important}
+#stage:has(#placeBar:not([hidden])) #sq,#stage:has(#defBar:not([hidden])) #evBtn{visibility:hidden}
+#app:has(#matsAll:not([hidden])) #sq,#app:has(#matsAll:not([hidden])) #evBtn,#app:has(#matsAll:not([hidden])) #toasts{visibility:hidden}
+.tt{flex-shrink:0}
+.tt.note .nb{display:block!important;-webkit-line-clamp:unset!important;overflow:visible!important}
+.tt.note .nb small{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:1.4}
+@media (max-width:430px){.mc.long .top svg,.mc.long .top .mi{display:none!important}}
+
 #defBar{top:70px!important;background:#2a100a!important}
-#stage:has(#defBar:not([hidden])) #toasts{top:166px!important}
 #stage:has(#defBar:not([hidden])) #sq{visibility:hidden}
 .dhp{height:20px!important;display:flex;align-items:center;justify-content:center}
 .dhp span{font:800 12px/1 var(--body)!important;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.75),0 0 4px rgba(60,20,10,.8);white-space:nowrap;padding-top:1px}
@@ -3620,8 +3627,11 @@ const FEAT=[
  {k:'migrate',tab:'fUp',sheet:'shelter',seg:'build',on:()=>!!S.endSeen&&S.lv>=5,msg:'쉘터 화면에서 새 동네로 떠날 수 있어요',h:'이주'}];
 function tickFeat(){if(!S.feat){S.feat={};for(const f of FEAT)if(f.on())S.feat[f.k]=2;}for(const f of FEAT){if(S.feat[f.k])continue;if(f.on()){S.feat[f.k]=1;note({h:`새 기능 · ${f.h}`,t:`<small>${f.msg}</small>`,ms:5000});}}
   const tabs={};for(const f of FEAT)if(S.feat[f.k]===1)tabs[f.tab]=1;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('isnew',!!tabs[b.id]));}
-function seeFeat(sheet,seg){S.feat=S.feat||{};for(const f of FEAT)if(S.feat[f.k]===1&&f.sheet===sheet&&(!f.seg||f.seg===seg))S.feat[f.k]=2;tickFeat();}
-const segNew=(sheet,seg)=>FEAT.some(f=>(S.feat||{})[f.k]===1&&f.sheet===sheet&&f.seg===seg);
+// 1 = new (dot on the bottom tab), 3 = the tab was opened but the sub-tab still carries its own dot, 2 = seen
+function seeFeat(sheet,seg){S.feat=S.feat||{};for(const f of FEAT)if((S.feat[f.k]===1||S.feat[f.k]===3)&&f.sheet===sheet&&(!f.seg||f.seg===seg))S.feat[f.k]=2;tickFeat();}
+const TAB_OF={surv:'fSurv',exp:'fExp',shelter:'fUp',radio:'radio',diary:'fDiary'};
+function seeTab(sheet){const tab=TAB_OF[sheet];if(!tab||!S.feat)return;for(const f of FEAT)if(S.feat[f.k]===1&&f.tab===tab)S.feat[f.k]=f.seg&&f.sheet===sheet?3:2;tickFeat();}
+const segNew=(sheet,seg)=>FEAT.some(f=>{const v=(S.feat||{})[f.k];return (v===1||v===3)&&f.sheet===sheet&&f.seg===seg;});
 // hold hint: several quick taps on the same tile
 let tapRun={i:-1,n:0,t:0};
 function holdHint(i){const now=performance.now();if(i===tapRun.i&&now-tapRun.t<450)tapRun.n++;else tapRun={i,n:1,t:now};tapRun.t=now;
@@ -5161,7 +5171,21 @@ Object.assign(SMALL,{14:['선인장 즙, 한 모금 해 볼래요?','약은 떨�
  16:['매듭 하나 더 배워 볼래요?','오늘 길은 제가 먼저 밟아 볼게요.','눈 밑 얼음 조심해요.']});
 for(const s of SURV)if(!SMALL[s.id])SMALL[s.id]=['…','오늘도 무사히.','불빛이 따뜻하네.'];
 // ---- "new feature" dots on the bottom tabs clear when that screen is actually opened (they only cleared on a sub-tab tap, so 생존자·원정·라디오 kept theirs forever)
-{const o=openSheet;openSheet=function(t){const r=o.apply(this,arguments);try{if(typeof seeFeat==='function')seeFeat(t,t==='shelter'?shTab:t==='diary'?diaryTab:undefined);}catch(e){}return r;};}
+{const o=openSheet;openSheet=function(t){const r=o.apply(this,arguments);try{if(typeof seeFeat==='function'){seeTab(t);seeFeat(t,t==='shelter'?shTab:t==='diary'?diaryTab:undefined);}}catch(e){}return r;};}
+
+// four-character amounts (1.5k) don't fit next to the icon on phones: drop the icon, the label under it still names the material
+{const o=renderMats;renderMats=function(){o.apply(this,arguments);document.querySelectorAll('#mats .mc').forEach(el=>{const b=el.querySelector('b');el.classList.toggle('long',!!b&&b.textContent.length>=4);});};}
+// the note stack grows upward from the bottom; while a defense/placement bar is up, older notes step aside so nothing covers it
+function fitToasts(){const box=$('toasts');if(!box)return;const bars=['defBar','placeBar'].map(id=>$(id)).filter(e=>e&&!e.hidden);
+  const kids=[...box.children];if(!bars.length){kids.forEach(k=>{if(k.dataset.fit)k.style.display='',delete k.dataset.fit;});if(box.dataset.fit){box.style.removeProperty('margin-bottom');delete box.dataset.fit;}return;}
+  const lim=Math.max(...bars.map(b=>b.getBoundingClientRect().bottom))+6;
+  for(let i=kids.length-1;i>0;i--){const top=kids[0].getBoundingClientRect().top;if(top>=lim)break;const k=kids[i];if(k.style.display==='none')continue;k.style.display='none';k.dataset.fit=1;}
+  // still too tall: give up some of the lift that keeps notes clear of the map labels, the bar matters more
+  if(kids[0]){const over=lim-kids[0].getBoundingClientRect().top;const mb=parseFloat(getComputedStyle(box).marginBottom)||0;
+    if(over>0&&mb>0){box.style.setProperty('margin-bottom',Math.max(0,mb-over)+'px','important');box.dataset.fit=1;}}else if(box.dataset.fit){box.style.removeProperty('margin-bottom');delete box.dataset.fit;}}
+setInterval(fitToasts,120);try{new MutationObserver(fitToasts).observe($('toasts'),{childList:true});}catch(e){}
+// while the shelter is under attack or a decoration is being placed, the story pointer waits (it only pushed the notes up into the bar)
+{const o=focusTarget;focusTarget=function(){if((typeof DEFN!=='undefined'&&DEFN)||(typeof PLACE!=='undefined'&&PLACE))return null;return o.apply(this,arguments);};}
 
 // ================= 튜토리얼 스테이지 '그날 밤': the night the ash fell, 03:02 → 03:14 =================
 // Runs on a throwaway map before the prologue (first play), or from settings as a replay that restores the real save afterwards.
