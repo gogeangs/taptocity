@@ -1149,6 +1149,12 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 .acr i::after{content:"";position:absolute;left:2px;top:2px;width:10px;height:10px;border-radius:50%;background:#fff;transition:left .15s}
 .acr.on{color:#2f4a1a;border-color:#6f9646;background:#eef3df}.acr.on i{background:#6f9646}.acr.on i::after{left:12px}
 
+#defBar{top:70px!important;background:#2a100a!important}
+#stage:has(#defBar:not([hidden])) #toasts{top:166px!important}
+#stage:has(#defBar:not([hidden])) #sq{visibility:hidden}
+.dhp{height:20px!important;display:flex;align-items:center;justify-content:center}
+.dhp span{font:800 12px/1 var(--body)!important;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.75),0 0 4px rgba(60,20,10,.8);white-space:nowrap;padding-top:1px}
+
 .page.case{padding:18px 18px 16px}
 .page.case h3{margin:2px 0 6px;font-size:19px}
 .cswhen{font:600 12.5px/1.4 var(--body);color:var(--sepia-2);margin:0 0 10px}.cswhen b{color:var(--rust)}
