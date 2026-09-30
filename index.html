@@ -1191,6 +1191,8 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 @media (max-height:640px){.page.case{padding:14px 14px 12px}.page.case .csb{gap:6px;margin-bottom:8px}.csl .av{width:32px;height:32px}.csl p{font-size:13.5px;padding:6px 9px}.page .copt{padding:9px 12px}.copt b{font-size:14.5px}.cswhen{margin-bottom:8px}}
 #toasts{margin-bottom:var(--tlift,0px);transition:margin-bottom .2s ease}
 #skills{margin-bottom:var(--slift,0px);transition:margin-bottom .2s ease,opacity .15s}
+#tutSkip{position:absolute;left:12px;bottom:calc(164px + env(safe-area-inset-bottom,0px));z-index:5;padding:7px 14px;border-radius:99px;border:1.5px solid rgba(239,227,196,.5);background:rgba(20,16,12,.72);color:#efe3c4;font:600 13px/1 var(--body)}
+#tutSkip[hidden]{display:none}
 .bond.cut{opacity:.7}.bond.cut b{color:var(--sepia-2)}
 .entry.odd{padding:8px 12px}.entry.odd .n{font-size:12.5px;color:var(--sepia-2)}.entry.odd .p{font-size:13.5px;white-space:normal;overflow:visible;text-overflow:clip;display:block;-webkit-line-clamp:unset}
 .segs:has(.seg:nth-child(7)){grid-template-columns:repeat(4,1fr)}
@@ -5144,6 +5146,65 @@ Object.assign(SMALL,{14:['선인장 즙, 한 모금 해 볼래요?','약은 떨�
  15:['…고쳐 뒀어.','불꽃은 조용히 튀는 게 좋아.','쇠 냄새가 나야 잠이 와.'],
  16:['매듭 하나 더 배워 볼래요?','오늘 길은 제가 먼저 밟아 볼게요.','눈 밑 얼음 조심해요.']});
 for(const s of SURV)if(!SMALL[s.id])SMALL[s.id]=['…','오늘도 무사히.','불빛이 따뜻하네.'];
+
+// ================= 튜토리얼 스테이지 '그날 밤': the night the ash fell, 03:02 → 03:14 =================
+// Runs on a throwaway map before the prologue (first play), or from settings as a replay that restores the real save afterwards.
+const TUT_KEY='ttc_tut',TUT_BAK='ttc_tut_bak';
+const lsGet=k=>{try{return localStorage.getItem(k);}catch(e){return null;}},lsSet=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v);}catch(e){}};
+const tutDone=()=>lsGet(TUT_KEY)==='1'||!!S.tutSeen;
+const tutPending=()=>!S.tut&&!S.gen&&S.mi===0&&S.storyI==null&&!tutDone();
+const TUT=[
+ {t:'03:02',goal:'랜턴을 두드려 어둠 걷기',hint:'랜턴 버튼을 누르고 있으면 연속으로 두드려요',n:4,v:()=>revCount(),focus:'lamp',
+  say:[[ME,'정전된 거리. 발밑조차 보이지 않는다.'],[ME,'손에 든 건 낡은 랜턴 하나. 두드리면 빛이 번진다.']]},
+ {t:'03:05',goal:'무너진 집에서 목재 5개 챙기기',hint:'밝힌 땅의 무너진 집·폐차를 두드려요',n:5,v:()=>(S.got&&S.got.wood)||0,focus:'site',
+  say:[[ME,'아까 땅이 크게 흔들렸다. 발전소 쪽에서 우르릉 소리가 났다.'],[ME,'무너진 집에서 쓸 만한 걸 챙기자. 두드리면 뭔가 나온다.']]},
+ {t:'03:08',goal:'가운데 텐트 눌러 보기',hint:'가운데 텐트를 누르면 쉘터 화면이 열려요',n:1,v:()=>tutSheet,focus:'center',
+  say:[[ME,'공터에 텐트를 쳤다. 오늘 밤은 여기서 버틴다.'],[ME,'텐트를 누르면 무엇을 지을 수 있는지 볼 수 있다.']]},
+ {t:'03:14',goal:'쏟아지는 재 걷어내기',hint:'회색 재가 내려앉은 칸을 톡톡 두드려요',n:5,v:()=>(S.stat&&S.stat.ash)||0,focus:'ash',
+  say:[[ME,'번쩍. 발전소 쪽 하늘이 하얗게 타올랐다.'],[ME,'그리고, 재가 내리기 시작했다.'],[ME,'쌓이기 전에 두드려 걷어내자!']]}];
+let tutSheet=0,tutAsh=0,tutEnd=0;
+function tutOpenStep(i){const T=TUT[i];tutSheet=0;S.tut.i=i;S.tut.b=T.v();save();misKey=null;renderMission();
+  openTalk(T.say,{card:i?null:['그날 밤','재가 내리던 새벽'],tag:i?`그날 밤 · ${T.t}`:null,goal:T.goal});}
+function tutFresh(){closeModal();closeSheet();closeRing();DEFN=null;UG=null;WALK={};CHAT=null;KW=[];fresh();aim=-1;recalc();centerCam();ensureAim();misKey=null;renderMission();renderSkills(true);save();}
+function startTut(replay){if(replay){lsSet(TUT_BAK,JSON.stringify(S));tutFresh();}
+  S.tut={i:0,b:0,replay:!!replay};S.sig={};S.camp={};S.clock=DAY+20;tutEnd=0;wasNight=true;save();tutOpenStep(0);}
+function finishTut(){lsSet(TUT_KEY,'1');const bak=lsGet(TUT_BAK);lsSet(TUT_BAK,null);talk=null;mq.length=0;closeModal();closeSheet();closeRing();SHD=null;
+  if(bak){try{const raw=JSON.parse(bak);DEFN=null;UG=null;WALK={};CHAT=null;KW=[];load(raw);S.tutSeen=1;aim=-1;recalc();centerCam();ensureAim();misKey=null;renderMission();renderSkills(true);save();toast('원래 쉘터로 돌아왔어요');return;}catch(e){}}
+  tutFresh();S.tutSeen=1;save();}
+function tickTut(){
+  if(tutPending()){startTut(false);return true;}
+  const U=S.tut;if(!U)return false;
+  S.clock=Math.floor(S.clock/CYCLE)*CYCLE+DAY+20;
+  if(tutEnd){if(modal.hidden&&!talk&&!mq.length)finishTut();return true;}
+  const T=TUT[U.i];if(!T)return true;
+  if(U.i===3&&modal.hidden&&!talk){tutAsh-=1;if(tutAsh<=0&&Object.keys(S.ash).length<3){const e=edgeTiles();if(e.length){const i=e[(Math.random()*e.length)|0],hp=tapPow()*2;S.ash[i]={hp,max:hp,t:16};const[x,y]=tileC(i,10);burst(x,y,'#77726b',14,4);}tutAsh=1.4;}}
+  if(T.v()-U.b>=T.n&&modal.hidden&&!talk){sfx('chime');
+    if(U.i===2&&!U.radio){U.radio=1;closeSheet();save();openTalk([[ME,'라디오에서는 심야 방송이 흐르고 있었다. 누군가 신청한 옛 노래.'],[ME,'03:11. 노래가 뚝 끊겼다.'],[ME,'잡음도 없이. 1분, 2분, 3분…']],{tag:'그날 밤 · 03:11'});return true;}
+    if(U.i<TUT.length-1){tutOpenStep(U.i+1);}
+    else{S.ash={};tutEnd=1;save();openTalk([[ME,'재는 밤새 그치지 않았다.'],[ME,'라디오는 그날 밤, 끝내 다시 켜지지 않았다.'],[ME,'그리고 마흔세 번의 밤이 지났다.']],{tag:'그날 밤'});}}
+  return true;}
+// the stage borrows the real map, so the rest of the game waits while it runs
+{const o=mission;mission=function(){if(S.tut){const T=TUT[S.tut.i]||TUT[0];return{txt:T.goal,done:false,rw:{},sub:T.hint,step:null,tut:1};}return o.apply(this,arguments);};}
+{const o=tickStory;tickStory=function(){if(S.tut||tutPending())return;return o.apply(this,arguments);};}
+{const o=renderMission;renderMission=function(){if(!S.tut)return o.apply(this,arguments);const U=S.tut,T=TUT[U.i],p=Math.max(0,Math.min(T.n,T.v()-U.b));
+  $('mis').innerHTML=`<span class="chap">그날 밤 <i>${U.i+1}/${TUT.length}</i></span><span class="goal">${T.goal}${T.n>1?` <small>${p}/${T.n}</small>`:''}</span><span class="sub"><b>그날 밤 · ${T.t}</b> — ${T.hint}</span>`;
+  $('claim').hidden=true;$('tape').classList.remove('done');misKey='tut'+U.i+'|'+p;};}
+{const o=renderClock;renderClock=function(){o.apply(this,arguments);if(S.tut){const T=TUT[S.tut.i]||TUT[0];$('clockTxt').textContent=`그날 밤 · ${S.tut.radio&&S.tut.i===2?'03:11':T.t}`;}};}
+{const o=focusTarget;focusTarget=function(){if(!S.tut)return o.apply(this,arguments);if(!modal.hidden||tutEnd)return null;const f=TUT[S.tut.i].focus;
+  if(sheetTab)return null;
+  if(f==='lamp')return{el:$('lamp'),t:'여기를 눌러요'};
+  const near=ok=>{let best=-1,bd=1e9;for(let i=0;i<N;i++)if(ok(i)){const d=dist(i);if(d<bd){bd=d;best=i;}}return best;};
+  let i=-1,t='';if(f==='site'){i=near(j=>S.rev[j]&&siteLive(j));t='뒤지기';if(i<0)return{el:$('lamp'),t:'더 밝혀요'};}
+  else if(f==='center'){i=C0;t='텐트';}else if(f==='ash'){i=near(j=>!!S.ash[j]);t='재';}
+  if(i<0)return null;return{tile:i,t,z:i===C0?SHELTER[0].h*.6:18};};}
+{const o=openSheet;openSheet=function(t){const r=o.apply(this,arguments);if(S.tut&&t==='shelter'){tutSheet=1;}return r;};}
+{const o=renderSheet;renderSheet=function(){const r=o.apply(this,arguments);
+  if(sheetTab==='settings'&&!S.tut){const b=$('shBody');if(b&&!b.querySelector('[data-act="tutre"]'))b.insertAdjacentHTML('beforeend',`<div class="sec">그날 밤</div><div class="row"><div><div class="t">튜토리얼 다시 보기</div><div class="d">재가 내리던 새벽을 다시 걸어요. 끝나면 지금 쉘터로 그대로 돌아와요.</div></div><button class="buy ghost" data-act="tutre">다시 보기</button></div>`);}
+  return r;};}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act="tutre"]');if(b){e.stopPropagation();closeSheet();startTut(true);return;}
+  const s=e.target.closest('#tutSkip');if(s){e.stopPropagation();if(S.tut){tutEnd=1;finishTut();}}},true);
+{const d=document.createElement('button');d.id='tutSkip';d.hidden=true;d.textContent='건너뛰기';$('stage').appendChild(d);}
+{const o=tickSeason;tickSeason=function(){$('tutSkip').hidden=!S.tut;if(tickTut())return;return o.apply(this,arguments);};}
 
 // ---------- loop ----------
 let last=performance.now(),acc=0,uiT=0,saveT=0;
