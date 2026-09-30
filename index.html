@@ -1864,13 +1864,13 @@ const STORY=[
   {goal:'등불 탑 기둥 세우기',done:()=>(S.tower||0)>=2,rw:{batt:2},focus:'center',hl:'[data-act="tower"]',hint:'쉘터 화면 ‘건설’ 맨 위 등불 탑에서 쌓아요',
    intro:[[G,'기둥은 믿을 수 있는 손들이 붙잡아야 해. 서로 믿는 사람들 말이야.'],[9,'그때 감싸 줘서… 고마웠어요. 이번 기둥은 제가 제일 먼저 붙잡을게요.',()=>S.conf==='a'&&!!S.sv[9]],[9,'말보다 손으로 갚겠다고 했죠. 기둥 용접은 제가 밤새 해 둘게요.',()=>S.conf==='b'&&!!S.sv[9]]],
    outro:[[ME,'철골이 하늘로 뻗었다. 멀리서도 보일 만큼.']]},
-  {goal:'등불 탑에 전선 잇기',done:()=>(S.tower||0)>=3,rw:{batt:2},focus:'center',hl:'[data-act="tower"]',hint:'쉘터 화면 ‘건설’ 맨 위 등불 탑에서 쌓아요',
+  {goal:'등불 탑에 전선 잇기',done:()=>(S.tower||0)>=3,rw:{batt:2},focus:'center',hl:'[data-act="tower"]',hint:'쉘터 화면 ‘건설’ 맨 위 등불 탑에서 쌓아요 · 연료가 모자라면 작업대 ‘숯 굽기’로 남는 목재를 태워요',
    intro:[[9,'발전기에서 탑 꼭대기까지 전선을 이어요. 마음이 모인 만큼 빛이 흘러요. …농담 아니에요.']],
    outro:[[ME,'전선에 손을 대니 미세하게 떨렸다. 살아 있는 것처럼.']]},
-  {goal:'등불 탑에 렌즈 올리기',done:()=>(S.tower||0)>=4,rw:{batt:3},focus:'center',hl:'[data-act="tower"]',hint:'쉘터 화면 ‘건설’ 맨 위 등불 탑에서 쌓아요',
+  {goal:'등불 탑에 렌즈 올리기',done:()=>(S.tower||0)>=4,rw:{batt:3},focus:'center',hl:'[data-act="tower"]',hint:'쉘터 화면 ‘건설’ 맨 위 등불 탑에서 쌓아요 · 약품은 작업대 3단계 ‘약초 달이기’로, 연료는 ‘숯 굽기’로 만들어요',
    intro:[[13,'이 렌즈가 빛을 모아요. 그런데… 그 랜턴, 잠깐 보여 줄래요?'],[13,'역시. 이거 등불 계획 시제품이에요. 재가 이 빛에만 걷혔던 이유예요.'],[13,'…이 랜턴, 누구한테 받았어요?'],[ME,'아버지가 그날 밤 맡기고 간 거라고 답했다.'],[13,'…그렇군요.'],[ME,'미영은 더 묻지 않았다. 대신 랜턴 밑바닥의 일련번호를 한참 들여다봤다.']],
    outro:[[ME,'처음부터 들고 있던 이 랜턴이, 모든 이야기의 시작이었다.']]},
-  {goal:'등불 탑에 불 켜기',done:()=>(S.tower||0)>=5,rw:{batt:5},focus:'center',hl:'[data-act="tower"]',hint:'쉘터 화면 ‘건설’ 맨 위 등불 탑에서 쌓아요',
+  {goal:'등불 탑에 불 켜기',done:()=>(S.tower||0)>=5,rw:{batt:5},focus:'center',hl:'[data-act="tower"]',hint:'쉘터 화면 ‘건설’ 맨 위 등불 탑에서 쌓아요 · 연료가 모자라면 작업대 ‘숯 굽기’로 남는 목재를 태워요',
    intro:[[ME,'모두가 탑 아래 모였다. 누군가는 울고, 누군가는 웃었다.'],[9,'준비됐어요. 스위치는… 등불지기가 올려 줘요.']],
    outro:[[ME,'탑 꼭대기에 첫 불이 들어왔다. 쉘터 위 구름이 조금 옅어졌다.'],[ME,'그때, 지평선 너머에서 불빛 하나가 깜빡였다. 우리 탑이 아니었다.'],[13,'…다른 분소예요. 등불 계획은 여기 하나가 아니었어요.'],[13,'아직 시작이에요. 탑이 높아질수록 빛은 더 멀리 닿아요.'],[ME,'한 층씩, 한 칸씩. 우리는 계속 쌓아 올리기로 했다.']]}]}];
 const STEP_I=g=>STEPS.findIndex(s=>s.goal===g);
@@ -1921,7 +1921,7 @@ function focusTarget(){const m=mission();if(!modal.hidden)return null;
   if(f==='center'){i=C0;t='쉘터';}
   else if(f==='module'){i=D.modAt.size?[...D.modAt.keys()][0]:C0;t='모듈';}
   else if(f==='site'){i=near(siteLive);t='뒤지기';if(i<0){i=aim;t='두드리기';}}
-  else if(f==='signal'){i=near(j=>S.camp[j]&&S.rev[j]);t='구조';if(i<0){i=near(j=>S.sig[j]!==undefined);t='구조 신호';}}
+  else if(f==='signal'){const w=st&&st.goal==='오재혁 구하기'?9:null,m=id=>w==null||id===w;i=near(j=>S.camp[j]&&S.rev[j]&&m(S.camp[j].id));t='구조';if(i<0){i=near(j=>S.sig[j]!==undefined&&m(S.sig[j]));t='구조 신호';}}
   else if(f==='lm'){i=near(j=>S.ter[j]===T.LM&&S.lm[j]&&!S.lm[j].ok&&S.rev[j]);if(i<0)i=near(j=>S.ter[j]===T.LM&&S.lm[j]&&!S.lm[j].ok);t='랜드마크';}
   if(i<0)return null;return{tile:i,t,z:i===C0?SHELTER[S.lv-1].h*.6:S.rev[i]?18:22};}
 let hlEl=null,panGuide=0;
@@ -2758,6 +2758,10 @@ $('home').onclick=centerCam;
 const BEDS=[1,3,5,8,12];
 const bedsMax=()=>BEDS[S.lv-1]+(S.carry||0)+(S.sv&&!S.sv[9]&&typeof STEP_I==='function'&&S.mi>=STEP_I('오재혁 구하기')?1:0);
 const bedsUsed=()=>Object.keys(S.sv).length;
+// the spare bed made up for 재혁 stays his: nobody else may take it while his rescue is the story's goal
+const jaeRes=()=>!!(S.sv&&!S.sv[9]&&typeof STEP_I==='function'&&S.mi>=STEP_I('오재혁 구하기'));
+// and when the story brought people in without asking for beds, 재혁 still finds a cot by the door
+const bedFree=id=>{const f=bedsMax()-bedsUsed();return id===9&&jaeRes()?Math.max(1,f):f-(jaeRes()?1:0);};
 const RESCUE={
  0:{need:{cloth:6,food:8},why:'무너진 버스 정류장 아래 다리가 끼어 있어요. 다친 다리를 감쌀 천과 며칠 먹을 식량이 필요해요.'},
  1:{need:{plate:4,rope:3},why:'넘어진 오토바이와 간판 더미에 깔려 있어요. 철판을 지렛대 삼고 밧줄로 끌어내야 해요.'},
@@ -2775,17 +2779,17 @@ function makeCamp(i,id,visit){if(S.sv[id])return;S.camp[i]={id,hp:visit?0:campHp
   const[cx,cy]=tileC(i,14);burst(cx,cy,'#cfe6ff',24);glow(cx,cy,120);
   toast(visit?`${SURV[id].name}이(가) 쉘터 앞에 찾아왔어요!`:'생존자를 찾았어요! 잔해를 치우고 구조해요');}
 const campAt=i=>S.camp&&S.camp[i];
-const campReady=i=>{const c=S.camp[i];return c&&c.hp<=0&&canPay(campNeed(c.id))&&bedsMax()-bedsUsed()>0;};
+const campReady=i=>{const c=S.camp[i];return c&&c.hp<=0&&canPay(campNeed(c.id))&&bedFree(c.id)>0;};
 function hitCamp(i,amt){const c=S.camp[i];if(!c)return;if(c.hp<=0){if(campReady(i))doRescue(i);else openCamp(i);return;}sfx('hit');if(ringTile>=0)closeRing();buzz();addCombo();c.hp-=amt;flash.set(i,.5);const[x,y]=tileC(i,10);burst(x,y,'#c9b48f',7,3);glow(x,y,55);
   if(c.hp<=0){c.hp=0;burst(x,y,'#ffd98a',24);floatText(x,y-30,'잔해를 치웠다!','rgba(255,230,160,A)',24);if(aim===i)aim=-1;setTimeout(()=>{if(campReady(i))doRescue(i);else openCamp(i);},350);}}
-function openCamp(i){const c=S.camp[i];if(!c)return;const s=SURV[c.id],need=campNeed(c.id),bf=bedsMax()-bedsUsed(),ok=canPay(need)&&bf>0;
+function openCamp(i){const c=S.camp[i];if(!c)return;const s=SURV[c.id],need=campNeed(c.id),bf=bedFree(c.id),ok=canPay(need)&&bf>0;
   openModal(`<div class="page"><div class="tag">${c.visit?'쉘터 앞의 손님':'구조 대기'}</div><div class="pf" style="width:96px">${portrait(s)}</div><h3>${s.name} ${gradeTag(c.id,1)}<small>${s.age}세 · ${s.job}</small></h3>
     <div class="fx" style="color:#5a3f24">${RESCUE[c.id].why}</div>
     ${c.hp>0?`<div class="need"><div class="nr"><b>잔해 치우기</b> ${Math.round((1-c.hp/c.max)*100)}%<small>신호 자리를 두드려요</small></div></div>`:''}
     <div class="sec2" style="margin-top:8px">구조에 필요한 것</div>${needHtml(need)}
-    <div class="need"><div class="nr${bf>0?' ok':''}"><b>빈 침상</b> ${Math.max(0,bf)}/${bedsMax()}${bf>0?' ✓':'<small>쉘터를 키우면 침상이 늘어요</small>'}</div></div>
+    <div class="need"><div class="nr${bf>0?' ok':''}"><b>빈 침상</b> ${Math.max(0,bf)}/${bedsMax()}${bf>0?' ✓':`<small>${c.id!==9&&jaeRes()&&bedsMax()-bedsUsed()>0?'남은 한 자리는 재혁 몫이에요 · ':''}쉘터를 키우면 침상이 늘어요</small>`}</div></div>
     <div class="btns" style="margin-top:14px"><button class="alt">나중에</button><button data-act="camp" data-arg="${i}" ${ok&&c.hp<=0?'':'disabled'}>구조하기</button></div></div>`);}
-function doRescue(i){const c=S.camp[i];if(!c||c.hp>0||bedsMax()-bedsUsed()<=0)return;const need=campNeed(c.id);if(!pay(need))return;delete S.camp[i];closeModal();
+function doRescue(i){const c=S.camp[i];if(!c||c.hp>0||bedFree(c.id)<=0)return;const need=campNeed(c.id);if(!pay(need))return;delete S.camp[i];closeModal();
   const[cx,cy]=tileC(i,14);burst(cx,cy,'#ffd98a',30);glow(cx,cy,160);setTimeout(()=>rescue(c.id,c.visit?'visit':'sig'),250);}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="camp"]');if(!b)return;e.stopPropagation();if(!b.disabled)doRescue(+b.dataset.arg);},true);
 function visitorTile(){let best=-1,bd=1e9;for(let i=0;i<N;i++){if(!S.rev[i]||isSlot(i)||S.ter[i]===T.WATER||S.ter[i]===T.LM||S.site[i]&&S.site[i].c>0||S.camp[i])continue;const d=Math.abs(dist(i)-3.2)+speck[i]*.3;if(d<bd){bd=d;best=i;}}return best;}
@@ -2839,7 +2843,7 @@ function showPull(res){const card=x=>{
   openModal(`<div class="page${hid.length?' gold':''}"><div class="tag">탐색 결과</div><div class="gcs${res.length===1?' one':''}">${res.map(card).join('')}</div>
     ${hid.length?`<div class="fx">${hid.map(x=>`${jo(SURV[x.id].name,'이','가')} 신호를 따라 쉘터로 오고 있어요!`).join('<br>')}</div>`:`<div class="fx" style="color:#6e5638">히든 신호까지 최대 ${Math.max(1,PITY-(S.gp||0))}번</div>`}
     <div class="btns"><button class="alt" data-act="again" data-arg="${res.length}" ${batt()<res.length?'disabled':''}>한 번 더 (건전지 ${res.length})</button><button>확인</button></div></div>`,true);
-  for(const x of hid)setTimeout(()=>{const t=visitorTile();if(bedsMax()-bedsUsed()>0){rescue(x.id,'visit');}else if(t>=0){makeCamp(t,x.id,true);toast(`${jo(SURV[x.id].name,'이','가')} 쉘터 앞에서 빈 침상을 기다려요`);}},50);
+  for(const x of hid)setTimeout(()=>{const t=visitorTile();if(bedFree(x.id)>0){rescue(x.id,'visit');}else if(t>=0){makeCamp(t,x.id,true);toast(`${jo(SURV[x.id].name,'이','가')} 쉘터 앞에서 빈 침상을 기다려요`);}},50);
   if(sheetTab==='radio')renderSheet();}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="again"]');if(!b)return;e.stopPropagation();if(!b.disabled)pull(+b.dataset.arg);},true);
 const EXCH={parts:12,fuel:6,scrap:10};
