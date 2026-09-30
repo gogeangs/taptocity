@@ -1256,6 +1256,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
   </div>
 </div>
 
+<script src="people.js?v=20261001-people"></script>
 <script src="design.js?v=20261002-landmarks"></script>
 <script>
 
@@ -3405,9 +3406,9 @@ function kidGrown(k){const bj=kidBest(k);openModal(`<div class="page"><div class
 function kidEff(E){for(const k of S.kids||[]){if(k.g<1)E.hope+=2;else if(k.job){const m=k.job===k.best?1.5:1;for(const x in KJOB[k.job].e)E[x]=(E[x]||0)+KJOB[k.job].e[x]*m;}}}
 let KW=[],DOGP={x:0,y:0,tx:0,ty:0};
 function tickKidWalk(dt){const kids=(S.kids||[]).filter(k=>k.g<1||!k.job||true);while(KW.length<kids.length){const[cx,cy]=tileC(C0);KW.push({x:cx+20,y:cy+18,tx:cx,ty:cy,idle:0});}KW.length=kids.length;
-  const night=isNight();for(const w of KW){const dx=w.tx-w.x,dy=w.ty-w.y,d=Math.hypot(dx,dy);if(d>2){const s=(night?20:24)*dt;w.x+=dx/d*Math.min(s,d);w.y+=dy/d*Math.min(s,d);w.mv=true;}else{w.mv=false;w.idle-=dt;if(w.idle<=0){[w.tx,w.ty]=pickSpot(night);w.idle=1+Math.random()*3;}}}
+  const night=isNight();for(const w of KW){const dx=w.tx-w.x,dy=w.ty-w.y,d=Math.hypot(dx,dy);if(d>2){const s=(night?20:24)*dt;w.x+=dx/d*Math.min(s,d);w.y+=dy/d*Math.min(s,d);w.face=dx>=0?1:-1;w.mv=true;}else{w.mv=false;w.idle-=dt;if(w.idle<=0){[w.tx,w.ty]=pickSpot(night);w.idle=1+Math.random()*3;}}}
   petWalk(dt);}
-function drawKids(time){(S.kids||[]).forEach((k,n)=>{const w=KW[n];if(!w)return;drawPerson({look:k.look,age:k.g<1?8:18},w.x,w.y,time,w.mv,1);});
+function drawKids(time){(S.kids||[]).forEach((k,n)=>{const w=KW[n];if(!w)return;drawPerson({look:k.look,age:k.g<1?8:18},w.x,w.y,time,w.mv,w.face||1);});
   petDrawMap(time);}
 
 // ================= DECORATIONS (꾸미기) =================
@@ -3824,8 +3825,8 @@ function figure(L,x,y,small,time,mv,tool){const s=1.2*small,b=mv&&!reduce?Math.a
   ctx.fillStyle=L.hair;ctx.beginPath();ctx.arc(x,yy-14.8*s,3.4*s,Math.PI*1.02,-.02);ctx.fill();
   ctx.fillStyle='#1c140c';ctx.fillRect(x+1*s,yy-14*s,.9,.9);
   if(tool){ctx.strokeStyle='#2b2a2a';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x+4.6*s,yy-5*s);ctx.lineTo(x+6*s,yy-2*s);ctx.stroke();ctx.fillStyle='#ffd98a';ctx.fillRect(x+5*s,yy-2*s,3,3.4);glowPts.push([x+6.5*s,yy-.5*s,16,'255,200,120',.55]);}}
-function drawPerson(sv,x,y,time,mv,face){figure(sv.look,x,y,sv.age<13?.8:1,time,mv,false);}
-function drawWorker(sv,time,i){ZS=1;const[x,y0]=P(.9,.9,0),y=y0-(reduce?0:Math.abs(Math.sin(time/400+i))*1.2);figure(sv.look,x,y,sv.age<13?.8:1,time,false,true);}
+function drawPerson(sv,x,y,time,mv,face){if(window.TTCPeople)return TTCPeople.person(ctx,sv,x,y,time,mv,face,null,reduce);figure(sv.look,x,y,sv.age<13?.8:1,time,mv,false);}
+function drawWorker(sv,time,i){ZS=1;const[x,y0]=P(.9,.9,0),y=y0;if(window.TTCPeople){const m=modAtTile(i),job=m?({2:'grow',3:'water',4:'read',6:'care',7:'read'}[m.id]||'repair'):'read';return TTCPeople.person(ctx,sv,x,y,time,false,1,job,reduce);}figure(sv.look,x,y,sv.age<13?.8:1,time,false,true);}
 // level pennants on upgraded modules
 function modFlag(i,m,time){if(m.l<2)return;const[x0,y0]=P(.12,.12,0),[x1,y1]=P(.12,.12,30+m.l*4);ctx.strokeStyle='#3b2a1a';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();
   const w=reduce?0:Math.sin(time/260+i)*2,c=m.l>=3?'#e0b441':'#c0442c';ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(x1,y1);ctx.quadraticCurveTo(x1+7,y1+2+w,x1+13,y1+3+w*1.4);ctx.quadraticCurveTo(x1+7,y1+5+w,x1,y1+8);ctx.closePath();ctx.fill();
