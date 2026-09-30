@@ -65,3 +65,12 @@ No saved-state schema or resource balance changes are required.
 Verification: five roof touch targets, restoration costs/effects, occlusion,
 320 px and 390 px layouts, same-zoom regional fog changes, and offline reload with
 all 20 shell entries. Temporary test fixtures are kept outside the production repository.
+
+## Map inhabitants
+
+`people.js` renders articulated canvas figures using the 18 approved portrait palettes,
+hair silhouettes and accessories. Native vector shapes preserve legibility at map scale.
+Walking follows facing direction; children have smaller proportions and quicker steps.
+Workers use repair tools, a hoe, water bucket or notes according to assigned facility.
+Reduced motion freezes all figure animation. Generated children retain their saved colors;
+no survivor, movement, productivity or save schema changes are made by the renderer.
