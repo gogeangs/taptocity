@@ -41,3 +41,10 @@ No save migration or balance changes are required. `sw.js` caches all production
 For future assets, preserve the equal cell boundaries and ordering above. Small avatars
 must remain identifiable at 32–54 px. Gameplay copy and buttons must never be baked into
 an image. Keep fixture/debug state setters outside the production repository.
+
+## Exploration sites
+
+`exploration-sites.webp` adds five vehicle, five ruined-house, and five shop variants,
+plus one depleted state for each category. See [exploration-prompt.md](exploration-prompt.md)
+for the exact built-in generation prompt, source dimensions and mapping. The renderer uses
+measured frames to avoid clipping at the generated atlas gutters.
