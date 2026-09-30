@@ -101,3 +101,21 @@ header{padding:10px 12px 0!important;background:#202932!important;box-shadow:non
 .page.ug.ugv2 .ugrid2{width:min(100%,280px);min-width:0;box-sizing:border-box}
 .page.ug.ugv2 .udep{margin-top:6px;height:25px}
 @media(max-height:700px){.page.ug.ugv2{margin-top:0!important;padding:10px!important}.page.ug.ugv2 .ugrid2{width:230px}.page.ug.ugv2 .ug-scene{height:36px;margin:5px 0}.page.ug.ugv2 .umsg{margin:5px 0!important}.page.ug.ugv2 .ucarry{margin:5px 0;padding:5px 8px!important}.page.ug.ugv2 .uexit{margin-top:6px!important}}
+
+/* Playability pass: stable viewport and touch targets, without ornamental noise. */
+#app{height:calc(var(--play-height,100dvh) - env(safe-area-inset-top,0px))!important}
+#modal{max-height:var(--play-height,100dvh);box-sizing:border-box;padding-bottom:max(10px,env(safe-area-inset-bottom,0px))!important}
+.page{max-height:calc(var(--play-height,100dvh) - 32px - env(safe-area-inset-bottom,0px))!important;overscroll-behavior:contain;scrollbar-gutter:stable}
+.sh-body{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scroll-padding-block:12px}
+input,textarea,select{font-size:16px!important}
+.zoom button{width:44px!important;height:44px!important}.zoom{gap:4px!important}
+#pfBtn,#setBtn{min-width:40px!important;min-height:44px!important}.sh-head button,.page .mx{min-width:44px!important;min-height:44px!important}
+#clock{max-width:calc(100% - 116px)!important}.zoom #ghost.on{background:#dfb168!important;color:#202932!important;border-color:#f3dbad!important}
+.controls dl{margin:14px 0 20px}.controls dt{font-weight:700;margin-top:14px;font-size:14px}.controls dd{margin:5px 0 0;font-size:13px;line-height:1.65;color:var(--sepia-2)}.controls>button:last-child{width:100%}
+.talk-progress{height:3px;margin:14px 0 0;background:#d8d1c4;border-radius:3px;overflow:hidden}.talk-progress i{display:block;height:100%;background:#9f783f}
+.talk .tfoot{position:sticky;bottom:-20px;background:var(--paper);padding-bottom:8px!important}.talk .tfoot>[data-act=talk]{min-width:90px;margin-left:auto}
+.talk .who,.talk>p{animation:line-arrive .18s ease-out both}.chapter-opening .story-scene{animation:scene-arrive .32s ease-out both}
+@keyframes line-arrive{from{opacity:.4;transform:translateY(3px)}to{opacity:1;transform:none}}
+@keyframes scene-arrive{from{opacity:.4}to{opacity:1}}
+@media(max-height:700px){.talk .tfoot{bottom:-16px}.page{max-height:calc(var(--play-height,100dvh) - 20px - env(safe-area-inset-bottom,0px))!important}}
+@media(prefers-reduced-motion:reduce){.talk .who,.talk>p,.chapter-opening .story-scene{animation:none!important}}

@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#3a2618">
+<meta name="theme-color" content="#202932">
+<link rel="preload" as="font" href="fonts/ttc-sans.woff2" type="font/woff2" crossorigin>
+<link rel="preload" as="image" href="assets/illustrated/shelters.webp">
+<link rel="preload" as="image" href="assets/illustrated/survivors-founders.webp">
 <meta name="description" content="재가 하늘을 덮은 도시. 랜턴 하나로 한 칸씩 밝히며 쉘터를 키우는 탭 게임.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -1213,7 +1216,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 </style>
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
-<link rel="stylesheet" href="design.css?v=20261001-chapters">
+<link rel="stylesheet" href="design.css?v=20261001-polish">
 <div id="app">
   <header>
     <div class="hud">
@@ -1918,9 +1921,9 @@ function renderTalk(first){const{lines,k,opt}=talk,[w,t]=lines[k],sp=speaker(w),
   const card=opt.card&&k===0?`<div class="chcard"><div class="tag">${opt.card[0]}</div><h3>${opt.card[1]}</h3></div>`:'';
   const rw=last&&opt.reward&&Object.keys(opt.reward).length?`<div class="fx">보상 · ${lootTxt(opt.reward)}</div>`:'';
   const goal=last&&opt.goal?`<div class="goal"><b>할 일</b> ${opt.goal}</div>`:'';
-  const h=`<div class="page talk">${card&&window.TTCFinal?TTCFinal.scene(opt.scene||'shelter','story-scene'):''}${card}${!card&&opt.tag?`<div class="tag">${opt.tag}</div>`:''}<div class="who"><span class="av${sp.me?' me':''}">${sp.av}</span><div><b>${sp.name}</b><small>${sp.sub}</small></div></div><p>${t}</p>${rw}${goal}
-    <div class="tfoot"><span>${lines.length>1?`${k+1} / ${lines.length}`:''}</span>${!last&&lines.length>2?'<button class="alt skip" data-act="talkskip">건너뛰기</button>':''}<button data-act="talk">${last?(opt.goal?'해 보자':'계속'):'다음'}</button></div></div>`;
-  if(first)openModal(h);else{modal.innerHTML=h;const b=modal.querySelector('button');b&&b.focus();}}
+  const h=`<div class="page talk${card?' chapter-opening':''}">${card&&window.TTCFinal?TTCFinal.scene(opt.scene||'shelter','story-scene'):''}${card}${!card&&opt.tag?`<div class="tag">${opt.tag}</div>`:''}<div class="who"><span class="av${sp.me?' me':''}">${sp.av}</span><div><b>${sp.name}</b><small>${sp.sub}</small></div></div><p>${t}</p>${rw}${goal}
+    <div class="talk-progress" role="progressbar" aria-label="대사 진행" aria-valuemin="0" aria-valuemax="${lines.length}" aria-valuenow="${k+1}"><i style="width:${(k+1)/lines.length*100}%"></i></div><div class="tfoot"><span>${lines.length>1?`${k+1} / ${lines.length}`:''}</span>${!last&&lines.length>2?'<button class="alt skip" data-act="talkskip">건너뛰기</button>':''}<button data-act="talk">${last?(opt.goal?'해 보자':'계속'):'다음'}</button></div></div>`;
+  if(first)openModal(h);else{modal.innerHTML=h;const b=modal.querySelector('[data-act="talk"]');b&&b.focus({preventScroll:true});}}
 function introStep(i){const st=STEPS[i];if(!st)return;const c=STORY[st.ci];openTalk(st.intro,{scene:['shelter','mall','shelter','shelter','metro','bunker','control','shelter','shelter','shelter'][st.ci]||'shelter',card:st.first?[c.ch,c.title]:null,tag:st.first?null:`${c.ch} · ${c.title}`,goal:st.goal});}
 function tickStory(){if(!S.pfAsk&&!S.gen&&S.mi>=2&&modal.hidden&&!mq.length&&!sheetTab&&!DEFN){S.pfAsk=1;openPfName(true);return;}if((S.storyI==null?-1:S.storyI)<S.mi&&S.mi<STEPS.length&&modal.hidden&&!mq.length&&!sheetTab){S.storyI=S.mi;introStep(S.mi);}}
 
@@ -1931,7 +1934,7 @@ function focusTarget(){const m=mission();if(!modal.hidden)return null;
   if(st.hl){const h=document.querySelector(st.hl);if(h&&h.offsetParent)return{hl:h};if(sheetTab==='shelter'){const want=st.hl.includes('craft')?'craft':'build',sg=document.querySelector(`[data-act="seg"][data-arg="${want}"]`);if(sg&&!sg.classList.contains('on'))return{hl:sg};}}
   if(sheetTab||ringTile>=0)return null;
   const f=st.focus,el=id=>({el:$(id),t:''});
-  if(f==='lamp')return{el:$('lamp'),t:'여기를 눌러요'};if(f==='fExp')return{el:$('fExp'),t:'원정'};if(f==='radio')return{el:$('radio'),t:'라디오'};if(f==='fSurv')return{el:$('fSurv'),t:'생존자'};if(f==='clock')return isNight()?null:{el:$('clock'),t:'밤을 기다려요'};
+  if(f==='lamp')return{el:$('lamp'),t:'랜턴으로 땅 밝히기'};if(f==='fExp')return{el:$('fExp'),t:'원정'};if(f==='radio')return{el:$('radio'),t:'라디오'};if(f==='fSurv')return{el:$('fSurv'),t:'생존자'};if(f==='clock')return isNight()?null:{el:$('clock'),t:'밤을 기다려요'};
   if(f==='ev'){const b=$('evBtn');return b.hidden?null:{el:b,t:'부탁'};}
   if(f==='skills'){const b=document.querySelector('#skills .sk[data-id]');return b?{el:b,t:'스킬'}:null;}
   const near=(ok)=>{let best=-1,bd=1e9;for(let i=0;i<N;i++)if(ok(i)){const d=dist(i);if(d<bd){bd=d;best=i;}}return best;};
@@ -2711,7 +2714,7 @@ let ghost=false,fadeSet=new Set();
 function bldH(i){if(!S.rev[i])return 0;if(i===C0)return SHELTER[S.lv-1].h;const m=modAtTile(i);if(m)return(window.TTCFinal&&TTCFinal.moduleHeight(m.id,m.l))||MODS[m.id].h[m.l];if(window.TTCSettlement){const a=TTCSettlement,k=S.deco&&S.deco[i],c=S.camp[i];if(k)return a.height(a.deco[k]);if(c)return a.height(c.hp>0?1:0);if(S.band&&S.band.tile===i)return a.height(0);if(S.ter[i]===T.SILO&&siteLive(i))return a.height(4+siteVar(i,3));}if(S.ter[i]===T.LM){const L=S.lm[i];return L&&window.TTCDesign&&window.TTCDesign.landmarkHeight?window.TTCDesign.landmarkHeight(L.k,L.ok)||44:44;}if(siteLive(i)&&window.TTCDesign&&window.TTCDesign.siteHeight){const h=window.TTCDesign.siteHeight(S.site[i].k,siteVar(i,5));if(h)return h;}return 0;}
 function hitCol(j,wx,wy,h){const[cx,cy]=tileC(j),dx=wx-cx;if(Math.abs(dx)>TW*.44)return false;const sl=Math.abs(dx)*(TH/TW);return wy>=cy-TH/2-h+sl&&wy<=cy+TH/2-sl;}
 function pickVisible(wx,wy){if(!ghost){const g=pickTile(wx,wy),gs=g>=0?(g%W)+((g/W)|0):-1;
-    for(let s=W+H-2;s>gs;s--)for(let x=Math.max(0,s-H+1);x<=Math.min(W-1,s);x++){const j=(s-x)*W+x,h=bldH(j);if(h>=10&&S.rev[j]&&hitCol(j,wx,wy,h))return j;}}
+    for(let s=W+H-2;s>gs;s--)for(let x=Math.max(0,s-H+1);x<=Math.min(W-1,s);x++){const j=(s-x)*W+x,h=bldH(j);if(h>=10&&S.rev[j]&&!fadeSet.has(j)&&hitCol(j,wx,wy,h))return j;}}
   return pickTile(wx,wy);}
 function computeFade(){fadeSet=new Set();if(ghost)return;const focus=[];if(sel>=0)focus.push(sel);if(aim>=0)focus.push(aim);for(const k in S.ash)focus.push(+k);
   if(!focus.length)return;
@@ -2749,7 +2752,7 @@ document.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat&&modal.hi
 cv.addEventListener('pointerdown',e=>{try{cv.setPointerCapture(e.pointerId);}catch(_){}
   const p={x:e.offsetX,y:e.offsetY,sx:e.offsetX,sy:e.offsetY,moved:false,dig:-1,hold:null};ptrs.set(e.pointerId,p);
   if(ptrs.size===1)drag={sx:p.x,sy:p.y,cx:cam.x,cy:cam.y};
-  else if(ptrs.size===2){const[a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1,z:cam.z};}
+  else if(ptrs.size>=2){for(const q of ptrs.values()){clearTimeout(q.hold);q.moved=true;}holdHide();holdEnd();const[a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1,z:cam.z};return;}
   if(PLACE){p.dig=-3;placeAt(p.x,p.y);return;}
   const bb=bubbleAt(p.x,p.y);if(bb){p.dig=-3;openChat(bb.chat);return;}
   if(DEFN){p.dig=-3;p.def=true;strikeAt(p.x,p.y,true);const hf=()=>{if(!ptrs.has(e.pointerId)||!DEFN)return;strikeAt(p.x,p.y,false);p.hold=setTimeout(hf,120);};p.hold=setTimeout(hf,260);return;}
@@ -5267,7 +5270,7 @@ function tickTut(){
 {const o=renderClock;renderClock=function(){o.apply(this,arguments);if(S.tut){const T=TUT[S.tut.i]||TUT[0];$('clockTxt').textContent=`그날 밤 · ${S.tut.radio&&S.tut.i===2?'03:11':T.t}`;}};}
 {const o=focusTarget;focusTarget=function(){if(!S.tut)return o.apply(this,arguments);if(!modal.hidden||tutEnd)return null;const f=TUT[S.tut.i].focus;
   if(sheetTab)return null;
-  if(f==='lamp')return{el:$('lamp'),t:'여기를 눌러요'};
+  if(f==='lamp')return{el:$('lamp'),t:'랜턴으로 땅 밝히기'};
   const near=ok=>{let best=-1,bd=1e9;for(let i=0;i<N;i++)if(ok(i)){const d=dist(i);if(d<bd){bd=d;best=i;}}return best;};
   let i=-1,t='';if(f==='site'){i=near(j=>S.rev[j]&&siteLive(j));t='뒤지기';if(i<0)return{el:$('lamp'),t:'더 밝혀요'};}
   else if(f==='center'){i=C0;t='텐트';}else if(f==='ash'){i=near(j=>!!S.ash[j]);t='재';}
@@ -5354,6 +5357,19 @@ if(window.TTCDesign){
   };
   mkFog=function(fr,seed,S2){const w=132,h=104,c=document.createElement('canvas');c.width=Math.ceil(w*S2);c.height=Math.ceil(h*S2);const g=c.getContext('2d');g.scale(S2,S2);const r=mulberry(seed);g.fillStyle=landscape().fog[fr?1:0];for(let k=0;k<4;k++){g.beginPath();g.ellipse(34+k*21,56-r()*10,27+r()*5,23+r()*6,0,0,7);g.fill();}g.fillStyle=fr?'rgba(196,173,129,.08)':'rgba(113,131,145,.05)';g.beginPath();g.ellipse(62,39,41,21,0,0,7);g.fill();return c;};
 }
+
+// Playability polish: viewport, recoverable gestures and a replayable control guide.
+function openControls(){openModal(`<div class="page controls"><div class="tag">등불지기 안내</div><h3>작은 불빛부터</h3><p>상단의 오늘 할 일을 따라가세요. 금빛 표시가 다음 행동을 알려 줍니다.</p><dl><dt>재 걷기 · 폐허 조사</dt><dd>대상을 두드리거나 랜턴을 길게 누르세요.</dd><dt>지도 이동 · 확대</dt><dd>빈 곳을 끌어 이동하고 두 손가락으로 확대하세요. 조준점 버튼으로 쉘터에 돌아옵니다.</dd><dt>건물 뒤의 칸 선택</dt><dd>오른쪽 ··· 메뉴의 눈 모양 버튼으로 투시 모드를 켜세요.</dd><dt>생존자 · 건물</dt><dd>사람이나 건물을 눌러 정보를 보고, 아래 메뉴에서 배치와 강화를 진행하세요.</dd></dl><button data-act="controls-done">시작해 볼게요</button></div>`);}
+{const original=renderSheet;renderSheet=function(){const r=original.apply(this,arguments);if(sheetTab==='settings'&&!$('shBody').querySelector('[data-act="controls"]'))$('shBody').insertAdjacentHTML('afterbegin','<div class="row"><div><div class="t">플레이 안내</div><div class="d">조작 방법과 가려진 칸 선택</div></div><button class="buy ghost" data-act="controls">보기</button></div>');return r;};}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act="controls"],[data-act="controls-done"]');if(!b)return;if(b.dataset.act==='controls')openControls();else closeModal();});
+function cancelGestures(){for(const p of ptrs.values())clearTimeout(p.hold);ptrs.clear();drag=null;pinch=null;pinching=false;lampStop();holdHide();holdEnd();}
+window.addEventListener('blur',cancelGestures);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelGestures();});
+let viewportFrame=0;
+function fitViewport(){cancelAnimationFrame(viewportFrame);viewportFrame=requestAnimationFrame(()=>{const v=window.visualViewport;document.documentElement.style.setProperty('--play-height',(v?v.height:innerHeight)+'px');resize();placeRing();});}
+if(window.visualViewport)window.visualViewport.addEventListener('resize',fitViewport);
+window.addEventListener('resize',fitViewport);
+requestAnimationFrame(fitViewport);
 
 function start(snap){applySettings();wireUI();resize();const had=load(snap&&snap.S);recalc();centerCam();ensureAim();hud();
   if(had&&!(snap&&snap.S)){const el=Math.min(8*3600,(Date.now()-S.t)/1000);if(el>60&&perMin()>0){const got=give(Object.fromEntries(Object.entries(D.prod).map(([k,v])=>[k,v*el/60*.5])));
