@@ -1217,6 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261001-profile-studio">
+<link rel="stylesheet" href="qa.css?v=20261001a">
 <div id="app">
   <header>
     <div class="hud">
@@ -4584,7 +4585,7 @@ function egGo(){const e=S.eg;if(!e)return;const g=EGT[e.k].go;
 // ================= 불씨의 여정: each new town is a chapter of carrying the light onward =================
 // After a town's tower is lit, the radio catches a call from the next town. Leaving stays optional.
 const NPC={desert:{n:'두식',sub:'사막 급유탑지기',c:'#c98a3a',h:'#d9d0bd'},factory:{n:'마석',sub:'녹슨 공단 반장',c:'#5d6b78',h:'#2a2420'},snow:{n:'은솔',sub:'산골 분교 선생님',c:'#8aa0c0',h:'#3a2a20'}};
-function npcSpeaker(k){const P=NPC[k]||NPC.desert;if(window.TTCFinal)return{av:TTCFinal.npc(NPC[k]?k:'desert',P.n),name:P.n,sub:P.sub};return{av:`<svg viewBox="0 0 40 40" width="40" height="40"><rect width="40" height="40" rx="8" fill="#efe3c4"/><circle cx="20" cy="16" r="7" fill="#e2b791" stroke="#3b2a1a" stroke-width="1.4"/><path d="M13 14c1-6 13-7 14 0-3-2-10-2-14 0z" fill="${P.h}" stroke="#3b2a1a" stroke-width="1.2"/><path d="M7 38c1-9 6-13 13-13s12 4 13 13z" fill="${P.c}" stroke="#3b2a1a" stroke-width="1.4"/><circle cx="17.5" cy="16.5" r="1" fill="#2a1c12"/><circle cx="22.5" cy="16.5" r="1" fill="#2a1c12"/></svg>`,name:P.n,sub:P.sub};}
+function npcSpeaker(k){const P=NPC[k]||NPC.desert;if(window.TTCFinal){const av=TTCFinal.npc(NPC[k]?k:'desert',P.n);if(av)return{av,name:P.n,sub:P.sub};}return{av:`<svg viewBox="0 0 40 40" width="40" height="40"><rect width="40" height="40" rx="8" fill="#efe3c4"/><circle cx="20" cy="16" r="7" fill="#e2b791" stroke="#3b2a1a" stroke-width="1.4"/><path d="M13 14c1-6 13-7 14 0-3-2-10-2-14 0z" fill="${P.h}" stroke="#3b2a1a" stroke-width="1.2"/><path d="M7 38c1-9 6-13 13-13s12 4 13 13z" fill="${P.c}" stroke="#3b2a1a" stroke-width="1.4"/><circle cx="17.5" cy="16.5" r="1" fill="#2a1c12"/><circle cx="22.5" cy="16.5" r="1" fill="#2a1c12"/></svg>`,name:P.n,sub:P.sub};}
 const D_='npc:desert',F_='npc:factory',W_='npc:snow';
 const REG_STORY={
  desert:[
