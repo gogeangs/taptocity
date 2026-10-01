@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261001-profile-studio">
-<link rel="stylesheet" href="qa.css?v=20261001a">
+<link rel="stylesheet" href="qa.css?v=20261001b">
 <div id="app">
   <header>
     <div class="hud">
@@ -1948,7 +1948,8 @@ function renderTalk(first){const{lines,k,opt}=talk,[w,t]=lines[k],sp=speaker(w,l
   const goal=last&&opt.goal?`<div class="goal"><b>할 일</b> ${opt.goal}</div>`:'';
   const h=`<div class="page talk${card?' chapter-opening':''}">${card&&window.TTCFinal?TTCFinal.scene(opt.scene||'shelter','story-scene'):''}${card}${!card&&opt.tag?`<div class="tag">${opt.tag}</div>`:''}<div class="who"><span class="av${sp.me?' me':''}">${sp.av}</span><div><b>${sp.name}</b><small>${sp.sub}</small></div></div><p>${t}</p>${rw}${goal}
     <div class="talk-progress" role="progressbar" aria-label="대사 진행" aria-valuemin="0" aria-valuemax="${lines.length}" aria-valuenow="${k+1}"><i style="width:${(k+1)/lines.length*100}%"></i></div><div class="tfoot"><span>${lines.length>1?`${k+1} / ${lines.length}`:''}</span>${!last&&lines.length>2?'<button class="alt skip" data-act="talkskip">건너뛰기</button>':''}<button data-act="talk">${last?(opt.goal?'해 보자':'계속'):'다음'}</button></div></div>`;
-  if(first)openModal(h);else{modal.innerHTML=h;const b=modal.querySelector('[data-act="talk"]');b&&b.focus({preventScroll:true});}}
+  if(first)openModal(h);else{modal.innerHTML=h;const b=modal.querySelector('[data-act="talk"]');b&&b.focus({preventScroll:true});}
+  if(window.TTCStory){let tu=null;try{tu=TUT;}catch(e){}TTCStory.after(talk,STEPS,tu);}}
 function introStep(i){const st=STEPS[i];if(!st)return;const c=STORY[st.ci];openTalk(st.intro,{scene:['shelter','mall','shelter','shelter','metro','bunker','control','shelter','shelter','shelter'][st.ci]||'shelter',card:st.first?[c.ch,c.title]:null,tag:st.first?null:`${c.ch} · ${c.title}`,goal:st.goal});}
 function tickStory(){if(!S.pfAsk&&!S.gen&&S.mi>=2&&modal.hidden&&!mq.length&&!sheetTab&&!DEFN){S.pfAsk=1;openPfName(true);return;}if((S.storyI==null?-1:S.storyI)<S.mi&&S.mi<STEPS.length&&modal.hidden&&!mq.length&&!sheetTab){S.storyI=S.mi;introStep(S.mi);}}
 
@@ -5439,5 +5440,6 @@ if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.r
   d.querySelector('.x').onclick=()=>d.remove();const g=d.querySelector('.go');if(g)g.onclick=async()=>{d.remove();if(dp){dp.prompt();try{await dp.userChoice;}catch(e){}dp=null;}};},25000);
 })();
 </script>
+<script src="story-art.js?v=20261001a"></script>
 </body>
 </html>

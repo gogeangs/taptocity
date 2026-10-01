@@ -158,3 +158,10 @@ selection and saving, 82 customization options, 18 facility upgrades, expedition
 defense hit, four underground floors, save roundtrip and malformed import rejection. Mobile
 Chromium views at 320/390px were inspected. Offline and HTTP 503 reload used 31 shell cache entries.
 Physical iPhone Safari remains unverified. No balance, unlock or save schema changes.
+
+## Story scenes
+
+`story-1.webp`, `story-2.webp`, `story-3.webp`: 27 first-person story panels (3 × 3 each, 3:2) for the
+main scenario, tutorial and ending. `story-art.js` maps them to the dialogue and shows one at the top of the
+talk card once the atlas has loaded. The protagonist's face is never drawn. See
+[story-scenes-prompt.md](story-scenes-prompt.md) for the panel list and exact prompts.
