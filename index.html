@@ -1216,7 +1216,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 </style>
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
-<link rel="stylesheet" href="design.css?v=20261001-cohesion">
+<link rel="stylesheet" href="design.css?v=20261001-profile-studio">
 <div id="app">
   <header>
     <div class="hud">
@@ -4029,7 +4029,10 @@ const LANTERN_AV='<svg viewBox="0 0 40 40" width="40" height="40" fill="none" st
 function pfAvatar(){return S.pf&&S.pf.set?pfSVG():LANTERN_AV;}
 function renderPfBtn(){const b=$('pfBtn');if(!b)return;const k=JSON.stringify(S.pf||0);if(b.dataset.k===k)return;b.dataset.k=k;b.innerHTML=pfAvatar();b.classList.toggle('lamp',!(S.pf&&S.pf.set));}
 // ---- profile sheet
-let pfTab='me',pfDraft=null;
+let pfTab='me',pfDraft=null,pfGroup=0;
+const PF_COLORS={skin:['밝은 살구','살구','따뜻한 베이지','황갈색','갈색','짙은 갈색'],hairC:['먹색','짙은 밤색','밤색','적갈색','회색','은백색','금갈색'],wearC:['갈색','남색','올리브','벽돌색','차콜','황토색','아이보리']};
+const pfChoiceName=(k,i)=>PF_COLORS[k]?.[i]||PFO[k].o[i][1];
+const pfChanged=d=>PF_KEYS.some(k=>(d[k]||0)!==(pf()[k]||0));
 const fmtT=s=>{s=Math.floor(s||0);const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h?`${h}시간 ${m}분`:`${m}분`;};
 function renderProfile(){$('shTitle').textContent='내 프로필';let h=`<div class="segs" role="tablist">${[['me','프로필'],['edit','꾸미기']].map(([k,n])=>`<button role="tab" class="seg${pfTab===k?' on':''}" data-act="pft" data-arg="${k}">${n}</button>`).join('')}</div>`;
   if(pfTab==='me'){const achN=Object.values(S.ach||{}).filter(v=>v===2).length;
@@ -4037,16 +4040,23 @@ function renderProfile(){$('shTitle').textContent='내 프로필';let h=`<div cl
     const st=[['플레이 시간',fmtT(S.playT)],['밝힌 땅',`${revCount()}칸`],['함께하는 생존자',`${Object.keys(S.sv).length}명`],['막아낸 대형 재폭풍',`${S.defWins||0}번`],['버틴 밤',`${S.nights||0}밤`],['이주',`${S.gen||0}번`],['모은 유물',`${(S.relics||[]).length}개`],['받은 업적',`${achN}/${ACH.length}`]];
     h+=`<div class="sec">기록</div><div class="pfstats">${st.map(([a,b])=>`<div><b>${b}</b><small>${a}</small></div>`).join('')}</div>`;
     h+=`<button class="banner b2" data-act="pft" data-arg="edit" style="margin-top:10px"><span><b>초상화 꾸미기 →</b><br>생존자와 친해지면 그 사람의 모자를 얻을 수 있어요</span></button>`;}
-  else{const d=pfDraft||(pfDraft={...pf()});
-    h+=`<div class="pfedit"><div class="pfprev">${pfSVG(d)}<button class="buy ghost" data-act="pfrand">🎲 무작위</button></div><div class="pfbtns"><button class="buy" data-act="pfsave">저장</button><button class="buy ghost" data-act="pfreset">되돌리기</button></div></div>`;
-    for(const[g,ks]of PF_GROUPS){h+=`<div class="sec">${g}</div>`;
-      for(const k of ks){const O=PFO[k];h+=`<div class="pfrow"><span class="pfl">${O.n}</span><div class="pfopts">${O.o.map((o,i)=>{const lock=pfLocked(k,i),on=(d[k]||0)===i,col=typeof o==='string'?o:(k==='bg'?o[0]:null);
-          return`<button class="pfo${on?' on':''}${lock?' lock':''}${col?' sw':''}" data-act="pfo" data-arg="${k}:${i}" aria-pressed="${on}" aria-label="${O.n} ${col?i+1:o[1]}${lock?' · 잠김':''}" ${lock?`title="${lock}"`:''}>${col?`<i style="background:${col}"></i>`:''}${col&&k!=='bg'?'':`<span>${typeof o==='string'?'':o[1]}${lock?`<small>🔒 ${lock}</small>`:''}</span>`}</button>`;}).join('')}</div></div>`;}}}
+  else{const d=pfDraft||(pfDraft={...pf()}),dirty=pfChanged(d),group=PF_GROUPS[pfGroup];
+    h+=`<div class="pfstudio"><div class="pfstudio-head"><div class="pfstudio-portrait">${pfSVG(d)}</div><div class="pfstudio-actions"><small>나만의 등불지기</small><b>초상화 꾸미기</b><span class="pf-save-state" role="status">${dirty?'아직 저장하지 않은 모습이에요':'현재 저장된 모습이에요'}</span><div class="pfstudio-tools"><button class="buy ghost" data-act="pfrand">무작위</button><button class="buy ghost" data-act="pfreset" ${dirty?'':'disabled'}>되돌리기</button></div><button class="buy pf-save" data-act="pfsave">이 모습으로 저장</button></div></div><nav class="pf-categories" aria-label="꾸미기 카테고리">${PF_GROUPS.map(([n],i)=>`<button data-act="pfgroup" data-arg="${i}" aria-pressed="${pfGroup===i}" class="${pfGroup===i?'on':''}">${i===4?'펫':n}</button>`).join('')}</nav></div>`;
+    h+=`<div class="pf-options-panel" aria-label="${group[0]} 꾸미기"><p class="pf-category-hint">${['표정과 얼굴을 골라 나만의 인상을 만들어 보세요.','머리 모양과 색을 고르고 모자를 더해 보세요.','옷과 소품으로 등불지기의 개성을 표현해 보세요.','배경과 액자로 초상화를 완성해 보세요.','함께하는 펫을 초상화에 담아 보세요.'][pfGroup]}</p>`;
+    for(const k of group[1]){const O=PFO[k],selected=d[k]||0,colors=!!PF_COLORS[k];
+      h+=`<section class="pf-option-section"><div class="pf-option-heading"><b>${O.n}</b><span>${pfChoiceName(k,selected)}</span></div><div class="pf-choice-grid${colors?' pf-swatches':''}">${O.o.map((o,i)=>{const lock=pfLocked(k,i),on=selected===i,name=pfChoiceName(k,i),candidate={...d,[k]:i};
+        if(k==='hair'||k==='hairC')candidate.hat=0;
+        let art=colors?`<i class="pf-color" style="background:${o}"></i>`:k==='pet'?(i?`<img src="${petImg(o[0],S.pets?.[o[0]]?.c||0,120)}" alt="" loading="lazy">`:'<span class="pf-none">—</span>'):pfSVG(candidate);
+        return`<button class="pf-choice${on?' on':''}${lock?' locked':''}" data-act="pfo" data-arg="${k}:${i}" aria-pressed="${on}" aria-label="${O.n} ${name}${lock?' · '+lock+'에 열려요':''}" ${lock?`title="${lock}" aria-disabled="true"`:''}><span class="pf-choice-art" aria-hidden="true">${art}</span><span class="pf-choice-name">${name}</span>${on?'<span class="pf-chosen" aria-hidden="true">✓</span>':''}${lock?`<small class="pf-lock">${lock}</small>`:''}</button>`;
+      }).join('')}</div></section>`;
+    }h+='</div>';}
+
   return h;}
 function pfRandom(){const d={...pf()};for(const k of PF_KEYS){if(k==='frame')continue;const n=PFO[k].o.length;let i,g=0;do{i=(Math.random()*n)|0;}while(pfLocked(k,i)&&g++<20);if(pfLocked(k,i))i=0;d[k]=i;}return d;}
 $('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act^="pf"]');if(!b)return;e.stopImmediatePropagation();const a=b.dataset.act,g=b.dataset.arg;
-  if(a==='pft'){pfTab=g;if(g==='edit')pfDraft={...pf()};$('shBody').scrollTop=0;renderSheet();}
-  else if(a==='pfo'){const[k,i]=g.split(':');if(b.classList.contains('lock')){toast(`${b.title}에 열려요`);return;}pfDraft=pfDraft||{...pf()};pfDraft[k]=+i;const st=$('shBody').scrollTop;renderSheet();$('shBody').scrollTop=st;sfx('tap');}
+  if(a==='pft'){pfTab=g;if(g==='edit'){pfDraft={...pf()};pfGroup=0;}$('shBody').scrollTop=0;renderSheet();}
+  else if(a==='pfgroup'){pfGroup=+g;$('shBody').scrollTop=0;renderSheet();$('shBody').querySelector(`[data-act=pfgroup][data-arg="${g}"]`)?.focus({preventScroll:true});}
+  else if(a==='pfo'){const[k,i]=g.split(':');if((b.classList.contains('lock')||b.classList.contains('locked'))){toast(`${b.title}에 열려요`);return;}pfDraft=pfDraft||{...pf()};pfDraft[k]=+i;const st=$('shBody').scrollTop;renderSheet();$('shBody').scrollTop=st;$('shBody').querySelector(`[data-act=pfo][data-arg="${g}"]`)?.focus({preventScroll:true});sfx('tap');}
   else if(a==='pfrand'){pfDraft=pfRandom();const st=$('shBody').scrollTop;renderSheet();$('shBody').scrollTop=st;sfx('tap');}
   else if(a==='pfreset'){pfDraft={...pf()};renderSheet();}
   else if(a==='pfsave'){S.pf={...pfDraft,name:pf().name,set:1};pfDraft=null;renderPfBtn();save();sfx('chime');toast('초상화를 저장했어요');pfTab='me';renderSheet();}
