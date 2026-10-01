@@ -20,3 +20,15 @@
 .page.talk .story-art svg{display:block;width:100%;height:100%}
 @media (max-height:640px){.page.talk .story-art{max-height:26vh}}
 @media(prefers-reduced-motion:reduce){.page.talk .story-art{animation:none}}
+/* UI audit 2026-10-01b: minimum text sizes on phones */
+.mc i{font-size:10.5px!important}
+.tape .chap,.chap{font-size:11px!important}
+.ready-label{font-size:10.5px!important}
+.sk small{font-size:10.5px!important}
+.lbadge{font-size:10.5px!important}
+@media (max-width:360px){.mc i{font-size:10px!important}}
+/* quest card: long goals wrap to two lines instead of being cut */
+@media (max-width:400px){.sq .sqm b{white-space:normal!important;display:-webkit-box!important;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;text-overflow:clip!important;line-height:1.25}}
+/* sheet sub-tabs: nothing scrolls into view above the sticky bar */
+#shBody .segs{top:-14px!important}
+#shBody .segs::before{content:"";position:absolute;left:-30px;right:-30px;top:-16px;height:16px;background:#e7e4dc;pointer-events:none}
