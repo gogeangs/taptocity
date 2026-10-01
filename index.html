@@ -5075,7 +5075,7 @@ function eggGet(q,msg){S.egg=S.egg||{};if(S.egg[q])return;S.egg[q]=1;save();cons
   if(n>=3&&!S.egg.page){S.egg.page=1;save();setTimeout(()=>{note({h:'찢어진 페이지를 찾았어요',t:'<small>일지 · 사건 수첩 맨 뒤에 끼워져 있어요</small>',kind:'story',ms:6000});},600);}
   else note({h:`${msg} · ${n}/3`,t:'<small>어딘가 비어 있는 3분이 있어요</small>',kind:'story',ms:4200});}
 function openEggPage(){const c5=S.cases&&S.cases[4]&&S.cases[4].p;
-  openModal(`<div class="page case egg"><div class="tag">찢어진 페이지</div><div class="eggp"><p>03:11 제어실 → 방송국 전화.</p><p>대피 방송 요청.</p><p>…</p><p class="last">그날, 방송은 나가지 않았다.</p></div>${c5?'<div class="csnote">찢긴 자국이, 재혁의 노트에서 뜯겨 나간 자리와 꼭 맞는다.</div>':''}<button class="rqok">닫기</button></div>`,true);}
+  openModal(`<div class="page case egg"><div class="tag">찢어진 페이지</div><div class="eggp"><p>03:11 제어실 → 방송국 전화.</p><p>대피 방송은 —</p><p>(이 아래는 찢겨 나갔다)</p><p class="last">그날, 방송은 나가지 않았다.</p></div>${c5?'<div class="csnote">찢긴 자국이, 재혁의 노트에서 뜯겨 나간 자리와 꼭 맞는다.</div>':''}<button class="rqok">닫기</button></div>`,true);}
 // ① 03:11~03:14, the real clock: the radio catches a voice that breaks off
 const lost3=()=>{const d=new Date();return d.getHours()===3&&d.getMinutes()>=11&&d.getMinutes()<=14;};
 function eggRadio(){if(!lost3()||!(S.gUses||S.gTotal))return;const m=new Date().getMinutes();
