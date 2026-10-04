@@ -1711,7 +1711,7 @@ function sprinkle(){const r=mulberry(S.seed+5);S.lm={};S.trace={};
 function placeSignals(){S.sig={};const r=mulberry(S.seed+77);
   SURV.forEach(s=>{if(s.src!=='sig'||S.sv[s.id]||isDead(s.id))return;for(let t=0;t<900;t++){const a=r()*Math.PI*2,rad=s.d+Math.floor(t/150)*.8,x=Math.round(CX+Math.cos(a)*rad),y=Math.round(CY+Math.sin(a)*rad);
     if(x<1||y<1||x>=W-1||y>=H-1)continue;const i=y*W+x;if(S.rev[i]||isSlot(i)||S.ter[i]===T.WATER||S.ter[i]===T.DIARY||S.ter[i]===T.SILO||S.sig[i]!==undefined)continue;S.sig[i]=s.id;break;}});}
-function load(snap){try{const raw=snap||JSON.parse(localStorage.getItem(KEY)||'null');if(raw&&raw.ter&&raw.ter.length===N&&raw.m){S=raw;if(!S.camp)S.camp={};try{fixDiaries();}catch(e){}if(!S.inv)S.inv=[];if(!S.ug)S.ug={best:0,runs:0,bestWith:{}};return true;}}catch(e){}fresh();return false;}
+function load(snap){try{const raw=snap||JSON.parse(localStorage.getItem(KEY)||'null');if(raw&&raw.ter&&raw.ter.length===N&&raw.m){S=raw;if(!S.camp)S.camp={};try{fixDiaries();}catch(e){}if(!S.inv)S.inv=[];if(!S.ug)S.ug={best:0,runs:0,bestWith:{}};repairExpeditions(S);return true;}}catch(e){}fresh();return false;}
 function save(){S.t=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 
 // ---------- derived ----------
@@ -2412,7 +2412,7 @@ function renderSheet(){if(!sheetTab)return;let h='';const st=$('shBody').scrollT
     h+='<div class="sec">인연</div>'+BONDS.map(b=>{const on=b.ids.every(id=>S.sv[id]);if(b.ids.some(id=>isDead(id))&&b.ids.every(id=>S.sv[id]||isDead(id)))return`<div class="bond cut"><b>끊어진 인연 · ${b.name}</b> · ${b.ids.map(id=>SURV[id].name).join(' + ')}</div>`;return`<div class="bond ${on?'on':''}"><b>${on?b.name:'???'}</b> · ${on?`${b.txt} ${b.d}`:b.ids.map(id=>S.sv[id]?SURV[id].name:'???').join(' + ')+' 모두 모이면 열려요'}</div>`;}).join('');}
   else if(sheetTab==='settings'){$('shTitle').textContent='설정';
     const SI={snd:'<path d="M4 10v4h4l5 4V6L8 10z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>',vib:'<rect x="8" y="3" width="8" height="18" rx="2"/><path d="M4 8v8M20 8v8"/>',calm:'<path d="M3 12h4l2-5 4 10 2-5h6"/>',big:'<path d="M4 19L9 5l5 14M6 14h6"/><path d="M15 19l3-8 3 8M16 16h4"/>'};
-    const row=(k,n,d)=>`<div class="row setrow"><span class="sic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${SI[k]}</svg></span><div><div class="t">${n}</div><div class="d">${d}</div></div><button class="tgl${SET[k]?' on':''}" data-act="set" data-arg="${k}" role="switch" aria-checked="${!!SET[k]}"><i></i></button></div>`;
+    const row=(k,n,d)=>`<div class="row setrow"><span class="sic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${SI[k]}</svg></span><div><div class="t">${n}</div><div class="d">${d}</div></div><button class="tgl${SET[k]?' on':''}" data-act="set" data-arg="${k}" role="switch" aria-label="${n}" aria-checked="${!!SET[k]}"><i></i></button></div>`;
     h+=row('snd','소리','두드리기, 자재 줍기, 라디오 잡음 같은 효과음')+row('vib','진동','두드릴 때 휴대폰이 살짝 떨려요')+row('calm','움직임 줄이기','흔들림·깜빡임 같은 애니메이션을 줄여요')+row('big','글자 크게','화면 글자와 창을 조금 크게 보여요');
     h+=`<div class="sec">저장</div><div class="d" style="margin-bottom:8px">진행은 이 브라우저에 자동으로 저장돼요. 브라우저 데이터를 지우면 사라지니, 다른 기기로 옮기거나 보관하려면 저장 코드를 만들어 두세요.</div><div class="btns" style="gap:8px"><button class="buy ghost" data-act="exp_save">저장 코드 만들기</button><button class="buy ghost" data-act="imp_save">저장 코드 불러오기</button></div>`;
     const cf=confirmKey==='reset';h+=`<div class="sec">게임</div><div class="row"><div><div class="t">새 게임</div><div class="d">새 지도에서 처음부터 다시 시작해요. 지금 진행은 사라집니다.</div></div><button class="buy ${cf?'warn':'ghost'}" data-act="reset">${cf?'정말 초기화':'새 게임'}</button></div>`;}
@@ -2694,7 +2694,7 @@ const mmss=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
 const avatar=id=>`<span class="av">${portrait(SURV[id])}</span>`;
 function renderExp(){$('shTitle').textContent='원정';let h=autoExpHtml()+ugCard();const now=Date.now(),lockL=[];
   for(const e of EXPS){const x=S.exp[e.key];
-    if(!e.req()){lockL.push(`<span>🔒 ${e.name} · ${e.lock.replace('면 열려요','').replace('에 열려요','')}</span>`);continue;}
+    if(!e.req()){lockL.push(`<span>🔒 ${e.name} · ${e.lock}</span>`);continue;}
     if(x){const left=Math.max(0,(x.end-now)/1000),done=left<=0;
       h+=`<div class="exp">${window.TTCFinal?TTCFinal.scene(e.key,'exp-scene'):""}<div class="top"><b>${e.name}</b><span class="meta" data-left="${e.key}">${done?'돌아왔어요!':`남은 시간 ${mmss(left)}`}</span></div><div class="team">${x.team.map(id=>`<span class="mem">${avatar(id)}${SURV[id].name}</span>`).join('')}</div>
         <div class="pbar"><i data-bar="${e.key}" style="width:${Math.min(100,(1-left/x.dur)*100)}%"></i></div>${done?`<button class="buy" data-act="xback" data-arg="${e.key}">원정 일지 보기</button>`:''}</div>`;continue;}
@@ -2713,9 +2713,29 @@ function toggleMem(id){if(!expPlan)return;const k=expPlan.team.indexOf(id);if(k>
 function startExp(){const e=EXPS.find(x=>x.key===expPlan.key);const team=expPlan.team.filter(id=>!busy(id));if(team.length<e.min)return;const pk=expPlan.pet&&S.petOn&&petHere(S.petOn)?S.petOn:null;const c=expCalc(e,team,pk);
   S.exp[e.key]={team,end:Date.now()+c.t*1000,dur:c.t,pet:pk};if(pk)pets()[pk].away=e.key;for(const id of team)S.sv[id].away=e.key;expPlan=null;recalc();renderSkills(true);renderSheet();save();toast(`${team.map(id=>SURV[id].name).join(', ')} 원정 출발! ${mmss(c.t)} 뒤에 돌아와요`);}
 let expNotified={};
-function tickExp(){const now=Date.now();for(const k in S.exp)if(now>=S.exp[k].end&&!expNotified[k]){expNotified[k]=1;toast(`${EXPS.find(e=>e.key===k).name} 원정대가 돌아왔어요! 원정 버튼을 눌러요`);}}
+// Validate expedition payloads before accepting imported saves or rendering old local saves.
+function validExpedition(raw,key,x){const e=EXPS.find(e=>e.key===key),own=(o,k)=>Object.prototype.hasOwnProperty.call(o||{},k);
+  return !!(e&&x&&typeof x==='object'&&!Array.isArray(x)&&Number.isFinite(x.end)&&x.end>=0&&Number.isFinite(x.dur)&&x.dur>0&&
+    Array.isArray(x.team)&&x.team.length>=e.min&&x.team.length<=3&&new Set(x.team).size===x.team.length&&
+    x.team.every(id=>Number.isInteger(id)&&own(SURV,id)&&own(raw.sv,id)&&raw.sv[id]&&Number.isFinite(raw.sv[id].xp))&&
+    (x.pet==null||(typeof x.pet==='string'&&own(PETS,x.pet)&&own(raw.pets,x.pet)&&raw.pets[x.pet]&&typeof raw.pets[x.pet]==='object')));
+}
+function invalidExpeditions(raw){const ids=new Set(),pets=new Set(),bad=[];
+  for(const [key,x]of Object.entries(raw.exp||{})){
+    if(!validExpedition(raw,key,x)||x.team.some(id=>ids.has(id))||(x.pet&&pets.has(x.pet))){bad.push(key);continue;}
+    x.team.forEach(id=>ids.add(id));if(x.pet)pets.add(x.pet);
+  }return bad;
+}
+function repairExpeditions(raw){if(!raw.exp||typeof raw.exp!=='object'||Array.isArray(raw.exp))raw.exp={};
+  for(const key of invalidExpeditions(raw)){delete raw.exp[key];delete expNotified[key];}
+  // Release stale reservations without discarding survivors, pets or valid expeditions.
+  for(const [id,r]of Object.entries(raw.sv||{}))if(r&&r.away&&!(raw.exp[r.away]?.team.includes(+id)))r.away=false;
+  for(const [key,p]of Object.entries(raw.pets||{}))if(p&&p.away&&p.away!=='ug'&&raw.exp[p.away]?.pet!==key)p.away=false;
+  for(const [key,x]of Object.entries(raw.exp)){for(const id of x.team)raw.sv[id].away=key;if(x.pet)raw.pets[x.pet].away=key;}
+}
+function tickExp(){repairExpeditions(S);const now=Date.now();for(const k in S.exp)if(now>=S.exp[k].end&&!expNotified[k]){expNotified[k]=1;toast(`${EXPS.find(e=>e.key===k).name} 원정대가 돌아왔어요! 원정 버튼을 눌러요`);}}
 function revealToward(target,n){const tx=target%W,ty=target/W|0;for(let k=0;k<n;k++){let best=-1,bd=1e9;for(let i=0;i<N;i++)if(isFrontier(i)){const d=Math.hypot(i%W-tx,(i/W|0)-ty);if(d<bd){bd=d;best=i;}}if(best<0)return;reveal(best);if(best===target)return;}}
-function claimExp(key,quiet){const x=S.exp[key];if(!x||Date.now()<x.end)return;const e=EXPS.find(q=>q.key===key),team=x.team,c=expCalc(e,team,x.pet),sum=[];if(x.pet&&pets()[x.pet]){pets()[x.pet].away=false;petGain(x.pet,15);}delete S.exp[key];delete expNotified[key];
+function claimExp(key,quiet){repairExpeditions(S);const x=S.exp[key];if(!x||Date.now()<x.end)return;const e=EXPS.find(q=>q.key===key),team=x.team,c=expCalc(e,team,x.pet),sum=[];if(x.pet&&pets()[x.pet]){pets()[x.pet].away=false;petGain(x.pet,15);}delete S.exp[key];delete expNotified[key];
   const lines=[e.open];if(x.pet&&pets()[x.pet])lines.push(`${jo(petNm(x.pet),'이','가')} 앞장서서 길을 살폈다. 덕분에 모두 한결 든든했다.`);for(const id of team)lines.push(`${SURV[id].name}: ${EXPQ[id][(Math.random()*2)|0]}`);
   const got=give(scaleCost(e.loot,c.mult*(1+(S.lv-1)*.3)));give({batt:team.length});if(Math.random()<.2&&findRelic())sum.push('유물 발견');for(const id of team){const st=qStep(id);if(st&&st.k==='exp')setTimeout(()=>qAdvance(id),300);}sum.push(`건전지 +${team.length}`);if(Math.random()<(e.key==='mall'?.25:.4)){const it=dropGear(e.key==='plant'?2:e.key==='mall'?0:1);sum.push(`장비: ${GEAR[it.t].n}`);lines.push(`폐허 한쪽에서 ${GEAR[it.t].n}을(를) 챙겨 왔다.`);}if(Object.keys(got).length)sum.push(lootTxt(got));else sum.push('창고가 가득 차 전리품을 두고 왔어요');
   for(const id of team){S.sv[id].away=false;S.sv[id].xp+=30*team.length;}sum.push(`동료 신뢰 +${30*team.length}`);
@@ -3110,11 +3130,11 @@ function renderPrep(first){const free=Object.keys(S.sv).map(Number).filter(id=>!
     ${ugPetBtn()?`<div class="team">${ugPetBtn()}</div>`:''}${perks.length?`<div class="prev">${perks.join('<br>')}</div>`:''}${qs.length?`<div class="prev" style="color:#7a4a1c">${qs.join('<br>')}</div>`:''}
     ${(S.ug.ck||[]).length?`<div class="ugstart"><span>시작 층</span>${[1,...(S.ug.ck||[])].map(f=>`<button class="pfo${(ugPrep.start||1)===f?' on':''}" data-act="ugs" data-arg="${f}">${f}층${f>1?` · ${ugTheme(f).n}`:''}</button>`).join('')}</div>`:''}
     <div class="fuelrow"><span>${micon('fuel',16)} 연료 챙기기</span><button class="alt" data-act="ugf" data-arg="-1" ${ugPrep.fuel<=0?'disabled':''}>−</button><b>${ugPrep.fuel}</b><button class="alt" data-act="ugf" data-arg="1" ${ugPrep.fuel>=Math.min(10,S.m.fuel||0)?'disabled':''}>+</button></div>
-    <div class="d" style="margin:-4px 0 12px">랜턴 기름 <b>${oil}</b> · 어두운 칸을 한 번 두드릴 때마다 1씩 써요. 연료 1개 = 기름 3</div>
+    <div class="d" style="margin:-4px 0 12px">랜턴 기름 <b>${oil}</b> · 어두운 칸을 한 번 두드릴 때마다 1씩 써요. 연료 1개 = 기름 3<br>이번 탐사에서 칸을 밝힌 층마다 동료 신뢰 +15 · 바로 돌아오면 보상이 없어요</div>
     <div class="btns"><button class="alt">취소</button><button data-act="ugo" ${t.length?'':'disabled'}>내려가기</button></div>${t.length?'':'<div class="ughint">함께 갈 사람을 골라 주세요 (최대 3명)</div>'}</div>`;
   if(first)openModal(h);else{modal.innerHTML=h;}}
 function ugStart(){const t=ugPrep.team.filter(id=>S.sv[id]&&!busy(id));if(!t.length)return;if(ugPrep.fuel&&!pay({fuel:ugPrep.fuel}))return;
-  const oil=ugOil0(t,ugPrep.fuel),st=(ugPrep.start&&ugCkOk(ugPrep.start))?ugPrep.start:1;const upk=ugPrep.pet&&S.petOn&&petHere(S.petOn)?S.petOn:null;if(upk)pets()[upk].away='ug';UG={pet:upk,team:t,oil:oil+(st>1?12:0),max:oil+(st>1?12:0),floor:st-1,carry:{},gear:[],hurt:[],found:[],keys:0,msg:st>1?`쉼터에서 다시 출발했다 · ${ugTheme(st).n}`:'랜턴을 들고 계단을 내려갔다.'};S.ug.runs++;ugFloor();sfx('reveal');renderUG();}
+  const oil=ugOil0(t,ugPrep.fuel),st=(ugPrep.start&&ugCkOk(ugPrep.start))?ugPrep.start:1;const upk=ugPrep.pet&&S.petOn&&petHere(S.petOn)?S.petOn:null;if(upk)pets()[upk].away='ug';UG={pet:upk,team:t,oil:oil+(st>1?12:0),max:oil+(st>1?12:0),floor:st-1,exploredFloors:[],carry:{},gear:[],hurt:[],found:[],keys:0,msg:st>1?`쉼터에서 다시 출발했다 · ${ugTheme(st).n}`:'랜턴을 들고 계단을 내려갔다.'};S.ug.runs++;ugFloor();sfx('reveal');renderUG();}
 function ugFloor(){const f=++UG.floor,n=UGW*UGH,cells=Array.from({length:n},()=>({c:'empty',rev:false,hp:1+Math.floor((f-1)/5)}));
   const start=(UGH-1)*UGW+2;cells[start].rev=true;cells[start].c='start';
   const free=()=>{let i,g=0;do{i=(Math.random()*n)|0;g++;}while((cells[i].c!=='empty'||i===start||Math.abs((i%UGW)-2)+Math.abs((i/UGW|0)-(UGH-1))<2)&&g<200);return i;};
@@ -3143,7 +3163,7 @@ function ugAdd(o){for(const k in o)UG.carry[k]=(UG.carry[k]||0)+o[k];}
 function ugTap(i){if(!UG)return;const c=UG.cells[i];
   if(c.rev){if(c.c==='stairs'){UG.msg=`지하 ${UG.floor+1}층으로 내려갔다.`;ugFloor();sfx('reveal');renderUG();}else ugUse(c);return;}
   if(!ugFront(i)||UG.oil<=0)return;c.hit=true;const tax=UG.cells.some(x=>x.rev&&x.c==='foe'&&x.fhp>0)?2:1;UG.oil=Math.max(0,UG.oil-tax);if(tax>1&&c.hp<=1)UG.msg='재 괴물이 랜턴 기름을 노린다! (칸마다 기름 2)';c.hp--;sfx(c.hp>0?'hit':'tap');buzz();
-  if(c.hp<=0){c.rev=true;c.fresh=true;ugResolve(c);}
+  if(c.hp<=0){c.rev=true;c.fresh=true;if(!UG.exploredFloors.includes(UG.floor))UG.exploredFloors.push(UG.floor);ugResolve(c);}
   if(UG.oil<=0&&!UG.cells.some(x=>x.rev&&x.c==='stairs'&&false)){renderUG();setTimeout(()=>ugEnd(false),650);return;}
   renderUG();}
 function ugResolve(c){const f=UG.floor,sc=1+(f-1)*.35;
@@ -3168,11 +3188,13 @@ function ugResolve(c){const f=UG.floor,sc=1+(f-1)*.35;
   else if(c.c==='pet'){UG.petFound='turtle';UG.msg='물웅덩이 속 바위가 움직였다. 이끼 낀 늙은 거북이 천천히 눈을 떴다. 함께 올라가요!';sfx('chime');}
   else if(c.c==='who'){UG.rescue=13;UG.msg='제어실 문틈으로 불빛이 새어 나온다. “…누구세요? 정말, 사람이에요?” 함께 올라가요!';sfx('chime');}
   else UG.msg='먼지뿐이다.';}
-function ugEnd(safe){if(!UG)return;const u=UG;UG=null;let got={},lost=false;
+// Checkpoint entry alone earns nothing; count only floors explored during this run.
+function ugRewardUnits(u){return new Set(u.exploredFloors||[]).size;}
+function ugEnd(safe){if(!UG)return;const u=UG,units=ugRewardUnits(u);UG=null;let got={},lost=false;
   if(!safe){for(const k in u.carry)u.carry[k]=Math.floor(u.carry[k]/2);lost=u.gear.length>0;u.gear=[];}
   got=give(u.carry);for(const t of u.gear)addGear(t);for(const id of u.hurt)if(S.sv[id])S.sv[id].hurt=90;
-  for(const id of u.team)if(S.sv[id])S.sv[id].xp+=15*u.floor;recalc();save();closeModal();if(u.rescue&&!S.sv[u.rescue])setTimeout(()=>rescue(u.rescue,'deep'),700);if(u.pet&&pets()[u.pet]){pets()[u.pet].away=false;petGain(u.pet,3*u.floor);}if(u.petFound&&!pets()[u.petFound])setTimeout(()=>petAdopt(u.petFound),u.rescue?2600:800);
-  note({h:safe?`지하 ${u.floor}층에서 무사히 돌아왔어요`:`기름이 떨어져 급히 올라왔어요 · 지하 ${u.floor}층`,t:`<small>${Object.keys(got).length?lootTxt(got):'챙긴 게 없어요'}${u.gear.length?` · 장비 ${u.gear.map(t=>GEAR[t].n).join(', ')}`:''}${lost?' · 장비를 떨어뜨렸어요':''}${u.hurt.length?` · ${u.hurt.map(id=>SURV[id].name).join(', ')} 부상`:''} · 동료 신뢰 +${15*u.floor}</small>`,ms:6500});}
+  for(const id of u.team)if(S.sv[id])S.sv[id].xp+=15*units;recalc();closeModal();if(u.rescue&&!S.sv[u.rescue])setTimeout(()=>rescue(u.rescue,'deep'),700);if(u.pet&&pets()[u.pet]){pets()[u.pet].away=false;if(units)petGain(u.pet,3*units);}if(u.petFound&&!pets()[u.petFound])setTimeout(()=>petAdopt(u.petFound),u.rescue?2600:800);save();
+  note({h:safe?`지하 ${u.floor}층에서 무사히 돌아왔어요`:`기름이 떨어져 급히 올라왔어요 · 지하 ${u.floor}층`,t:`<small>${Object.keys(got).length?lootTxt(got):'챙긴 게 없어요'}${u.gear.length?` · 장비 ${u.gear.map(t=>GEAR[t].n).join(', ')}`:''}${lost?' · 장비를 떨어뜨렸어요':''}${u.hurt.length?` · ${u.hurt.map(id=>SURV[id].name).join(', ')} 부상`:''} · 동료 신뢰 +${15*units}</small>`,ms:6500});}
 const UGI={pet:'<path d="M4 16c0-4 3.6-7 8-7s8 3 8 7z"/><path d="M20 15.5l2-1M3 16h18M8 9.8l2 3M16 9.8l-2 3"/>',rest:'<path d="M4 20V10l8-6 8 6v10z"/><path d="M9 20v-5h6v5"/>',key:'<circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3M21 12v2"/>',door:'<rect x="6" y="3" width="12" height="18" rx="1"/><circle cx="14.5" cy="12" r="1"/>',foe:'<path d="M5 18c0-7 3-12 7-12s7 5 7 12c-2-1.5-3-1.5-4 0-1-1.5-2-1.5-3 0-1-1.5-2-1.5-3 0-1-1.5-2-1.5-4 0z"/><circle cx="10" cy="11" r="1" fill="currentColor"/><circle cx="14" cy="11" r="1" fill="currentColor"/>',shop:'<path d="M4 9h16l-1 11H5z"/><path d="M8 9a4 4 0 0 1 8 0"/>',diary:'<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M9 8h6M9 11h6"/>',who:'<circle cx="12" cy="8" r="3.5"/><path d="M5 20c1-4 3.5-6 7-6s6 2 7 6"/>',stairs:'<path d="M5 20h4v-4h4v-4h4V8h4"/><path d="M12 4v5M9.5 6.5L12 9l2.5-2.5"/>',hazard:'<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/>',oil:'<path d="M6 8l3-4h7v17H6z"/><path d="M9 4v4h7"/>',quest:'<path d="M4 6h16v12H4z"/><path d="M4 6l8 7 8-7"/>',start:'<path d="M9 5h6M10 5V3h4v2M8 7h8l-1 12H9z"/>',empty:''};
 function ugIcon(c){if(c.c==='loot')return'<svg viewBox="0 0 24 24"><path d="M3 9h18v11H3zM3 13h18M10 13v3h4v-3M5 9l2-4h10l2 4"/></svg>';if(c.c==='rare')return'<svg viewBox="0 0 24 24"><path d="M12 3l3 6 6 .8-4.4 4.2 1 6L12 17l-5.6 3 1-6L3 9.8 9 9z"/></svg>';if(c.c==='gear')return'<svg viewBox="0 0 24 24"><path d="M4 20l9-9M14 4a4 4 0 0 0 5 5l-3 3-5-5z"/></svg>';return UGI[c.c]?`<svg viewBox="0 0 24 24">${UGI[c.c]}</svg>`:'';}
 function renderUG(){if(!UG)return;const hint=ugRole(UG.team,'scout')||ugRole(UG.team,'art'),sci=ugRole(UG.team,'sci'),oilP=Math.max(0,Math.min(1,UG.oil/UG.max)),TH=ugTheme(UG.floor),f=UG.floor;
@@ -3588,7 +3610,7 @@ function autoTeam(e,pool=expPool()){let best=null,bs=-1;const n=pool.length;
   for(let a=0;a<n;a++){tryT([pool[a]]);for(let b=a+1;b<n;b++){tryT([pool[a],pool[b]]);for(let c=b+1;c<n;c++)tryT([pool[a],pool[b],pool[c]]);}}return best;}
 function sendExp(key,team){const e=EXPS.find(x=>x.key===key),c=expCalc(e,team);S.exp[key]={team,end:Date.now()+c.t*1000,dur:c.t};for(const id of team)S.sv[id].away=key;recalc();renderSkills(true);save();return c;}
 function autoExpHtml(){if(!autoExpOpen())return'';
-  const pool=expPool().length;return`<div class="autobox"><div><b>⚙ 자동 원정</b><small>${S.autoExp?`켜짐 · 보낼 수 있는 사람 ${pool}명`:'쉬는 사람으로 팀을 꾸려 보내고, 돌아오면 알아서 챙겨요'}</small></div><button class="tgl${S.autoExp?' on':''}" data-act="autoexp" role="switch" aria-checked="${!!S.autoExp}"><i></i></button></div>`;}
+  const pool=expPool().length;return`<div class="autobox"><div><b>⚙ 자동 원정</b><small>${S.autoExp?`켜짐 · 보낼 수 있는 사람 ${pool}명`:'쉬는 사람으로 팀을 꾸려 보내고, 돌아오면 알아서 챙겨요'}</small></div><button class="tgl${S.autoExp?' on':''}" data-act="autoexp" role="switch" aria-label="자동 원정" aria-checked="${!!S.autoExp}"><i></i></button></div>`;}
 $('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="autoexp"],[data-act="xauto"]');if(!b)return;e.stopImmediatePropagation();
   if(b.dataset.act==='autoexp'){S.autoExp=!S.autoExp;save();toast(S.autoExp?'자동 원정을 켰어요 · 순찰·아이 돌보기 중인 사람은 남겨 둬요':'자동 원정을 껐어요');if(S.autoExp)tickAutoExp(true);renderSheet();return;}
   const ex=EXPS.find(x=>x.key===b.dataset.arg),t=autoTeam(ex,Object.keys(S.sv).map(Number).filter(id=>!busy(id)&&!(S.sv[id].hurt>0)));if(!t){toast('보낼 수 있는 사람이 모자라요');return;}expPlan.team=t;sfx('tap');renderSheet();},true);
@@ -3692,9 +3714,9 @@ function tickDusk(){const warn=!isNight()&&!DEFN&&(bigNightNext()||!!S.raid)&&re
 function exportSave(){save();let code='';try{code='TTC1.'+btoa(unescape(encodeURIComponent(JSON.stringify(S))));}catch(e){toast('저장 코드를 만들지 못했어요');return;}
   openModal(`<div class="page"><div class="tag">저장 코드</div><h3>진행을 옮기기</h3><div class="d">아래 코드를 복사해 두었다가 다른 기기나 브라우저의 설정 → ‘저장 코드 불러오기’에 붙여 넣어요.</div><textarea id="saveCode" class="code" readonly>${code}</textarea><div class="btns" style="margin-top:10px"><button class="alt" data-act="copycode">복사하기</button><button>닫기</button></div></div>`,true);}
 function importSave(){openModal(`<div class="page"><div class="tag">저장 코드 불러오기</div><h3>다른 기기의 진행 가져오기</h3><div class="d">지금 이 브라우저의 진행은 덮어써져요.</div><textarea id="loadCode" class="code" placeholder="TTC1.로 시작하는 코드를 붙여 넣어요"></textarea><div class="btns" style="margin-top:10px"><button class="alt">취소</button><button data-act="loadcode">불러오기</button></div></div>`,true);}
-function validImport(raw){const obj=v=>v&&typeof v==='object'&&!Array.isArray(v);return obj(raw)&&['ter','rev','hp'].every(k=>Array.isArray(raw[k])&&raw[k].length===N&&raw[k].every(Number.isFinite))&&Number.isInteger(raw.lv)&&raw.lv>=1&&raw.lv<=SHELTER.length&&Number.isFinite(raw.seed)&&['m','mods','sv','asg','exp','ash','diaryAt','got','frac','cd'].every(k=>obj(raw[k]))&&['found','party'].every(k=>Array.isArray(raw[k]))&&Object.values(raw.m).every(v=>Number.isFinite(v)&&v>=0)&&Object.values(raw.mods).every(m=>obj(m)&&MODS[m.id]&&Number.isInteger(m.l)&&m.l>=0&&m.l<=2)&&Object.entries(raw.sv).every(([id,v])=>SURV[id]&&obj(v));}
+function validImport(raw){const obj=v=>v&&typeof v==='object'&&!Array.isArray(v);return obj(raw)&&['ter','rev','hp'].every(k=>Array.isArray(raw[k])&&raw[k].length===N&&raw[k].every(Number.isFinite))&&Number.isInteger(raw.lv)&&raw.lv>=1&&raw.lv<=SHELTER.length&&Number.isFinite(raw.seed)&&['m','mods','sv','asg','exp','ash','diaryAt','got','frac','cd'].every(k=>obj(raw[k]))&&['found','party'].every(k=>Array.isArray(raw[k]))&&Object.values(raw.m).every(v=>Number.isFinite(v)&&v>=0)&&Object.values(raw.mods).every(m=>obj(m)&&MODS[m.id]&&Number.isInteger(m.l)&&m.l>=0&&m.l<=2)&&Object.entries(raw.sv).every(([id,v])=>SURV[id]&&obj(v))&&invalidExpeditions(raw).length===0;}
 function applyCode(code){const previous=S;try{code=code.trim();if(!code.startsWith('TTC1.'))throw 0;const raw=JSON.parse(decodeURIComponent(escape(atob(code.slice(5)))));if(!validImport(raw))throw 0;
-    load(raw);recalc();closeModal();closeSheet();closeRing();DEFN=null;UG=null;WALK={};CHAT=null;KW=[];aim=-1;centerCam();ensureAim();misKey=null;renderMission();renderSkills(true);save();note({h:'저장 코드를 불러왔어요',t:`<small>Lv.${S.lv} ${LVNAME[S.lv-1]} · 생존자 ${Object.keys(S.sv).length}명</small>`});}
+    load(raw);expNotified={};recalc();closeModal();closeSheet();closeRing();DEFN=null;UG=null;WALK={};CHAT=null;KW=[];aim=-1;centerCam();ensureAim();misKey=null;renderMission();renderSkills(true);save();note({h:'저장 코드를 불러왔어요',t:`<small>Lv.${S.lv} ${LVNAME[S.lv-1]} · 생존자 ${Object.keys(S.sv).length}명</small>`});}
   catch(e){S=previous;recalc();toast('코드가 올바르지 않아요. 처음부터 끝까지 빠짐없이 붙여 넣었는지 확인해요');}}
 async function copySaveCode(){const t=$('saveCode');if(!t)return;const value=t.value;try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(value);toast('복사했어요');return;}}catch(e){}let ok=false;try{t.focus();t.select();ok=document.execCommand('copy');}catch(e){}toast(ok?'복사했어요':'복사 권한이 없어요. 코드를 길게 눌러 직접 복사해요');}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="copycode"],[data-act="loadcode"]');if(!b)return;e.stopPropagation();
