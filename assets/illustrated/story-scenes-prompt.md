@@ -44,5 +44,5 @@ Row3: (24) a woman engineer in a soot-covered control room uniform arriving at d
 
 ## After adding the files
 
-Add the three files to the `SHELL` list in `sw.js` and bump `CACHE`. Do not list them before the files exist:
+Set `const ENABLED=true` at the top of `story-art.js`, then add the three files to the `SHELL` list in `sw.js` and bump `CACHE`. Do not list them before the files exist:
 a missing file makes the offline cache install fail.

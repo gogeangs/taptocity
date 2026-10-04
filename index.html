@@ -5280,11 +5280,11 @@ const TUT=[
   say:[[ME,'공터에 텐트를 쳤다. 오늘 밤은 여기서 버틴다.'],[ME,'텐트를 누르면 무엇을 지을 수 있는지 볼 수 있다.']]},
  {t:'03:14',goal:'쏟아지는 재 걷어내기',hint:'회색 재가 내려앉은 칸을 톡톡 두드려요',n:5,v:()=>(S.stat&&S.stat.ash)||0,focus:'ash',
   say:[[ME,'번쩍. 발전소 쪽 하늘이 하얗게 타올랐다.'],[ME,'그리고, 재가 내리기 시작했다.'],[ME,'쌓이기 전에 두드려 걷어내자!']]}];
-let tutSheet=0,tutAsh=0,tutEnd=0;
+let tutSheet=0,tutAsh=0,tutEnd=0,tutResumed=false;
 function tutOpenStep(i){const T=TUT[i];tutSheet=0;S.tut.i=i;S.tut.b=T.v();save();misKey=null;renderMission();
   openTalk(T.say,{card:i?null:['그날 밤','재가 내리던 새벽'],tag:i?`그날 밤 · ${T.t}`:null,goal:T.goal});}
 function tutFresh(){closeModal();closeSheet();closeRing();DEFN=null;UG=null;WALK={};CHAT=null;KW=[];fresh();aim=-1;recalc();centerCam();ensureAim();misKey=null;renderMission();renderSkills(true);save();}
-function startTut(replay){if(replay){lsSet(TUT_BAK,JSON.stringify(S));tutFresh();}
+function startTut(replay){tutResumed=true;if(replay){lsSet(TUT_BAK,JSON.stringify(S));tutFresh();}
   S.tut={i:0,b:0,replay:!!replay};S.sig={};S.camp={};S.clock=DAY+20;tutEnd=0;wasNight=true;save();tutOpenStep(0);}
 function finishTut(){lsSet(TUT_KEY,'1');const bak=lsGet(TUT_BAK);lsSet(TUT_BAK,null);talk=null;mq.length=0;closeModal();closeSheet();closeRing();SHD=null;
   if(bak){try{const raw=JSON.parse(bak);DEFN=null;UG=null;WALK={};CHAT=null;KW=[];load(raw);S.tutSeen=1;aim=-1;recalc();centerCam();ensureAim();misKey=null;renderMission();renderSkills(true);save();toast('원래 쉘터로 돌아왔어요');return;}catch(e){}}
@@ -5292,6 +5292,8 @@ function finishTut(){lsSet(TUT_KEY,'1');const bak=lsGet(TUT_BAK);lsSet(TUT_BAK,n
 function tickTut(){
   if(tutPending()){startTut(false);return true;}
   const U=S.tut;if(!U)return false;
+  // reopened mid-stage: replay the current step's lines once, unless the player already made progress in it
+  if(!tutResumed){tutResumed=true;const T0=TUT[U.i];if(T0&&!tutEnd&&!(U.i===2&&U.radio)&&T0.v()-U.b<=0&&modal.hidden&&!talk){tutOpenStep(U.i);return true;}}
   S.clock=Math.floor(S.clock/CYCLE)*CYCLE+DAY+20;
   if(tutEnd){if(modal.hidden&&!talk&&!mq.length)finishTut();return true;}
   const T=TUT[U.i];if(!T)return true;
@@ -5440,6 +5442,6 @@ if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.r
   d.querySelector('.x').onclick=()=>d.remove();const g=d.querySelector('.go');if(g)g.onclick=async()=>{d.remove();if(dp){dp.prompt();try{await dp.userChoice;}catch(e){}dp=null;}};},25000);
 })();
 </script>
-<script src="story-art.js?v=20261001a"></script>
+<script src="story-art.js?v=20261004a"></script>
 </body>
 </html>

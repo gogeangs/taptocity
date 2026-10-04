@@ -3,8 +3,10 @@
 // The scene is picked from the talk's lines, so no story call site has to change.
 // Until an atlas has loaded (or if it is missing), talks render exactly as before.
 (function(){
+// Turn on once story-1..3.webp are in assets/illustrated (until then no requests are made, so no 404s).
+const ENABLED=false;
 const base='assets/illustrated/',files=['story-1.webp','story-2.webp','story-3.webp'],img={};
-for(const f of files){const i=new Image();i.decoding='async';i.src=base+f+'?v=1';img[f]=i;}
+if(ENABLED)for(const f of files){const i=new Image();i.decoding='async';i.src=base+f+'?v=1';img[f]=i;}
 const ok=f=>{const i=img[f];return!!(i&&i.complete&&i.naturalWidth>0);};
 // panel numbers: 0-8 in story-1, 9-17 in story-2, 18-26 in story-3 (reading order, 3 columns)
 const CAP=['그날 밤 03:02, 정전된 거리','무너진 집','03:11, 텐트 안의 라디오','03:14, 발전소의 섬광','재가 내린 지 마흔세 날','랜턴 빛에 녹는 재','구름 속의 손전등 신호','붉게 물든 하늘','새벽의 잡음',
