@@ -6,7 +6,8 @@
 // Turn on once story-1..3.webp are in assets/illustrated (until then no requests are made, so no 404s).
 const ENABLED=true;
 const base='assets/illustrated/',files=['story-1.webp','story-2.webp','story-3.webp'],img={};
-if(ENABLED)for(const f of files){const i=new Image();i.decoding='async';i.src=base+f+'?v=1';img[f]=i;}
+let pending=null;
+if(ENABLED)for(const f of files){const i=new Image();i.decoding='async';i.onload=()=>{const p=pending;if(p&&document.querySelector('#modal .page.talk')===p.page)after(p.talk,p.STEPS,p.TUT);};img[f]=i;i.src=base+f+'?v=1';}
 const ok=f=>{const i=img[f];return!!(i&&i.complete&&i.naturalWidth>0);};
 // panel numbers: 0-8 in story-1, 9-17 in story-2, 18-26 in story-3 (reading order, 3 columns)
 const CAP=['그날 밤 03:02, 정전된 거리','무너진 집','03:11, 텐트 안의 라디오','03:14, 발전소의 섬광','재가 내린 지 마흔세 날','랜턴 빛에 녹는 재','구름 속의 손전등 신호','붉게 물든 하늘','새벽의 잡음',
@@ -29,7 +30,7 @@ function panelSvg(n){const f=files[Math.floor(n/9)];if(!ok(f))return'';const i=i
 function artFor(talk){if(!talk||!talk.lines)return null;const t=talk.lines[talk.k]&&talk.lines[talk.k][1];if(t!=null&&LINE[t]!=null)return LINE[t];
   if(talk.art==null){talk.art=-1;for(const l of talk.lines){if(TALK[l[1]]!=null){talk.art=TALK[l[1]];break;}}}return talk.art>=0?talk.art:null;}
 // called by the game's renderTalk right after the talk page is on screen
-function after(talk,STEPS,TUT){try{if(!doneS||(TUT&&!doneT))index(STEPS,TUT);const n=artFor(talk);if(n==null)return;const art=panelSvg(n);if(!art)return;
-  const pg=document.querySelector('#modal .page.talk');if(!pg||pg.querySelector('.story-art'))return;const old=pg.querySelector('.story-scene');if(old)old.remove();pg.classList.add('has-story-art');pg.insertAdjacentHTML('afterbegin',art);}catch(e){}}
+function after(talk,STEPS,TUT){try{pending=null;if(!doneS||(TUT&&!doneT))index(STEPS,TUT);const n=artFor(talk);if(n==null)return;
+  const pg=document.querySelector('#modal .page.talk');if(!pg||pg.querySelector('.story-art'))return;const art=panelSvg(n);if(!art){pending={talk,STEPS,TUT,page:pg};return;}const old=pg.querySelector('.story-scene');if(old)old.remove();pg.classList.add('has-story-art');pg.insertAdjacentHTML('afterbegin',art);}catch(e){}}
 window.TTCStory={after,panelSvg,CAP,STEPART};
 })();
