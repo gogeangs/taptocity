@@ -4,7 +4,7 @@
 // Until an atlas has loaded (or if it is missing), talks render exactly as before.
 (function(){
 // Turn on once story-1..3.webp are in assets/illustrated (until then no requests are made, so no 404s).
-const ENABLED=false;
+const ENABLED=true;
 const base='assets/illustrated/',files=['story-1.webp','story-2.webp','story-3.webp'],img={};
 if(ENABLED)for(const f of files){const i=new Image();i.decoding='async';i.src=base+f+'?v=1';img[f]=i;}
 const ok=f=>{const i=img[f];return!!(i&&i.complete&&i.naturalWidth>0);};
