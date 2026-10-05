@@ -62,7 +62,7 @@
 @media (prefers-reduced-motion:reduce){#endcard,#endcard .ec-t,#endcard .ec-go{transition:none}}
 
 /* close button: the design sheet makes it 44px, so center the ✕ by grid instead of a fixed line-height */
-.mx,.page .mx{display:grid!important;place-items:center!important;line-height:1!important;width:44px!important;height:44px!important;margin:-14px -12px 0 8px!important}
+.mx,.page .mx{display:grid!important;place-items:center!important;line-height:1!important;width:44px!important;height:44px!important;margin:-14px -12px 0 8px!important;font-size:26px!important;font-weight:400!important}
 
 /* the mission bar's goal is plain text; the design sheet's boxed .goal is for the talk card's 할 일 box only */
 .tape .m .goal{display:inline!important;background:none!important;border:0!important;border-radius:0!important;padding:0!important;margin:0!important;font:inherit!important;color:inherit!important}
