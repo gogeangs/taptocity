@@ -1261,7 +1261,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 </div>
 
 <script src="chapter-design.js?v=20261001-cohesion"></script>
-<script src="settlement.js?v=20261001-props-pets"></script>
+<script src="settlement.js?v=20261006-petcache"></script>
 <script src="people.js?v=20261001-people"></script>
 <script src="design.js?v=20261006-modh"></script>
 <script>
@@ -5403,6 +5403,7 @@ function hud(){renderMats();renderClock();renderDefBar();tickDusk();canvasLabel(
   if(sheetTab==='shelter'){const now=JSON.stringify(S.m);if(now!==hud.lastM){hud.lastM=now;renderSheet();}}
   renderMission();tickStory();tickNav();}
 function frontierNearest(){let best=-1,bd=1e9;for(let i=0;i<N;i++)if(isFrontier(i)){const d=dist(i)+speck[i]*1.5;if(d<bd){bd=d;best=i;}}return best;}
+let lastDraw=0;
 function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;
   tickProd(dt);tickBuff(dt);tickClock(dt);tickDefense(dt);tickLife(dt);tickShadow(dt);tickKidWalk(dt);tickEvents(dt);tickSkills(dt);
   idle+=dt;if(fever>0){fever=Math.max(0,fever-dt);}else if(idle>.7&&combo>0)combo=Math.max(0,combo-dt*10);
@@ -5413,7 +5414,8 @@ function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;
   for(const p of parts){p.x+=p.vx;p.y+=p.vy;if(!p.text&&!p.smoke&&!p.ring&&!p.puff)p.vy+=.06;p.life-=dt;}parts=parts.filter(p=>p.life>0);if(parts.length>400)parts.splice(0,parts.length-400);
   for(const g of glows)g.life-=dt;glows=glows.filter(g=>g.life>0);
   for(const[k,v]of flash){const n=v-dt*2;if(n<=0)flash.delete(k);else flash.set(k,n);}
-  draw(now);placeRing();renderLamp();updateGuide();
+  const busyF=ptrs.size||DEFN||UG||fever>0||parts.length||anims.size||camTw||flash.size||glows.length||(now-lastBtn<1500);
+  if(busyF||now-lastDraw>=31){lastDraw=now;draw(now);}placeRing();renderLamp();updateGuide();
   uiT+=dt;if(uiT>.25){uiT=0;hud();}
   saveT+=dt;if(saveT>5){saveT=0;save();}
   requestAnimationFrame(loop);}

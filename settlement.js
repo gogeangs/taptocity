@@ -17,11 +17,13 @@ const petFrames=[[16,44,353,329],[408,37,302,332],[735,112,340,258],[1115,15,321
 // Neck-band endpoints in each animal's local image coordinates; not baked into art.
 const collars=[[.66,.40,.77,.50],[.72,.43,.86,.5],[.66,.4,.79,.47],[.65,.40,.82,.45],[.67,.65,.75,.86],[.66,.47,.83,.52],[.79,.54,.83,.67],[.39,.57,.67,.57],[.63,.49,.82,.54],[.66,.42,.79,.50],[.68,.53,.87,.54]];
 function petMetric(k){const n=keys.indexOf(k);if(n<0||!ready('companions.webp'))return null;const f=petFrames[n],size=k==='hog'||k==='turtle'?18:k==='goat'?25:23,w=Math.min(size,size*f[2]/f[3]);return{n,f,w,h:w*f[3]/f[2]};}
+const petCache=new Map();
+function petSmall(n,f,w,h){let c=petCache.get(n);if(c)return c;const sc=3;c=document.createElement('canvas');c.width=Math.ceil(w*sc);c.height=Math.ceil(h*sc);c.getContext('2d').drawImage(images['companions.webp'],...f,0,0,c.width,c.height);petCache.set(n,c);return c;}
 function pet(g,k,t,moving,col,night,reduced){const a=petMetric(k);if(!a)return false;const{n,f,w,h}=a;
  const phase=t/(k==='turtle'?300:120),bob=moving&&!reduced?Math.abs(Math.sin(phase))*(k==='crow'||k==='owl'?1.8:.75):0;
  g.save();g.translate(0,-bob);if(moving&&!reduced)g.rotate(Math.sin(phase)*.035);
  if(k==='fox'&&night){const r=g.createRadialGradient(0,-h/2,1,0,-h/2,17);r.addColorStop(0,'rgba(208,224,248,.3)');r.addColorStop(1,'rgba(208,224,248,0)');g.fillStyle=r;g.fillRect(-17,-h-8,34,h+16);}
- g.drawImage(images['companions.webp'],...f,-w/2,-h,w,h);
+ g.drawImage(petSmall(n,f,w,h),-w/2,-h,w,h);
  const c=collars[n];g.strokeStyle=col;g.lineWidth=1.1;g.lineCap='round';g.beginPath();g.moveTo((c[0]-.5)*w,(c[1]-1)*h);g.lineTo((c[2]-.5)*w,(c[3]-1)*h);g.stroke();
  g.restore();return true;
 }
