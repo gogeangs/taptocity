@@ -1377,6 +1377,14 @@ function sfx(k){const a=ac();if(!a)return;const now=a.currentTime;if(lastS[k]&&n
     [[1,1],[2.003,.38],[3.008,.12],[4.02,.05]].forEach(([m,v])=>{const o=a.createOscillator(),og=a.createGain();o.frequency.value=f*m;og.gain.value=v;o.connect(og);og.connect(lp);o.start(now+t0);o.stop(now+t0+len+.05);});};
   // small bell: inharmonic partials, quick strike, long shimmer
   const bell=(n,t0,vol,len)=>{const f=hz(n);[[1,1],[2.76,.35],[5.4,.12],[8.93,.05]].forEach(([m,v])=>tone(f*m,t0,len*(1.2-m*.08),'sine',vol*v));};
+  // mechanical click: contact burst → narrow metal/plastic resonances, a second smaller click when the catch seats (딸-깍)
+  const clk=(t0,vol,res,dry)=>{const len=Math.floor(a.sampleRate*.006),b=a.createBuffer(1,len,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3);
+    const s=a.createBufferSource();s.buffer=b;const hp=a.createBiquadFilter();hp.type='highpass';hp.frequency.value=700;s.connect(hp);
+    const dg=a.createGain();dg.gain.value=dry*vol;hp.connect(dg);dg.connect(out);
+    for(const[f,q,gn]of res){const bp=a.createBiquadFilter(),g=a.createGain();bp.type='bandpass';bp.frequency.value=f*(1+(Math.random()-.5)*.03);bp.Q.value=q;g.gain.value=gn*vol;hp.connect(bp);bp.connect(g);g.connect(out);}
+    s.start(now+t0);};
+  const LATCH=[[1350,14,3.2],[3150,26,4.2],[5200,30,2.6],[7900,22,1.2]],DETENT=[[2300,10,1.6],[4100,14,1]];
+  if(k==='click'){clk(0,.55,LATCH,.35);clk(.036+Math.random()*.008,.3,LATCH.map(([f,q,g])=>[f*1.06,q,g]),.25);tone(170,0,.03,'sine',.05,90);return;}
   if(k==='tap'){noise(0,.07,.32,520+Math.random()*180,.9,'lowpass');tone(120+Math.random()*30,0,.1,'sine',.2,62);}                 // soft wooden knock
   else if(k==='hit'){noise(0,.06,.26,900+Math.random()*300,1.2);tone(210+Math.random()*60,0,.08,'triangle',.06,120);}            // muffled crunch of ash and rubble
   else if(k==='get'){if(now-getT>1.6)getI=0;getT=now;const n=PENTA[Math.min(PENTA.length-1,getI++)];bell(n,0,.07,.5);}        // pickups climb a pentatonic run, then rest
@@ -1389,7 +1397,7 @@ function sfx(k){const a=ac();if(!a)return;const now=a.currentTime;if(lastS[k]&&n
   else if(k==='lit'){[48,55,60,64,67,71,76].forEach((n,i)=>pno(n,i*.16,.45+i*.07,4));bell(88,1.1,.05,3);bell(91,1.3,.035,3);}      // the tower lights
   else if(k==='mystery'){pno(52,0,.5,3);pno(53,.02,.35,3);bell(76,.5,.025,2.2);}                                                    // a case, a shadow, 3 a.m.
   else if(k==='static'){                                                                                                               // turning an old radio dial: clicks, a drifting band of air, a passing whistle, then a station
-    for(let i=0;i<5;i++)noise(i*.07,.012,.09,2800,3);
+    for(let i=0;i<5;i++)clk(i*.065+Math.random()*.01,.22+Math.random()*.08,DETENT,.4);
     const n=Math.floor(a.sampleRate*1.1),b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);let lp=0;for(let i=0;i<n;i++){lp+=.35*((Math.random()*2-1)-lp);d[i]=lp;}
     const s=a.createBufferSource(),bp=a.createBiquadFilter(),g=a.createGain(),trem=a.createOscillator(),tg=a.createGain();s.buffer=b;bp.type='bandpass';bp.Q.value=2.2;
     bp.frequency.setValueAtTime(700,now);bp.frequency.exponentialRampToValueAtTime(2000,now+.45);bp.frequency.exponentialRampToValueAtTime(1000,now+.9);
@@ -5161,7 +5169,7 @@ function tickOdd(){if(!oddOn())return;const n=isNight(),nc=S.nightCount||0;
     oddPlan=!DEFN&&air?{k:oddPick(),done:0}:null;}
   if(n&&oddPlan&&!oddPlan.done&&phase()>=ODD_AT&&!DEFN){oddPlan.done=1;S.oddLast=oddPlan.k;runOdd(oddPlan.k);}
   if(!n&&oddDawn){const f=oddDawn;oddDawn=null;setTimeout(f,2600);}}
-function runOdd(k){oddUntil=performance.now()+9000;sfx('tap');if(window.TTCMusic)TTCMusic.blackout();
+function runOdd(k){oddUntil=performance.now()+9000;sfx('click');if(window.TTCMusic)TTCMusic.blackout();
   if(k==='shadow'){const from=modTile(7)>=0?modTile(7):C0,e=edgeTiles();const to=e.length?e[(Math.random()*e.length)|0]:C0;const[ax,ay]=tileC(from,0),[bx,by]=tileC(to,0);
     SHD={ax:ax+14,ay:ay+6,bx,by,t:0,dur:14,got:false};if(Math.random()<.5)oddDawn=()=>{noteFirst({h:'아침 · 장갑 한 짝',t:'<small>내 잠자리 근처에 그을음 묻은 장갑 한 짝이 떨어져 있었다. 내 것이던가?</small>',kind:'story',ms:5500});oddLog('shadow','아침, 내 잠자리 근처에 그을음 묻은 장갑 한 짝이 떨어져 있었다.');};noteFirst({h:'새벽 3시 · 수상한 그림자',t:'<small>쉘터 쪽에서 누군가 움직여요. 눌러서 쫓아가 봐요</small>',kind:'story',ms:5500});return;}
   if(k==='radio'){pingEl($('radio'));noteFirst({h:'새벽 3시 · 라디오',t:'<small>꺼 둔 라디오에서 잡음이 새어 나왔어요. “…여기는…” 딸깍. 그리고 조용해졌어요.</small>',kind:'story',ms:5500});oddLog(k,'꺼 둔 라디오에서 잡음이 새어 나왔다. “…여기는…” 딸깍, 하는 소리와 함께 끊겼다.');return;}
@@ -5449,6 +5457,6 @@ if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.r
 })();
 </script>
 <script src="story-art.js?v=20261005a"></script>
-<script src="music.js?v=20261005d"></script>
+<script src="music.js?v=20261005e"></script>
 </body>
 </html>

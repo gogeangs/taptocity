@@ -83,8 +83,7 @@ window.TTCMusic={
   duck(on){const d=on?.5:1;if(d===duck)return;duck=d;if(A&&started)apply();},
   enable(on){enabled=!!on;if(enabled&&want!=='off')start();else if(A)apply();},
   // '딸깍', then the score cuts to black for a breath and comes back
-  blackout(sec=2.6){if(!A||!started||!enabled)return;const t=A.currentTime,c=A.createOscillator(),g=A.createGain(),f=A.createBiquadFilter();
-    c.type='square';c.frequency.value=1900;f.type='bandpass';f.frequency.value=2400;f.Q.value=2;g.gain.setValueAtTime(.18,t);g.gain.exponentialRampToValueAtTime(.0001,t+.025);c.connect(f);f.connect(g);g.connect(A.destination);c.start(t);c.stop(t+.04);
+  blackout(sec=2.6){if(!A||!started||!enabled)return;
     black=1;apply();setTimeout(()=>{black=0;apply();},sec*1000);},
   level(){if(!an)return 0;const d=new Float32Array(an.fftSize);an.getFloatTimeDomainData(d);let x=0,pk=0;for(const v of d){x+=v*v;pk=Math.max(pk,Math.abs(v));}this.peak=Math.max(this.peak||0,pk);return Math.sqrt(x/d.length);},
   get state(){return{want,cur,started,enabled,ctx:A&&A.state};}};
