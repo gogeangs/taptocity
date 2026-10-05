@@ -1359,7 +1359,9 @@ const SET=(()=>{const d={snd:true,mus:true,vib:true,calm:false,big:false};try{re
 function applySettings(){document.body.classList.toggle('big',!!SET.big);document.body.classList.toggle('calm',!!SET.calm);try{reduce=matchMedia('(prefers-reduced-motion: reduce)').matches||!!SET.calm;}catch(e){}}
 function toggleSet(k){SET[k]=!SET[k];try{localStorage.setItem(SETKEY,JSON.stringify(SET));}catch(e){}applySettings();if(k==='snd'&&SET.snd)sfx('chime');if(k==='mus'&&window.TTCMusic){musicTick();TTCMusic.enable(!!SET.mus);}if(k==='vib'&&SET.vib)buzz();renderSheet();}
 let AC=null;const lastS={};
-function ac(){if(!SET.snd)return null;try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){return null;}return AC;}
+function ac(){if(!SET.snd)return null;try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume();}catch(e){return null;}return AC;}
+['pointerdown','touchend','keydown'].forEach(ev=>window.addEventListener(ev,()=>{try{if(AC&&AC.state!=='running')AC.resume();}catch(e){}},{capture:true,passive:true}));
+document.addEventListener('visibilitychange',()=>{try{if(!document.hidden&&AC&&AC.state!=='running')AC.resume();}catch(e){}});
 // Effects share the score's palette: felt piano, small bells, soft wood and cloth. A small room (made once) keeps them in the same space.
 let FXR=null;function fxRoom(a){if(FXR)return FXR;const c=a.createConvolver(),len=Math.floor(a.sampleRate*1.4),ir=a.createBuffer(2,len,a.sampleRate);
   for(let ch=0;ch<2;ch++){const d=ir.getChannelData(ch);let lp=0;for(let i=0;i<len;i++){lp+=.25*((Math.random()*2-1)-lp);d[i]=lp*Math.exp(-4*i/len);}}c.buffer=ir;const g=a.createGain();g.gain.value=.5;c.connect(g);g.connect(a.destination);return FXR=c;}
@@ -5516,6 +5518,6 @@ if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.r
 })();
 </script>
 <script src="story-art.js?v=20261005e"></script>
-<script src="music.js?v=20261005f"></script>
+<script src="music.js?v=20261006a"></script>
 </body>
 </html>

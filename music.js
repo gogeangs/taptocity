@@ -75,9 +75,11 @@ function setLayers(){const m=M[cur],quiet=!enabled||cur==='off'||!m,t=A.currentT
   for(const x in lv)L[x].gain.setTargetAtTime(lv[x]*k,t,r);}
 function apply(){if(!A)return;if(want!==cur){cur=want;bar=0;songI=0;nextBar=A.currentTime+.2;}
   master.gain.setTargetAtTime(enabled&&cur!=='off'?.85:0,A.currentTime,.8);setLayers();}
-function start(){if(!enabled)return;if(!ctx())return;if(A.state==='suspended')A.resume();if(!started){started=true;timer=setInterval(tick,120);}apply();}
+function start(){if(!enabled)return;if(!ctx())return;if(A.state!=='running')A.resume();if(!started){started=true;timer=setInterval(tick,120);}apply();}
 ['pointerdown','keydown','touchend'].forEach(ev=>window.addEventListener(ev,()=>{if(enabled&&want!=='off')start();},{passive:true,capture:true}));
 document.addEventListener('visibilitychange',()=>{if(!A)return;if(document.hidden)A.suspend();else if(enabled&&started)A.resume();});
+// a wake from an interruption restarts the bar clock so the score resumes at once instead of after a silent gap
+['pointerdown','touchend','keydown'].forEach(ev=>window.addEventListener(ev,()=>{if(A&&started&&enabled&&A.state!=='running'){A.resume().then(()=>{nextBar=A.currentTime+.1;apply();}).catch(()=>{});}},{passive:true,capture:true}));
 window.TTCMusic={
   mood(m){if(m===want)return;want=m;if(A&&started)apply();},
   duck(on){const d=on?.5:1;if(d===duck)return;duck=d;if(A&&started)apply();},
