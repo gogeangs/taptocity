@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261005a">
+<link rel="stylesheet" href="qa.css?v=20261005e">
 <div id="app">
   <header>
     <div class="hud">
@@ -1986,9 +1986,10 @@ function renderTalk(first){const{lines,k,opt}=talk,[w,t]=lines[k],sp=speaker(w,l
   const rw=last&&opt.reward&&Object.keys(opt.reward).length?`<div class="fx">보상 · ${lootTxt(opt.reward)}</div>`:'';
   const goal=last&&opt.goal?`<div class="goal"><b>할 일</b> ${opt.goal}</div>`:'';
   const h=`<div class="page talk${card?' chapter-opening':''}">${card&&window.TTCFinal?TTCFinal.scene(opt.scene||'shelter','story-scene'):''}${card}${!card&&opt.tag?`<div class="tag">${opt.tag}</div>`:''}<div class="who"><span class="av${sp.me?' me':''}">${sp.av}</span><div><b>${sp.name}</b><small>${sp.sub}</small></div></div><p>${t}</p>${rw}${goal}
-    <div class="talk-progress" role="progressbar" aria-label="대사 진행" aria-valuemin="0" aria-valuemax="${lines.length}" aria-valuenow="${k+1}"><i style="width:${(k+1)/lines.length*100}%"></i></div><div class="tfoot"><span>${lines.length>1?`${k+1} / ${lines.length}`:''}</span>${!last&&lines.length>2?'<button class="alt skip" data-act="talkskip">건너뛰기</button>':''}<button data-act="talk">${last?(opt.goal?'해 보자':'계속'):'다음'}</button></div></div>`;
+    <div class="talk-progress" role="progressbar" aria-label="대사 진행" aria-valuemin="0" aria-valuemax="${lines.length}" aria-valuenow="${k+1}"><i style="width:${(k+1)/lines.length*100}%"></i></div><div class="tfoot"><span>${lines.length>1?`${k+1} / ${lines.length}`:''}</span>${!last&&lines.length>2&&!opt.noskip?'<button class="alt skip" data-act="talkskip">건너뛰기</button>':''}<button data-act="talk">${last?(opt.goal?'해 보자':'계속'):'다음'}</button></div></div>`;
   if(first)openModal(h);else{modal.innerHTML=h;const b=modal.querySelector('[data-act="talk"]');b&&b.focus({preventScroll:true});}
-  if(window.TTCStory){let tu=null;try{tu=TUT;}catch(e){}const n=TTCStory.after(talk,STEPS,tu);if(n!=null&&!opt.replay){S.art=S.art||{};if(!S.art[n]){S.art[n]=1;S.artNew=1;save();}}}}
+  if(window.TTCStory){let tu=null;try{tu=TUT;}catch(e){}const n=TTCStory.after(talk,STEPS,tu);if(n!=null&&!opt.replay){S.art=S.art||{};if(!S.art[n]){S.art[n]=1;S.artNew=1;save();}}}
+  if(opt.onLine)try{opt.onLine(t,k);}catch(e){}}
 const QUICK_STEPS=['텃밭 상자 만들기','생존자를 모듈에 배치하기','생존자 스킬 한 번 쓰기','방벽 세우기','랜턴 피버 한 번 켜기','생존자의 부탁 들어주기','생존자에게 장비 하나 맞춰 주기'];
 const isQuick=st=>!S.gen&&QUICK_STEPS.includes(st.goal)&&!st.first;
 function introStep(i){const st=STEPS[i];if(!st)return;const c=STORY[st.ci];
@@ -5133,8 +5134,27 @@ function tickEunho(){if(svIn(10))return false;const st=mission().step,ji=STEP_I(
   if((st&&st.goal==='목소리의 주인 맞이하기')||(S.mi>ji&&ji>=0)){rescue(10,'visit');return true;}return false;}
 
 function tickEnding(){if(S.gen||!S.endSeen||S.ehEnd||S.mi<STEPS.length||!svIn(10))return false;S.ehEnd=1;save();
-  openTalk(END_LINES,{tag:'그날 밤'});return true;}
-const END_LINES=[[ME,'그날 밤에도 심야 방송이 흘렀다.'],[10,'여기는 심야 방송 한밤. 오늘 탑에 불을 켠 모든 분께, 마지막 곡 보내 드립니다.'],[ME,'노래가 끝나고도 방송은 꺼지지 않았다. 한참 동안, 잡음만 흘렀다.'],[ME,'잠들기 전 사건 수첩을 펼쳤다. 마지막 장에 내 글씨로 적혀 있었다. “다음은 탑.”'],[ME,'언제 썼는지, 기억나지 않는다.']];
+  playEnding(false);return true;}
+// 시즌 1 엔딩 '다시, 03:11': the tutorial's night, mirrored. Same song, the same cut at 03:11, the latch click, silence,
+// then the far light blinks 3·1·1. Nobody explains any of it. Then the season card and one line of radio.
+const END_LINES=[[ME,'그날 밤에도 심야 방송이 흘렀다.'],[10,'여기는 심야 방송 한밤. 오늘 탑에 불을 켠 모든 분께, 마지막 곡 보내 드립니다.'],[ME,'어디서 들어 본 노래였다. 언제였는지는 떠오르지 않았다.'],
+  [ME,'03:11. 노래가 뚝 끊겼다.'],[ME,'딸깍.'],[ME,'라디오는 잡음조차 없이 조용했다. 꼭 누가 스위치를 내린 것처럼.'],[10,'…죄송합니다. 송출이 잠깐 끊겼네요.'],[ME,'노래는 다시 이어지지 않았다. 한참 동안, 잡음만 흘렀다.'],
+  [ME,'잠들기 전 사건 수첩을 펼쳤다. 마지막 장에 내 글씨로 적혀 있었다. “다음은 탑.”'],[ME,'언제 썼는지, 기억나지 않는다.'],
+  [ME,'창밖, 탑 불빛 너머로 그 먼 불빛이 다시 깜빡였다.'],[ME,'셋. 하나. 하나.'],[ME,'바람에 흔들리는 거겠지. 랜턴을 끄고 누웠다.']];
+let endFx=null;
+function endingLine(t){const a=window.TTCMusic;
+  if(t==='03:11. 노래가 뚝 끊겼다.'){endFx={mood:'off'};if(a){a.blackout(4);a.mood('off');}}
+  else if(t==='딸깍.')setTimeout(()=>sfx('click'),350);
+  else if(t.startsWith('노래는 다시 이어지지'))sfx('static');
+  else if(t==='셋. 하나. 하나.')[0,260,520,1500,2400].forEach(d=>setTimeout(()=>sfx('ui'),d));}
+function playEnding(){openTalk(END_LINES,{tag:'그날 밤',noskip:1,onLine:endingLine,after:endCard});endFx={mood:'air'};musicTick();}
+function endCard(){const d=document.createElement('div');d.id='endcard';d.setAttribute('role','dialog');d.setAttribute('aria-label','시즌 1 끝');
+  d.innerHTML='<div class="ec-t"><small>탭투시티</small><b>시즌 1 끝</b></div><p class="ec-r" aria-live="polite"></p><button class="ec-go" data-act="ecgo">계속하기</button>';document.body.appendChild(d);
+  endFx={mood:'off'};musicTick();requestAnimationFrame(()=>d.classList.add('on'));
+  setTimeout(()=>d.classList.add('t'),3200);
+  setTimeout(()=>{sfx('static');const r=d.querySelector('.ec-r'),txt='…대피 방송은 —';let i=0;const iv=setInterval(()=>{r.textContent=txt.slice(0,++i);if(i>=txt.length){clearInterval(iv);setTimeout(()=>d.classList.add('cut'),900);}},110);},6400);
+  setTimeout(()=>d.classList.add('go'),9000);
+  d.addEventListener('click',e=>{if(!e.target.closest('[data-act="ecgo"]')||!d.classList.contains('go'))return;d.classList.remove('on');endFx=null;musicTick();setTimeout(()=>d.remove(),900);});}
 
 // ================= 회상 갤러리: every story scene the player has seen, with its lines, from the diary =================
 // Unlocks as scenes are shown; older saves are credited from their story progress. Replays never change progress.
@@ -5160,10 +5180,12 @@ function openScene(n){const T=window.TTCStory,src=sceneSource(n);if(!T)return;
 $('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="scene"]');if(!b)return;e.stopPropagation();openScene(+b.dataset.arg);},true);
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="scenereplay"],[data-act="scenex"]');if(!b)return;e.stopPropagation();
   if(b.dataset.act==='scenex'){closeModal();return;}const n=+b.dataset.arg,src=sceneSource(n);if(!src)return;closeModal();
-  openTalk(src.lines,{tag:'회상 · '+src.tag,replay:1,after:()=>{if(sheetTab==='diary')openScene(n);}});},true);
+  const E=src.lines===END_LINES;
+  openTalk(src.lines,{tag:'회상 · '+src.tag,replay:1,noskip:E||undefined,onLine:E?endingLine:undefined,after:()=>{if(E){endFx=null;musicTick();}if(sheetTab==='diary')openScene(n);}});if(E){endFx={mood:'air'};musicTick();}},true);
 
 // ---- 배경 음악: pick the score's mood from what is happening ----
 function musicMood(){if(!SET.mus)return'off';
+  if(endFx){if(talk||document.getElementById('endcard'))return endFx.mood;endFx=null;}
   if(S.tut){const U=S.tut;if(U.i<2)return'tut';if(U.i===2)return U.radio?'off':'air';return'storm';} // 그날 밤: the song on the radio, three silent minutes, then the flash
   if(typeof UG!=='undefined'&&UG)return'under';if(DEFN)return'storm';
   if(isNight())return S.airTonight===(S.nightCount||0)&&svIn(10)?'air':'night';return'day';}
@@ -5475,7 +5497,7 @@ if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.r
   d.querySelector('.x').onclick=()=>d.remove();const g=d.querySelector('.go');if(g)g.onclick=async()=>{d.remove();if(dp){dp.prompt();try{await dp.userChoice;}catch(e){}dp=null;}};},25000);
 })();
 </script>
-<script src="story-art.js?v=20261005a"></script>
+<script src="story-art.js?v=20261005e"></script>
 <script src="music.js?v=20261005e"></script>
 </body>
 </html>

@@ -23,7 +23,9 @@ function index(STEPS,TUT){
   Object.assign(TALK,{'라디오에서는 심야 방송이 흐르고 있었다. 누군가 신청한 옛 노래.':2,'재는 밤새 그치지 않았다.':3,'그날 밤에도 심야 방송이 흘렀다.':22});
   // single lines that deserve their own picture inside a longer talk
   Object.assign(LINE,{'03:11. 노래가 뚝 끊겼다.':2,'번쩍. 발전소 쪽 하늘이 하얗게 타올랐다.':3,
-    '잠들기 전 사건 수첩을 펼쳤다. 마지막 장에 내 글씨로 적혀 있었다. “다음은 탑.”':21,'언제 썼는지, 기억나지 않는다.':21});
+    '잠들기 전 사건 수첩을 펼쳤다. 마지막 장에 내 글씨로 적혀 있었다. “다음은 탑.”':21,'언제 썼는지, 기억나지 않는다.':21,
+    '딸깍.':2,'라디오는 잡음조차 없이 조용했다. 꼭 누가 스위치를 내린 것처럼.':2,
+    '창밖, 탑 불빛 너머로 그 먼 불빛이 다시 깜빡였다.':23,'셋. 하나. 하나.':23,'바람에 흔들리는 거겠지. 랜턴을 끄고 누웠다.':23});
 }
 function panelSvg(n){const f=files[Math.floor(n/9)];if(!ok(f))return'';const i=img[f],c=n%9,w=i.naturalWidth/3,h=i.naturalHeight/3,x=(c%3)*w,y=Math.floor(c/3)*h,e=2;
   return`<div class="story-art"><svg viewBox="${x+e} ${y+e} ${w-2*e} ${h-2*e}" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${CAP[n]}"><image href="${base}${f}?v=1" width="${i.naturalWidth}" height="${i.naturalHeight}"/></svg></div>`;}
