@@ -84,3 +84,5 @@
 
 /* the module info card's max-height includes its padding, so it never spills over the ring buttons */
 #ringLabel.rl{box-sizing:border-box!important}
+/* the module card stays above passing notes while it is open */
+#ringLabel.rl{z-index:7!important}
