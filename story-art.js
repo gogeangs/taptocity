@@ -30,7 +30,13 @@ function panelSvg(n){const f=files[Math.floor(n/9)];if(!ok(f))return'';const i=i
 function artFor(talk){if(!talk||!talk.lines)return null;const t=talk.lines[talk.k]&&talk.lines[talk.k][1];if(t!=null&&LINE[t]!=null)return LINE[t];
   if(talk.art==null){talk.art=-1;for(const l of talk.lines){if(TALK[l[1]]!=null){talk.art=TALK[l[1]];break;}}}return talk.art>=0?talk.art:null;}
 // called by the game's renderTalk right after the talk page is on screen
-function after(talk,STEPS,TUT){try{pending=null;if(!doneS||(TUT&&!doneT))index(STEPS,TUT);const n=artFor(talk);if(n==null)return;
-  const pg=document.querySelector('#modal .page.talk');if(!pg||pg.querySelector('.story-art'))return;const art=panelSvg(n);if(!art){pending={talk,STEPS,TUT,page:pg};return;}const old=pg.querySelector('.story-scene');if(old)old.remove();pg.classList.add('has-story-art');pg.insertAdjacentHTML('afterbegin',art);}catch(e){}}
-window.TTCStory={after,panelSvg,CAP,STEPART};
+function after(talk,STEPS,TUT){try{pending=null;if(!doneS||(TUT&&!doneT))index(STEPS,TUT);const n=artFor(talk);if(n==null)return null;
+  const pg=document.querySelector('#modal .page.talk');if(!pg||pg.querySelector('.story-art'))return n;const art=panelSvg(n);if(!art){pending={talk,STEPS,TUT,page:pg};return n;}const old=pg.querySelector('.story-scene');if(old)old.remove();pg.classList.add('has-story-art');pg.insertAdjacentHTML('afterbegin',art);return n;}catch(e){return null;}}
+// gallery thumbnails: the bare svg crop (empty string until the atlas has loaded)
+function thumb(n){const f=files[Math.floor(n/9)];if(!ok(f))return'';const i=img[f],c=n%9,w=i.naturalWidth/3,h=i.naturalHeight/3,x=(c%3)*w,y=Math.floor(c/3)*h,e=2;
+  return`<svg viewBox="${x+e} ${y+e} ${w-2*e} ${h-2*e}" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><image href="${base}${f}?v=1" width="${i.naturalWidth}" height="${i.naturalHeight}"/></svg>`;}
+const whenReady=cb=>{let left=0;for(const f of files){const i=img[f];if(i&&!ok(f)){left++;i.addEventListener('load',()=>{if(--left===0)cb();},{once:true});}}return left===0;};
+// story order (the casebook page belongs to the ending)
+const ORDER=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,22,23,24,25,26,21];
+window.TTCStory={after,panelSvg,thumb,whenReady,CAP,STEPART,ORDER};
 })();

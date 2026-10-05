@@ -32,3 +32,18 @@
 /* sheet sub-tabs: nothing scrolls into view above the sticky bar */
 #shBody .segs{top:-14px!important}
 #shBody .segs::before{content:"";position:absolute;left:-30px;right:-30px;top:-16px;height:16px;background:#e7e4dc;pointer-events:none}
+/* 회상 갤러리 */
+.scene-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding-bottom:12px}
+.scene-cell{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:5px;min-width:0}
+.scene-cell svg{display:block;width:100%;aspect-ratio:3/2;border-radius:8px;background:#35404a;box-shadow:0 2px 6px rgba(23,29,36,.18)}
+.scene-cell span{font:600 12px/1.35 var(--body);color:#26333b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.scene-cell:focus-visible svg{outline:3px solid #dfa54b;outline-offset:2px}
+.scene-cell:active svg{transform:scale(.98)}
+.scene-cell.locked{cursor:default}
+.scene-cell.locked b{display:grid;place-items:center;width:100%;aspect-ratio:3/2;border-radius:8px;background:repeating-linear-gradient(135deg,#d9d3c4 0 8px,#e2dccd 8px 16px);color:#8a8f8c;font:700 18px var(--serif)}
+.scene-cell.locked span{color:#7d8789;font-weight:500}
+@media (min-width:560px){.scene-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.page.scene-view .story-art{margin:-2px -2px 12px;border-radius:10px;overflow:hidden;aspect-ratio:3/2;max-height:40vh;background:#35404a}
+.page.scene-view .story-art svg{display:block;width:100%;height:100%}
+.page.scene-view h3{margin:2px 0 12px}
+.page.scene-view .ch{display:flex;flex-direction:column;gap:8px}
