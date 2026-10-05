@@ -97,3 +97,7 @@
 /* tap gauge: a bright cream arc instead of amber-on-amber, thicker, with a dark edge so it reads on both the button and the dark circle */
 #lampRing{stroke:#fff3c4!important;stroke-width:5.5!important;filter:drop-shadow(0 0 1.5px rgba(40,28,10,.9));transition:stroke-dashoffset .12s linear}
 #lamp.fever #lampRing{stroke:#ffd060!important;filter:drop-shadow(0 0 4px rgba(255,200,80,.95))}
+
+/* collar colour swatches keep their colour (the page-wide button colour had painted them all teal) */
+.page .pcols .pcol{background:var(--c)!important;width:30px!important;height:30px!important;min-height:0!important;padding:0!important;border:2px solid rgba(59,42,26,.35)!important;border-radius:50%!important;display:block!important}
+.page .pcols .pcol.on{outline:3px solid #3b2a1a;outline-offset:2px}

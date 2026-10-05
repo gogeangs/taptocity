@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261006h">
+<link rel="stylesheet" href="qa.css?v=20261006i">
 <div id="app">
   <header>
     <div class="hud">
@@ -4352,7 +4352,7 @@ function openPetName(k,first){const P=PETS[k],p=pets()[k];
   openModal(`<div class="page petp"><div class="tag">${first?(P.hidden?'히든 펫을 만났어요!':'새 식구'):'이름 바꾸기'} · ${P.n}</div><div class="petimg"><img src="${petImg(k,p.c,120)}" alt=""></div>
     ${first?`<p class="d" style="text-align:center">${petStory(k,P.story[0])}</p>`:''}
     <input id="petIn" class="pfin" maxlength="8" placeholder="${P.def}" value="${(p.n||'').replace(/"/g,'&quot;')}" autocomplete="off">
-    <div class="pcols">${COLLAR.map((c,i)=>`<button class="pcol${(p.c||0)===i?' on':''}" data-act="pcol" data-arg="${k}:${i}" style="background:${c}" aria-label="${COLN[i]} 목걸이"></button>`).join('')}</div>
+    <div class="pcols">${COLLAR.map((c,i)=>`<button class="pcol${(p.c||0)===i?' on':''}" data-act="pcol" data-arg="${k}:${i}" style="--c:${c}" aria-label="${COLN[i]} 목걸이"></button>`).join('')}</div>
     <div class="btns" style="margin-top:12px"><button data-act="pnok" data-arg="${k}">${first?'함께 가자':'바꾸기'}</button></div></div>`,true);}
 
 // ---------- pet page ----------
