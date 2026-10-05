@@ -60,3 +60,6 @@
 #endcard .ec-go{opacity:0;pointer-events:none;transition:opacity 1.2s;background:none;border:1px solid #5a564e;color:#d8d2c4;border-radius:999px;padding:10px 22px;font-size:14px;min-height:44px}
 #endcard.go .ec-go{opacity:1;pointer-events:auto}
 @media (prefers-reduced-motion:reduce){#endcard,#endcard .ec-t,#endcard .ec-go{transition:none}}
+
+/* close button: the design sheet makes it 44px, so center the ✕ by grid instead of a fixed line-height */
+.mx,.page .mx{display:grid!important;place-items:center!important;line-height:1!important;width:44px!important;height:44px!important;margin:-14px -12px 0 8px!important}
