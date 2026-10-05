@@ -2031,7 +2031,7 @@ function updateGuide(){const g=$('guide'),tg=focusTarget();
 // ---------- iso helpers ----------
 const cv=$('cv'),stage=$('stage');let ctx=cv.getContext('2d');
 let cw=0,ch=0,dpr=1,cam={x:0,y:(CX+CY+1)*TH/2,z:1},camTw=null;
-let GX=0,GY=0,ZS=1;
+let GX=0,GY=0,ZS=1;const hintQ=[];
 const P=(u,v,z=0)=>[(GX+u-GY-v)*TW/2,(GX+u+GY+v)*TH/2-z*ZS];
 const tileC=(i,z=0)=>{const x=i%W,y=i/W|0;return[(x-y)*TW/2,(x+y+1)*TH/2-z];};
 function resize(){dpr=Math.min(window.devicePixelRatio||1,2);cw=stage.clientWidth;ch=stage.clientHeight;cv.width=cw*dpr;cv.height=ch*dpr;}
@@ -2207,7 +2207,7 @@ function drawTile(i,time,pulse){const x=i%W,y=i/W|0;GX=x;GY=y;ZS=1;const t=S.ter
   } else {
     poly([Nn,E,Sx,Wn],landscape().void,landscape().void);
     const fr=isFrontier(i),f=flash.get(i)||0;drawFogTile(i,fr,time);
-    if(t>=T.CAR&&t<=T.LM&&hintNear(i))drawHint(i,t,time);
+    if(t===T.LM){if(hintNear(i))hintQ.push(i);}else if(t>=T.CAR&&t<T.LM&&hintNear(i))drawHint(i,t,time);
     if(S.sig[i]!==undefined){const[cx,cy]=P(.5,.5,18),on=reduce||Math.sin(time/170)>-.3&&Math.sin(time/1100)>-.7;
       if(on){ctx.save();ctx.globalCompositeOperation='lighter';const gr=ctx.createLinearGradient(cx,cy,cx,cy-110);gr.addColorStop(0,'rgba(200,230,255,.75)');gr.addColorStop(1,'rgba(200,230,255,0)');ctx.fillStyle=gr;ctx.fillRect(cx-3,cy-110,6,110);ctx.fillStyle='rgba(200,230,255,.18)';ctx.fillRect(cx-9,cy-80,18,80);ctx.restore();glowPts.push([cx,cy,34,'190,220,255',.9]);}
       ctx.fillStyle='#e8f4ff';ctx.beginPath();ctx.arc(cx,cy,2.5,0,7);ctx.fill();}
@@ -2225,6 +2225,7 @@ function draw(time){perfTick(time);
   const tl=toWorld(-80,-40),br=toWorld(cw+80,ch+260);
   for(let s=0;s<=W+H-2;s++){const wy=(s+1)*TH/2;if(wy<tl.y-10||wy>br.y)continue;
     for(let x=Math.max(0,s-H+1);x<=Math.min(W-1,s);x++){const y=s-x,wx=(x-y)*TW/2;if(wx<tl.x-TW||wx>br.x+TW)continue;drawTile(y*W+x,time,pulse);}}
+  for(const i of hintQ){GX=i%W;GY=i/W|0;ZS=1;drawHint(i,T.LM,time);}hintQ.length=0;
   GX=0;GY=0;ZS=1;
   if(sel>=0){const[cx,cy]=tileC(sel);ctx.save();ctx.translate(cx,cy);ctx.strokeStyle=`rgba(255,207,122,${.6+.4*pulse})`;ctx.lineWidth=2.5;ctx.setLineDash([8,6]);ctx.lineDashOffset=-time/40;
     ctx.beginPath();ctx.moveTo(0,-TH/2);ctx.lineTo(TW/2,0);ctx.lineTo(0,TH/2);ctx.lineTo(-TW/2,0);ctx.closePath();ctx.stroke();ctx.restore();}
@@ -2515,8 +2516,12 @@ function tickSurv(){let ch=false;for(const id in S.sv){const r=S.sv[id];if(r.hur
 function openDiary(k){const[t,p]=DIARY[k];openModal(`<div class="page"><div class="tag">목격자의 일기 · ${k+1}/7</div><h3>${t}</h3><p>${p}</p><button>덮기</button></div>`);if(sheetTab==='diary')renderSheet();}
 // ---------- discoveries & landmarks ----------
 function hintNear(i){if(S.hintT>0)return true;const x=i%W,y=i/W|0;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const xx=x+dx,yy=y+dy;if(xx>=0&&yy>=0&&xx<W&&yy<H&&S.rev[yy*W+xx])return true;}return false;}
+const lmSil={};
+function lmSilhouette(k){if(lmSil[k])return lmSil[k];const D=window.TTCDesign;if(!D||!D.landmarkHeight||!D.landmarkHeight(k,false))return null;
+  const W2=180,H2=D.landmarkHeight(k,false)+60,cv=document.createElement('canvas');cv.width=W2;cv.height=H2;const g=cv.getContext('2d');
+  if(!D.landmark(g,()=>[W2/2,H2-16],k,false,1))return null;g.globalCompositeOperation='source-atop';g.fillStyle='rgba(26,21,18,.92)';g.fillRect(0,0,W2,H2);return lmSil[k]=cv;}
 function drawHint(i,t,time){const[cx,cy]=P(.5,.5,22);
-  if(t===T.LM){const k=LMS[S.lm[i].k].key,c='rgba(38,32,27,.95)',hl='rgba(243,165,58,.35)';ctx.fillStyle=c;ctx.strokeStyle=hl;ctx.lineWidth=1.5;ctx.beginPath();
+  if(t===T.LM){const sil=lmSilhouette(S.lm[i].k);if(sil){const[x,y]=P(.5,.5,0);ctx.save();ctx.globalAlpha=.78;ctx.drawImage(sil,x-sil.width/2,y+16-sil.height);ctx.restore();return;}const k=LMS[S.lm[i].k].key,c='rgba(38,32,27,.95)',hl='rgba(243,165,58,.35)';ctx.fillStyle=c;ctx.strokeStyle=hl;ctx.lineWidth=1.5;ctx.beginPath();
     if(k==='tower'){ctx.rect(cx-2,cy-40,4,30);ctx.ellipse(cx,cy-46,14,10,0,0,7);}
     else if(k==='school'){ctx.rect(cx-24,cy-26,48,22);ctx.rect(cx-5,cy-44,10,20);}
     else if(k==='library'){ctx.moveTo(cx-24,cy-4);ctx.lineTo(cx-24,cy-26);ctx.lineTo(cx,cy-38);ctx.lineTo(cx+24,cy-26);ctx.lineTo(cx+24,cy-4);ctx.closePath();}
