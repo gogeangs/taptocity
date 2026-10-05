@@ -93,3 +93,7 @@
 @media (max-width:360px){.tt.note .nb small{-webkit-line-clamp:3}}
 /* chips in a row keep their own height, so a short chip beside a tall cost chip is not stretched with its text at the top */
 .chips{align-items:center!important}.chip{display:inline-flex!important;align-items:center!important}
+
+/* tap gauge: a bright cream arc instead of amber-on-amber, thicker, with a dark edge so it reads on both the button and the dark circle */
+#lampRing{stroke:#fff3c4!important;stroke-width:5.5!important;filter:drop-shadow(0 0 1.5px rgba(40,28,10,.9));transition:stroke-dashoffset .12s linear}
+#lamp.fever #lampRing{stroke:#ffd060!important;filter:drop-shadow(0 0 4px rgba(255,200,80,.95))}
