@@ -66,3 +66,6 @@
 
 /* the mission bar's goal is plain text; the design sheet's boxed .goal is for the talk card's 할 일 box only */
 .tape .m .goal{display:inline!important;background:none!important;border:0!important;border-radius:0!important;padding:0!important;margin:0!important;font:inherit!important;color:inherit!important}
+
+/* story text wraps line by line; Safari's text-wrap:pretty rebalanced whole paragraphs and left the first line short */
+.page.talk p,.page.talk .d,.page.scene-view p,.tt.note .nb,.tt.note small{text-wrap:wrap!important}
