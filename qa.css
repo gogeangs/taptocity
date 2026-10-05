@@ -72,3 +72,6 @@
 
 /* the lantern art is a nested svg; the design sheet's #lamp svg size must not resize it (Safari drew it 56×56 with a sampled edge line on top) */
 #lamp svg.lamp-art{width:46px!important;height:46px!important;overflow:hidden}
+
+/* icons inside buttons sit inline with the label: no dark box, a little air on both sides */
+.page .btns button .mi,.ch button .mi{background:none!important;padding:0!important;border-radius:0!important;vertical-align:-2px!important;margin:0 3px 0 2px}
