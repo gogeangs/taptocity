@@ -2809,8 +2809,9 @@ function claimExp(key,quiet){repairExpeditions(S);const x=S.exp[key];if(!x||Date
 let ghost=false,fadeSet=new Set();
 function bldH(i){if(!S.rev[i])return 0;if(i===C0)return SHELTER[S.lv-1].h;const m=modAtTile(i);if(m)return(window.TTCFinal&&TTCFinal.moduleHeight(m.id,m.l))||(window.TTCDesign&&TTCDesign.moduleHeight&&TTCDesign.moduleHeight(m.id,m.l))||MODS[m.id].h[m.l];if(window.TTCSettlement){const a=TTCSettlement,k=S.deco&&S.deco[i],c=S.camp[i];if(k)return a.height(a.deco[k]);if(c)return a.height(c.hp>0?1:0);if(S.band&&S.band.tile===i)return a.height(0);if(S.ter[i]===T.SILO&&siteLive(i))return a.height(4+siteVar(i,3));}if(S.ter[i]===T.LM){const L=S.lm[i];return L&&window.TTCDesign&&window.TTCDesign.landmarkHeight?window.TTCDesign.landmarkHeight(L.k,L.ok)||44:44;}if(siteLive(i)&&window.TTCDesign&&window.TTCDesign.siteHeight){const h=window.TTCDesign.siteHeight(S.site[i].k,siteVar(i,5));if(h)return h;}return 0;}
 function hitCol(j,wx,wy,h){const[cx,cy]=tileC(j),dx=wx-cx;if(Math.abs(dx)>TW*.44)return false;const sl=Math.abs(dx)*(TH/TW);return wy>=cy-TH/2-h+sl&&wy<=cy+TH/2-sl;}
-function pickVisible(wx,wy){if(!ghost){const g=pickTile(wx,wy),gs=g>=0?(g%W)+((g/W)|0):-1;
-    for(let s=W+H-2;s>gs;s--)for(let x=Math.max(0,s-H+1);x<=Math.min(W-1,s);x++){const j=(s-x)*W+x,h=bldH(j);if(h>=10&&S.rev[j]&&!fadeSet.has(j)&&hitCol(j,wx,wy,h))return j;}}
+function pickVisible(wx,wy){if(!ghost){const g=pickTile(wx,wy),gs=g>=0?(g%W)+((g/W)|0):-1;let best=-1,bd=1e9;
+    for(let s=W+H-2;s>gs;s--)for(let x=Math.max(0,s-H+1);x<=Math.min(W-1,s);x++){const j=(s-x)*W+x,h=bldH(j);if(h>=10&&S.rev[j]&&!fadeSet.has(j)&&hitCol(j,wx,wy,h)){const[cx,cy]=tileC(j),d=((wx-cx)/(TW*.44))**2+((wy-(cy-h/2))/(h/2+TH/2))**2;if(d<bd){bd=d;best=j;}}}
+    if(best>=0)return best;}
   return pickTile(wx,wy);}
 function computeFade(){fadeSet=new Set();if(ghost)return;const focus=[];if(sel>=0)focus.push(sel);if(aim>=0)focus.push(aim);for(const k in S.ash)focus.push(+k);
   if(!focus.length)return;
