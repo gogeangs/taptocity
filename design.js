@@ -22,6 +22,8 @@
   function sprite(ctx,P,file,index,cols,rows,width,anchor=.9){const a=crop(file,index,cols,rows);if(!a)return false;const[x,y]=P(.5,.5,0),height=width*a.h/a.w;ctx.drawImage(a.img,a.x,a.y,a.w,a.h,x-width/2,y-height*anchor,width,height);return true;}
   function core(ctx,P,level){return sprite(ctx,P,'shelters.webp',Math.max(0,Math.min(4,level-1)),3,2,level===5?112:level===4?100:level===3?90:84,.91);}
   function module(ctx,P,id,level){const order=[1,2,9,3,4,8,5,6,7],index=order.indexOf(id);if(index<0)return false;return sprite(ctx,P,'modules.webp',index,3,3,(id===8||id===7?94:78)+level*3,.9);}
+  // the drawn height of a module (for tap hit-testing), from the same cell and width the sprite uses
+  function moduleHeight(id,level){const order=[1,2,9,3,4,8,5,6,7],index=order.indexOf(id);if(index<0)return 0;const a=crop('modules.webp',index,3,3);if(!a)return 0;const w=(id===8||id===7?94:78)+level*3;return Math.max(10,w*a.h/a.w*.9-14);}
   // Frames use measured ink bounds, preserving the generated atlas's uneven gutters.
   const siteFrames=[
     [17,128,278,188],[304,64,283,249],[597,117,284,193],[892,137,286,179],[1192,57,278,253],[1482,151,278,163],
@@ -49,5 +51,5 @@
   function radio(){return '<svg class="illustrated-radio" viewBox="0 0 240 180" role="img" aria-label="주파수 탐색 라디오"><image href="'+base+'radio.webp" width="240" height="180" preserveAspectRatio="xMidYMid meet"/></svg>';}
   function lamp(){const a=images['shelters.webp'];if(!a.complete||!a.naturalWidth)return false;const button=document.getElementById('lamp');if(!button||button.dataset.illustrated)return false;const svg=button.querySelector('svg'),w=a.naturalWidth/3,h=a.naturalHeight/2;if(!svg)return false;svg.querySelectorAll('path').forEach(p=>p.style.visibility='hidden');const art=document.createElementNS('http://www.w3.org/2000/svg','svg');art.setAttribute('x','14');art.setAttribute('y','13');art.setAttribute('width','46');art.setAttribute('height','46');art.setAttribute('viewBox',[w*2+3,h+3,w-6,h-6].join(' '));art.setAttribute('class','lamp-art');const image=document.createElementNS('http://www.w3.org/2000/svg','image');image.setAttribute('href',base+'shelters.webp');image.setAttribute('width',a.naturalWidth);image.setAttribute('height',a.naturalHeight);art.appendChild(image);svg.appendChild(art);button.dataset.illustrated='true';return true;}
   const timer=setInterval(()=>{if(lamp())clearInterval(timer);},300);setTimeout(()=>clearInterval(timer),20000);
-  window.TTCDesign={portrait,core,module,site,siteHeight,landmark,landmarkHeight,thumb,radio,version:'landmarks-20261002',assets:[...Object.values(sheets).map(a=>base+a.file),base+'shelters.webp',base+'modules.webp',base+'radio.webp',base+'exploration-sites.webp',base+'landmarks.webp']};
+  window.TTCDesign={portrait,core,module,moduleHeight,site,siteHeight,landmark,landmarkHeight,thumb,radio,version:'landmarks-20261002',assets:[...Object.values(sheets).map(a=>base+a.file),base+'shelters.webp',base+'modules.webp',base+'radio.webp',base+'exploration-sites.webp',base+'landmarks.webp']};
 })();

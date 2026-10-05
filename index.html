@@ -1263,7 +1263,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 <script src="chapter-design.js?v=20261001-cohesion"></script>
 <script src="settlement.js?v=20261001-props-pets"></script>
 <script src="people.js?v=20261001-people"></script>
-<script src="design.js?v=20261005-lamp"></script>
+<script src="design.js?v=20261006-modh"></script>
 <script>
 
 (function(){
@@ -2806,7 +2806,7 @@ function claimExp(key,quiet){repairExpeditions(S);const x=S.exp[key];if(!x||Date
 // Taps land on what is visible (a building's body before the ground behind it); buildings that hide the
 // selected / aimed / ash-covered tile turn see-through; x-ray mode ghosts every building so any tile can be reached.
 let ghost=false,fadeSet=new Set();
-function bldH(i){if(!S.rev[i])return 0;if(i===C0)return SHELTER[S.lv-1].h;const m=modAtTile(i);if(m)return(window.TTCFinal&&TTCFinal.moduleHeight(m.id,m.l))||MODS[m.id].h[m.l];if(window.TTCSettlement){const a=TTCSettlement,k=S.deco&&S.deco[i],c=S.camp[i];if(k)return a.height(a.deco[k]);if(c)return a.height(c.hp>0?1:0);if(S.band&&S.band.tile===i)return a.height(0);if(S.ter[i]===T.SILO&&siteLive(i))return a.height(4+siteVar(i,3));}if(S.ter[i]===T.LM){const L=S.lm[i];return L&&window.TTCDesign&&window.TTCDesign.landmarkHeight?window.TTCDesign.landmarkHeight(L.k,L.ok)||44:44;}if(siteLive(i)&&window.TTCDesign&&window.TTCDesign.siteHeight){const h=window.TTCDesign.siteHeight(S.site[i].k,siteVar(i,5));if(h)return h;}return 0;}
+function bldH(i){if(!S.rev[i])return 0;if(i===C0)return SHELTER[S.lv-1].h;const m=modAtTile(i);if(m)return(window.TTCFinal&&TTCFinal.moduleHeight(m.id,m.l))||(window.TTCDesign&&TTCDesign.moduleHeight&&TTCDesign.moduleHeight(m.id,m.l))||MODS[m.id].h[m.l];if(window.TTCSettlement){const a=TTCSettlement,k=S.deco&&S.deco[i],c=S.camp[i];if(k)return a.height(a.deco[k]);if(c)return a.height(c.hp>0?1:0);if(S.band&&S.band.tile===i)return a.height(0);if(S.ter[i]===T.SILO&&siteLive(i))return a.height(4+siteVar(i,3));}if(S.ter[i]===T.LM){const L=S.lm[i];return L&&window.TTCDesign&&window.TTCDesign.landmarkHeight?window.TTCDesign.landmarkHeight(L.k,L.ok)||44:44;}if(siteLive(i)&&window.TTCDesign&&window.TTCDesign.siteHeight){const h=window.TTCDesign.siteHeight(S.site[i].k,siteVar(i,5));if(h)return h;}return 0;}
 function hitCol(j,wx,wy,h){const[cx,cy]=tileC(j),dx=wx-cx;if(Math.abs(dx)>TW*.44)return false;const sl=Math.abs(dx)*(TH/TW);return wy>=cy-TH/2-h+sl&&wy<=cy+TH/2-sl;}
 function pickVisible(wx,wy){if(!ghost){const g=pickTile(wx,wy),gs=g>=0?(g%W)+((g/W)|0):-1;
     for(let s=W+H-2;s>gs;s--)for(let x=Math.max(0,s-H+1);x<=Math.min(W-1,s);x++){const j=(s-x)*W+x,h=bldH(j);if(h>=10&&S.rev[j]&&!fadeSet.has(j)&&hitCol(j,wx,wy,h))return j;}}
@@ -2853,14 +2853,14 @@ cv.addEventListener('pointerdown',e=>{try{cv.setPointerCapture(e.pointerId);}cat
   if(DEFN){p.dig=-3;p.def=true;strikeAt(p.x,p.y,true);const hf=()=>{if(!ptrs.has(e.pointerId)||!DEFN)return;strikeAt(p.x,p.y,false);p.hold=setTimeout(hf,120);};p.hold=setTimeout(hf,260);return;}
   petTapAt(p.x,p.y);{const pk=petHit(p.x,p.y);if(pk){p.dig=-3;petTap(pk);return;}}
   const ax=ashAt(p.x,p.y);if(ax>=0){p.dig=-2;p.ash=ax;hitAsh(ax,tapPow()*(fever>0?2:1));p.hold=setTimeout(()=>holdAsh(e.pointerId),320);return;}
-  const w=toWorld(p.x,p.y),i=pickVisible(w.x,w.y),onLand=i>=0&&S.rev[i];
+  const w=toWorld(p.x,p.y),i=pickVisible(w.x,w.y),onLand=i>=0&&S.rev[i],onBld=onLand&&(i===C0||!!modAtTile(i)||!!campAt(i)||S.ter[i]===T.LM);
   const f=frontierAt(p.x,p.y),dAt=j=>{const s=aimScreen(j);return Math.hypot(s.x-p.x,s.y-p.y);};
   if(onLand&&campAt(i)&&S.camp[i].hp>0){p.dig=-3;setAim(i);hitCamp(i,tapPow()*(fever>0?2:1));const hc=()=>{if(!ptrs.has(e.pointerId)||p.moved||!S.camp[i]||S.camp[i].hp<=0)return;hitCamp(i,tapPow()*(fever>0?2:1));p.hold=setTimeout(hc,110);};p.hold=setTimeout(hc,320);return;}
   if(onLand&&siteLive(i)){p.dig=-3;p.site=i;setAim(i);hitSite(i,tapPow()*(fever>0?2:1));p.hold=setTimeout(()=>holdSite(e.pointerId),320);return;}
   let target=-1;
-  if(aim>=0&&isFrontier(aim)){const da=dAt(aim);
+  if(aim>=0&&isFrontier(aim)&&!onBld){const da=dAt(aim);
     if(f===aim||(f<0&&da<TW*.8*cam.z)||(f>=0&&(da<TW*.45*cam.z||da<dAt(f)*1.5)))target=aim;}
-  if(target<0&&f>=0&&(!onLand||dAt(f)<TW*.38*cam.z)){setAim(f);target=f;}
+  if(target<0&&f>=0&&!onBld&&(!onLand||dAt(f)<TW*.38*cam.z)){setAim(f);target=f;}
   if(target>=0){p.dig=target;p.r0=revCount();dig(target);p.hold=setTimeout(()=>holdDig(e.pointerId),320);}});
 cv.addEventListener('pointermove',e=>{const p=ptrs.get(e.pointerId);if(!p)return;p.x=e.offsetX;p.y=e.offsetY;
   if(p.def){if(DEFN)slashAt(p.x,p.y);return;}
