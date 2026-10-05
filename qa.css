@@ -75,3 +75,9 @@
 
 /* icons inside buttons sit inline with the label: no dark box, a little air on both sides */
 .page .btns button .mi,.ch button .mi{background:none!important;padding:0!important;border-radius:0!important;vertical-align:-2px!important;margin:0 3px 0 2px}
+
+/* survivor-request choices: light cards like the case choices (the page-wide button color made them dark on dark) */
+.page .rqo{background:#f8f3e6!important;color:#26333b!important;border:1.5px solid rgba(38,51,59,.16)!important;box-shadow:none!important;padding:12px 14px!important;border-radius:12px!important}
+.page .rqo:not(.b){background:#fff8ea!important;border-color:#b0452a!important}
+.page .rqo[disabled]{background:#efe9dc!important;opacity:.6!important}
+.page .rqo .rqol{color:#26333b!important}.page .rqo .rqcost.free{color:#56646a!important}
