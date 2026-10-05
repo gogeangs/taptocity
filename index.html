@@ -5301,7 +5301,8 @@ let tLift=0,sLift=0;const liftClr={};
 function liftHold(k,want,cur){const now=performance.now();if(want>0)want+=10;if(want>cur){liftClr[k]=0;return want;}if(cur-want<14){liftClr[k]=0;return cur;}if(!liftClr[k])liftClr[k]=now;return now-liftClr[k]>700?want:cur;}
 {const o=updateGuide;updateGuide=function(){const r=o.apply(this,arguments);const g=$('guide'),tb=$('toasts'),sk=$('skills');let want=0,sw=0;
   const gOn=g&&!g.hidden,gr=gOn?g.getBoundingClientRect():null;
-  if(gOn&&sk&&sk.children.length){const kr=sk.getBoundingClientRect(),ms=parseFloat(getComputedStyle(sk).marginBottom)||0,top=kr.top+ms,bot=kr.bottom+ms;const hx=Math.min(gr.right,kr.right)-Math.max(gr.left,kr.left);if(hx>0&&gr.top<bot+4&&gr.bottom>top-4)sw=Math.min(120,Math.ceil(bot-gr.top+8));}
+  const tg=gOn?focusTarget():null,atSk=!!(tg&&tg.el&&sk&&sk.contains(tg.el));
+  if(gOn&&!atSk&&sk&&sk.children.length){const kr=sk.getBoundingClientRect(),ms=parseFloat(getComputedStyle(sk).marginBottom)||0,top=kr.top+ms,bot=kr.bottom+ms;const hx=Math.min(gr.right,kr.right)-Math.max(gr.left,kr.left);if(hx>0&&gr.top<bot+4&&gr.bottom>top-4)sw=Math.min(120,Math.ceil(bot-gr.top+8));}
   sw=liftHold('s',sw,sLift);if(sw!==sLift){sLift=sw;sk&&sk.style.setProperty('--slift',sw+'px');}
   if(tb&&tb.children.length){if(gOn){const tr=tb.getBoundingClientRect(),mt=parseFloat(getComputedStyle(tb).marginBottom)||0,top=tr.top+mt,bot=tr.bottom+mt;const hx=Math.min(gr.right,tr.right)-Math.max(gr.left,tr.left);if(hx>0&&gr.top<bot+6&&gr.bottom>top-6)want=Math.min(300,Math.ceil(bot-gr.top+10));}
     want=Math.max(want,sLift);}
