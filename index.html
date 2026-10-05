@@ -2317,7 +2317,7 @@ function digAim(){if(DEFN){const f=urgentFoe();if(f){lastBtn=performance.now();t
   if(S.rev[aim]&&S.camp[aim])hitCamp(aim,tapPow()*(fever>0?2:1));else if(S.rev[aim]&&S.site[aim])hitSite(aim,tapPow()*(fever>0?2:1));else dig(aim);}
 function frontierAt(sx,sy){const r=TW*.8*cam.z;let best=-1,bd=r*r;
   for(let i=0;i<N;i++){if(!isFrontier(i))continue;const[wx,wy]=tileC(i,12),s=toScreen(wx,wy),d=(s.x-sx)**2+(s.y-sy)**2;if(d<bd){bd=d;best=i;}}return best;}
-function selectAt(sx,sy){const pid=personAt(sx,sy);if(pid!=null){openSurv(pid);return true;}{const w0=toWorld(sx,sy),i0=pickVisible(w0.x,w0.y);if(S.band&&i0===S.band.tile){openBand();return true;}if(S.deco&&S.deco[i0]){openDecoTile(i0);return true;}}const w=toWorld(sx,sy),i=pickVisible(w.x,w.y);if(i<0||!S.rev[i])return false;
+function selectAt(sx,sy){const w0=toWorld(sx,sy),i0=pickVisible(w0.x,w0.y),bld=i0>=0&&S.rev[i0]&&(i0===C0||!!modAtTile(i0)||!!campAt(i0)||S.ter[i0]===T.LM);const pid=personAt(sx,sy,bld?9*cam.z+3:undefined);if(pid!=null){openSurv(pid);return true;}{if(S.band&&i0===S.band.tile){openBand();return true;}if(S.deco&&S.deco[i0]){openDecoTile(i0);return true;}}const w=toWorld(sx,sy),i=pickVisible(w.x,w.y);if(i<0||!S.rev[i])return false;
   if(i===C0){openSheet('shelter');return true;}
   if(campAt(i)){openCamp(i);return true;}
   if(modAtTile(i)||S.ter[i]===T.LM){if(ringTile===i)closeRing();else openRing(i);return true;}
@@ -3447,7 +3447,7 @@ function drawBubbles(time){bubbleHit=[];if(!CHAT)return;const C=CHAT,k=Math.min(
 function bubbleAt(sx,sy){return bubbleHit.find(b=>sx>=b.x-6&&sx<=b.x+b.w+6&&sy>=b.y-6&&sy<=b.y+b.h+6);}
 function openChat(C){const key=pairKey(C.a,C.b);S.heard=S.heard||{};const first=!S.heard[key];S.heard[key]=1;if(first){S.sv[C.a].xp+=10;S.sv[C.b].xp+=10;}
   CHAT=null;openTalk(C.lines,{tag:`${SURV[C.a].name} · ${SURV[C.b].name}${first?' · 두 사람의 신뢰 +10':''}`});save();}
-function personAt(sx,sy){let best=null,bd=(18*cam.z+8)**2;for(const id in WALK){const w=WALK[id],s=toScreen(w.x,w.y-8),d=(s.x-sx)**2+(s.y-sy)**2;if(d<bd){bd=d;best=+id;}}return best;}
+function personAt(sx,sy,reach){let best=null,bd=(reach!=null?reach:18*cam.z+8)**2;for(const id in WALK){const w=WALK[id],s=toScreen(w.x,w.y-8),d=(s.x-sx)**2+(s.y-sy)**2;if(d<bd){bd=d;best=+id;}}return best;}
 
 // ================= WEATHER (날씨) =================
 // Rolled at every dawn. 백설화 or a 무전실 shows tomorrow's weather in advance.
