@@ -1741,7 +1741,10 @@ function sprinkle(){const r=mulberry(S.seed+5);S.lm={};S.trace={};
   const put=(type,n)=>{let c=0,g=0;while(c<n&&g++<6000){const i=(r()*N)|0;if(dist(i)>19||!free(i))continue;S.ter[i]=type;c++;}};
   put(T.CAR,40);put(T.CRATE,28);put(T.RUIN,45);
   SURV.forEach((s0,k)=>{if(s0.hidden)return;for(let g=0;g<500;g++){const i=(r()*N)|0,d=dist(i);if(d<3||d>15||!free(i))continue;S.ter[i]=T.TRACE;S.trace[i]=k;break;}});
-  LMS.forEach((l,k)=>{for(let g=0;g<900;g++){const a=r()*Math.PI*2,rad=l.d+Math.floor(g/150)*.6,x=Math.round(CX+Math.cos(a)*rad),y=Math.round(CY+Math.sin(a)*rad);if(x<1||y<1||x>=W-1||y>=H-1)continue;const i=y*W+x;if(!free(i))continue;S.ter[i]=T.LM;S.lm[i]={k,ok:false};break;}});}
+  LMS.forEach((l,k)=>{for(let g=0;g<900;g++){const a=r()*Math.PI*2,rad=l.d+Math.floor(g/150)*.6,x=Math.round(CX+Math.cos(a)*rad),y=Math.round(CY+Math.sin(a)*rad);if(x<1||y<1||x>=W-1||y>=H-1)continue;const i=y*W+x;if(!free(i))continue;S.ter[i]=T.LM;S.lm[i]={k,ok:false};break;}});
+  // cloth decides the container-shelter wait, so every map gets a fair share of stores and houses within reach
+  const near=(type,min)=>{let c=0;for(let i=0;i<N;i++)if(S.ter[i]===type&&dist(i)<=7)c++;for(let g=0;c<min&&g<4000;g++){const a=r()*Math.PI*2,rad=3+r()*4,x=Math.round(CX+Math.cos(a)*rad),y=Math.round(CY+Math.sin(a)*rad),i=y*W+x;if(dist(i)<=7&&free(i)){S.ter[i]=type;c++;}}};
+  near(T.CRATE,4);near(T.RUIN,10);}
 function placeSignals(){S.sig={};const r=mulberry(S.seed+77);
   SURV.forEach(s=>{if(s.src!=='sig'||S.sv[s.id]||isDead(s.id))return;for(let t=0;t<900;t++){const a=r()*Math.PI*2,rad=s.d+Math.floor(t/150)*.8,x=Math.round(CX+Math.cos(a)*rad),y=Math.round(CY+Math.sin(a)*rad);
     if(x<1||y<1||x>=W-1||y>=H-1)continue;const i=y*W+x;if(S.rev[i]||isSlot(i)||S.ter[i]===T.WATER||S.ter[i]===T.DIARY||S.ter[i]===T.SILO||S.sig[i]!==undefined)continue;S.sig[i]=s.id;break;}});}
