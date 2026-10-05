@@ -1360,20 +1360,37 @@ function applySettings(){document.body.classList.toggle('big',!!SET.big);documen
 function toggleSet(k){SET[k]=!SET[k];try{localStorage.setItem(SETKEY,JSON.stringify(SET));}catch(e){}applySettings();if(k==='snd'&&SET.snd)sfx('chime');if(k==='mus'&&window.TTCMusic){TTCMusic.enable(!!SET.mus);musicTick();}if(k==='vib'&&SET.vib)buzz();renderSheet();}
 let AC=null;const lastS={};
 function ac(){if(!SET.snd)return null;try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){return null;}return AC;}
+// Effects share the score's palette: felt piano, small bells, soft wood and cloth. A small room (made once) keeps them in the same space.
+let FXR=null;function fxRoom(a){if(FXR)return FXR;const c=a.createConvolver(),len=Math.floor(a.sampleRate*1.4),ir=a.createBuffer(2,len,a.sampleRate);
+  for(let ch=0;ch<2;ch++){const d=ir.getChannelData(ch);let lp=0;for(let i=0;i<len;i++){lp+=.25*((Math.random()*2-1)-lp);d[i]=lp*Math.exp(-4*i/len);}}c.buffer=ir;const g=a.createGain();g.gain.value=.5;c.connect(g);g.connect(a.destination);return FXR=c;}
+const PENTA=[72,74,76,79,81,84,86,88];let getI=0,getT=0;
 function sfx(k){const a=ac();if(!a)return;const now=a.currentTime;if(lastS[k]&&now-lastS[k]<(k==='get'?.07:.045))return;lastS[k]=now;
-  const out=a.createGain();out.gain.value=.55;out.connect(a.destination);
+  const out=a.createGain();out.gain.value=.6;out.connect(a.destination);const room=fxRoom(a),wet=a.createGain();wet.gain.value=.35;out.connect(wet);wet.connect(room);
+  const hz=n=>440*Math.pow(2,(n-69)/12);
   const tone=(f,t0,dur,type,vol,f2)=>{const o=a.createOscillator(),g=a.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,now+t0);if(f2)o.frequency.exponentialRampToValueAtTime(f2,now+t0+dur);
     g.gain.setValueAtTime(0,now+t0);g.gain.linearRampToValueAtTime(vol,now+t0+.008);g.gain.exponentialRampToValueAtTime(.0008,now+t0+dur);o.connect(g);g.connect(out);o.start(now+t0);o.stop(now+t0+dur+.03);};
-  const noise=(t0,dur,vol,freq,q)=>{const n=Math.max(1,Math.floor(a.sampleRate*dur)),b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
-    const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();s.buffer=b;f.type='bandpass';f.frequency.value=freq;f.Q.value=q;g.gain.value=vol;s.connect(f);f.connect(g);g.connect(out);s.start(now+t0);};
-  if(k==='tap'){noise(0,.08,.5,420+Math.random()*160,1.1);tone(95,0,.09,'sine',.3,48);}
-  else if(k==='hit'){noise(0,.06,.35,1900+Math.random()*400,2.2);tone(560+Math.random()*140,0,.1,'triangle',.07);}
-  else if(k==='get'){tone(880,0,.12,'triangle',.06);tone(1320,.05,.14,'triangle',.045);}
-  else if(k==='reveal'){noise(0,.3,.14,700,.5);tone(300,0,.3,'sine',.05,600);}
-  else if(k==='chime'){[523,659,784,1047].forEach((f,i)=>tone(f,i*.08,.55,'triangle',.07));}
-  else if(k==='static'){noise(0,1,.22,1700,.35);tone(420,.25,.45,'square',.015,900);}
-  else if(k==='night'){tone(110,0,1.5,'sine',.18,68);noise(0,1.1,.05,260,.5);}
-  else if(k==='ui'){tone(700,0,.05,'sine',.04);}}
+  const noise=(t0,dur,vol,freq,q,type)=>{const n=Math.max(1,Math.floor(a.sampleRate*dur)),b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
+    const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();s.buffer=b;f.type=type||'bandpass';f.frequency.value=freq;f.Q.value=q;g.gain.value=vol;s.connect(f);f.connect(g);g.connect(out);s.start(now+t0);};
+  // felt piano note (same voice as the score)
+  const pno=(n,t0,vel,len)=>{const f=hz(n),g=a.createGain(),lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.setValueAtTime(900+vel*2600,now+t0);lp.frequency.exponentialRampToValueAtTime(420,now+t0+len);
+    g.gain.setValueAtTime(0,now+t0);g.gain.linearRampToValueAtTime(.2*vel,now+t0+.01);g.gain.exponentialRampToValueAtTime(.07*vel,now+t0+.3);g.gain.exponentialRampToValueAtTime(.0004,now+t0+len);lp.connect(g);g.connect(out);
+    [[1,1],[2.003,.38],[3.008,.12],[4.02,.05]].forEach(([m,v])=>{const o=a.createOscillator(),og=a.createGain();o.frequency.value=f*m;og.gain.value=v;o.connect(og);og.connect(lp);o.start(now+t0);o.stop(now+t0+len+.05);});};
+  // small bell: inharmonic partials, quick strike, long shimmer
+  const bell=(n,t0,vol,len)=>{const f=hz(n);[[1,1],[2.76,.35],[5.4,.12],[8.93,.05]].forEach(([m,v])=>tone(f*m,t0,len*(1.2-m*.08),'sine',vol*v));};
+  if(k==='tap'){noise(0,.07,.32,520+Math.random()*180,.9,'lowpass');tone(120+Math.random()*30,0,.1,'sine',.2,62);}                 // soft wooden knock
+  else if(k==='hit'){noise(0,.06,.26,900+Math.random()*300,1.2);tone(210+Math.random()*60,0,.08,'triangle',.06,120);}            // muffled crunch of ash and rubble
+  else if(k==='get'){if(now-getT>1.6)getI=0;getT=now;const n=PENTA[Math.min(PENTA.length-1,getI++)];bell(n,0,.07,.5);}        // pickups climb a pentatonic run, then rest
+  else if(k==='reveal'){noise(0,.5,.08,600,.4,'lowpass');bell(64,.06,.03,1.2);}                                                     // ash parts: a breath and a far bell
+  else if(k==='chime'){[[67,0],[72,.09],[76,.18]].forEach(([n,t])=>pno(n,t,.55,1.6));}                                              // small good thing: three piano notes
+  else if(k==='find'){bell(79,0,.06,1.4);bell(84,.12,.04,1.2);}                                                                      // something found in the dark
+  else if(k==='join'){[[60,0],[64,.07],[67,.14],[72,.21]].forEach(([n,t])=>pno(n,t,.6,2.4));bell(84,.32,.035,1.8);}                // someone joins the shelter
+  else if(k==='level'){[60,64,67,71,74,79].forEach((n,i)=>pno(n,i*.11,.5+i*.06,2.4));pno(48,0,.5,3);}                              // the shelter grows
+  else if(k==='win'){[[57,0],[60,0],[64,0]].forEach(([n,t])=>pno(n,t,.5,2.6));[[69,.25],[72,.4],[76,.55]].forEach(([n,t])=>pno(n,t,.6,2));} // the night is held
+  else if(k==='lit'){[48,55,60,64,67,71,76].forEach((n,i)=>pno(n,i*.16,.45+i*.07,4));bell(88,1.1,.05,3);bell(91,1.3,.035,3);}      // the tower lights
+  else if(k==='mystery'){pno(52,0,.5,3);pno(53,.02,.35,3);bell(76,.5,.025,2.2);}                                                    // a case, a shadow, 3 a.m.
+  else if(k==='static'){noise(0,.8,.12,1500,.6);tone(380,.2,.4,'sine',.02,760);}
+  else if(k==='night'){bell(45,0,.09,3.5);noise(0,1.4,.03,300,.5,'lowpass');}                                                      // dusk: one low bell
+  else if(k==='ui'){noise(0,.025,.12,2200,1.5);}}
 
 const DIARY=[
  ['3월 14일','오늘도 발전소 굴뚝이 조용하다. 뉴스에서는 괜찮다고만 한다. 옆집 할머니가 봄이라며 화분을 베란다에 내놨다.'],
@@ -2303,7 +2320,7 @@ function craft(k,times){const r=RECIPES[k];if(!wbL()||recipeLock(r))return;let n
   if(n){sfx('get');if(n>1)toast(`${MN[r.out].n} ${fmt(made)}개를 만들었어요`);}else toast('재료가 모자라요');renderSheet();save();}
 function buyUp(k){const u=UPG[k],c=u.cost();if(S[u.k]>=u.max||wbL()<u.wb()||!pay(c))return;S[u.k]++;renderSheet();save();}
 function reset(){if(confirmKey!=='reset'){confirmKey='reset';renderSheet();return;}confirmKey=null;fresh();aim=-1;closeRing();recalc();centerCam();closeSheet();misKey=null;renderMission();save();toast('새 땅에서 다시 시작해요');}
-function levelUp(lv){sfx('chime');$('stLv').textContent='Lv.'+lv;$('stNm').textContent=LVNAME[lv-1];
+function levelUp(lv){sfx('level');$('stLv').textContent='Lv.'+lv;$('stNm').textContent=LVNAME[lv-1];
   const s=$('stamp');s.hidden=false;s.classList.remove('go');void s.offsetWidth;s.classList.add('go');setTimeout(()=>{s.hidden=true;},2300);
   if(!reduce){const z0=cam.z;camTw={to:Math.max(.5,z0*.55),t:0,dur:2.4,back:z0};const[lx,ly]=tileC(C0,30);ringFx(lx,ly,20,520,'255,215,140',1.6);setTimeout(()=>ringFx(lx,ly,10,380,'255,240,200',1.3),250);burst(lx,ly,'#ffd98a',40,4);burst(lx,ly,'#f3a53a',30,3);}
   toast(`쉘터가 ${jo(LVNAME[lv-1],'으로','로')} 커졌어요! 랜턴 빛이 더 멀리 닿아요`);}
@@ -2451,7 +2468,7 @@ modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="talk"]')
 let svNew=false,asgTile=-1;
 const workName=at=>{const m=modAtTile(at);return m?MODS[m.id].n:'쉘터';};
 const trustDots=tl=>`<div class="trust">${[1,2,3,4,5].map(k=>`<i class="${k<=tl?'on':''}"></i>`).join('')}</div>`;
-function rescue(id,via){if(S.sv[id])return;S.sv[id]={xp:0,at:-1};if(S.party.length<3){S.party.push(id);renderSkills(true);}recalc();save();svNew=true;const s=SURV[id];
+function rescue(id,via){if(S.sv[id])return;S.sv[id]={xp:0,at:-1};sfx('join');if(S.party.length<3){S.party.push(id);renderSkills(true);}recalc();save();svNew=true;const s=SURV[id];
   const bond=BONDS.find(b=>b.ids.includes(id)&&b.ids.every(j=>S.sv[j]));
   openModal(`<div class="page"><div class="tag">${via==='visit'?'누군가 문을 두드려요':'구조 신호 · 생존자 발견'}</div><div class="pf">${portrait(s)}</div><h3>${s.name} ${gradeTag(id)}<small>${s.age}세 · ${s.job}</small></h3><p>${s.story[0]}</p>
     <div class="trait">특기: ${s.trait(effOf(id))}<br>딱 맞는 일터: ${s.match.map(b=>BNAME[b]).join(', ')} (효과 ×2)${bond?`<br><b>인연 ‘${bond.name}’</b> ${bond.txt} ${bond.d}`:''}</div><button>마을로 맞이하기</button></div>`);}
@@ -3170,8 +3187,8 @@ function ugTap(i){if(!UG)return;const c=UG.cells[i];
   renderUG();}
 function ugResolve(c){const f=UG.floor,sc=1+(f-1)*.35;
   if(c.c==='loot'){const a=BASE[(Math.random()*6)|0],b=BASE[(Math.random()*6)|0],m=ugRole(UG.team,'mech')?1.3:1;const o={};o[a]=Math.round((3+f*1.2)*m*(a==='food'&&ugRole(UG.team,'farm')?2:1));o[b]=(o[b]||0)+Math.round((2+f)*m);ugAdd(o);UG.msg=`상자를 열었다 · ${lootTxt(o)}`;sfx('get');if(Math.random()<.08&&findRelic())UG.msg+=' · 유물도 함께!';}
-  else if(c.c==='rare'){const opts=[{plate:Math.round(2*sc)},{rope:Math.round(2*sc)},{wire:1},{med:1},{batt:1},{wire:1,med:1}];const o=opts[Math.min(opts.length-1,(Math.random()*(f>=4?6:4))|0)];ugAdd(o);UG.msg=`귀한 물건! ${lootTxt(o)}`;sfx('chime');}
-  else if(c.c==='gear'){const q=Math.random(),g=f>=6?(q<.08?3:q<.6?2:1):f>=3?(q<.35?2:1):(q<.3?1:0);const t=f>=10&&Math.random()<.3?ugMiner():ugGearPick(g);UG.gear.push(t);UG.msg=`장비를 찾았다 · ${GEAR[t].n} (${GR[g].n})`;sfx('chime');}
+  else if(c.c==='rare'){const opts=[{plate:Math.round(2*sc)},{rope:Math.round(2*sc)},{wire:1},{med:1},{batt:1},{wire:1,med:1}];const o=opts[Math.min(opts.length-1,(Math.random()*(f>=4?6:4))|0)];ugAdd(o);UG.msg=`귀한 물건! ${lootTxt(o)}`;sfx('find');}
+  else if(c.c==='gear'){const q=Math.random(),g=f>=6?(q<.08?3:q<.6?2:1):f>=3?(q<.35?2:1):(q<.3?1:0);const t=f>=10&&Math.random()<.3?ugMiner():ugGearPick(g);UG.gear.push(t);UG.msg=`장비를 찾았다 · ${GEAR[t].n} (${GR[g].n})`;sfx('find');}
   else if(c.c==='oil'){UG.oil+=6;UG.max=Math.max(UG.max,UG.oil);UG.msg='기름통을 찾았다 · 기름 +6';sfx('get');}
   else if(c.c==='hazard'){const guard=ugRole(UG.team,'guard');
     if(c.hz==='gas'){const l=Math.round((3+Math.floor(f/2))*(guard?.5:1));UG.oil=Math.max(0,UG.oil-l);UG.msg=`가스가 새어 나왔다! 랜턴이 흔들린다 · 기름 -${l}`;}
@@ -3179,16 +3196,16 @@ function ugResolve(c){const f=UG.floor,sc=1+(f-1)*.35;
       else if(guard&&Math.random()<.5)UG.msg='천장이 무너졌다! 우진이 몸으로 막아냈다.';
       else if(ok.length){const id=ok[(Math.random()*ok.length)|0];UG.hurt.push(id);UG.msg=`천장이 무너졌다! ${jo(SURV[id].name,'이','가')} 다쳤다.`;}}
     sfx('night');}
-  else if(c.c==='quest'){UG.found.push(c.qid);UG.msg=`${SURV[c.qid].name}: “찾았어요… ${QUESTS[c.qid].steps[S.sv[c.qid].q.s].item}!”`;sfx('chime');qAdvance(c.qid);}
+  else if(c.c==='quest'){UG.found.push(c.qid);UG.msg=`${SURV[c.qid].name}: “찾았어요… ${QUESTS[c.qid].steps[S.sv[c.qid].q.s].item}!”`;sfx('find');qAdvance(c.qid);}
   else if(c.c==='stairs'){UG.msg='아래로 이어지는 계단을 찾았다. 눌러서 내려가요.';}
-  else if(c.c==='rest'){UG.msg='쉼터를 찾았다! 눌러서 쉬어 가면 챙긴 물건을 위로 올려 보내고, 다음엔 여기서 시작할 수 있어요.';sfx('chime');}
+  else if(c.c==='rest'){UG.msg='쉼터를 찾았다! 눌러서 쉬어 가면 챙긴 물건을 위로 올려 보내고, 다음엔 여기서 시작할 수 있어요.';sfx('find');}
   else if(c.c==='key'){UG.keys++;UG.msg='녹슨 열쇠를 주웠다. 이 층 어딘가에 잠긴 문이 있다.';sfx('get');}
   else if(c.c==='door'){UG.msg=UG.keys?'잠긴 철문. 열쇠로 열 수 있다. 눌러서 열어요.':'잠긴 철문. 이 층 어딘가에 열쇠가 있을 거다.';}
   else if(c.c==='foe'){if(ugRole(UG.team,'guard'))c.fhp=Math.max(1,Math.ceil(c.fhp/2));UG.msg=`재 괴물이 깨어났다! 쓰러뜨리기 전까지 칸마다 기름이 2씩 들어요. 눌러서 싸워요 (${c.fhp})`;sfx('night');}
   else if(c.c==='shop'){UG.msg='지하 상인이 등불을 들고 앉아 있다. 눌러서 거래해요.';}
-  else if(c.c==='diary'){S.ug.diary=S.ug.diary||[];if(!S.ug.diary.includes(c.did))S.ug.diary.push(c.did);const d=UG_DIARY[c.did];UG.dPlaced=1;UG.msg=`<b>${d.t}</b> — ${d.x}`;sfx('chime');save();}
-  else if(c.c==='pet'){UG.petFound='turtle';UG.msg='물웅덩이 속 바위가 움직였다. 이끼 낀 늙은 거북이 천천히 눈을 떴다. 함께 올라가요!';sfx('chime');}
-  else if(c.c==='who'){UG.mtrace=1;UG.msg='발전소 쪽으로 난 철문. 그 너머는 재가 벽처럼 막고 있다. 문 앞에 직원용 비상식량 깡통이 가지런히 비어 있고, 벽에 분필 글씨가 남아 있다. “아직 여기 있어요. 위에서 불빛이 보이면 갈게요. — 탁”';sfx('chime');}
+  else if(c.c==='diary'){S.ug.diary=S.ug.diary||[];if(!S.ug.diary.includes(c.did))S.ug.diary.push(c.did);const d=UG_DIARY[c.did];UG.dPlaced=1;UG.msg=`<b>${d.t}</b> — ${d.x}`;sfx('find');save();}
+  else if(c.c==='pet'){UG.petFound='turtle';UG.msg='물웅덩이 속 바위가 움직였다. 이끼 낀 늙은 거북이 천천히 눈을 떴다. 함께 올라가요!';sfx('find');}
+  else if(c.c==='who'){UG.mtrace=1;UG.msg='발전소 쪽으로 난 철문. 그 너머는 재가 벽처럼 막고 있다. 문 앞에 직원용 비상식량 깡통이 가지런히 비어 있고, 벽에 분필 글씨가 남아 있다. “아직 여기 있어요. 위에서 불빛이 보이면 갈게요. — 탁”';sfx('find');}
   else UG.msg='먼지뿐이다.';}
 // Checkpoint entry alone earns nothing; count only floors explored during this run.
 function ugRewardUnits(u){return new Set(u.exploredFloors||[]).size;}
@@ -3236,10 +3253,10 @@ modal.addEventListener('click',e=>{const b=e.target.closest('[data-act^="ug"]');
   else if(a==='ugdiary')openUGDiary();},true);
 function ugUse(c){const f=UG.floor;
   if(c.c==='rest'&&!c.used){c.used=1;const got=give(UG.carry);UG.carry={};for(const t of UG.gear)addGear(t);const ng=UG.gear.length;UG.gear=[];S.ug.ck=S.ug.ck||[];if(!S.ug.ck.includes(f))S.ug.ck.push(f);S.ug.ck.sort((a,b)=>a-b);UG.oil+=10;UG.max=Math.max(UG.max,UG.oil);
-    UG.msg=`쉼터에서 한숨 돌렸다. 챙긴 물건을 위로 올려 보냈다${Object.keys(got).length?` · ${lootTxt(got)}`:''}${ng?` · 장비 ${ng}개`:''} · 기름 +10 · 다음엔 ${f}층에서 시작할 수 있어요`;sfx('chime');save();}
+    UG.msg=`쉼터에서 한숨 돌렸다. 챙긴 물건을 위로 올려 보냈다${Object.keys(got).length?` · ${lootTxt(got)}`:''}${ng?` · 장비 ${ng}개`:''} · 기름 +10 · 다음엔 ${f}층에서 시작할 수 있어요`;sfx('find');save();}
   else if(c.c==='door'&&!c.open){if(!UG.keys){UG.msg='잠긴 철문. 열쇠가 필요해요.';renderUG();return;}UG.keys--;c.open=1;const sc=1+(f-1)*.35,o={plate:Math.round(3*sc),parts:Math.round(4*sc)};if(f>=4)o[Math.random()<.5?'wire':'med']=1+Math.floor(f/8);ugAdd(o);let m=`철문이 열렸다! 비밀 창고 · ${lootTxt(o)}`;
-    if(Math.random()<.35+f*.02){const t=f>=10&&Math.random()<.5?ugMiner():ugGearPick(f>=6?2:1);UG.gear.push(t);m+=` · ${GEAR[t].n}`;}if(Math.random()<.15&&findRelic())m+=' · 유물도!';UG.msg=m;sfx('chime');}
-  else if(c.c==='foe'&&c.fhp>0){if(UG.oil<=0)return;UG.oil--;c.fhp-=ugRole(UG.team,'guard')?2:1;buzz();sfx('hit');if(c.fhp<=0){c.fhp=0;const o={};o[Math.random()<.5?'wire':'med']=1;o.scrap=Math.round(6+f);ugAdd(o);(S.stat=S.stat||{}).foe=(S.stat.foe||0)+1;UG.msg=`재 괴물을 쓰러뜨렸다! · ${lootTxt(o)}`;sfx('chime');}else UG.msg=`재 괴물을 내리쳤다! 남은 힘 ${c.fhp}`;
+    if(Math.random()<.35+f*.02){const t=f>=10&&Math.random()<.5?ugMiner():ugGearPick(f>=6?2:1);UG.gear.push(t);m+=` · ${GEAR[t].n}`;}if(Math.random()<.15&&findRelic())m+=' · 유물도!';UG.msg=m;sfx('find');}
+  else if(c.c==='foe'&&c.fhp>0){if(UG.oil<=0)return;UG.oil--;c.fhp-=ugRole(UG.team,'guard')?2:1;buzz();sfx('hit');if(c.fhp<=0){c.fhp=0;const o={};o[Math.random()<.5?'wire':'med']=1;o.scrap=Math.round(6+f);ugAdd(o);(S.stat=S.stat||{}).foe=(S.stat.foe||0)+1;UG.msg=`재 괴물을 쓰러뜨렸다! · ${lootTxt(o)}`;sfx('find');}else UG.msg=`재 괴물을 내리쳤다! 남은 힘 ${c.fhp}`;
     if(UG.oil<=0){renderUG();setTimeout(()=>ugEnd(false),650);return;}}
   else if(c.c==='shop'){UG.shop=!UG.shop;UG.msg='상인: “위에서 가져온 걸로 바꿔 주지.” (쉘터 창고에서 빠져요)';}
   renderUG();}
@@ -3325,7 +3342,7 @@ function tapFoe(f){sfx('hit');buzz();addCombo();hurtFoe(f,tapPow()*(fever>0?2:1)
 function endDefense(win){const D2=DEFN;DEFN=null;S.defs=(S.defs||0)+1;
   if(win){S.defWins=(S.defWins||0)+1;const q=Math.max(.4,D2.hp/D2.max),got=give({...scaleCost({scrap:25,parts:12,plate:5,fuel:8},lvScale()*q),batt:q>=.8?3:2});let gt='';if(Math.random()<.5+q*.3){const g=S.lv>=4?(Math.random()<.35?2:1):S.lv>=3?1:0;const it=dropGear(g);gt=` · 장비 ${GEAR[it.t].n}`;}
     if(D2.raid){const r2=give(scaleCost({scrap:30,food:25,parts:10,fuel:10},lvScale()));gt+=` · ${D2.raid}의 물자 ${lootTxt(r2)}`;}
-    for(const id in S.sv)S.sv[id].xp+=25;sfx('chime');note({h:`대형 재폭풍을 막아냈어요! 내구도 ${Math.round(D2.hp)}%`,t:`<small>괴물 ${D2.kills}마리 · ${lootTxt(got)}${gt} · 모두 신뢰 +25</small>`,ms:7000});}
+    for(const id in S.sv)S.sv[id].xp+=25;sfx('win');note({h:`대형 재폭풍을 막아냈어요! 내구도 ${Math.round(D2.hp)}%`,t:`<small>괴물 ${D2.kills}마리 · ${lootTxt(got)}${gt} · 모두 신뢰 +25</small>`,ms:7000});}
   else{const lost={};for(const k of BASE){const l=Math.floor((S.m[k]||0)*.15);if(l){S.m[k]-=l;lost[k]=l;}}const ks=Object.keys(S.mods);for(let q=0;q<Math.min(2,ks.length);q++){const t=slotTile(+ks[(Math.random()*ks.length)|0]);S.ash[t]={hp:tapPow()*3,max:tapPow()*3,t:0,stuck:true};}recalc();
     note({h:'쉘터가 재에 뒤덮였어요',t:`<small>잃은 자재 ${lootTxt(lost)||'없음'} · 모듈 일부가 멈췄어요. 두드려 걷어내요. 방벽과 랜턴탑을 키우면 더 잘 버텨요</small>`,ms:7500});}
   save();}
@@ -3451,7 +3468,7 @@ function openBand(){const B=S.band;if(!B)return;const T0=BANDT[B.k];let body='';
 const allyOf=n=>(S.allies||[]).includes(n);
 function bandAct(a,g){const B=S.band;if(!B)return;
   if(a==='btr'){const o=B.offers[g];if(o.left<=0||!pay(o.give))return;o.left--;give(o.get);sfx('get');toast(`교역 · ${lootTxt(o.get)}`);openBand();}
-  else if(a==='bal'){if(!pay({food:20,med:1}))return;(S.allies=S.allies||[]).push(B.name);sfx('chime');note({h:`${B.name}와(과) 동맹을 맺었어요`,t:'<small>새벽마다 물자를 보내 주고, 대형 재폭풍 때 함께 싸워요</small>'});openBand();}
+  else if(a==='bal'){if(!pay({food:20,med:1}))return;(S.allies=S.allies||[]).push(B.name);sfx('win');note({h:`${B.name}와(과) 동맹을 맺었어요`,t:'<small>새벽마다 물자를 보내 주고, 대형 재폭풍 때 함께 싸워요</small>'});openBand();}
   else if(a==='bref'){if(!pay({food:25}))return;S.hopeB=(S.hopeB||0)+4;let extra='';const r=Math.random();
     if(!S.dog&&r<.25){S.dog=1;extra='떠나면서 강아지 한 마리를 두고 갔어요. 이름은 ‘등불’로 지었어요.';}
     else if(r<.7&&(S.kids||[]).length<4){const k=addKid();extra=`“이 아이를 부탁드려요.” ${k.n}(이)가 쉘터에 남았어요.`;}
@@ -3467,7 +3484,7 @@ const KJOB={mech:{n:'정비 견습',d:'가공 보너스 +6%',e:{craft:.06}},farm
 function addKid(){S.kids=S.kids||[];const used=S.kids.map(k=>k.n),n=KIDN.find(x=>!used.includes(x))||'아이',sk=['#f2caa6','#e2b791','#d8a57e','#f0c9a4'],hr=['#2a1f18','#4a3526','#6a3a2a','#1f1a16'],tp=['#d9483b','#3f6fa0','#e0b441','#6b8f4a','#8a5a9a'];
   const k={n,g:0,job:null,look:{skin:sk[(Math.random()*4)|0],hair:hr[(Math.random()*4)|0],top:tp[(Math.random()*5)|0]}};S.kids.push(k);recalc();return k;}
 function kidsDawn(){if((S.kids||[]).length<2&&S.lv>=4&&D.hope>=60&&Math.random()<.25){const k=addKid();note({h:'쉘터에 새 식구가 생겼어요',t:`<small>지나가던 가족이 ${k.n}을(를) 맡기고 갔어요. 희망이 커진 덕분이에요</small>`});}}
-function tickKids(){for(const k of S.kids||[]){if(k.g>=1)continue;k.g=Math.min(1,k.g+1/600);if(k.g>=1){sfx('chime');setTimeout(()=>kidGrown(k),200);}}
+function tickKids(){for(const k of S.kids||[]){if(k.g>=1)continue;k.g=Math.min(1,k.g+1/600);if(k.g>=1){sfx('join');setTimeout(()=>kidGrown(k),200);}}
 }
 function kidGrown(k){const bj=kidBest(k);openModal(`<div class="page"><div class="tag">아이들</div><h3>${k.n}이(가) 훌쩍 컸어요</h3><p>이제 쉘터 일을 배울 나이예요. 무엇을 가르칠까요?${bj?`<br><small style="color:#4f6e2f">돌봐 준 사람들을 보고 자라서 <b>${KJOB[bj].n}</b>에 소질이 있어요 · 효과 1.5배</small>`:''}</p><div class="ch">${Object.entries(KJOB).map(([j,v])=>`<button class="alt${j===bj?' rec':''}" data-act="kjob" data-arg="${S.kids.indexOf(k)}:${j}">${j===bj?'★ ':''}${v.n} · ${v.d}${j===bj?' ×1.5':''}</button>`).join('')}</div></div>`);}
 function kidEff(E){for(const k of S.kids||[]){if(k.g<1)E.hope+=2;else if(k.job){const m=k.job===k.best?1.5:1;for(const x in KJOB[k.job].e)E[x]=(E[x]||0)+KJOB[k.job].e[x]*m;}}}
@@ -3518,7 +3535,7 @@ const RSTORY={'받아쓰기 공책':'“봄이 오면 우리 반 모두 소풍 �
 const relicSet=k=>{const s=RSETS.find(x=>x.k===k);return s&&s.items.every(it=>(S.relics||[]).includes(it));};
 function relicEff(E){for(const s of RSETS)if(s.e&&relicSet(s.k))for(const k in s.e)E[k]=(E[k]||0)+s.e[k];}
 function findRelic(wx,wy){const all=RSETS.flatMap(s=>s.items),left=all.filter(x=>!(S.relics||[]).includes(x));if(!left.length)return false;const it=left[(Math.random()*left.length)|0];(S.relics=S.relics||[]).push(it);
-  const set=RSETS.find(s=>s.items.includes(it)),done=relicSet(set.k);sfx('chime');if(wx!=null){floatText(wx,wy-30,'유물 발견!','rgba(255,220,150,A)',24);burst(wx,wy,'#e0b441',20);}
+  const set=RSETS.find(s=>s.items.includes(it)),done=relicSet(set.k);sfx('find');if(wx!=null){floatText(wx,wy-30,'유물 발견!','rgba(255,220,150,A)',24);burst(wx,wy,'#e0b441',20);}
   note({h:`유물 발견 · ${it}`,t:`<small>${RSTORY[it]}${done?`<br><b>‘${set.n}’ 세트 완성! ${set.fx}</b>`:` · ${set.n} ${set.items.filter(x=>S.relics.includes(x)).length}/3`}</small>`,ms:6500});if(done)recalc();save();return true;}
 function renderRelics(){const own=S.relics||[];let h=`<div class="d" style="margin-bottom:6px">폐허를 뒤지거나 지하·원정에서 옛 세상의 물건을 찾아요. 세트를 모으면 영구 보너스가 생겨요. ${own.length}/18</div>`;
   for(const s of RSETS){const done=relicSet(s.k);h+=`<div class="rset${done?' done':''}"><div class="rh"><b>${s.n}</b><span>${done?'✓ ':''}${s.fx}</span></div>${s.items.map(it=>own.includes(it)?`<div class="ri"><b>${it}</b><small>${RSTORY[it]}</small></div>`:'<div class="ri lock"><b>???</b></div>').join('')}</div>`;}
@@ -3678,7 +3695,7 @@ function migrate(){const old=S,g=(old.gen||0)+1,region=nextRegion();
   for(const id in S.sv){const r=S.sv[id];r.at=-1;r.away=false;r.hurt=0;}S.asg={};S.exp={};S.cd={};S.camp={};S.allies=[];S.band=null;S.deco={};S.raid=null;
   S.carry=Object.keys(S.sv).length;Object.assign(S.m,{wood:30,scrap:20,food:40},carryM);
   if(region==='desert')for(let i=0;i<N;i++)if(S.ter[i]===T.WATER)S.ter[i]=Math.random()<.3?T.RUIN:T.ASH;
-  placeSignals();aim=-1;recalc();centerCam();ensureAim();misKey=null;renderMission();renderSkills(true);save();sfx('chime');
+  placeSignals();aim=-1;recalc();centerCam();ensureAim();misKey=null;renderMission();renderSkills(true);save();sfx('level');
   $('stLv').textContent=`${g}번째`;$('stNm').textContent=REGIONS[region].n;const st=$('stamp');st.hidden=false;st.classList.remove('go');void st.offsetWidth;st.classList.add('go');setTimeout(()=>{st.hidden=true;},2300);
   setTimeout(()=>openTalk(regIntro(0)||REGIONS[region].talk,{card:[`${g}번째 동네`,REGIONS[region].n],goal:regionMis()[0].goal}),900);}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="migok"]');if(!b)return;e.stopPropagation();migrate();},true);
@@ -4436,10 +4453,10 @@ function towerHtml(){if(!towerOpen()&&!S.tower)return'';const n=S.tower||0,t=tow
     <button class="buy" data-act="tower" ${ok?'':'disabled'}>${n===4?'스위치 올리기':hi?`${t.n} 쌓기`:`${t.n} 쌓기`}</button></div>`;}
 const towerBonus=()=>{const n=S.tower||0;return n<5?0:.1+.03*(n-5);};
 $('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="tower"]');if(!b||b.disabled)return;e.stopImmediatePropagation();buildTower();},true);
-function buildTower(){const t=towerNext();if(!t||!towerOk())return false;if(!pay(scaleCost(t.cost,costMult())))return false;S.tower=(S.tower||0)+1;sfx('chime');
+function buildTower(){const t=towerNext();if(!t||!towerOk())return false;if(!pay(scaleCost(t.cost,costMult())))return false;S.tower=(S.tower||0)+1;sfx('level');
   const[x,y]=tileC(C0,60);burst(x,y,'#ffd98a',30);ringFx(x,y,10,120,'255,220,150',.8);recalc();save();
   if(S.tower===5)lightTower();else if(S.tower>5){if(S.tower%5===0){const it=dropGear(2);give({batt:5});note({h:`등불 탑 ${S.tower}층!`,t:`<small>빛이 한층 멀리 닿아요 · 건전지 +5 · 장비 ${GEAR[it.t].n}</small>`,kind:'story',ms:5000});}else toast(`등불 탑 ${S.tower}층 · 모든 생산 +${Math.round(towerBonus()*100)}%`);renderSheet();}else{renderSheet();toast(`등불 탑 ${jo(t.n,'을','를')} 쌓았어요 · ${S.tower}/5`);}return true;}
-function lightTower(){const first=!S.endSeen;S.endSeen=1;give({batt:first?10:5});recalc();save();if(sheetTab)renderSheet();sfx('chime');
+function lightTower(){const first=!S.endSeen;S.endSeen=1;give({batt:first?10:5});recalc();save();if(sheetTab)renderSheet();sfx('lit');
   const[x,y]=tileC(C0,120);burst(x,y,'#fff4c8',40);ringFx(x,y,20,260,'255,236,170',1.2);
   note({h:first?'등불 탑에 첫 불이 들어왔어요':'이 동네에도 등불 탑이 켜졌어요',t:'<small>모든 생산 +10% · 이제 탑을 한 층씩 계속 올릴 수 있어요</small>',kind:'story',ms:6000});}
 function towerEff(E){const b=towerBonus();if(b){E.global+=b;E.hope+=Math.max(0,(S.tower||0)-5)*2;}}
@@ -4501,7 +4518,7 @@ function feastHtml(){if(!feastOpen())return'';const c=feastCost(),left=Math.max(
     left?'':costHtml(c),left?`<span class="dbadge">${on?'잔치 중':'준비 중'}</span>`:btnCost('feast','','잔치 열기',c));}
 $('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="feast"]');if(!b||b.disabled)return;e.stopImmediatePropagation();holdFeast();},true);
 function holdFeast(){if(!feastOpen()||Date.now()<(S.feastAt||0)+FEAST_CD)return false;if(!pay(feastCost()))return false;S.feastAt=Date.now();S.feasts=(S.feasts||0)+1;S.feastEnd=Date.now()+FEAST_T*1000;
-  setBuff({k:'all',m:1.25,t:FEAST_T,label:'마을 잔치'});for(const id in S.sv)S.sv[id].xp+=40;for(const k in S.pets||{})petGain(k,5);recalc();save();sfx('chime');setTimeout(recalc,FEAST_T*1000+500);
+  setBuff({k:'all',m:1.25,t:FEAST_T,label:'마을 잔치'});for(const id in S.sv)S.sv[id].xp+=40;for(const k in S.pets||{})petGain(k,5);recalc();save();sfx('win');setTimeout(recalc,FEAST_T*1000+500);
   const[x,y]=tileC(C0,40);burst(x,y,'#ffd98a',30);ringFx(x,y,10,110,'255,215,140',.7);
   const who=Object.keys(S.sv).map(Number),a=who.length?SURV[who[(Math.random()*who.length)|0]].name:'';
   note({h:'마을 잔치가 열렸어요!',t:`<small>${a?`${a}: “이렇게 배불리 먹어 보는 게 얼마 만이에요.” · `:''}10분간 모든 생산 +25%</small>`,kind:'story',ms:5000});if(sheetTab)renderSheet();return true;}
@@ -4977,7 +4994,7 @@ const cOf=k=>TCASES[k]||CASES[k];
 const cNo=k=>TCASES[k]?CASES.length+1+RORDER.indexOf(k):+k+1;
 const cKeys=()=>CASES.map((c,k)=>k).concat(RORDER.filter(r=>S.cases&&S.cases[r]&&S.cases[r].p));
 let caseCur=null;
-function openCase(k){const c=cOf(k);caseCur=k;S.cases=S.cases||{};S.cases[k]=S.cases[k]||{at:Date.now()};save();sfx('chime');
+function openCase(k){const c=cOf(k);caseCur=k;S.cases=S.cases||{};S.cases[k]=S.cases[k]||{at:Date.now()};save();sfx('mystery');
   const sus=c.sus!=null&&svIn(c.sus)?svName(c.sus):c.susN;
   openModal(`<div class="page case nox"><div class="tag">사건 ${cNo(k)} · ${c.ch}</div><h3>${c.t}</h3><div class="cswhen">${c.when} · 의심받는 사람: <b>${sus}</b></div>
     <div class="csb">${caseLines(c.x())}</div><div class="csq">어떻게 할까요?</div>
@@ -5024,14 +5041,14 @@ function openEggPage(){const c5=S.cases&&S.cases[4]&&S.cases[4].p;
 // ① 03:11~03:14, the real clock: the radio catches a voice that breaks off
 const lost3=()=>{const d=new Date();return d.getHours()===3&&d.getMinutes()>=11&&d.getMinutes()<=14;};
 function eggRadio(){if(!lost3()||!(S.gUses||S.gTotal))return;const m=new Date().getMinutes();
-  openModal(`<div class="page case egg"><div class="tag">03:${m} · 잡음</div><div class="eggr"><p>…</p><p>(한참 동안 아무 소리도 없다)</p><p>“…여기는 한밤. 지금 바로 대피하—”</p></div><div class="csnote">목소리는 거기서 뚝 끊겼다. 끊긴 시각은 3시 14분이었다.</div><button class="rqok">닫기</button></div>`,true);sfx('chime');eggGet('a','끊긴 방송');}
+  openModal(`<div class="page case egg"><div class="tag">03:${m} · 잡음</div><div class="eggr"><p>…</p><p>(한참 동안 아무 소리도 없다)</p><p>“…여기는 한밤. 지금 바로 대피하—”</p></div><div class="csnote">목소리는 거기서 뚝 끊겼다. 끊긴 시각은 3시 14분이었다.</div><button class="rqok">닫기</button></div>`,true);sfx('mystery');eggGet('a','끊긴 방송');}
 {const o=openSheet;openSheet=function(t){const r=o.apply(this,arguments);if(t==='radio'&&lost3()&&!(S.egg&&S.egg.a))setTimeout(eggRadio,500);return r;};}
 // ② the radio lamp blinks ••• • • once the 무전실 is up. Tap it back in the same rhythm.
 {const o=renderRadio;renderRadio=function(){let h=o.apply(this,arguments);if(hasMod(7)&&!(S.egg&&S.egg.b))h=h.replace('<div class="radiobox">','<div class="radiobox"><button class="mlamp" data-act="mlamp" aria-label="작은 신호등"></button>');return h;};}
 let mTaps=[],mTo=0;
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act="mlamp"]');if(!b)return;e.stopPropagation();b.classList.remove('hit');void b.offsetWidth;b.classList.add('hit');mTaps.push(performance.now());clearTimeout(mTo);
   mTo=setTimeout(()=>{const g=[];let n=1;for(let i=1;i<mTaps.length;i++){if(mTaps[i]-mTaps[i-1]>700){g.push(n);n=1;}else n++;}g.push(n);mTaps=[];
-    if(g.join()==='3,1,1'){sfx('chime');const l=document.querySelector('.mlamp');if(l)l.remove();openModal(`<div class="page case egg"><div class="tag">신호등</div><div class="eggr"><p>● ● ●　●　●</p></div><div class="csnote">깜빡임이 멈췄다. 3, 1, 1. 누군가 시각을 적어 둔 것 같았다.</div><button class="rqok">닫기</button></div>`,true);eggGet('b','세 번, 한 번, 한 번');}},2000);},true);
+    if(g.join()==='3,1,1'){sfx('mystery');const l=document.querySelector('.mlamp');if(l)l.remove();openModal(`<div class="page case egg"><div class="tag">신호등</div><div class="eggr"><p>● ● ●　●　●</p></div><div class="csnote">깜빡임이 멈췄다. 3, 1, 1. 누군가 시각을 적어 둔 것 같았다.</div><button class="rqok">닫기</button></div>`,true);eggGet('b','세 번, 한 번, 한 번');}},2000);},true);
 // ③ 태식's own wristwatch stopped at 3:11, three minutes before all the others
 {const o=openSurv;openSurv=function(id){const r=o.apply(this,arguments);if(id===12&&trustLv(S.sv[12].xp)>=2){const st=modal.querySelector('.story');if(st&&!modal.querySelector('[data-act="watch"]'))st.insertAdjacentHTML('afterend','<button class="alt watch" data-act="watch">태식의 손목시계 살펴보기</button>');}return r;};}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="watch"]');if(!b)return;e.stopPropagation();
@@ -5048,7 +5065,7 @@ function tickCrow(){if(!s1On())return false;const C=crow();
     openTalk([[ME,'탑 아래로 까마귀 무리가 몰려왔다. 맨 앞의 사내가 탑 꼭대기를 올려다봤다.'],[CR_,'독수리라고 하오. 쇼핑몰 경비팀장이었지. 사람 지키던 일이 이렇게 됐소.'],svIn(JIN)?[JIN,'…대장.']:null,[CR_,C.rel==='deal'?'통행료 낸 사이니 오늘은 손대지 않겠소.':C.rel==='fight'?'그날 빚은 잊지 않았소. 하지만 오늘은 싸우러 온 게 아니오.':'그때 길을 비켜 줘서 여기까지 왔지.'],[CR_,'불 잘 켰더군. 하나만 알아 두시오.'],[CR_,'빛은 우리만 부르는 게 아니야.'],[ME,'그는 싸우지 않고 돌아섰다. 멀어지면서, 오래된 라디오 시그널 음악을 흥얼거렸다.'],svIn(10)?[ME,'그 가락에 은호가 잠깐 멈춰 섰다. 아무 말도 하지 않았다.']:null].filter(Boolean),{tag:'까마귀 · 대치'});return true;}
   if(C.jinDue&&!svIn(JIN)){C.jinDue=0;save();rescue(JIN,'visit');return true;}
   return false;}
-function openCrowMeet(){const c=scaleCost({food:40,fuel:15},lvScale()),ok=canPay(c);sfx('chime');
+function openCrowMeet(){const c=scaleCost({food:40,fuel:15},lvScale()),ok=canPay(c);sfx('mystery');
   openModal(`<div class="page case crow nox"><div class="tag">까마귀 · 접촉</div><h3>길을 막은 사람들</h3><div class="csb">${caseLines([[ME,'원정대가 돌아오는 길목을 검은 옷의 무리가 막아섰다. 벽에서 보던 검은 새가 그들 팔에 그려져 있었다.'],[CR_,'이 길은 우리 길이오. 지나가려면 몫을 내시오.'],[JN_,'…대장, 저 사람들이 그 랜턴 가진 쪽이에요.']])}</div>
     <div class="csq">어떻게 할까요?</div><div class="cso">
     <button class="copt hi" data-act="crow" data-arg="deal" ${ok?'':'disabled'}><b>통행료를 낸다</b><small>${ok?'':'자재가 모자라요 · '}${costHtml(c)}</small></button>
@@ -5166,7 +5183,7 @@ function shadowPos(){const s=SHD,f=Math.min(1,s.t/s.dur),e=f*f*(3-2*f);return[s.
 function tickShadow(dt){if(!SHD)return;SHD.t+=dt;if(SHD.t>=SHD.dur){if(SHD.light==null&&!SHD.got)oddLog('shadow','새벽 3시, 쉘터 쪽에서 그림자가 어둠 속으로 사라졌다.');SHD=null;}}
 {const o=bubbleAt;bubbleAt=function(sx,sy){if(SHD&&SHD.light==null&&!SHD.got){const[x,y]=shadowPos(),p=toScreen(x,y-14);if(Math.hypot(sx-p.x,sy-p.y)<34*Math.max(.8,cam.z))return{chat:{shadow:1}};}return o.apply(this,arguments);};}
 {const o=openChat;openChat=function(C){if(C&&C.shadow){catchShadow();return;}return o.apply(this,arguments);};}
-function catchShadow(){if(!SHD||SHD.got)return;SHD.got=true;SHD.t=Math.max(SHD.t,SHD.dur-1.2);const it=ODD_ITEMS[(S.oddItem=(S.oddItem||0)+1)%ODD_ITEMS.length];sfx('chime');const[x,y]=shadowPos();burst(x,y-14,'#3a3040',14);
+function catchShadow(){if(!SHD||SHD.got)return;SHD.got=true;SHD.t=Math.max(SHD.t,SHD.dur-1.2);const it=ODD_ITEMS[(S.oddItem=(S.oddItem||0)+1)%ODD_ITEMS.length];sfx('mystery');const[x,y]=shadowPos();burst(x,y-14,'#3a3040',14);
   noteFirst({h:'놓쳤어요',t:`<small>그림자는 쉘터 안, 내 잠자리 쪽으로 사라졌어요. 발밑에 <b>${it}</b>이(가) 떨어져 있어요.</small>`,kind:'story',ms:6000});oddLog('shadow',`새벽 3시, 그림자를 쫓았지만 쉘터 안 내 잠자리 쪽에서 놓쳤다. 발밑에 ${it}이(가) 떨어져 있었다.`);}
 // the clock reads 새벽 3시 while something is going on
 {const o=renderClock;renderClock=function(){o.apply(this,arguments);if(isNight()&&performance.now()<oddUntil){const t=$('clockTxt');const m=t.textContent.match(/\d+:\d\d/);t.textContent='새벽 3시'+(m?' · '+m[0]:'');}};}
