@@ -69,3 +69,6 @@
 
 /* story text wraps line by line; Safari's text-wrap:pretty rebalanced whole paragraphs and left the first line short */
 .page.talk p,.page.talk .d,.page.scene-view p,.tt.note .nb,.tt.note small{text-wrap:wrap!important}
+
+/* the lantern art is a nested svg; the design sheet's #lamp svg size must not resize it (Safari drew it 56×56 with a sampled edge line on top) */
+#lamp svg.lamp-art{width:46px!important;height:46px!important;overflow:hidden}
