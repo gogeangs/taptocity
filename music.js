@@ -68,7 +68,7 @@ function scheduleBar(m,t){const ch=m.chords[bar%m.chords.length];
   if(m.storm){const q=m.bar/8;for(let i=0;i<8;i++)piano(L.storm,ch[0]+12+[0,7,12,7][i%4],t+i*q,.35,1.2,i%2?.2:-.2);drum(t,1);drum(t+m.bar*.5,.6);if(bar%2)drum(t+m.bar*.75,.45);}
   if(m.drip)for(let i=0;i<3;i++)if(Math.random()<.5)piano(L.drip,m.mel[Math.floor(Math.random()*m.mel.length)],t+Math.random()*m.bar,.25,2.5,(Math.random()-.5)*.8);
   bar++;}
-function tick(){if(!A||!started)return;const m=M[cur];const t=A.currentTime;if(!m){nextBar=t;return;}if(nextBar<t)nextBar=t+.1;
+function tick(){if(!A||!started||!enabled||cur==='off')return;const m=M[cur];const t=A.currentTime;if(!m){nextBar=t;return;}if(nextBar<t)nextBar=t+.1;
   while(nextBar<t+.4){scheduleBar(m,nextBar);nextBar+=m.bar;}}
 function setLayers(){const m=M[cur],quiet=!enabled||cur==='off'||!m,t=A.currentTime,k=quiet?0:duck*(black?0:1),r=black?.03:1.2;
   const lv={pad:m?m.pad:0,pno:m?m.pno:0,sub:m?m.sub:0,storm:m&&m.storm?.6:0,radio:m&&m.radio?.9:0,drip:m&&m.drip?.8:0};

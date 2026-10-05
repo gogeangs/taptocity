@@ -1357,7 +1357,7 @@ const SAY={
 const SETKEY='taptocity-settings';
 const SET=(()=>{const d={snd:true,mus:true,vib:true,calm:false,big:false};try{return Object.assign(d,JSON.parse(localStorage.getItem(SETKEY)||'{}'));}catch(e){return d;}})();
 function applySettings(){document.body.classList.toggle('big',!!SET.big);document.body.classList.toggle('calm',!!SET.calm);try{reduce=matchMedia('(prefers-reduced-motion: reduce)').matches||!!SET.calm;}catch(e){}}
-function toggleSet(k){SET[k]=!SET[k];try{localStorage.setItem(SETKEY,JSON.stringify(SET));}catch(e){}applySettings();if(k==='snd'&&SET.snd)sfx('chime');if(k==='mus'&&window.TTCMusic){TTCMusic.enable(!!SET.mus);musicTick();}if(k==='vib'&&SET.vib)buzz();renderSheet();}
+function toggleSet(k){SET[k]=!SET[k];try{localStorage.setItem(SETKEY,JSON.stringify(SET));}catch(e){}applySettings();if(k==='snd'&&SET.snd)sfx('chime');if(k==='mus'&&window.TTCMusic){musicTick();TTCMusic.enable(!!SET.mus);}if(k==='vib'&&SET.vib)buzz();renderSheet();}
 let AC=null;const lastS={};
 function ac(){if(!SET.snd)return null;try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){return null;}return AC;}
 // Effects share the score's palette: felt piano, small bells, soft wood and cloth. A small room (made once) keeps them in the same space.
@@ -2487,7 +2487,7 @@ $('fExp').onclick=()=>{if(sheetTab==='exp')closeSheet();else{expPlan=null;openSh
 const modal=$('modal'),mq=[];
 function openModal(h,force){if((!modal.hidden||HOLDING)&&!force){mq.push(h);return;}modal.innerHTML=h;const pg=modal.querySelector('.page');if(pg&&!pg.classList.contains('talk')&&!pg.classList.contains('radio-spin')&&!pg.classList.contains('nox'))pg.insertAdjacentHTML('afterbegin','<button class="mx" aria-label="닫기">✕</button>');modal.hidden=false;modal.scrollTop=0;const b=modal.querySelector('button:last-of-type');b&&b.focus();}
 function closeModal(){modal.hidden=true;if(mq.length)setTimeout(()=>openModal(mq.shift()),150);}
-modal.addEventListener('click',e=>{const b=e.target.closest('button');if(b&&b.dataset.act==='gift'){if(!b.disabled)gift(+b.dataset.arg);return;}if(b&&b.dataset.act==='party'){toggleParty(+b.dataset.arg);openSurv(+b.dataset.arg,true);return;}if(b&&b.dataset.act==='ev'){if(!b.disabled)chooseEv(+b.dataset.arg);return;}if(b||e.target===modal)closeModal();});
+modal.addEventListener('click',e=>{const b=e.target.closest('button');if(b&&b.dataset.act==='gift'){if(!b.disabled)gift(+b.dataset.arg);return;}if(b&&b.dataset.act==='party'){toggleParty(+b.dataset.arg);openSurv(+b.dataset.arg,true);return;}if(b&&b.dataset.act==='ev'){if(!b.disabled)chooseEv(+b.dataset.arg);return;}if(e.target===modal&&talk)return;if(b||e.target===modal)closeModal();});
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="talk"]');if(!b||!talk)return;e.stopPropagation();if(talk.k<talk.lines.length-1){talk.k++;renderTalk();}else{const g=talk.opt.goal,chn=talk.opt.chain,af=talk.opt.after;talk=null;closeModal();if(g)panGuide=performance.now();if(chn)setTimeout(tickStory,60);if(af)setTimeout(af,60);}},true);
 // ---------- survivors: rescue, assign, trust ----------
 let svNew=false,asgTile=-1;
@@ -3701,7 +3701,7 @@ const regionMis=()=>{const r=S.region,base=S.arriveWins||0,Q=S.rq||{};
   {goal:'한파 사흘 버티기',k:'cold',done:()=>!!Q.cold,rw:{fuel:40,batt:3},hint:'사흘 밤 동안 장작이 빨리 줄어요. 목재를 넉넉히 모아 둬요'},
   {goal:'산 너머 대피소를 어떻게 할지 정하기',k:'choice',done:()=>!!Q.pick,rw:{batt:2},hint:'미션을 눌러 정해요'},fort,city,tower];};
 function nextRegion(){return RORDER[(S.gen||0)%RORDER.length];}
-function migrateHtml(){if(S.lv<5||!(S.endSeen||S.gen))return'';const nr=REGIONS[nextRegion()],g=(S.gen||0)+1;
+function migrateHtml(){if(S.lv<5||!(S.endSeen||S.gen)||(!S.gen&&!S.ehEnd&&svIn(10)))return'';const nr=REGIONS[nextRegion()],g=(S.gen||0)+1;
   return`<button class="banner mig" data-act="migrate"><span><b>(선택) ${nextCaller()?nextCaller().n+'의 신호를 따라 ':''}새 동네로 떠나기 →</b><br>불씨를 들고 ${nr.n}에서 다시 시작해요 · 등불의 기억 ${g}단계 (생산·두드리기 +${g*10}%)</span></button>`;}
 let migConfirm=false;
 function openMigrate(){const nr=REGIONS[nextRegion()],g=(S.gen||0)+1,n=Object.keys(S.sv).length;
@@ -3713,7 +3713,7 @@ function openMigrate(){const nr=REGIONS[nextRegion()],g=(S.gen||0)+1,n=Object.ke
     <div class="btns" style="margin-top:14px"><button class="alt">조금 더 머물기</button><button data-act="migok">떠나기</button></div></div>`,true);}
 function migrate(){const old=S,g=(old.gen||0)+1,region=nextRegion();
   const keep={pf:old.pf,playT:old.playT,pfAsk:old.pfAsk,qc:old.qc,sv:old.sv,party:old.party,inv:old.inv,iu:old.iu,relics:old.relics,ach:old.ach,title:old.title,kids:old.kids,dog:old.dog,endSeen:old.endSeen,conf:old.conf,hook:old.hook,tlog:old.tlog,rumor:old.rumor,sqN:old.sqN,cases:old.cases,odd:old.odd,dead:old.dead,egg:old.egg,crow:old.crow,pets:old.pets,petOn:old.petOn,stat:old.stat,gTotal:old.gTotal,gp:old.gp,heard:old.heard,found:old.found,mi:old.mi,storyI:old.storyI,
-    ug:old.ug||{best:0,runs:0,bestWith:{}},defWins:old.defWins,defs:old.defs,nights:old.nights,evDone:old.evDone,skillUses:old.skillUses,expDone:old.expDone,fevers:old.fevers,gUses:old.gUses};
+    ug:old.ug||{best:0,runs:0,bestWith:{}},defWins:old.defWins,defs:old.defs,nights:old.nights,evDone:old.evDone,skillUses:old.skillUses,expDone:old.expDone,fevers:old.fevers,gUses:old.gUses,art:old.art,artNew:old.artNew,ehEnd:old.ehEnd,expTold:old.expTold};
   const carryM={batt:old.m.batt||0};for(const k of['plate','rope','wire','med'])carryM[k]=Math.floor((old.m[k]||0)/2);
   closeModal();closeSheet();closeRing();DEFN=null;UG=null;WALK={};CHAT=null;KW=[];
   fresh();Object.assign(S,keep);S.gen=g;S.region=region;S.rmi=0;S.rsI=0;S.arriveWins=S.defWins||0;
@@ -3736,7 +3736,7 @@ const FEAT=[
  {k:'auto',tab:'fSurv',sheet:'surv',on:()=>S.lv>=3,msg:'생존자 수첩 맨 위에서 버튼 한 번으로 일터를 채울 수 있어요',h:'자동 배치'},
  {k:'autoexp',tab:'fExp',sheet:'exp',on:()=>S.lv>=4,msg:'원정 탭 맨 위에서 자동 원정을 켤 수 있어요',h:'자동 원정'},
  {k:'acraft',tab:'fUp',sheet:'shelter',seg:'craft',on:()=>acraftOpen(),msg:'가공·제작에서 레시피마다 자동 가공을 켤 수 있어요 (쉘터 Lv.4 · 작업대 2단계)',h:'자동 가공'},
- {k:'migrate',tab:'fUp',sheet:'shelter',seg:'build',on:()=>!!S.endSeen&&S.lv>=5,msg:'쉘터 화면에서 새 동네로 떠날 수 있어요',h:'이주'}];
+ {k:'migrate',tab:'fUp',sheet:'shelter',seg:'build',on:()=>!!S.endSeen&&S.lv>=5&&(S.gen||S.ehEnd||!svIn(10)),msg:'쉘터 화면에서 새 동네로 떠날 수 있어요',h:'이주'}];
 function tickFeat(){if(!S.feat){S.feat={};for(const f of FEAT)if(f.on())S.feat[f.k]=2;}for(const f of FEAT){if(S.feat[f.k])continue;if(f.on()){S.feat[f.k]=1;(S.featQ=S.featQ||[]).push(f.k);}}
   if(S.featQ&&S.featQ.length&&(S.playT||0)>=300&&Date.now()-(S.featAt||0)>120000&&modal.hidden){const k=S.featQ.shift(),f=FEAT.find(x=>x.k===k);if(f&&S.feat[k]===1){S.featAt=Date.now();note({h:`새 기능 · ${f.h}`,t:`<small>${f.msg}</small>`,ms:5000});}}
   const tabs={};for(const f of FEAT)if(S.feat[f.k]===1)tabs[f.tab]=1;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('isnew',!!tabs[b.id]));}
@@ -5133,7 +5133,8 @@ let ehT=0;
 function tickEunho(){if(svIn(10))return false;const st=mission().step,ji=STEP_I('목소리의 주인 맞이하기');
   if((st&&st.goal==='목소리의 주인 맞이하기')||(S.mi>ji&&ji>=0)){rescue(10,'visit');return true;}return false;}
 
-function tickEnding(){if(S.gen||!S.endSeen||S.ehEnd||S.mi<STEPS.length||!svIn(10))return false;S.ehEnd=1;save();
+let endingOn=false;
+function tickEnding(){if(endingOn||S.gen||!S.endSeen||S.ehEnd||S.mi<STEPS.length||!svIn(10))return false;endingOn=true;
   playEnding(false);return true;}
 // 시즌 1 엔딩 '다시, 03:11': the tutorial's night, mirrored. Same song, the same cut at 03:11, the latch click, silence,
 // then the far light blinks 3·1·1. Nobody explains any of it. Then the season card and one line of radio.
@@ -5146,9 +5147,10 @@ function endingLine(t){const a=window.TTCMusic;
   if(t==='03:11. 노래가 뚝 끊겼다.'){endFx={mood:'off'};if(a){a.blackout(4);a.mood('off');}}
   else if(t==='딸깍.')setTimeout(()=>sfx('click'),350);
   else if(t.startsWith('노래는 다시 이어지지'))sfx('static');
-  else if(t==='셋. 하나. 하나.')[0,260,520,1500,2400].forEach(d=>setTimeout(()=>sfx('ui'),d));}
+  else if(t==='셋. 하나. 하나.')[0,260,520,1500,2400].forEach(d=>setTimeout(()=>sfx('ui'),d));
+  else if(t.startsWith('바람에 흔들리는'))endFx={mood:'off',until:Date.now()+3000};}
 function playEnding(){openTalk(END_LINES,{tag:'그날 밤',noskip:1,onLine:endingLine,after:endCard});endFx={mood:'air'};musicTick();}
-function endCard(){const d=document.createElement('div');d.id='endcard';d.setAttribute('role','dialog');d.setAttribute('aria-label','시즌 1 끝');
+function endCard(){S.ehEnd=1;save();endingOn=false;const d=document.createElement('div');d.id='endcard';d.setAttribute('role','dialog');d.setAttribute('aria-label','시즌 1 끝');
   d.innerHTML='<div class="ec-t"><small>탭투시티</small><b>시즌 1 끝</b></div><p class="ec-r" aria-live="polite"></p><button class="ec-go" data-act="ecgo">계속하기</button>';document.body.appendChild(d);
   endFx={mood:'off'};musicTick();requestAnimationFrame(()=>d.classList.add('on'));
   setTimeout(()=>d.classList.add('t'),3200);
@@ -5185,7 +5187,7 @@ modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="scenerep
 
 // ---- 배경 음악: pick the score's mood from what is happening ----
 function musicMood(){if(!SET.mus)return'off';
-  if(endFx){if(talk||document.getElementById('endcard'))return endFx.mood;endFx=null;}
+  if(endFx){if(talk||document.getElementById('endcard')||(endFx.until&&Date.now()<endFx.until))return endFx.mood;endFx=null;}
   if(S.tut){const U=S.tut;if(U.i<2)return'tut';if(U.i===2)return U.radio?'off':'air';return'storm';} // 그날 밤: the song on the radio, three silent minutes, then the flash
   if(typeof UG!=='undefined'&&UG)return'under';if(DEFN)return'storm';
   if(isNight())return S.airTonight===(S.nightCount||0)&&svIn(10)?'air':'night';return'day';}
@@ -5498,6 +5500,6 @@ if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.r
 })();
 </script>
 <script src="story-art.js?v=20261005e"></script>
-<script src="music.js?v=20261005e"></script>
+<script src="music.js?v=20261005f"></script>
 </body>
 </html>
