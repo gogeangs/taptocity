@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261006b">
+<link rel="stylesheet" href="qa.css?v=20261006c">
 <div id="app">
   <header>
     <div class="hud">
@@ -2377,8 +2377,8 @@ function placeRing(){if(ringTile<0)return;const[wx,wy]=tileC(ringTile),s=toScree
 // keep the info card clear of the ring buttons: put it wherever there is more room, and shrink it to fit
 function fitRL(){const l=$('ringLabel');if(l.hidden||!ringEl.children.length)return;let t=1e9,b=-1e9;for(const k of ringEl.children){const r=k.getBoundingClientRect();t=Math.min(t,r.top);b=Math.max(b,r.bottom+16);}
   const par=(l.offsetParent||document.body).getBoundingClientRect(),db=par.bottom-parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--rlb')||158);
-  let tm=par.top+58;for(const id of ['clock','sq','evBtn']){const e=$(id);if(e&&!e.hidden&&e.offsetParent){const r=e.getBoundingClientRect();if(r.height)tm=Math.max(tm,r.bottom+8);}}const up=t-tm-8,dn=db-8-b,low=dn>up,mh=Math.max(96,Math.floor(low?dn:up));
-  if(l.classList.contains('low')!==low)l.classList.toggle('low',low);const tp=low?'':Math.round(tm-par.top)+'px';if(l.style.top!==tp)l.style.top=tp;const v=mh+'px';if(l.style.maxHeight!==v)l.style.maxHeight=v;
+  let tm=par.top+58;for(const id of ['clock','sq','evBtn']){const e=$(id);if(e&&!e.hidden&&e.offsetParent){const r=e.getBoundingClientRect();if(r.height)tm=Math.max(tm,r.bottom+8);}}const up=t-tm-8,dn=db-8-b,low=dn>up,z=parseFloat(getComputedStyle(l).zoom)||1,mh=Math.max(96,Math.floor((low?dn:up)/z));
+  if(l.classList.contains('low')!==low)l.classList.toggle('low',low);const tp=low?'':Math.round((tm-par.top)/z)+'px';if(l.style.top!==tp)l.style.top=tp;const v=mh+'px';if(l.style.maxHeight!==v)l.style.maxHeight=v;
   }
 ringEl.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b||b.classList.contains('lock'))return;const a=b.dataset.act,g=+b.dataset.arg;
   if((a==='up'||a==='lm')&&b.classList.contains('poor')){toast('자재가 조금 모자라요');return;}

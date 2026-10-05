@@ -81,3 +81,6 @@
 .page .rqo:not(.b){background:#fff8ea!important;border-color:#b0452a!important}
 .page .rqo[disabled]{background:#efe9dc!important;opacity:.6!important}
 .page .rqo .rqol{color:#26333b!important}.page .rqo .rqcost.free{color:#56646a!important}
+
+/* the module info card's max-height includes its padding, so it never spills over the ring buttons */
+#ringLabel.rl{box-sizing:border-box!important}
