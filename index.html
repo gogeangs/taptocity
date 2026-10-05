@@ -1878,7 +1878,7 @@ const STORY=[
    outro:[[ME,'쉘터의 불빛이 구름을 뚫고 지평선까지 닿았다.'],[ME,'멀리 발전소 쪽에서, 작은 불빛 하나가 깜빡이며 답했다.']]},
   {goal:'탁미영 맞이하기',done:()=>!!S.sv[13],rw:{fuel:30},focus:null,hint:'발전소 쪽 빛을 따라 누군가 오고 있어요',
    intro:[[ME,'어젯밤, 늘 잡히던 기계 경보가 처음으로 멈췄다.'],[ME,'발전소 쪽 불빛이 사흘째 같은 박자로 깜빡인다.'],[11,'구름 흐름을 보면 저 불빛은 발전소 제어동 쪽이에요. 내일은 바람도 이쪽으로 불어요. 누가 오기 딱 좋은 날씨예요.',()=>!!S.sv[11]],[11,'…그 전날 저녁에도 구름이 이상했어요. 그런데 맑다고만 하라고 해서.',()=>!!S.sv[11]],[9,'저건… 제어실 신호예요. 누가 아직 거기 있어요!']],
-   outro:[[13,'이 불빛을 보고 왔어요. 이걸 품고요.'],[ME,'미영이 품에서 꺼낸 것은 희미하게 빛나는 금속 원통이었다.'],[13,'실험로의 심지예요. 꺼내는 데… 오래 망설였어요.'],[13,'받아 줄 곳만 있으면 돼요. 이번엔 제대로.'],[ME,'미영은 나를 한참 보다가, 무언가 말하려던 입을 닫았다.'],[9,'…미영 씨. 살아 있었군요.'],[13,'그날 재혁 씨는 떠났고, 저는 제어실에 남아 출력을 붙잡고 있었어요. 한동안 많이 원망했어요.'],[13,'그런데 이 불빛을 보니까… 다시 해 볼 수 있을 것 같아요. 이번엔 같이요.'],[ME,'두 사람은 한참 말이 없었다. 그러다 미영이 품에서 낡은 설계도를 꺼내 펼쳤다. 귀퉁이에 랜턴 밑바닥과 같은 문양이 찍혀 있었다.'],[9,'…이 설계도, 기억나요. 원래… 다른 분이 그린 거예요.'],[ME,'환영 자리에 은호만 보이지 않았다. 방송 준비 중이라고 했다.',()=>!!S.sv[10]]]}]},
+   outro:[[13,'이 불빛을 보고 왔어요. 이걸 품고요.'],[ME,'미영이 품에서 꺼낸 것은 희미하게 빛나는 금속 원통이었다.'],[13,'실험로의 심지예요. 꺼내는 데… 오래 망설였어요.'],[13,'받아 줄 곳만 있으면 돼요. 이번엔 제대로.'],[ME,'미영은 나를 한참 보다가, 무언가 말하려던 입을 닫았다.'],[9,'…미영 씨. 살아 있었군요.'],[13,'그날 재혁 씨는 떠났고, 저는 제어실에 남아 출력을 붙잡고 있었어요. 한동안 많이 원망했어요.'],[13,'그런데 이 불빛을 보니까… 다시 해 볼 수 있을 것 같아요. 이번엔 같이요.'],[ME,'두 사람은 한참 말이 없었다. 그러다 미영이 품에서 낡은 설계도를 꺼내 펼쳤다. 귀퉁이에 랜턴 밑바닥과 같은 문양이 찍혀 있었다.'],[9,'…이 설계도, 기억나요. 원래… 다른 분이 그린 거예요.'],[ME,'환영 자리에 은호만 보이지 않았다. 방송 준비 중이라고 했다.',()=>!!S.sv[10]],[ME,'그날 밤, 미영은 심지를 품에 안은 채 잠들었다. 그 뒤로도 하룻밤도 내려놓지 않았다.']]}]},
  {ch:'9장',title:'등불 탑',steps:[
   {goal:'등불 탑 토대 놓기',done:()=>(S.tower||0)>=1,rw:{batt:2},focus:'center',hl:'[data-act="tower"]',hint:'쉘터 화면 ‘건설’ 맨 위 등불 탑에서 쌓아요',
    intro:[[13,'쉘터 한가운데 탑을 세워요. 미영 씨가 가져온 심지를 담아서, 그 빛을 구름 위로 쏘아 올릴 거예요.'],[9,'설계도는 미영 씨가 지켜 왔어요. 쌓는 건… 모두의 몫이에요.']],
@@ -3264,7 +3264,7 @@ const UG_DIARY=[
  {f:17,t:'마지막 운전 기록',x:'실험로는 멈추지 않았다. 대신 아주 천천히, 빛을 내고 있다. 심지를 지킬 것. 위에서 누군가 등불을 들고 있다면, 이 빛이 닿기를.'}];
 // the survivor who stayed below
 SURV.push({name:'탁미영',age:41,job:'발전소 제어실 운전원',hidden:true,alias:'가장 깊은 곳의 운전원',match:[5,7],src:'deep',look:{skin:'#e3b893',hair:'#4a4440',top:'#c96a2a'},eff:{craft:.25,hope:6},trait:v=>`가공할 때 ${pc(v.craft)}% 확률로 하나 더 · 희망 +${Math.round(v.hope)}`,
-  story:['재가 내리던 새벽, 제어실에서 마지막까지 버튼을 누르고 있던 사람.','처음엔 동료 몇 명과 함께였다. 하나둘 재의 벽을 넘다 돌아오지 못했고, 그녀는 끝까지 심지 곁에 남았다.','“재는 제 탓이에요.” 처음 쉘터에 온 날 밤, 그녀는 한숨도 자지 못했다. 그날 끊긴 수화기를 몇 번이고 다시 들었다고 했다.','재혁과 밤새 도면을 펼쳐 놓고 이야기했다. 둘 다 같은 걸 꿈꾸고 있었다. 재를 걷어낼 빛.','“이번엔 제대로 켤 거예요.” 그녀가 발전기 스위치를 올리자, 쉘터 전체가 환해졌다.']});
+  story:['재가 내리던 새벽, 제어실에서 마지막까지 버튼을 누르고 있던 사람.','처음엔 동료 몇 명과 함께였다. 하나둘 재의 벽을 넘다 돌아오지 못했고, 그녀는 끝까지 심지 곁에 남았다. 쉘터에 와서도 심지를 품에 안고 잔다.','“재는 제 탓이에요.” 처음 쉘터에 온 날 밤, 그녀는 한숨도 자지 못했다. 그날 끊긴 수화기를 몇 번이고 다시 들었다고 했다.','재혁과 밤새 도면을 펼쳐 놓고 이야기했다. 둘 다 같은 걸 꿈꾸고 있었다. 재를 걷어낼 빛.','“이번엔 제대로 켤 거예요.” 그녀가 발전기 스위치를 올리자, 쉘터 전체가 환해졌다.']});
 SURV[13].id=13;SURV[13].grade=3;
 SKILLS.push({n:'비상 발전',cd:120,d:'60초간 모든 생산 ×1.5',fn:()=>{setBuff({k:'all',m:1.5,t:60,label:'비상 발전'});toast('미영이 예비 발전기를 돌렸어요');return true;}});
 ROLE.push(['mech','sci']);
@@ -5096,7 +5096,9 @@ const modTile=id=>{for(const[t,k]of D.modAt)if(S.mods[k]&&S.mods[k].id===id)retu
 function oddPick(){const last=S.oddLast,pool=[['shadow',3],['radio',(S.gUses||S.gTotal)?2:0],['light',hasMod(7)?2:0],['missing',2],['steps',2],['absent',Object.keys(S.sv).length>=4?2:0],['knock',1]].filter(([k,w])=>w&&k!==last);
   let tot=0;for(const[,w]of pool)tot+=w;let r=Math.random()*tot;for(const[k,w]of pool){r-=w;if(r<=0)return k;}return'knock';}
 function tickOdd(){if(!oddOn())return;const n=isNight(),nc=S.nightCount||0;
-  if(n&&oddNightSeen!==nc){oddNightSeen=nc;oddPlan=!DEFN&&Math.random()<(S.gen?.3:.5)?{k:oddPick(),done:0}:null;}
+  if(n&&oddNightSeen!==nc){oddNightSeen=nc;// Eunho only goes on air when the ash is thin (half the nights, 30% in later towns); strange nights ride on those broadcasts
+    const air=Math.random()<(S.gen?.3:.5);S.airTonight=air?nc:-1;if(air&&!DEFN)toast(svIn(11)?'설화: “오늘 밤은 하늘이 얕아요.” 은호의 방송이 열렸어요':'오늘 밤은 하늘이 얕아요. 은호의 방송이 열렸어요');
+    oddPlan=!DEFN&&air?{k:oddPick(),done:0}:null;}
   if(n&&oddPlan&&!oddPlan.done&&phase()>=ODD_AT&&!DEFN){oddPlan.done=1;S.oddLast=oddPlan.k;runOdd(oddPlan.k);}
   if(!n&&oddDawn){const f=oddDawn;oddDawn=null;setTimeout(f,2600);}}
 function runOdd(k){oddUntil=performance.now()+9000;sfx('tap');
