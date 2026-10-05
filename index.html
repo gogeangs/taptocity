@@ -2353,7 +2353,8 @@ function levelUp(lv){sfx('level');$('stLv').textContent='Lv.'+lv;$('stNm').textC
 
 // ---------- ring menu (modules and landmarks) ----------
 const ringEl=$('ring');let ringTile=-1,ringSay='';const R=96;
-function openRing(i){ringTile=i;sel=i;confirmKey=null;const m=modAtTile(i),s=m?SAY[m.id]:null;ringSay=s?s[(Math.random()*s.length)|0]:'';buildRing();}
+let ringPan=0,camGoalY=null;
+function openRing(i){ringTile=i;sel=i;confirmKey=null;ringPan=3;camGoalY=null;const m=modAtTile(i),s=m?SAY[m.id]:null;ringSay=s?s[(Math.random()*s.length)|0]:'';buildRing();}
 function closeRing(){ringTile=-1;sel=-1;ringEl.hidden=true;ringEl.innerHTML='';$('ringLabel').hidden=true;}
 function tok(ang,act,arg,icon,cap,cls,cost){const a=ang*Math.PI/180;return`<button class="tok ${cls}" style="left:${Math.cos(a)*R}px;top:${Math.sin(a)*R}px" data-act="${act}" data-arg="${arg}" ${cost!=null?`data-cost="${cost}"`:''}>${svg(icon)}<span class="cap">${cap}</span></button>`;}
 function angles(n){if(n===1)return[90];if(n===2)return[130,50];const span=n>=5?240:180,st=90+span/2,a=[];for(let k=0;k<n;k++)a.push(st-k*span/(n-1));return a;}
@@ -2379,7 +2380,11 @@ function fitRL(){const l=$('ringLabel');if(l.hidden||!ringEl.children.length)ret
   const par=(l.offsetParent||document.body).getBoundingClientRect(),db=par.bottom-parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--rlb')||158);
   let tm=par.top+58;for(const id of ['clock','sq','evBtn']){const e=$(id);if(e&&!e.hidden&&e.offsetParent){const r=e.getBoundingClientRect();if(r.height)tm=Math.max(tm,r.bottom+8);}}const up=t-tm-8,low=db-8-b>up,z=parseFloat(getComputedStyle(l).zoom)||1;
   if(l.classList.contains('low')!==low)l.classList.toggle('low',low);const tp=low?'':Math.round((tm-par.top)/z)+'px';if(l.style.top!==tp)l.style.top=tp;
-  const dn=low?l.getBoundingClientRect().bottom-8-b:0,mh=Math.max(96,Math.floor((low?dn:up)/z)),v=mh+'px';if(l.style.maxHeight!==v)l.style.maxHeight=v;
+  const dn=low?l.getBoundingClientRect().bottom-8-b:0,room=low?dn:up,need=l.scrollHeight*z+22;
+  if(ringPan&&camGoalY==null&&need>room+4&&ptrs.size===0){ringPan--;const cb=l.classList.contains('low')?l.getBoundingClientRect().bottom:(()=>{l.classList.add('low');const v=l.getBoundingClientRect().bottom;l.classList.toggle('low',low);return v;})();
+    const dU=Math.max(0,(tm+8+need)-t),dL=Math.max(0,b-(cb-8-need)),ringTop=t-par.top,ringBot=b-par.top,okU=ringBot+dU<=par.height-20,okL=ringTop-dL>=40;
+    let d=0;if(okU&&(!okL||dU<=dL))d=-dU;else if(okL)d=dL;if(d)camGoalY=Math.max(0,Math.min((W+H)*TH/2,cam.y+d/cam.z));}
+  const mh=Math.max(96,Math.floor(room/z)),v=mh+'px';if(l.style.maxHeight!==v)l.style.maxHeight=v;
   }
 ringEl.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b||b.classList.contains('lock'))return;const a=b.dataset.act,g=+b.dataset.arg;
   if((a==='up'||a==='lm')&&b.classList.contains('poor')){toast('자재가 조금 모자라요');return;}
@@ -5409,6 +5414,7 @@ function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;
   tickProd(dt);tickBuff(dt);tickClock(dt);tickDefense(dt);tickLife(dt);tickShadow(dt);tickKidWalk(dt);tickEvents(dt);tickSkills(dt);
   idle+=dt;if(fever>0){fever=Math.max(0,fever-dt);}else if(idle>.7&&combo>0)combo=Math.max(0,combo-dt*10);
   acc+=dt;if(acc>=1){acc-=1;tickGhost();tickTwk();tickSide();tickACraft();tickSeason();tickSurv();tickExp();tickSites();tickQuests();tickBand();tickKids();tickPets();tickFinale();tickRegionStory();tickRegionHidden();tickTownEvents();tickDuty();tickAuto();tickAutoExp();tickAch();tickFeat();tickClaim();tickBeats();tickBatt();tickProfile();if(S.overT>0)S.overT--;if(S.hintT>0)S.hintT--;if(S.droneLv||S.overT>0){const i=frontierNearest();if(i>=0){damage(i,S.overT>0?Math.max(droneDmg(),tapPow())*4:droneDmg(),false);const[x,y]=tileC(i,14);burst(x,y,'#9fc6d2',4);}}}
+  if(camGoalY!=null){const df=camGoalY-cam.y;if(Math.abs(df)<.5||ptrs.size){cam.y=ptrs.size?cam.y:camGoalY;camGoalY=null;}else cam.y+=df*Math.min(1,dt*9);}
   if(camTw){camTw.t+=dt;const p=camTw.t/camTw.dur,e=p<.35?p/.35:p>.7?1-(p-.7)/.3:1,s=e*e*(3-2*e);cam.z=camTw.back+(camTw.to-camTw.back)*s;if(p>=1){cam.z=camTw.back;camTw=null;}}
   if(aim>=0&&ptrs.size===0&&now-lastBtn<1500){const s=aimScreen(aim);if(s.x<70||s.x>cw-70||s.y<90||s.y>ch-160){const[wx,wy]=tileC(aim,12);cam.x+=(wx-cam.x)*.06;cam.y+=(wy-cam.y)*.06;}}
   for(const[k,v]of anims){const n=v+dt/1.2;if(n>=1)anims.delete(k);else{anims.set(k,n);if(Math.random()<.3){const[x,y]=tileC(k,4);parts.push({x:x+(Math.random()-.5)*40,y,vx:(Math.random()-.5)*.6,vy:-.4,life:.8,max:.8,smoke:1});}}}
