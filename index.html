@@ -2676,7 +2676,7 @@ function tickClock(dt){S.clock=(S.clock||0)+dt;const n=isNight();
   if(ch)recalc();}
 function hitAsh(i,amt){const a=S.ash[i];if(!a)return;sfx('hit');amt*=petAsh();if(ringTile>=0)closeRing();buzz();addCombo();a.hp-=amt;const[x,y]=tileC(i,12);burst(x,y,'#9a948c',6,3);glow(x,y,60);
   if(a.hp<=0){(S.stat=S.stat||{}).ash=(S.stat.ash||0)+1;const was=a.stuck;delete S.ash[i];burst(x,y,'#ffd98a',14);floatText(x,y-34,'재를 걷어냈다!','rgba(255,230,160,A)',22);loot({scrap:Math.max(1,Math.round(1.5*lvScale()))},x,y-14);if(was)recalc();}}
-function ashAt(sx,sy){const r=TW*.6*cam.z;let best=-1,bd=r*r;for(const k in S.ash){const[wx,wy]=tileC(+k,10),s=toScreen(wx,wy),d=(s.x-sx)**2+(s.y-sy)**2;if(d<bd){bd=d;best=+k;}}return best;}
+function ashAt(sx,sy){const w=toWorld(sx,sy),under=pickTile(w.x,w.y);if(under>=0&&S.ash[under])return under;const r=TW*.3*cam.z;let best=-1,bd=r*r;for(const k in S.ash){const[wx,wy]=tileC(+k,10),s=toScreen(wx,wy),d=(s.x-sx)**2+(s.y-sy)**2;if(d<bd){bd=d;best=+k;}}return best;}
 function urgentAsh(){let best=-1,bt=1e9;for(const k in S.ash){const a=S.ash[k],t=a.stuck?999:a.t;if(t<bt){bt=t;best=+k;}}return best;}
 function drawAsh(i,time,pulse){const a=S.ash[i];ZS=1;const f=a.hp/a.max;
   for(let k=0;k<4;k++){const[cx,cy]=P(.5+(k%2-.5)*.3,.5+((k>>1)-.5)*.3,6+k*2);ctx.fillStyle=k%2?'#6c6760':'#85807a';ctx.beginPath();ctx.arc(cx,cy,(9+k*2)*(.5+f*.5),0,7);ctx.fill();}
