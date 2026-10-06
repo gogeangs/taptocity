@@ -106,3 +106,13 @@
 .page .ut,.page.ug .ut{display:grid!important;place-items:center!important;line-height:1!important}
 .page.ug .ut{position:relative!important}.page.ug .ut .ub{position:absolute!important;inset:11%!important;width:auto!important;height:auto!important;border-radius:9px!important}
 .page.ug .ut .ub svg{width:70%!important;height:70%!important;stroke-width:2.4!important}
+
+/* underground: a name under each revealed icon, and a legend of this floor's finds under the grid */
+.page.ug .ut.r .ub{inset:6% 14% 30% 14%!important;border-radius:8px!important}
+.page.ug .ut.r .ub svg{width:72%!important;height:72%!important}
+.page.ug .ut .ul{position:absolute;left:0;right:0;bottom:3px;text-align:center;font:700 9.5px/1 var(--body);letter-spacing:-.02em;color:#1d1712;pointer-events:none}
+.page.ug .ut.act .ul{color:#2a1c0c}.page.ug .ut.k-hazard .ul{color:#fff0dc}.page.ug .ut.done .ul{opacity:.55}
+.page.ug .uglegend{display:flex;flex-wrap:wrap;gap:4px 12px;margin:-4px 0 10px;font:600 11.5px/1.2 var(--body);color:#c9d1d8}
+.page.ug .uglegend span{display:inline-flex;align-items:center;gap:5px}
+.page.ug .uglegend .ub{position:static!important;inset:auto!important;width:18px!important;height:18px!important;border-radius:5px!important;display:grid!important;place-items:center!important;box-shadow:none!important}
+.page.ug .uglegend .ub svg{width:72%!important;height:72%!important;stroke-width:2.4}

@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261006j">
+<link rel="stylesheet" href="qa.css?v=20261006k">
 <div id="app">
   <header>
     <div class="hud">
@@ -3267,7 +3267,7 @@ function renderUG(){if(!UG)return;const hint=ugRole(UG.team,'scout')||ugRole(UG.
   const grid=UG.cells.map((c,i)=>{
     if(c.rev){const act=c.c==='stairs'||(c.c==='rest'&&!c.used)||(c.c==='door'&&!c.open)||(c.c==='foe'&&c.fhp>0)||c.c==='shop',done=c.used||c.open||(c.c==='foe'&&c.fhp<=0);
       const ic=c.c==='empty'?'':`<span class="ub">${ugIcon(c)}</span>`;
-      return`<button class="ut r k-${c.c}${act?' act':''}${done?' done':''}${c.fresh?' fresh':''}" data-act="ugt" data-arg="${i}" ${act?'':'disabled'} aria-label="${UGN[c.c]||'빈 칸'}">${ic}${c.c==='foe'&&c.fhp>0?`<span class="uhp">${'●'.repeat(Math.min(6,c.fhp))}</span>`:''}</button>`;}
+      return`<button class="ut r k-${c.c}${act?' act':''}${done?' done':''}${c.fresh?' fresh':''}" data-act="ugt" data-arg="${i}" ${act?'':'disabled'} aria-label="${UGN[c.c]||'빈 칸'}">${ic}${c.c==='foe'&&c.fhp>0?`<span class="uhp">${'●'.repeat(Math.min(6,c.fhp))}</span>`:(UGL[c.c]?`<span class="ul">${UGL[c.c]}</span>`:'')}</button>`;}
     const fr=ugFront(i),h=(fr&&hint&&c.c==='hazard')?'<i class="uhz">!</i>':(sci&&c.c==='stairs')?'<i class="ust">▼</i>':'';
     return`<button class="ut d${fr?' f':''}${c.hit?' hit':''}" data-act="ugt" data-arg="${i}" ${fr&&UG.oil>0?'':'disabled'} aria-label="어두운 칸">${h}${fr&&c.hp>1?`<span class="uhp">${'●'.repeat(c.hp)}</span>`:''}</button>`;}).join('');
   UG.cells.forEach(c=>{c.fresh=false;c.hit=false;});
@@ -3280,7 +3280,7 @@ function renderUG(){if(!UG)return;const hint=ugRole(UG.team,'scout')||ugRole(UG.
     <div class="uoil${oilP<.25?' low':''}"><span class="ulamp"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v2h4V3M8 6h8l-1 13H9z"/><path d="M12 10c1.6 1.6 1.6 3.4 0 4.6-1.6-1.2-1.6-3 0-4.6z" fill="currentColor" stroke="none"/></svg></span><div class="ubar"><i style="width:${oilP*100}%"></i></div><b>${UG.oil}</b></div>
     <div class="umsg${foeAlive?' warn':''}">${UG.msg}</div>
     ${UG.shop?`<div class="ugshop"><button class="alt" data-act="ugb" data-arg="0" ${canPay({food:15})?'':'disabled'}>${micon('food',14)} 15 → 기름 +8</button><button class="alt" data-act="ugb" data-arg="1" ${canPay({parts:12})?'':'disabled'}>${micon('parts',14)} 12 → 🗝 1</button></div>`:''}
-    <div class="ugrid2">${grid}</div>
+    <div class="ugrid2">${grid}</div>${(()=>{const seen=[...new Set(UG.cells.filter(c=>c.rev&&UGL[c.c]&&c.c!=='start').map(c=>c.c))];return seen.length?`<div class="uglegend">${seen.map(k=>`<span class="k-${k}"><i class="ub">${ugIcon({c:k})}</i>${UGN[k]}</span>`).join('')}</div>`:'';})()}
     <div class="ucarry"><span class="ulbl">챙긴 것</span>${carry||'<small>아직 없어요</small>'}</div>
     <button data-act="ugx" class="uexit">돌아가기 · 전리품 챙기기<small>기름이 다 떨어지면 자재 절반과 장비를 잃어요</small></button></div>`;}
 const UGDECO={
@@ -3288,6 +3288,7 @@ const UGDECO={
  sewer:f=>`<span class="drip"></span><span class="drip d2"></span><span class="drip d3"></span><span class="pipe-t">하수관 ${String(f).padStart(2,'0')}구역 · 물 흐름 느림</span>`,
  bunker:f=>`<span class="stencil">B-${String(f).padStart(2,'0')} · 관계자 외 출입 금지</span><span class="lamps"><i></i><i></i><i></i></span>`,
  plant:f=>`<span class="crt">&gt; 실험로 출력 <b>${(3.14+f*.07).toFixed(2)}</b> GW · 냉각수 <b>${Math.max(4,40-f*2)}%</b></span><span class="warn">⚠</span>`};
+const UGL={pet:'웅덩이',loot:'상자',rare:'귀한것',gear:'장비',oil:'기름',hazard:'위험',stairs:'계단',start:'입구',rest:'쉼터',key:'열쇠',door:'문',foe:'괴물',shop:'상인',diary:'기록',who:'흔적',quest:'이야기'};
 const UGN={pet:'물웅덩이',loot:'상자',rare:'귀한 물건',gear:'장비',oil:'기름통',hazard:'위험',stairs:'아래층 계단',start:'내려온 곳',rest:'쉼터',key:'열쇠',door:'잠긴 문',foe:'재 괴물',shop:'지하 상인',diary:'기록',who:'누군가의 흔적',quest:'이야기 물건'};
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act^="ug"]');if(!b)return;e.stopPropagation();if(b.disabled)return;const a=b.dataset.act,g=+b.dataset.arg;
   if(a==='ugt')ugTap(g);else if(a==='ugx')ugEnd(true);
