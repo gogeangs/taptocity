@@ -3188,9 +3188,16 @@ function renderPrep(first){const free=Object.keys(S.sv).map(Number).filter(id=>!
     ${ugPetBtn()?`<div class="team">${ugPetBtn()}</div>`:''}${perks.length?`<div class="prev">${perks.join('<br>')}</div>`:''}${qs.length?`<div class="prev" style="color:#7a4a1c">${qs.join('<br>')}</div>`:''}
     ${(S.ug.ck||[]).length?`<div class="ugstart"><span>시작 층</span>${[1,...(S.ug.ck||[])].map(f=>`<button class="pfo${(ugPrep.start||1)===f?' on':''}" data-act="ugs" data-arg="${f}">${f}층${f>1?` · ${ugTheme(f).n}`:''}</button>`).join('')}</div>`:''}
     <div class="fuelrow"><span>${micon('fuel',16)} 연료 챙기기</span><button class="alt" data-act="ugf" data-arg="-1" ${ugPrep.fuel<=0?'disabled':''}>−</button><b>${ugPrep.fuel}</b><button class="alt" data-act="ugf" data-arg="1" ${ugPrep.fuel>=Math.min(10,S.m.fuel||0)?'disabled':''}>+</button></div>
-    <div class="d" style="margin:-4px 0 12px">랜턴 기름 <b>${oil}</b> · 어두운 칸을 한 번 두드릴 때마다 1씩 써요. 연료 1개 = 기름 3<br>이번 탐사에서 칸을 밝힌 층마다 동료 신뢰 +15 · 바로 돌아오면 보상이 없어요</div>
+    <div class="d" style="margin:-4px 0 12px">랜턴 기름 <b id="ugOil">${oil}</b> · 어두운 칸을 한 번 두드릴 때마다 1씩 써요. 연료 1개 = 기름 3<br>이번 탐사에서 칸을 밝힌 층마다 동료 신뢰 +15 · 바로 돌아오면 보상이 없어요</div>
     <div class="btns"><button class="alt">취소</button><button data-act="ugo" ${t.length?'':'disabled'}>내려가기</button></div>${t.length?'':'<div class="ughint">함께 갈 사람을 골라 주세요 (최대 3명)</div>'}</div>`;
   if(first)openModal(h);else{const old=modal.querySelector('.page'),st=old?old.scrollTop:0;modal.innerHTML=h;const pg=modal.querySelector('.page');if(pg&&st)pg.scrollTop=st;}}
+let ugfT=0,ugfTimer=null;
+function ugfStep(g){ugPrep.fuel=Math.max(0,Math.min(10,S.m.fuel||0,ugPrep.fuel+g));const row=modal.querySelector('.fuelrow');if(!row)return;row.querySelector('b').textContent=ugPrep.fuel;
+  const bs=row.querySelectorAll('[data-act="ugf"]');bs[0].disabled=ugPrep.fuel<=0;bs[1].disabled=ugPrep.fuel>=Math.min(10,S.m.fuel||0);const o=$('ugOil');if(o)o.textContent=ugOil0(ugPrep.team,ugPrep.fuel);}
+function ugfStop(){if(ugfTimer){clearTimeout(ugfTimer);clearInterval(ugfTimer);ugfTimer=null;}}
+modal.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-act="ugf"]');if(!b||b.disabled)return;e.preventDefault();const g=+b.dataset.arg;ugfT=performance.now();ugfStep(g);ugfStop();
+  ugfTimer=setTimeout(()=>{ugfTimer=setInterval(()=>{ugfT=performance.now();if(!modal.querySelector('.fuelrow')){ugfStop();return;}ugfStep(g);},110);},380);});
+['pointerup','pointercancel'].forEach(ev=>window.addEventListener(ev,ugfStop,{capture:true}));
 function ugStart(){const t=ugPrep.team.filter(id=>S.sv[id]&&!busy(id));if(!t.length)return;if(ugPrep.fuel&&!pay({fuel:ugPrep.fuel}))return;
   const oil=ugOil0(t,ugPrep.fuel),st=(ugPrep.start&&ugCkOk(ugPrep.start))?ugPrep.start:1;const upk=ugPrep.pet&&S.petOn&&petHere(S.petOn)?S.petOn:null;if(upk)pets()[upk].away='ug';UG={pet:upk,team:t,oil:oil+(st>1?12:0),max:oil+(st>1?12:0),floor:st-1,exploredFloors:[],carry:{},gear:[],hurt:[],found:[],keys:0,msg:st>1?`쉼터에서 다시 출발했다 · ${ugTheme(st).n}`:'랜턴을 들고 계단을 내려갔다.'};S.ug.runs++;ugFloor();sfx('reveal');renderUG();}
 function ugFloor(){const f=++UG.floor,n=UGW*UGH,cells=Array.from({length:n},()=>({c:'empty',rev:false,hp:1+Math.floor((f-1)/5)}));
@@ -3285,7 +3292,7 @@ const UGN={pet:'물웅덩이',loot:'상자',rare:'귀한 물건',gear:'장비',o
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act^="ug"]');if(!b)return;e.stopPropagation();if(b.disabled)return;const a=b.dataset.act,g=+b.dataset.arg;
   if(a==='ugt')ugTap(g);else if(a==='ugx')ugEnd(true);
   else if(a==='ugm'){const k=ugPrep.team.indexOf(g);if(k>=0)ugPrep.team.splice(k,1);else if(ugPrep.team.length<3)ugPrep.team.push(g);renderPrep();}
-  else if(a==='ugf'){ugPrep.fuel=Math.max(0,Math.min(10,S.m.fuel||0,ugPrep.fuel+g));renderPrep();}
+  else if(a==='ugf'){if(performance.now()-ugfT<600)return;ugfStep(g);}
   else if(a==='ugo')ugStart();
   else if(a==='ugs'){ugPrep.start=g;renderPrep();}
   else if(a==='ugb'){if(g===0&&pay({food:15})){UG.oil+=8;UG.max=Math.max(UG.max,UG.oil);UG.msg='상인: “기름이라면 얼마든지.” · 기름 +8';}else if(g===1&&pay({parts:12})){UG.keys++;UG.msg='상인: “이 열쇠, 어디 문인지는 나도 몰라.” · 열쇠 +1';}sfx('get');renderUG();}
