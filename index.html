@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261006l">
+<link rel="stylesheet" href="qa.css?v=20261006m">
 <div id="app">
   <header>
     <div class="hud">
@@ -1261,7 +1261,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 </div>
 
 <script src="chapter-design.js?v=20261001-cohesion"></script>
-<script src="settlement.js?v=20261006-collar"></script>
+<script src="settlement.js?v=20261006-petscale"></script>
 <script src="people.js?v=20261001-people"></script>
 <script src="design.js?v=20261006-modh"></script>
 <script>
@@ -2494,8 +2494,8 @@ $('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act]');
 $('fSurv').onclick=()=>sheetTab==='surv'?closeSheet():openSheet('surv');$('pfBtn').onclick=()=>{if(sheetTab==='profile')closeSheet();else{pfTab='me';openSheet('profile');}};
 $('fExp').onclick=()=>{if(sheetTab==='exp')closeSheet();else{expPlan=null;openSheet('exp');}};
 const modal=$('modal'),mq=[];
-function openModal(h,force){if((!modal.hidden||HOLDING)&&!force){mq.push(h);return;}const old=!modal.hidden&&modal.querySelector('.page'),st=old?old.scrollTop:0,oc=old?old.className:'';modal.innerHTML=h;const pg=modal.querySelector('.page');if(st&&pg&&pg.className===oc)pg.scrollTop=st;if(pg&&!pg.classList.contains('talk')&&!pg.classList.contains('radio-spin')&&!pg.classList.contains('nox'))pg.insertAdjacentHTML('afterbegin','<button class="mx" aria-label="닫기">✕</button>');modal.hidden=false;modal.scrollTop=0;const b=modal.querySelector('button:last-of-type');b&&b.focus();}
-function closeModal(){modal.hidden=true;if(mq.length)setTimeout(()=>openModal(mq.shift()),150);}
+function openModal(h,force){if((!modal.hidden||HOLDING)&&!force){mq.push(h);return;}const old=!modal.hidden&&modal.querySelector('.page'),st=old?old.scrollTop:0,oc=old?old.className:'',oh=old&&old.querySelector('h3')?old.querySelector('h3').textContent:'';modal.innerHTML=h;const pg=modal.querySelector('.page'),nh=pg&&pg.querySelector('h3')?pg.querySelector('h3').textContent:'';if(st&&pg&&pg.className===oc&&nh===oh)pg.scrollTop=st;if(pg&&!pg.classList.contains('talk')&&!pg.classList.contains('radio-spin')&&!pg.classList.contains('nox'))pg.insertAdjacentHTML('afterbegin','<button class="mx" aria-label="닫기">✕</button>');modal.hidden=false;modal.scrollTop=0;const b=modal.querySelector('button:last-of-type');b&&b.focus();}
+function closeModal(){modal.hidden=true;if(typeof ugfStop==='function')ugfStop();if(mq.length)setTimeout(()=>openModal(mq.shift()),150);}
 modal.addEventListener('click',e=>{const b=e.target.closest('button');if(b&&b.dataset.act==='gift'){if(!b.disabled)gift(+b.dataset.arg);return;}if(b&&b.dataset.act==='party'){toggleParty(+b.dataset.arg);openSurv(+b.dataset.arg,true);return;}if(b&&b.dataset.act==='ev'){if(!b.disabled)chooseEv(+b.dataset.arg);return;}if(e.target===modal&&talk)return;if(b||e.target===modal)closeModal();});
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="talk"]');if(!b||!talk)return;e.stopPropagation();if(talk.k<talk.lines.length-1){talk.k++;renderTalk();}else{const g=talk.opt.goal,chn=talk.opt.chain,af=talk.opt.after;talk=null;closeModal();if(g)panGuide=performance.now();if(chn)setTimeout(tickStory,60);if(af)setTimeout(af,60);}},true);
 // ---------- survivors: rescue, assign, trust ----------
@@ -2684,7 +2684,7 @@ function drawAsh(i,time,pulse){const a=S.ash[i];ZS=1;const f=a.hp/a.max;
   const[bx,by]=P(.5,.5,34);if(!a.stuck){ctx.strokeStyle='rgba(13,11,8,.7)';ctx.lineWidth=4;ctx.beginPath();ctx.arc(bx,by,7,0,7);ctx.stroke();ctx.strokeStyle='#e2644f';ctx.lineWidth=3;ctx.beginPath();ctx.arc(bx,by,7,-Math.PI/2,-Math.PI/2+Math.PI*2*Math.max(0,a.t/14));ctx.stroke();}
   ctx.fillStyle='rgba(13,11,8,.75)';ctx.fillRect(bx-18,by+10,36,5);ctx.fillStyle='#b9b3aa';ctx.fillRect(bx-17,by+11,34*Math.max(0,f),3);}
 const flakes=Array.from({length:70},()=>({x:Math.random(),y:Math.random(),v:.04+Math.random()*.06,s:1+Math.random()*2}));
-function drawFlakes(nt){if(reduce)return;ctx.fillStyle=`rgba(170,165,158,${.45*nt})`;for(const f of flakes){f.y+=f.v*.016*6;f.x+=.0015;if(f.y>1){f.y=0;f.x=Math.random();}if(f.x>1)f.x=0;ctx.fillRect(f.x*cw,f.y*ch,f.s,f.s);}}
+function drawFlakes(nt){if(reduce)return;ctx.fillStyle=`rgba(170,165,158,${.45*nt})`;for(const f of flakes){f.y+=f.v*.016*6*FS;f.x+=.0015*FS;if(f.y>1){f.y=0;f.x=Math.random();}if(f.x>1)f.x=0;ctx.fillRect(f.x*cw,f.y*ch,f.s,f.s);}}
 function renderClock(){const el=$('clock'),p=phase(),n=isNight(),st=n&&stormOn();el.classList.toggle('night',n);el.classList.toggle('storm',st);
   const left=n?CYCLE-p:DAY-p,mm=Math.floor(left/60),ss=String(Math.floor(left%60)).padStart(2,'0');
   $('clockTxt').textContent=n?(st?`재폭풍 · 새벽까지 ${mm}:${ss}`:`고요한 밤 · ${mm}:${ss}`):(bigNightNext()?`낮 · 대형 재폭풍 ${mm}:${ss}`:`낮 · 밤까지 ${mm}:${ss}`);if(DEFN)$('clockTxt').textContent='대형 재폭풍 · 쉘터를 지켜요';$('clock').classList.toggle('big',bigNightNext()&&!isNight()||!!DEFN);$('clockTxt').textContent=WX[wxK()].ic+' '+(isNight()||DEFN?'':WX[wxK()].n+' · ')+$('clockTxt').textContent;}
@@ -3484,9 +3484,9 @@ function onDawn(){S.wx=S.wxNext||rollWx();S.wxNext=rollWx();S.day=(S.day||0)+1;c
   allyGifts();kidsDawn();}
 const wparts=Array.from({length:90},()=>({x:Math.random(),y:Math.random(),v:.5+Math.random()*.6,s:Math.random()}));
 function drawWeather(){const w=wxK();if(reduce||(w!=='acid'&&w!=='cold'&&w!=='wind'))return;
-  if(w==='acid'){ctx.strokeStyle='rgba(170,200,150,.35)';ctx.lineWidth=1;ctx.beginPath();for(const p of wparts){p.y+=p.v*.02;p.x-=.004;if(p.y>1){p.y=0;p.x=Math.random();}if(p.x<0)p.x=1;ctx.moveTo(p.x*cw,p.y*ch);ctx.lineTo(p.x*cw-3,p.y*ch+10);}ctx.stroke();}
-  else if(w==='cold'){ctx.fillStyle='rgba(240,245,255,.7)';for(const p of wparts){p.y+=p.v*.004;p.x+=Math.sin(p.y*20+p.s*6)*.0008;if(p.y>1){p.y=0;p.x=Math.random();}ctx.fillRect(p.x*cw,p.y*ch,1.6+p.s*1.4,1.6+p.s*1.4);}}
-  else{ctx.strokeStyle='rgba(200,190,170,.28)';ctx.lineWidth=1;ctx.beginPath();for(const p of wparts){p.x+=p.v*.012;if(p.x>1){p.x=0;p.y=Math.random();}ctx.moveTo(p.x*cw,p.y*ch);ctx.lineTo(p.x*cw+14+p.s*10,p.y*ch+1);}ctx.stroke();}}
+  if(w==='acid'){ctx.strokeStyle='rgba(170,200,150,.35)';ctx.lineWidth=1;ctx.beginPath();for(const p of wparts){p.y+=p.v*.02*FS;p.x-=.004*FS;if(p.y>1){p.y=0;p.x=Math.random();}if(p.x<0)p.x=1;ctx.moveTo(p.x*cw,p.y*ch);ctx.lineTo(p.x*cw-3,p.y*ch+10);}ctx.stroke();}
+  else if(w==='cold'){ctx.fillStyle='rgba(240,245,255,.7)';for(const p of wparts){p.y+=p.v*.004*FS;p.x+=Math.sin(p.y*20+p.s*6)*.0008*FS;if(p.y>1){p.y=0;p.x=Math.random();}ctx.fillRect(p.x*cw,p.y*ch,1.6+p.s*1.4,1.6+p.s*1.4);}}
+  else{ctx.strokeStyle='rgba(200,190,170,.28)';ctx.lineWidth=1;ctx.beginPath();for(const p of wparts){p.x+=p.v*.012*FS;if(p.x>1){p.x=0;p.y=Math.random();}ctx.moveTo(p.x*cw,p.y*ch);ctx.lineTo(p.x*cw+14+p.s*10,p.y*ch+1);}ctx.stroke();}}
 
 // ================= WANDERING BANDS (떠돌이 무리) =================
 const BANDT={
@@ -4039,7 +4039,7 @@ function openSurv(id,force){const s=SURV[id],r=S.sv[id],tl=trustLv(r.xp),nx=tl<5
     <div class="stp${survTab==='grow'?' on':''}" data-p="grow"><div class="stiles"><div><b>×${p.m.toFixed(2)}</b><small>특기 효과</small></div><div><b>×${(2+p.w).toFixed(2)}</b><small>딱 맞는 일터</small></div><div><b>-${Math.round((1-p.cd)*100)}%</b><small>스킬 대기</small></div></div>${promoHtml(id)}</div>
     <div class="stp${survTab==='gear'?' on':''}" data-p="gear">${gearHtml(id)}</div>
     <div class="stp${survTab==='story'?' on':''}" data-p="story">${qh}<ul class="story">${story}</ul></div>
-    <div class="btns"><button class="alt" data-act="party" data-arg="${id}">${S.party.includes(id)?'스킬 바 빼기':'스킬 바에 넣기'}</button>${tl<5?`<button data-act="gift" data-arg="${id}" ${canPay(gc)?'':'disabled'}>선물 ${micon('food',14)}${gc.food}</button>`:''}</div></div>`,force);}
+    <div class="btns"><button class="alt" data-act="party" data-arg="${id}">${S.party.includes(id)?'스킬 바 빼기':'스킬 바에 넣기'}</button>${tl<5?`<button data-act="gift" data-arg="${id}" ${canPay(gc)?'':'disabled'}><span>선물 ${micon('food',14)} ${gc.food}</span></button>`:''}</div></div>`,force);}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-stab]');if(!b)return;e.stopPropagation();survTab=b.dataset.stab;
   modal.querySelectorAll('[data-stab]').forEach(x=>x.classList.toggle('on',x===b));modal.querySelectorAll('.stp').forEach(x=>x.classList.toggle('on',x.dataset.p===survTab));},true);
 // empty-state block
@@ -5424,7 +5424,7 @@ function hud(){renderMats();renderClock();renderDefBar();tickDusk();canvasLabel(
   if(sheetTab==='shelter'){const now=JSON.stringify(S.m);if(now!==hud.lastM){hud.lastM=now;renderSheet();}}
   renderMission();tickStory();tickNav();}
 function frontierNearest(){let best=-1,bd=1e9;for(let i=0;i<N;i++)if(isFrontier(i)){const d=dist(i)+speck[i]*1.5;if(d<bd){bd=d;best=i;}}return best;}
-let lastDraw=0;
+let lastDraw=0,FS=1;// FS: this frame's length in 60fps frames, so per-draw motion keeps its speed at 30fps
 function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;
   tickProd(dt);tickBuff(dt);tickClock(dt);tickDefense(dt);tickLife(dt);tickShadow(dt);tickKidWalk(dt);tickEvents(dt);tickSkills(dt);
   idle+=dt;if(fever>0){fever=Math.max(0,fever-dt);}else if(idle>.7&&combo>0)combo=Math.max(0,combo-dt*10);
@@ -5437,7 +5437,7 @@ function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;
   for(const g of glows)g.life-=dt;glows=glows.filter(g=>g.life>0);
   for(const[k,v]of flash){const n=v-dt*2;if(n<=0)flash.delete(k);else flash.set(k,n);}
   const busyF=ptrs.size||DEFN||UG||fever>0||parts.length||anims.size||camTw||flash.size||glows.length||(now-lastBtn<1500);
-  if(busyF||now-lastDraw>=31){lastDraw=now;draw(now);}placeRing();renderLamp();updateGuide();
+  if(busyF||now-lastDraw>=31){FS=Math.min(3,Math.max(.5,(now-(lastDraw||now-16.7))/16.7));lastDraw=now;draw(now);}placeRing();renderLamp();updateGuide();
   uiT+=dt;if(uiT>.25){uiT=0;hud();}
   saveT+=dt;if(saveT>5){saveT=0;save();}
   requestAnimationFrame(loop);}
@@ -5492,7 +5492,7 @@ function openControls(){openModal(`<div class="page controls"><div class="tag">�
 {const original=renderSheet;renderSheet=function(){const r=original.apply(this,arguments);if(sheetTab==='settings'&&!$('shBody').querySelector('[data-act="controls"]'))$('shBody').insertAdjacentHTML('afterbegin','<div class="row"><div><div class="t">플레이 안내</div><div class="d">조작 방법과 가려진 칸 선택</div></div><button class="buy ghost" data-act="controls">보기</button></div>');if(sheetTab==='settings'&&!$('shBody').querySelector('[data-act="privacy"]')){const g=$('shBody').querySelector('[data-act="controls"]');const row=g&&g.closest('.row');if(row)row.insertAdjacentHTML('afterend','<div class="row"><div><div class="t">개인정보 처리방침</div><div class="d">진행 상황은 이 기기에만 저장돼요 · 수집하는 정보 없음</div></div><button class="buy ghost" data-act="privacy">보기</button></div>');}return r;};}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act="controls"],[data-act="controls-done"]');if(!b)return;if(b.dataset.act==='controls')openControls();else closeModal();});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act="privacy"]');if(!b)return;window.open('privacy.html','_blank','noopener');});
-function cancelGestures(){for(const p of ptrs.values())clearTimeout(p.hold);ptrs.clear();drag=null;pinch=null;pinching=false;lampStop();holdHide();holdEnd();}
+function cancelGestures(){if(typeof ugfStop==='function')ugfStop();for(const p of ptrs.values())clearTimeout(p.hold);ptrs.clear();drag=null;pinch=null;pinching=false;lampStop();holdHide();holdEnd();}
 window.addEventListener('blur',cancelGestures);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelGestures();});
 let viewportFrame=0;

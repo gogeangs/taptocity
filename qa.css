@@ -88,8 +88,8 @@
 #ringLabel.rl{z-index:7!important}
 
 /* amber buttons: grid centering (Safari leaves a min-height flex button's text at the top) */
-.buy,.page button,.ch button{display:inline-grid!important;place-items:center!important;align-content:center!important;justify-content:center!important;line-height:1.2!important}
-.buy small,.page button small{display:block}
+.buy:not(.cbtn),.page .btns>button,.page>button,.tfoot button,.page .rqok{display:inline-grid!important;place-items:center!important;align-content:center!important;justify-content:center!important;line-height:1.2!important}
+.buy small,.page .btns>button small{display:block}
 @media (max-width:360px){.tt.note .nb small{-webkit-line-clamp:3}}
 /* chips in a row keep their own height, so a short chip beside a tall cost chip is not stretched with its text at the top */
 .chips{align-items:center!important}.chip{display:inline-flex!important;align-items:center!important}
