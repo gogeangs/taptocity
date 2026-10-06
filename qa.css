@@ -101,3 +101,8 @@
 /* collar colour swatches keep their colour (the page-wide button colour had painted them all teal) */
 .page .pcols .pcol{background:var(--c)!important;width:30px!important;height:30px!important;min-height:0!important;padding:0!important;border:2px solid rgba(59,42,26,.35)!important;border-radius:50%!important;display:block!important}
 .page .pcols .pcol.on{outline:3px solid #3b2a1a;outline-offset:2px}
+
+/* underground cells are square grid tiles, not text buttons: keep their own block grid so the icon bubble keeps its 74% size */
+.page .ut,.page.ug .ut{display:grid!important;place-items:center!important;line-height:1!important}
+.page.ug .ut{position:relative!important}.page.ug .ut .ub{position:absolute!important;inset:11%!important;width:auto!important;height:auto!important;border-radius:9px!important}
+.page.ug .ut .ub svg{width:70%!important;height:70%!important;stroke-width:2.4!important}
