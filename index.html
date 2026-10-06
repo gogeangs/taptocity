@@ -3607,7 +3607,9 @@ function tickAch(){S.ach=S.ach||{};for(const[k,t,,f,n]of ACH){if(S.ach[k])contin
   const ready=ACH.some(([k])=>S.ach[k]===1);$('fDiary').classList.toggle('hasdot',ready);}
 function renderAch(){S.ach=S.ach||{};const title=S.title||'등불지기';let h=`<div class="shx"><div class="d">지금 칭호 <b style="color:#b0452a">${title}</b> · 받은 업적의 칭호를 눌러 바꿀 수 있어요</div></div>`;
   h+=`<button class="achrow${title==='등불지기'?' on':''}" data-act="title" data-arg="등불지기"><b>등불지기</b><small>처음부터 가진 칭호</small></button>`;
-  for(const[k,t,d,f,n,b]of ACH){const st=S.ach[k]||0,v=Math.min(n,f());h+=`<div class="achrow${st===2&&title===t?' on':''}${st?'':' lock'}">${st===2?`<button class="tl" data-act="title" data-arg="${t}">${t}</button>`:`<b>${st?t:'???'}</b>`}<small>${d} · ${v}/${n}</small><div class="pbar"><i style="width:${v/n*100}%"></i></div>${st===1?`<button class="buy" data-act="achget" data-arg="${k}">받기 · 건전지 ${b}</button>`:st===2?'<span class="ok">✓</span>':''}</div>`;}
+  const rows=ACH.map((a,i)=>{const st=S.ach[a[0]]||0,v=Math.min(a[4],a[3]());return{a,i,st,p:v/a[4]};}).sort((x,y)=>{const g=s=>s===1?0:s===0?1:2;return g(x.st)-g(y.st)||(x.st===0?y.p-x.p:0)||x.i-y.i;});
+  let grp='';
+  for(const{a,st}of rows){const[k,t,d,f,n,b]=a;const v=Math.min(n,f());const gname=st===1?'받을 수 있어요':st===0?'진행 중':'받은 업적';if(gname!==grp){grp=gname;h+=`<div class="sec achsec">${gname}</div>`;}h+=`<div class="achrow${st===2&&title===t?' on':''}${st?'':' lock'}">${st===2?`<button class="tl" data-act="title" data-arg="${t}">${t}</button>`:`<b>${st?t:'???'}</b>`}<small>${d} · ${v}/${n}</small><div class="pbar"><i style="width:${v/n*100}%"></i></div>${st===1?`<button class="buy" data-act="achget" data-arg="${k}">받기 · 건전지 ${b}</button>`:st===2?'<span class="ok">✓</span>':''}</div>`;}
   return h;}
 function achGet(k){const a=ACH.find(x=>x[0]===k);if(!a||S.ach[k]!==1)return;S.ach[k]=2;give({batt:a[5]});S.title=a[1];sfx('chime');toast(`칭호 ‘${a[1]}’ · 건전지 +${a[5]}`);renderSheet();save();}
 
