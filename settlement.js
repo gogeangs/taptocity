@@ -24,7 +24,9 @@ function pet(g,k,t,moving,col,night,reduced){const a=petMetric(k);if(!a)return f
  g.save();g.translate(0,-bob);if(moving&&!reduced)g.rotate(Math.sin(phase)*.035);
  if(k==='fox'&&night){const r=g.createRadialGradient(0,-h/2,1,0,-h/2,17);r.addColorStop(0,'rgba(208,224,248,.3)');r.addColorStop(1,'rgba(208,224,248,0)');g.fillStyle=r;g.fillRect(-17,-h-8,34,h+16);}
  g.drawImage(petSmall(n,f,w,h),-w/2,-h,w,h);
- const c=collars[n];g.strokeStyle=col;g.lineWidth=1.1;g.lineCap='round';g.beginPath();g.moveTo((c[0]-.5)*w,(c[1]-1)*h);g.lineTo((c[2]-.5)*w,(c[3]-1)*h);g.stroke();
+ if(col){const c=collars[n],x1=(c[0]-.5)*w,y1=(c[1]-1)*h,x2=(c[2]-.5)*w,y2=(c[3]-1)*h,L=Math.hypot(x2-x1,y2-y1),mx=(x1+x2)/2,my=(y1+y2)/2+L*.22;
+  g.lineCap='round';g.lineJoin='round';for(const[sc,sw]of[['rgba(30,20,12,.6)',.07],[col,.045]]){g.strokeStyle=sc;g.lineWidth=w*sw;g.beginPath();g.moveTo(x1,y1);g.quadraticCurveTo(mx,my,x2,y2);g.stroke();}
+  g.fillStyle='#e8c56a';g.strokeStyle='rgba(30,20,12,.6)';g.lineWidth=w*.012;g.beginPath();g.arc(mx,my+w*.025,w*.028,0,7);g.fill();g.stroke();}
  g.restore();return true;
 }
 window.TTCSettlement={prop,height,deco,thumb,pet,petMetric,ready,version:'props-pets-20261001'};

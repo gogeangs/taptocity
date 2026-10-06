@@ -1261,7 +1261,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 </div>
 
 <script src="chapter-design.js?v=20261001-cohesion"></script>
-<script src="settlement.js?v=20261006-petcache"></script>
+<script src="settlement.js?v=20261006-collar"></script>
 <script src="people.js?v=20261001-people"></script>
 <script src="design.js?v=20261006-modh"></script>
 <script>
@@ -4301,7 +4301,7 @@ function petShape(g,k,t,mv,col,night){if(window.TTCSettlement&&TTCSettlement.pet
     g.strokeStyle='#6a4a30';g.beginPath();g.moveTo(-3.6,-7-b);g.quadraticCurveTo(-4,-4-b,-2.6,-2.4-b);g.moveTo(3.6,-7-b);g.quadraticCurveTo(4,-4-b,2.6,-2.4-b);g.stroke();g.strokeStyle=O;band(-1.4,-5.2-b,1.4,-5.2-b);}}
 const PIMG={};
 function petImg(k,ci=0,size=96,sil=false){const key=k+ci+size+(sil?'s':'')+(window.TTCSettlement&&TTCSettlement.ready('companions.webp')?'art':'native');if(PIMG[key])return PIMG[key];const c=document.createElement('canvas'),s=2;c.width=c.height=size*s;const g=c.getContext('2d');
-  g.translate(size*s/2-size*s*.04,size*s*.8);const sc=size*s/30;g.scale(sc,sc);try{petShape(g,k,0,false,COLLAR[ci]||COLLAR[0],!sil&&k==='fox');}catch(e){}
+  g.translate(size*s/2-size*s*.04,size*s*.8);const sc=size*s/30;g.scale(sc,sc);try{petShape(g,k,0,false,ci==null?null:(COLLAR[ci]||COLLAR[0]),!sil&&k==='fox');}catch(e){}
   if(sil){g.setTransform(1,0,0,1,0,0);g.globalCompositeOperation='source-in';g.fillStyle='#5a4a3a';g.fillRect(0,0,c.width,c.height);}
   return PIMG[key]=c.toDataURL();}
 
@@ -4351,7 +4351,7 @@ function strayDraw(time){const s=S.stray;if(!s||!strayVis())return;const[x,y]=ti
 const strayCost=()=>scaleCost({food:6},Math.max(1,lvScale()*.8));
 function openStray(){const s=S.stray;if(!s)return;const P=PETS[s.k],c=strayCost(),wait=Math.max(0,Math.ceil((s.t-Date.now())/1000));
   const moods=['낯선 사람을 경계하며 멀찍이 떨어져 있어요.','조금 가까이 다가왔어요. 코를 킁킁거려요.','이제 손을 내밀면 냄새를 맡아요.'];
-  openModal(`<div class="page petp"><div class="tag">떠돌이 ${P.hidden?'???':P.n} · ${s.n}/${s.need}</div><div class="petimg stray"><img src="${petImg(s.k,0,120)}" alt="" style="opacity:${.45+.5*s.n/s.need}"></div>
+  openModal(`<div class="page petp"><div class="tag">떠돌이 ${P.hidden?'???':P.n} · ${s.n}/${s.need}</div><div class="petimg stray"><img src="${petImg(s.k,null,120)}" alt="" style="opacity:${.45+.5*s.n/s.need}"></div>
     <p>${moods[Math.min(2,s.n)]}${s.k==='fox'?'<br><small>밤에만 모습을 보여요.</small>':''}</p>
     <div class="d" style="text-align:center">먹이를 두고 몇 번 찾아오면 마음을 열어요 ${needHtml(c)}</div>
     <div class="btns" style="margin-top:12px"><button class="alt">돌아가기</button><button data-act="strayfeed" ${canPay(c)&&!wait?'':'disabled'}>${wait?`${wait}초 뒤에 다시`:'먹이 두고 오기'}</button></div></div>`,true);}
@@ -4392,12 +4392,12 @@ modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="strayfee
 // ---------- sheet ----------
 function petBanner(){if(!petN()&&!S.stray)return'';return`<button class="banner petb" data-act="petsheet"><span class="pbimgs">${Object.keys(pets()).slice(0,4).map(k=>`<img src="${petImg(k,pets()[k].c,40)}" alt="">`).join('')||'🐾'}</span><span><b>펫 ${petN()}마리 →</b><br>${S.petOn?`동행 · ${petNm(S.petOn)}`:'떠돌이 동물이 근처에 있어요'}</span></button>`;}
 function renderPets(){$('shTitle').textContent='펫';let h='';const own=pets();
-  if(S.stray&&strayVis())h+=`<button class="banner petb" data-act="petgo"><span class="pbimgs"><img src="${petImg(S.stray.k,0,40,true)}" alt=""></span><span><b>떠돌이 ${PETS[S.stray.k].hidden?'???':PETS[S.stray.k].n} · ${S.stray.n}/${S.stray.need}</b><br>지도에서 발자국 쪽으로 가기 →</span></button>`;
+  if(S.stray&&strayVis())h+=`<button class="banner petb" data-act="petgo"><span class="pbimgs"><img src="${petImg(S.stray.k,null,40,true)}" alt=""></span><span><b>떠돌이 ${PETS[S.stray.k].hidden?'???':PETS[S.stray.k].n} · ${S.stray.n}/${S.stray.need}</b><br>지도에서 발자국 쪽으로 가기 →</span></button>`;
   if(!petN())h+=emptyHtml('🐾','아직 함께하는 펫이 없어요',petsOpen()?'구름을 걷다 보면 떠돌이 동물의 발자국이 지도에 찍혀요':'판잣집이 되고 생존자가 두 명 모이면 떠돌이 동물이 나타나요');
   h+=`<div class="sec">함께하는 펫 ${petN()}/${PKEYS.length}</div><div class="petgrid">`;
   for(const k of PKEYS){const P=PETS[k],p=own[k];
     if(p)h+=`<button class="petc${S.petOn===k?' on':''}${P.hidden?' hid':''}" data-act="petopen" data-arg="${k}"><img src="${petImg(k,p.c,72)}" alt=""><b>${p.n}</b><small>${P.n} · 친밀도 ${petLv(k)}</small>${S.petOn===k?'<i class="pon">동행</i>':''}${p.away?'<i class="paw">원정</i>':''}</button>`;
-    else h+=`<div class="petc lock${P.hidden?' hid':''}"><img src="${petImg(k,0,72,true)}" alt=""><b>${P.hidden?'??? · 히든':'???'}</b><small>${P.hidden?P.how:'떠돌이 발자국을 찾아봐요'}</small></div>`;}
+    else h+=`<div class="petc lock${P.hidden?' hid':''}"><img src="${petImg(k,null,72,true)}" alt=""><b>${P.hidden?'??? · 히든':'???'}</b><small>${P.hidden?P.how:'떠돌이 발자국을 찾아봐요'}</small></div>`;}
   h+='</div><div class="sec">펫과 짝</div>'+PKEYS.filter(k=>own[k]).map(k=>{const P=PETS[k],on=!!S.sv[P.pair];return`<div class="bond ${on?'on':''}"><b>${on?P.pairN:'???'}</b> · ${own[k].n} + ${on||!SURV[P.pair].hidden?SURV[P.pair].name:'???'} ${on?'· 희망 +3 · 친밀도 1.5배':'함께 모이면 열려요'}</div>`;}).join('')||'<div class="emptyline"><span>펫을 데려오면 잘 맞는 생존자를 알려 줘요</span></div>';
   h+=`<div class="d" style="margin-top:10px">지도에서 펫을 누르면 쓰다듬고, 한 번 더 누르면 자세히 봐요.</div>`;
   return h;}
