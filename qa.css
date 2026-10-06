@@ -116,3 +116,10 @@
 .page.ug .uglegend span{display:inline-flex;align-items:center;gap:5px}
 .page.ug .uglegend .ub{position:static!important;inset:auto!important;width:18px!important;height:18px!important;border-radius:5px!important;display:grid!important;place-items:center!important;box-shadow:none!important}
 .page.ug .uglegend .ub svg{width:72%!important;height:72%!important;stroke-width:2.4}
+
+/* illustrated underground icons: the drawing itself, no coloured bubble behind it */
+.page.ug .ut .ub,.page.ug .uglegend .ub{background:none!important;box-shadow:none!important;clip-path:none!important;filter:none!important}
+.page.ug .ut.r .ub{inset:3% 8% 27% 8%!important}
+.page.ug .ut .ub .uimg,.page.ug .uglegend .ub .uimg{width:100%!important;height:100%!important;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.45))}
+.page.ug .ut.done .ub{filter:grayscale(.7) brightness(.75)!important}
+.page.ug .uglegend .ub{width:22px!important;height:22px!important}
