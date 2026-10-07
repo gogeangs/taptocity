@@ -3361,7 +3361,7 @@ const ugCkOk=f=>(S.ug.ck||[]).includes(f);
 let DEFN=null,DEFR={rx:220,ry:120,up:150};
 const WALL_RED=[0,.3,.5,.7];
 const bigNightNext=()=>{const r=REG(),p=(S.rq&&S.rq.pick==='smash')?3:(r&&r.big||3);return S.lv>=2&&ashLearned()&&((S.nightCount||0)%p===p-1);};
-function startDefense(){const lv=S.lv;closeRing();if(sheetTab)closeSheet();frameDefense();DEFN={t:0,dur:80,hp:100,max:100,wave:0,foes:[],kills:0,shake:0,waveT:0,fire:0,raid:S.raid||null};S.raid=null;if(DEFN.raid)toast(`${DEFN.raid}이(가) 쳐들어와요!`);note({h:'대형 재폭풍이 몰려와요!',t:'<small>두드리면 가까운 괴물을, 문지르면 한꺼번에 베어요. 랜턴 버튼은 쉘터 옆부터 쳐요</small>',ms:6000});sfx('night');}
+function startDefense(){const lv=S.lv;closeRing();if(sheetTab)closeSheet();frameDefense();DEFN={t:0,dur:80,hp:100,max:100,wave:0,foes:[],kills:0,shake:0,waveT:0,fire:0,raid:S.raid||null};S.raid=null;CHAT=null;if(DEFN.raid)note({t:`${DEFN.raid}이(가) 쳐들어와요!`,def:1});if(!(S.defs||0))note({h:'대형 재폭풍이 몰려와요!',t:'<small>두드리면 가까운 괴물을, 문지르면 한꺼번에 베어요. 랜턴 버튼은 쉘터 옆부터 쳐요</small>',ms:6000,def:1});sfx('night');}
 function spawnWave(){const D2=DEFN,w=++D2.wave,n=3+S.lv*2+w*2,[cx,cy]=tileC(C0);
   for(let k=0;k<n;k++){const a=Math.random()*Math.PI*2,brute=w>=2&&Math.random()<.18+w*.08,hp=tapPow()*(brute?7:2.4)*(1+S.lv*.25);
     const ry=Math.sin(a)<0?DEFR.up:DEFR.ry;D2.foes.push({x:cx+Math.cos(a)*DEFR.rx*(.92+Math.random()*.08),y:cy+Math.sin(a)*ry*(.9+Math.random()*.1),hp,max:hp,spd:(brute?9:14+Math.random()*6)*(1+w*.06),brute,delay:k*.45+Math.random()*.6,ph:Math.random()*6,hit:0});}
@@ -3389,7 +3389,7 @@ function slashAt(sx,sy){const now=performance.now(),r=(46*Math.max(.8,cam.z))**2
 function foeAt(sx,sy){if(!DEFN)return null;let best=null,bd=(30*cam.z+10)**2;for(const f of DEFN.foes){if(f.dead||f.delay>0)continue;const s=toScreen(f.x,f.y-10),d=(s.x-sx)**2+(s.y-sy)**2;if(d<bd){bd=d;best=f;}}return best;}
 function urgentFoe(){if(!DEFN)return null;const[cx,cy]=tileC(C0);let best=null,bd=1e9;for(const f of DEFN.foes){if(f.dead||f.delay>0)continue;const d=Math.hypot(f.x-cx,f.y-cy);if(d<bd){bd=d;best=f;}}return best;}
 function tapFoe(f){sfx('hit');buzz();addCombo();hurtFoe(f,tapPow()*(fever>0?2:1));glow(f.x,f.y-8,60);}
-function endDefense(win){const D2=DEFN;DEFN=null;S.defs=(S.defs||0)+1;
+function endDefense(win){const D2=DEFN;DEFN=null;S.defs=(S.defs||0)+1;{const held=defHold;defHold=[];setTimeout(()=>held.forEach(o=>note(o)),2500);}
   if(win){S.defWins=(S.defWins||0)+1;const q=Math.max(.4,D2.hp/D2.max),got=give({...scaleCost({scrap:25,parts:12,plate:5,fuel:8},lvScale()*q),batt:q>=.8?3:2});let gt='';if(Math.random()<.5+q*.3){const g=S.lv>=4?(Math.random()<.35?2:1):S.lv>=3?1:0;const it=dropGear(g);gt=` · 장비 ${GEAR[it.t].n}`;}
     if(D2.raid){const r2=give(scaleCost({scrap:30,food:25,parts:10,fuel:10},lvScale()));gt+=` · ${D2.raid}의 물자 ${lootTxt(r2)}`;}
     for(const id in S.sv)S.sv[id].xp+=25;sfx('win');note({h:`대형 재폭풍을 막아냈어요! 내구도 ${Math.round(D2.hp)}%`,t:`<small>괴물 ${D2.kills}마리 · ${lootTxt(got)}${gt} · 모두 신뢰 +25</small>`,ms:7000});}
@@ -3447,7 +3447,7 @@ function tickLife(dt){const night=isNight()&&!DEFN;
     else{w.mv=false;w.idle-=dt;if(w.idle<=0){[w.tx,w.ty]=pickSpot(night);w.idle=2+Math.random()*4;}}}
   for(const k in S.sv){const id=+k,r=S.sv[id];if(r.at>=0&&!r.away&&!(r.hurt>0)&&!WALK[id]&&!isNight()&&Math.random()<dt/55){const[x,y]=tileC(r.at,0);WALK[id]={x,y,tx:x,ty:y,idle:0,brk:14+Math.random()*10,face:1};}}
   if(CHAT){CHAT.t+=dt;if(CHAT.t>CHAT.dur||!WALK[CHAT.a]||!WALK[CHAT.b])CHAT=null;}
-  else{chatT-=dt;if(chatT<=0){chatT=9+Math.random()*9;const ids=Object.keys(WALK).map(Number);let best=null,bd=1e9;
+  else if(!DEFN){chatT-=dt;if(chatT<=0){chatT=9+Math.random()*9;const ids=Object.keys(WALK).map(Number);let best=null,bd=1e9;
     for(let i=0;i<ids.length;i++)for(let j=i+1;j<ids.length;j++){if(pairKey(ids[i],ids[j])==='10-13')continue;const a=WALK[ids[i]],b=WALK[ids[j]],d=Math.hypot(a.x-b.x,a.y-b.y)+(PAIRS[pairKey(ids[i],ids[j])]?-60:0)+Math.random()*30;if(d<bd){bd=d;best=[ids[i],ids[j]];}}
     if(best&&bd<120){const[a,b]=best;const wa=WALK[a],wb=WALK[b];const mx=(wa.x+wb.x)/2,my=(wa.y+wb.y)/2;wa.tx=mx-12;wa.ty=my;wb.tx=mx+12;wb.ty=my;wa.idle=wb.idle=9;
       CHAT={a,b,t:0,dur:8,lines:convo(a,b)};}
@@ -4445,7 +4445,8 @@ SHICO.pets='<path d="M8.5 12.5c-2 0-3.5 2.4-3.5 4.4 0 1.7 1.3 2.6 3 2.6 1.3 0 2.
 // ---------- UI simplification: one notice at a time, compact survivor tools, compact duties ----------
 // notices: stories/feature news queue up and show one by one; quick feedback toasts use a single slot
 const NQ=[];let NCUR=null;
-function note(o){const nbox=$('toasts');
+let defHold=[];
+function note(o){const nbox=$('toasts');if(DEFN&&!o.def){if(o.h&&!defHold.some(q=>q.h===o.h))defHold.push(o);return;}
   if(!o.h){const key=String(o.t).replace(/[\d,.+]+/g,'#').slice(0,7);let t=nbox.querySelector('.tt:not(.note)');if(t&&t.dataset.m===o.t&&!t.classList.contains('out'))return;
     if(t&&t.dataset.key===key&&!t.classList.contains('out')){t.textContent=o.t;t.dataset.m=o.t;clearTimeout(t._t);t._t=setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),300);},o.ms||2000);return;}if(t)t.remove();
     t=document.createElement('div');t.className='tt';t.textContent=o.t;t.dataset.m=o.t;t.dataset.key=key;nbox.appendChild(t);
