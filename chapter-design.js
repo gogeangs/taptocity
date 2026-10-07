@@ -2,9 +2,9 @@
 (function(){
 'use strict';
 const base='assets/illustrated/',images={},esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-for(const f of ['regional-npcs.webp','module-upgrades.webp','ash-foes.webp','world-scenes.webp','world-panorama.webp','founder-expressions.webp']){const i=new Image();i.decoding='async';i.src=base+f;images[f]=i;}
+for(const f of ['regional-npcs.webp','crows-kids.webp','module-upgrades.webp','ash-foes.webp','world-scenes.webp','world-panorama.webp','founder-expressions.webp']){const i=new Image();i.decoding='async';i.src=base+f;images[f]=i;}
 const ready=f=>!!(images[f].complete&&images[f].naturalWidth);
-function npc(k,name){const n={desert:0,factory:1,snow:2}[k];if(n==null)return'';return`<svg class="illustrated-portrait" viewBox="${n*686+6} 6 674 750" role="img" aria-label="${esc(name)} 초상화" preserveAspectRatio="xMidYMin slice"><image href="${base}regional-npcs.webp" width="2058" height="764"/></svg>`;}
+function npc(k,name){const c={crow:0,jin:1}[k];if(c!=null)return ready('crows-kids.webp')?`<svg class="illustrated-portrait" viewBox="${c*686+6} 6 674 750" role="img" aria-label="${esc(name)} 초상화" preserveAspectRatio="xMidYMin slice"><image href="${base}crows-kids.webp" width="2058" height="1528"/></svg>`:'';const n={desert:0,factory:1,snow:2}[k];if(n==null)return'';return`<svg class="illustrated-portrait" viewBox="${n*686+6} 6 674 750" role="img" aria-label="${esc(name)} 초상화" preserveAspectRatio="xMidYMin slice"><image href="${base}regional-npcs.webp" width="2058" height="764"/></svg>`;}
 const mf=[[12,85,272,239],[301,32,286,287],[606,79,277,242],[895,40,278,284],[1193,75,265,236],[1476,35,285,283],[30,330,253,252],[305,324,284,258],[606,347,257,235],[887,337,334,260],[1273,339,145,231],[1546,322,163,248],[14,597,271,259],[297,597,293,268],[596,604,282,246],[886,597,329,266],[1218,590,242,267],[1474,590,293,272]],order=[1,2,9,3,4,8,5,6,7];
 function moduleMetric(id,l){const n=order.indexOf(id);if(n<0||l<1||!ready('module-upgrades.webp'))return null;const f=mf[n*2+Math.min(1,l-1)],w=id===8?40+l*4:id===7?78+l*3:76+l*3;return{f,w,h:w*f[3]/f[2]};}
 function module(g,P,id,l,scale=1){const a=moduleMetric(id,l);if(!a)return false;const[x,y]=P(.5,.5,0),h=a.h*scale;g.drawImage(images['module-upgrades.webp'],...a.f,x-a.w/2,y+8-h,a.w,h);return true;}

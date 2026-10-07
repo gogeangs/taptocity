@@ -1260,10 +1260,10 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
   </div>
 </div>
 
-<script src="chapter-design.js?v=20261001-cohesion"></script>
+<script src="chapter-design.js?v=20261007-ck"></script>
 <script src="settlement.js?v=20261006-petscale"></script>
 <script src="people.js?v=20261001-people"></script>
-<script src="design.js?v=20261007-sil"></script>
+<script src="design.js?v=20261007-ck"></script>
 <script>
 
 (function(){
@@ -2460,7 +2460,7 @@ function renderSheet(){if(!sheetTab)return;let h='';const st=$('shBody').scrollT
       return`<button class="svrow resident-row g${gradeOf(s.id)}${s.hidden?' hid':''}" data-act="sv" data-arg="${s.id}" aria-label="${s.name}, ${s.job}, ${st}, 상세 보기"><span class="fc">${portrait(s)}</span><span class="mid"><b>${s.name}</b><small class="resident-role">${s.job}</small><span class="resident-status${r.hurt>0?' injured':''}">${st}</span></span><span class="resident-side">${canUp(s.id)?'<span class="ready-label">강화 가능</span>':''}<span class="resident-arrow" aria-hidden="true">›</span></span></button>`;}).join('');
     h+=memorialHtml();
     if(unmet.length)h+=`<div class="sec">아직 만나지 못한 사람 ${unmet.length}</div>`+unmet.map(s=>`<div class="svrow locked${s.hidden?' hid':''}"><span class="fc">${portrait(s,true)}</span><span class="mid"><b>${gradeTag(s.id,1)} ${s.hidden?s.alias:'???'}</b><small>${s.hidden?(s.hint?s.hint:s.src==='deep'?'쉘터 불빛이 발전소까지 닿으면, 누군가 답할지도 몰라요':'주파수 탐색에서만 만나요'):Object.values(S.camp).some(c=>c.id===s.id)?'구조를 기다리고 있어요 · 지도의 ! ? 표시를 눌러요':s.src==='sig'?'구름 속 구조 신호를 따라가 보세요':`희망 ${Math.ceil(s.hope*(1-D.visitDisc))} 이상이면 찾아와요${s.need!=null&&!S.sv[s.need]?' · 먼저 만나야 할 사람이 있어요':''}`}</small></span></div>`).join('');
-    if((S.kids||[]).length)h+=`<div class="sec">아이들</div>`+(S.kids||[]).map(k=>`<div class="svrow kid"><span class="fc kidf" style="background:${k.look.top}"><i style="background:${k.look.skin}"></i></span><span class="mid"><b>${k.n}</b><small>${k.g<1?`자라는 중 ${Math.round(k.g*100)}% · 희망 +2`:k.job?`${KJOB[k.job].n} · ${KJOB[k.job].d}`:'무엇을 배울지 정해 주세요'}</small><div class="pbar"><i style="width:${k.g*100}%"></i></div></span></div>`).join('')+('');
+    if((S.kids||[]).length)h+=`<div class="sec">아이들</div>`+(S.kids||[]).map(k=>`<div class="svrow kid"><span class="fc kidf" style="background:${k.look.top}">${(window.TTCDesign&&TTCDesign.kid&&TTCDesign.kid(k.n))||`<i style="background:${k.look.skin}"></i>`}</span><span class="mid"><b>${k.n}</b><small>${k.g<1?`자라는 중 ${Math.round(k.g*100)}% · 희망 +2`:k.job?`${KJOB[k.job].n} · ${KJOB[k.job].d}`:'무엇을 배울지 정해 주세요'}</small><div class="pbar"><i style="width:${k.g*100}%"></i></div></span></div>`).join('')+('');
     h+=`<div class="sec">등급</div><div class="grl">${GR.slice(0,4).map((G,g)=>`<span><span class="gr g${g}">${G.n}</span> 효과 ×${G.m}</span>`).join('')}<span>등급마다 1~5성 · 등급은 처음보다 최대 2단계까지</span></div>`;
     h+='<div class="sec">인연</div>'+BONDS.map(b=>{const on=b.ids.every(id=>S.sv[id]);if(b.ids.some(id=>isDead(id))&&b.ids.every(id=>S.sv[id]||isDead(id)))return`<div class="bond cut"><b>끊어진 인연 · ${b.name}</b> · ${b.ids.map(id=>SURV[id].name).join(' + ')}</div>`;return`<div class="bond ${on?'on':''}"><b>${on?b.name:'???'}</b> · ${on?`${b.txt} ${b.d}`:b.ids.map(id=>S.sv[id]?SURV[id].name:'???').join(' + ')+' 모두 모이면 열려요'}</div>`;}).join('');}
   else if(sheetTab==='settings'){$('shTitle').textContent='설정';

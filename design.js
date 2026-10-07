@@ -11,7 +11,15 @@
   };
   const portraits=[['founders',0],['neighbors',0],['founders',1],['neighbors',1],['neighbors',2],['neighbors',3],['signals',0],['founders',2],['signals',1],['founders',3],['signals',2],['signals',3],['frontier',0],['frontier',1],['frontier',2],['frontier',3],['scouts',0],['scouts',1]];
   const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  // 까마귀(독수리·진)와 아이들: 3x2 sheet, cells 686x764 — crow 0, jin 1, kids 2..5 (봄이 다온 로운 하람)
+  const CK={file:'crows-kids.webp',w:2058,h:1528,cols:3,rows:2},ckImg=new Image();ckImg.decoding='async';ckImg.src=base+CK.file;
+  const ckReady=()=>!!(ckImg.complete&&ckImg.naturalWidth);
+  function ckCell(n,label){const w=CK.w/CK.cols,h=CK.h/CK.rows,x=n%CK.cols*w,y=Math.floor(n/CK.cols)*h;
+    return '<svg class="illustrated-portrait" viewBox="0 0 120 140" role="img" aria-label="'+escape(label)+' 초상화"><svg width="120" height="140" viewBox="'+[x+6,y+6,w-12,h-14].join(' ')+'" preserveAspectRatio="xMidYMin slice"><image href="'+base+CK.file+'" width="'+CK.w+'" height="'+CK.h+'" preserveAspectRatio="none"/></svg></svg>';}
+  const KIDC={'봄이':2,'다온':3,'로운':4,'하람':5};
+  function kid(name){const n=KIDC[name];return n!=null&&ckReady()?ckCell(n,name):null;}
   function portrait(s){
+    if(s&&s.name==='진'&&s.src==='story')return ckReady()?ckCell(1,s.name):null;
     const p=s&&portraits[s.id];if(!p)return null;
     const a=sheets[p[0]],w=a.w/a.cols,h=a.h/a.rows,x=p[1]%a.cols*w,y=Math.floor(p[1]/a.cols)*h;
     return '<svg class="illustrated-portrait" viewBox="0 0 120 140" role="img" aria-label="'+escape(s.name)+' 초상화"><svg width="120" height="140" viewBox="'+[x,y,w,h].join(' ')+'" preserveAspectRatio="xMidYMin slice"><image href="'+base+a.file+'" width="'+a.w+'" height="'+a.h+'" preserveAspectRatio="none"/></svg></svg>';
@@ -58,5 +66,5 @@
   function radio(){return '<svg class="illustrated-radio" viewBox="0 0 240 180" role="img" aria-label="주파수 탐색 라디오"><image href="'+base+'radio.webp" width="240" height="180" preserveAspectRatio="xMidYMid meet"/></svg>';}
   function lamp(){const a=images['shelters.webp'];if(!a.complete||!a.naturalWidth)return false;const button=document.getElementById('lamp');if(!button||button.dataset.illustrated)return false;const svg=button.querySelector('svg'),w=a.naturalWidth/3,h=a.naturalHeight/2;if(!svg)return false;svg.querySelectorAll('path').forEach(p=>p.style.visibility='hidden');const art=document.createElementNS('http://www.w3.org/2000/svg','svg');art.setAttribute('x','14');art.setAttribute('y','13');art.setAttribute('width','46');art.setAttribute('height','46');art.setAttribute('viewBox',[w*2+3,h+3,w-6,h-6].join(' '));art.setAttribute('class','lamp-art');const image=document.createElementNS('http://www.w3.org/2000/svg','image');image.setAttribute('href',base+'shelters.webp');image.setAttribute('width',a.naturalWidth);image.setAttribute('height',a.naturalHeight);art.appendChild(image);svg.appendChild(art);button.dataset.illustrated='true';return true;}
   const timer=setInterval(()=>{if(lamp())clearInterval(timer);},300);setTimeout(()=>clearInterval(timer),20000);
-  window.TTCDesign={portrait,silhouette,core,module,moduleHeight,site,siteHeight,landmark,landmarkHeight,thumb,radio,version:'landmarks-20261002',assets:[...Object.values(sheets).map(a=>base+a.file),base+SIL.file,base+'shelters.webp',base+'modules.webp',base+'radio.webp',base+'exploration-sites.webp',base+'landmarks.webp']};
+  window.TTCDesign={portrait,silhouette,kid,core,module,moduleHeight,site,siteHeight,landmark,landmarkHeight,thumb,radio,version:'landmarks-20261002',assets:[...Object.values(sheets).map(a=>base+a.file),base+SIL.file,base+'shelters.webp',base+'modules.webp',base+'radio.webp',base+'exploration-sites.webp',base+'landmarks.webp']};
 })();
