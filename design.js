@@ -16,6 +16,13 @@
     const a=sheets[p[0]],w=a.w/a.cols,h=a.h/a.rows,x=p[1]%a.cols*w,y=Math.floor(p[1]/a.cols)*h;
     return '<svg class="illustrated-portrait" viewBox="0 0 120 140" role="img" aria-label="'+escape(s.name)+' 초상화"><svg width="120" height="140" viewBox="'+[x,y,w,h].join(' ')+'" preserveAspectRatio="xMidYMin slice"><image href="'+base+a.file+'" width="'+a.w+'" height="'+a.h+'" preserveAspectRatio="none"/></svg></svg>';
   }
+  // undiscovered survivors: the real portrait as a dark cut-out (same crop as the portrait), so the shape hints at who they are
+  const SIL={file:'survivors-silhouettes.webp',cols:6,rows:3,w:1440,h:840};
+  function silhouette(s){
+    const p=s&&portraits[s.id];if(!p)return null;
+    const w=SIL.w/SIL.cols,h=SIL.h/SIL.rows,x=s.id%SIL.cols*w,y=Math.floor(s.id/SIL.cols)*h,hid=!!s.hidden;
+    return '<svg class="illustrated-portrait sil" viewBox="0 0 120 140" role="img" aria-label="아직 만나지 못한 생존자"><rect width="120" height="140" fill="#e6d8b6"/><svg x="0" y="4" width="120" height="136" viewBox="'+[x,y,w,h].join(' ')+'" preserveAspectRatio="xMidYMin slice" opacity=".86"><image href="'+base+SIL.file+'" width="'+SIL.w+'" height="'+SIL.h+'" preserveAspectRatio="none"/></svg><circle cx="96" cy="112" r="16" fill="'+(hid?'#ffd24a':'#f3d9a0')+'" stroke="#3b2a1a" stroke-width="2.4"/><text x="96" y="'+(hid?'119':'120')+'" text-anchor="middle" font-family="Gowun Batang,serif" font-size="'+(hid?'18':'21')+'" font-weight="700" fill="#3b2a1a">'+(hid?'★':'?')+'</text></svg>';
+  }
   const images={};
   ['shelters.webp','modules.webp','radio.webp','exploration-sites.webp','landmarks.webp'].forEach(file=>{const img=new Image();img.decoding='async';img.src=base+file;images[file]=img;});
   function crop(file,index,cols,rows){const img=images[file];if(!img||!img.complete||!img.naturalWidth)return null;const w=img.naturalWidth/cols,h=img.naturalHeight/rows;return{img,x:index%cols*w,y:Math.floor(index/cols)*h,w,h};}
@@ -51,5 +58,5 @@
   function radio(){return '<svg class="illustrated-radio" viewBox="0 0 240 180" role="img" aria-label="주파수 탐색 라디오"><image href="'+base+'radio.webp" width="240" height="180" preserveAspectRatio="xMidYMid meet"/></svg>';}
   function lamp(){const a=images['shelters.webp'];if(!a.complete||!a.naturalWidth)return false;const button=document.getElementById('lamp');if(!button||button.dataset.illustrated)return false;const svg=button.querySelector('svg'),w=a.naturalWidth/3,h=a.naturalHeight/2;if(!svg)return false;svg.querySelectorAll('path').forEach(p=>p.style.visibility='hidden');const art=document.createElementNS('http://www.w3.org/2000/svg','svg');art.setAttribute('x','14');art.setAttribute('y','13');art.setAttribute('width','46');art.setAttribute('height','46');art.setAttribute('viewBox',[w*2+3,h+3,w-6,h-6].join(' '));art.setAttribute('class','lamp-art');const image=document.createElementNS('http://www.w3.org/2000/svg','image');image.setAttribute('href',base+'shelters.webp');image.setAttribute('width',a.naturalWidth);image.setAttribute('height',a.naturalHeight);art.appendChild(image);svg.appendChild(art);button.dataset.illustrated='true';return true;}
   const timer=setInterval(()=>{if(lamp())clearInterval(timer);},300);setTimeout(()=>clearInterval(timer),20000);
-  window.TTCDesign={portrait,core,module,moduleHeight,site,siteHeight,landmark,landmarkHeight,thumb,radio,version:'landmarks-20261002',assets:[...Object.values(sheets).map(a=>base+a.file),base+'shelters.webp',base+'modules.webp',base+'radio.webp',base+'exploration-sites.webp',base+'landmarks.webp']};
+  window.TTCDesign={portrait,silhouette,core,module,moduleHeight,site,siteHeight,landmark,landmarkHeight,thumb,radio,version:'landmarks-20261002',assets:[...Object.values(sheets).map(a=>base+a.file),base+SIL.file,base+'shelters.webp',base+'modules.webp',base+'radio.webp',base+'exploration-sites.webp',base+'landmarks.webp']};
 })();

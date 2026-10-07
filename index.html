@@ -1263,7 +1263,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 <script src="chapter-design.js?v=20261001-cohesion"></script>
 <script src="settlement.js?v=20261006-petscale"></script>
 <script src="people.js?v=20261001-people"></script>
-<script src="design.js?v=20261006-modh"></script>
+<script src="design.js?v=20261007-sil"></script>
 <script>
 
 (function(){
@@ -5463,7 +5463,7 @@ function landscape(){return LANDSCAPES[S.region]||LANDSCAPES.home;}
 // Approved illustrated presentation. Mechanics and saved progress retain their original paths.
 if(window.TTCDesign){
   const art=window.TTCDesign,oldPortrait=portrait,oldCore=drawCore,oldModule=drawModule;
-  portrait=function(s,locked){return locked?oldPortrait(s,true):(art.portrait(s)||oldPortrait(s,false));};
+  portrait=function(s,locked){if(locked){const sil=art.silhouette&&art.silhouette(s);return sil?sil.replace(/<\/svg>$/,gradeFrame(s,1)+'</svg>'):oldPortrait(s,true);}return art.portrait(s)||oldPortrait(s,false);};
   radioSvg=function(){return art.radio();};
   drawCore=function(time){if(!art.core(ctx,P,S.lv))return oldCore(time);const[x,y]=P(.5,.5,16);glowPts.push([x,y,42+S.lv*3,'240,192,113',.38]);};
   drawModule=function(i,m,time){if(!(window.TTCFinal&&TTCFinal.module(ctx,P,m.id,m.l,ZS))&&!art.module(ctx,P,m.id,m.l))return oldModule(i,m,time);if(m.l){const[x,y]=P(.5,.8,1);ctx.fillStyle='#efc77f';for(let k=0;k<m.l;k++)ctx.fillRect(x-3+k*4,y,2,2);}if(m.id===8||m.id===5&&S.m.fuel>0){const[x,y]=P(.5,.5,m.id===8?34:12);glowPts.push([x,y,m.id===8?34:22,'240,192,113',.42]);}};
