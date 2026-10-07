@@ -123,3 +123,6 @@
 .page.ug .ut .ub .uimg,.page.ug .uglegend .ub .uimg{width:100%!important;height:100%!important;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.45))}
 .page.ug .ut.done .ub{filter:grayscale(.7) brightness(.75)!important}
 .page.ug .uglegend .ub{width:22px!important;height:22px!important}
+
+/* survivor notebook: grade + stars under the name */
+.resident-row .resident-grade{display:flex;align-items:center;gap:4px;margin:2px 0 3px;line-height:1}.resident-row .resident-grade .gr{vertical-align:0}.resident-row .resident-grade .stars{margin-left:1px;vertical-align:0;font-size:12px}
