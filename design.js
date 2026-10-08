@@ -28,9 +28,9 @@
     return '<svg class="illustrated-portrait" viewBox="0 0 120 140" role="img" aria-label="'+escape(s.name)+' 초상화"><svg width="120" height="140" viewBox="'+[x,y,w,h].join(' ')+'" preserveAspectRatio="xMidYMin slice"><image href="'+base+a.file+'" width="'+a.w+'" height="'+a.h+'" preserveAspectRatio="none"/></svg></svg>';
   }
   // undiscovered survivors: the real portrait as a dark cut-out (same crop as the portrait), so the shape hints at who they are
-  const SIL={file:'survivors-silhouettes.webp?v=2',cols:6,rows:4,w:1440,h:1120}; // ids 0..17 (row 3 spare)
+  const SIL={file:'survivors-silhouettes.webp?v=3',cols:6,rows:5,w:1440,h:1400}; // ids 0..29
   function silhouette(s){
-    const p=s&&portraits[s.id];if(!p)return null;
+    const p=s&&(portraits[s.id]||(s.src==='town'&&s.id>=18&&s.id<30));if(!p)return null;
     const w=SIL.w/SIL.cols,h=SIL.h/SIL.rows,x=s.id%SIL.cols*w,y=Math.floor(s.id/SIL.cols)*h,hid=!!s.hidden;
     return '<svg class="illustrated-portrait sil" viewBox="0 0 120 140" role="img" aria-label="아직 만나지 못한 생존자"><rect width="120" height="140" fill="#e6d8b6"/><svg x="0" y="4" width="120" height="136" viewBox="'+[x,y,w,h].join(' ')+'" preserveAspectRatio="xMidYMin slice" opacity=".86"><image href="'+base+SIL.file+'" width="'+SIL.w+'" height="'+SIL.h+'" preserveAspectRatio="none"/></svg><circle cx="96" cy="112" r="16" fill="'+(hid?'#ffd24a':'#f3d9a0')+'" stroke="#3b2a1a" stroke-width="2.4"/><text x="96" y="'+(hid?'119':'120')+'" text-anchor="middle" font-family="Gowun Batang,serif" font-size="'+(hid?'18':'21')+'" font-weight="700" fill="#3b2a1a">'+(hid?'★':'?')+'</text></svg>';
   }
