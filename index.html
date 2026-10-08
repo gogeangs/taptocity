@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261008c">
+<link rel="stylesheet" href="qa.css?v=20261008d">
 <div id="app">
   <header>
     <div class="hud">
@@ -3224,7 +3224,7 @@ function ugfStop(){if(ugfTimer){clearTimeout(ugfTimer);clearInterval(ugfTimer);u
 modal.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-act="ugf"]');if(!b||b.disabled)return;e.preventDefault();const g=+b.dataset.arg;ugfT=performance.now();ugfStep(g);ugfStop();
   ugfTimer=setTimeout(()=>{ugfTimer=setInterval(()=>{ugfT=performance.now();if(!modal.querySelector('.fuelrow')){ugfStop();return;}ugfStep(g);},110);},380);});
 ['pointerup','pointercancel'].forEach(ev=>window.addEventListener(ev,ugfStop,{capture:true}));
-function ugStart(){const t=ugPrep.team.filter(id=>S.sv[id]&&!busy(id));if(!t.length)return;if(ugPrep.fuel&&!pay({fuel:ugPrep.fuel}))return;
+function ugStart(){const t=ugPrep.team.filter(id=>S.sv[id]&&!busy(id));if(!t.length)return;ugPrep.fuel=Math.min(ugPrep.fuel,ugFuelMax(t));if(ugPrep.fuel&&!pay({fuel:ugPrep.fuel}))return;
   const oil=ugOil0(t,ugPrep.fuel),st=(ugPrep.start&&ugCkOk(ugPrep.start))?ugPrep.start:1;const upk=ugPrep.pet&&S.petOn&&petHere(S.petOn)?S.petOn:null;if(upk)pets()[upk].away='ug';UG={pet:upk,team:t,oil:oil+(st>1?12:0),max:oil+(st>1?12:0),floor:st-1,exploredFloors:[],carry:{},gear:[],hurt:[],found:[],keys:0,msg:st>1?`쉼터에서 다시 출발했다 · ${ugTheme(st).n}`:'랜턴을 들고 계단을 내려갔다.'};S.ug.runs++;ugFloor();sfx('reveal');renderUG();}
 function ugFloor(){const f=++UG.floor,n=UGW*UGH,cells=Array.from({length:n},()=>({c:'empty',rev:false,hp:1+Math.floor((f-1)/5)}));
   const start=(UGH-1)*UGW+2;cells[start].rev=true;cells[start].c='start';
@@ -4972,7 +4972,7 @@ function chStep(){if(!CH)return;const mx=craftMax(CH.k);if(mx<1){chStop();return
   const own=CH.card&&CH.card.querySelector('.t small');if(own)own.textContent=own.textContent.replace(/보유 [\d,.만억k]+/,'보유 '+fmt(S.m[RECIPES[CH.k].out]||0));
   if(CH.n%3===0)sfx('get');buzz();CH.t=setTimeout(chStep,CH.n<3?260:110);}
 $('shBody').addEventListener('pointerdown',e=>{const b=e.target.closest('[data-cb]');if(!b||b.disabled)return;e.preventDefault();const k=+b.dataset.cb;
-  const r=craftQuiet(k,1);if(!r.c){toast('재료가 모자라요');return;}sfx('get');
+  if(craftMax(k)<1){const out=RECIPES[k].out;toast((S.m[out]||0)>=capOf(out)?`${MN[out].n} 창고가 가득 찼어요`:'재료가 모자라요');return;}const r=craftQuiet(k,1);if(!r.c){toast('재료가 모자라요');return;}sfx('get');
   b.classList.add('holding');b.innerHTML=`<b class="ccnt">+${fmt(r.made)}</b><small>만드는 중</small>`;
   CH={k,n:0,made:r.made,b,card:b.closest('.mcard')};CH.t=setTimeout(chStep,380);
   const own=CH.card&&CH.card.querySelector('.t small');if(own)own.textContent=own.textContent.replace(/보유 [\d,.만억k]+/,'보유 '+fmt(S.m[RECIPES[k].out]||0));},true);
