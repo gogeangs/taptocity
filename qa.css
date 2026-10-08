@@ -150,3 +150,6 @@
 .petp .petstrip .pst i.hungry{background:#d9483b}.petp .petstrip .pst i.full{background:#6b8f4a}
 /* underground prep: fuel cap hint */
 .fuelrow span{flex-wrap:wrap}.fuelrow span .fmax{font:500 11.5px/1 var(--body);color:var(--sepia-2,#6b5e52);margin-left:2px;white-space:nowrap;flex-basis:100%}
+/* unmet survivor with a known signal: tappable row */
+.svrow.locked.sigrow{opacity:1;cursor:pointer;grid-template-columns:54px minmax(0,1fr) auto!important}
+.svrow.locked.sigrow small{color:#3f6fa0}

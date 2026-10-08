@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261008d">
+<link rel="stylesheet" href="qa.css?v=20261008e">
 <div id="app">
   <header>
     <div class="hud">
@@ -2438,6 +2438,9 @@ function renderShelter(){const L=S.lv;$('shTitle').textContent=`Lv.${L} ${LVNAME
   h+='<div class="sec">창고</div><div class="store">'+MATS.map(m=>{const v=S.m[m.k]||0,cap=(m.tier||0)>=3?0:capOf(m.k);return`<span class="st2${cap&&v>=cap?' full':''}">${micon(m.k,18)}<span><b>${fmt(v)}</b><small>${m.n}${cap?` · ${fmt(cap)}`:''}</small>${cap?`<u style="--p:${Math.min(1,v/cap).toFixed(3)}"></u>`:''}</span></span>`;}).join('')+'</div>';
   h+=`<button class="banner b2" data-act="bag"><span><b>장비 가방 ${(S.inv||[]).length}개 →</b><br>생존자 장비를 모아 둔 곳</span></button>`;}
   return h;}
+// where an unmet survivor's rescue camp or fog signal sits on the map (-1 if nowhere yet)
+function signalTile(id){for(const i in S.camp||{})if(S.camp[i].id===id)return+i;for(const i in S.sig||{})if(S.sig[i]===id)return+i;return-1;}
+$('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="svsig"]');if(!b)return;e.stopImmediatePropagation();const i=signalTile(+b.dataset.arg);if(i<0)return;closeSheet();camFly(i,22);const[x,y]=tileC(i,30);setTimeout(()=>floatText(x,y-10,S.camp[i]?'여기서 구조를 기다려요':'이 구름 너머에서 신호가 와요','rgba(200,230,255,A)',16),560);sfx('tap');},true);
 function renderSheet(){if(!sheetTab)return;let h='';const st=$('shBody').scrollTop;
   if(sheetTab==='shelter')h=renderShelter();
   else if(sheetTab==='party'){$('shTitle').textContent='스킬 바에 데려갈 3명';
@@ -2466,7 +2469,7 @@ function renderSheet(){if(!sheetTab)return;let h='';const st=$('shBody').scrollT
     h+=list.map(s=>{const r=S.sv[s.id],st=r.away?'원정 중':r.hurt>0?'다쳐서 쉬는 중':r.at>=0?`${workName(r.at)}에서 일하는 중`:restLabel(s.id);
       return`<button class="svrow resident-row g${gradeOf(s.id)}${s.hidden?' hid':''}" data-act="sv" data-arg="${s.id}" aria-label="${s.name}, ${s.job}, ${st}, 상세 보기"><span class="fc">${portrait(s)}</span><span class="mid"><b>${s.name}</b><span class="resident-grade">${gradeTag(s.id)}</span><small class="resident-role">${s.job}</small><span class="resident-status${r.hurt>0?' injured':''}">${st}</span></span><span class="resident-side">${canUp(s.id)?'<span class="ready-label">강화 가능</span>':''}<span class="resident-arrow" aria-hidden="true">›</span></span></button>`;}).join('');
     h+=memorialHtml();
-    if(unmet.length)h+=`<div class="sec">아직 만나지 못한 사람 ${unmet.length}</div>`+unmet.map(s=>`<div class="svrow locked${s.hidden?' hid':''}"><span class="fc">${portrait(s,true)}</span><span class="mid"><b>${gradeTag(s.id,1)} ${s.hidden?s.alias:'???'}</b><small>${s.hidden?(s.hint?s.hint:s.src==='deep'?'쉘터 불빛이 발전소까지 닿으면, 누군가 답할지도 몰라요':'주파수 탐색에서만 만나요'):Object.values(S.camp).some(c=>c.id===s.id)?'구조를 기다리고 있어요 · 지도의 ! ? 표시를 눌러요':s.src==='sig'?'구름 속 구조 신호를 따라가 보세요':s.src==='town'?(s.region===S.region?'구름 속 구조 신호를 따라가 보세요':s.hint):`희망 ${Math.ceil(s.hope*(1-D.visitDisc))} 이상이면 찾아와요${s.need!=null&&!S.sv[s.need]?' · 먼저 만나야 할 사람이 있어요':''}`}</small></span></div>`).join('');
+    if(unmet.length)h+=`<div class="sec">아직 만나지 못한 사람 ${unmet.length}</div>`+unmet.map(s=>{const where=signalTile(s.id),camp=where>=0&&!!S.camp[where];return`<${where>=0?`button class="svrow locked sigrow`:`div class="svrow locked`}${s.hidden?' hid':''}"${where>=0?` data-act="svsig" data-arg="${s.id}" aria-label="${s.hidden?s.alias:'구조 신호'}, 지도에서 보기"`:''}><span class="fc">${portrait(s,true)}</span><span class="mid"><b>${gradeTag(s.id,1)} ${s.hidden?s.alias:'???'}</b><small>${where>=0?(camp?'구조를 기다리고 있어요 · 눌러서 지도에서 보기 ›':'구름 속에서 신호가 와요 · 눌러서 지도에서 보기 ›'):s.hidden?(s.hint?s.hint:s.src==='deep'?'쉘터 불빛이 발전소까지 닿으면, 누군가 답할지도 몰라요':'주파수 탐색에서만 만나요'):s.src==='sig'?'구름 속 구조 신호를 따라가 보세요':s.src==='town'?(s.region===S.region?'구름 속 구조 신호를 따라가 보세요':s.hint):`희망 ${Math.ceil(s.hope*(1-D.visitDisc))} 이상이면 찾아와요${s.need!=null&&!S.sv[s.need]?' · 먼저 만나야 할 사람이 있어요':''}`}</small></span>${where>=0?'<span class="resident-side"><span class="resident-arrow" aria-hidden="true">›</span></span>':''}</${where>=0?'button':'div'}>`;}).join('');
     if((S.kids||[]).length)h+=`<div class="sec">아이들</div>`+(S.kids||[]).map(k=>`<div class="svrow kid"><span class="fc kidf" style="background:${k.look.top}">${(window.TTCDesign&&TTCDesign.kid&&TTCDesign.kid(k.n))||`<i style="background:${k.look.skin}"></i>`}</span><span class="mid"><b>${k.n}</b><small>${k.g<1?`자라는 중 ${Math.round(k.g*100)}% · 희망 +2`:k.job?`${KJOB[k.job].n} · ${KJOB[k.job].d}`:'무엇을 배울지 정해 주세요'}</small><div class="pbar"><i style="width:${k.g*100}%"></i></div></span></div>`).join('')+('');
     h+=`<div class="sec">등급</div><div class="grl">${GR.slice(0,4).map((G,g)=>`<span><span class="gr g${g}">${G.n}</span> 효과 ×${G.m}</span>`).join('')}<span>등급마다 1~5성 · 등급은 처음보다 최대 2단계까지</span></div>`;
     h+='<div class="sec">인연</div>'+BONDS.map(b=>{const on=b.ids.every(id=>S.sv[id]);if(b.ids.some(id=>isDead(id))&&b.ids.every(id=>S.sv[id]||isDead(id)))return`<div class="bond cut"><b>끊어진 인연 · ${b.name}</b> · ${b.ids.map(id=>SURV[id].name).join(' + ')}</div>`;return`<div class="bond ${on?'on':''}"><b>${on?b.name:'???'}</b> · ${on?`${b.txt} ${b.d}`:b.ids.map(id=>S.sv[id]?SURV[id].name:'???').join(' + ')+' 모두 모이면 열려요'}</div>`;}).join('');}
@@ -3464,12 +3467,14 @@ function pickSpot(night){if(night){const[cx,cy]=tileC(C0),a=Math.random()*Math.P
   const L=lifeTiles();if(!L.length){const[cx,cy]=tileC(C0);return[cx+20,cy+20];}const i=L[(Math.random()*L.length)|0],[x,y]=tileC(i);return[x+(Math.random()-.5)*22,y+(Math.random()-.5)*8];}
 function tickLife(dt){const night=isNight()&&!DEFN;
   for(const k in S.sv){const id=+k,r=S.sv[id];let w=WALK[id];const free=!r.away&&!(r.hurt>0),working=r.at>=0;
-    if(!free){delete WALK[id];continue;}
+    if(!free){delete WALK[id];continue;}if(w&&w.gat&&(r.at>=0||dutyOf(id)!=='gather'))delete w.gat;
     if(!w){if(working&&!night)continue;const[x,y]=working?tileC(r.at,0):pickSpot(night);w=WALK[id]={x,y,tx:x,ty:y,idle:1+Math.random()*3,brk:working?12+Math.random()*10:0,face:1};}
     if(working&&!night&&w.brk<=0){delete WALK[id];continue;}
     if(w.brk>0)w.brk-=dt;
     const dx=w.tx-w.x,dy=w.ty-w.y,d=Math.hypot(dx,dy);
     if(d>2){const sp=(night?26:18)*dt;w.x+=dx/d*Math.min(sp,d);w.y+=dy/d*Math.min(sp,d);w.face=dx>=0?1:-1;w.mv=true;}
+    else if(w.gat){w.mv=false;const g=w.gat;g.t+=dt;if(g.t>=2.2){const[x,y]=tileC(g.i,14);loot(g.o,x,y);delete w.gat;const[cx,cy]=tileC(C0);w.tx=cx+(Math.random()-.5)*30;w.ty=cy+16;w.idle=3+Math.random()*3;}
+      else if(g.t<dt*1.5){const[x,y]=tileC(g.i,16);floatText(x,y-18,`${SURV[id].name} 주워 오는 중`,'rgba(255,235,190,A)',14);}}
     else{w.mv=false;w.idle-=dt;if(w.idle<=0){[w.tx,w.ty]=pickSpot(night);w.idle=2+Math.random()*4;}}}
   for(const k in S.sv){const id=+k,r=S.sv[id];if(r.at>=0&&!r.away&&!(r.hurt>0)&&!WALK[id]&&!isNight()&&Math.random()<dt/55){const[x,y]=tileC(r.at,0);WALK[id]={x,y,tx:x,ty:y,idle:0,brk:14+Math.random()*10,face:1};}}
   if(CHAT){CHAT.t+=dt;if(CHAT.t>CHAT.dur||!WALK[CHAT.a]||!WALK[CHAT.b])CHAT=null;}
@@ -3660,6 +3665,9 @@ const restLabel=id=>DUTY[dutyOf(id)].v;
 // which apprenticeship a caretaker nudges a kid towards
 const CARE_JOB=id=>{const R=ROLE[id]||[];return R.includes('mech')||R.includes('sci')?'mech':R.includes('farm')||R.includes('cook')?'farm':R.includes('scout')||R.includes('drive')||R.includes('art')?'scout':null;};
 let dutyT=0;
+// a revealed ruin/car/crate a short walk from the shelter, spread between gatherers
+function gatherSpot(id){const R=S.lv+3,c=[];for(let y=CY-R;y<=CY+R;y++)for(let x=CX-R;x<=CX+R;x++){const i=y*W+x;if(x<0||y<0||x>=W||y>=H||!S.rev[i]||i===C0||isSlot(i))continue;const t=S.ter[i];if(t===T.RUIN||t===T.CAR||t===T.CRATE||t===T.SPENT)c.push(i);}
+  if(!c.length)return-1;return c[(id*7+(S.day||0)*3+(dutyT/25|0))%c.length];}
 function tickDuty(){dutyT++;const ids=idleIds();if(!ids.length)return;const by={train:[],patrol:[],gather:[],care:[]};for(const id of ids)by[dutyOf(id)].push(id);
   // training: half the trust a job would give
   if(!D.hungry)for(const id of by.train){const r=S.sv[id],b=trustLv(r.xp);r.xp+=.5*D.trustM;const a=trustLv(r.xp);if(a>b){svNew=true;toast(`${SURV[id].name} 신뢰도 ${a}! 새 사연이 열렸어요`);recalc();}}
@@ -3667,7 +3675,9 @@ function tickDuty(){dutyT++;const ids=idleIds();if(!ids.length)return;const by={
   if(by.patrol.length&&dutyT%3===0){const keys=Object.keys(S.ash||{}).map(Number).filter(k=>!S.ash[k].stuck||true).sort((a,b)=>dist(a)-dist(b));
     by.patrol.forEach((id,n)=>{const i=keys[n%Math.max(1,keys.length)];if(i==null||!S.ash[i])return;const[x,y]=tileC(i,12);floatText(x,y-26,`${SURV[id].name.slice(1)} 순찰!`,'rgba(200,230,255,A)',16);hitAsh(i,tapPow()*.6);(S.stat=S.stat||{}).patrol=((S.stat||{}).patrol||0)+1;});}
   // scavenging: a small bundle every 25s each
-  if(by.gather.length&&dutyT%25===0){const[x,y]=tileC(C0,30);by.gather.forEach((id,n)=>{const k=BASE[(Math.random()*BASE.length)|0],o={[k]:Math.max(1,Math.round(2.4*lvScale()))};setTimeout(()=>loot(o,x+(n-by.gather.length/2)*18,y-n*4),n*250);});}
+  if(by.gather.length&&dutyT%25===0){by.gather.forEach((id,n)=>{const k=BASE[(Math.random()*BASE.length)|0],o={[k]:Math.max(1,Math.round(2.4*lvScale()))},w=WALK[id],i=w&&gatherSpot(id);
+      if(w&&i>=0){const[tx,ty]=tileC(i);w.tx=tx+(Math.random()-.5)*10;w.ty=ty+6;w.idle=99;w.gat={i,o,t:0,n};}
+      else{const[x,y]=tileC(C0,30);setTimeout(()=>loot(o,x+(n-by.gather.length/2)*18,y-n*4),n*250);}});}
   // caring: kids grow faster, and remember who raised them
   const growing=(S.kids||[]).filter(k=>k.g<1);
   if(by.care.length&&growing.length){const boost=Math.min(2,by.care.length)*.5/600;for(const k of growing){k.g=Math.min(1,k.g+boost);k.care=k.care||{};for(const id of by.care){const j=CARE_JOB(id);if(j)k.care[j]=(k.care[j]||0)+1;}if(k.g>=1&&!k.job){sfx('chime');setTimeout(()=>kidGrown(k),200);}}}
