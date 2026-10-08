@@ -3162,7 +3162,7 @@ function renderGear(){const{id,slot}=gearCtx;let h='';
     if(!list.length)h+=emptyHtml(`<span class="ei2">${SLOTSVG[slot]}</span>`,`${SLOTN[slot]}이 아직 없어요`,'아래에서 만들거나 폐허·원정·주파수 탐색에서 찾아요');
     for(const it of list)h+=itemRow(it,(x,w)=>x.u===cur?'<button class="buy ghost" data-act="guneq">빼기</button>':`<button class="buy" data-act="geq" data-arg="${x.u}">${w!=null?'가져오기':'장착'}</button>`);}
   else{$('shTitle').textContent=`장비 가방 ${(S.inv||[]).length}개`;
-    h+='<div class="d" style="margin-bottom:6px">생존자에게 장착하려면 생존자 수첩에서 사람을 누르고 장비 칸을 눌러요. 쓰지 않는 장비는 분해해 재료를 돌려받아요.</div>';
+    h+=autoGearHtml();h+='<div class="d" style="margin-bottom:6px">생존자에게 장착하려면 생존자 수첩에서 사람을 누르고 장비 칸을 눌러요. 쓰지 않는 장비는 분해해 재료를 돌려받아요.</div>';
     for(const sl of SLOTK){const list=(S.inv||[]).filter(x=>GEAR[x.t].slot===sl).sort((a,b)=>GEAR[b.t].g-GEAR[a.t].g);h+=`<div class="sec">${SLOTN[sl]} ${list.length}개</div>`;if(!list.length)h+=`<div class="emptyline">${SLOTSVG[sl]}<span>비어 있어요 · 폐허·원정·라디오에서 찾거나 아래에서 만들어요</span></div>`;
       for(const it of list)h+=itemRow(it,(x,w)=>w!=null?`<span class="dbadge">착용 중</span>`:`<button class="buy ghost" data-act="gdis" data-arg="${x.u}">분해</button>`);}}
   const rec=Object.keys(GEAR).filter(k=>GEAR[k].cost&&!GEAR[k].sig&&(slot==null||GEAR[k].slot===slot));
@@ -3828,9 +3828,23 @@ function autoAssign(full){if(!autoOpen())return{n:0,fit:0};const tiles=[...D.mod
   const usedI=new Set(),usedT=new Set();let n=0,fit=0;
   for(const[sc,id,t]of pairs){if(usedI.has(id)||usedT.has(t))continue;usedI.add(id);usedT.add(t);S.asg[t]=id;S.sv[id].at=t;n++;if(SURV[id].match.includes(modAtTile(t).id))fit++;}
   if(n||full){recalc();save();}return{n,fit};}
+// ---------- auto-equip: 전용 > 잘맞음 > 높은 등급, one pass over the whole bag ----------
+function autoGear(){const inv=(S.inv||[]).slice(),ids=Object.keys(S.sv).map(Number);if(!inv.length||!ids.length)return{n:0,sig:0,fit:0,ch:0};
+  const plan={};for(const id of ids)plan[id]={};const used=new Set();let sig=0,fit=0;
+  // 1) signature gear goes to its owner
+  for(const it of inv){const o=gearOnly(GEAR[it.t]);if(o!=null&&S.sv[o]&&!plan[o][GEAR[it.t].slot]){plan[o][GEAR[it.t].slot]=it.u;used.add(it.u);sig++;}}
+  // 2) best-fitting item per empty slot, highest grade first
+  const rest=inv.filter(it=>!used.has(it.u)&&gearOnly(GEAR[it.t])==null).sort((a,b)=>GEAR[b.t].g-GEAR[a.t].g);
+  for(const it of rest){const sl=GEAR[it.t].slot;const who=ids.find(id=>!plan[id][sl]&&GEAR[it.t].fit.includes(id));if(who!=null){plan[who][sl]=it.u;used.add(it.u);fit++;}}
+  // 3) whatever is left fills remaining empty slots
+  for(const it of rest){if(used.has(it.u))continue;const sl=GEAR[it.t].slot;const who=ids.find(id=>!plan[id][sl]);if(who!=null){plan[who][sl]=it.u;used.add(it.u);}}
+  let ch=0,n=0;for(const id of ids){const r=S.sv[id];r.eq=r.eq||{};for(const sl of SLOTK){const want=plan[id][sl]||null;if((r.eq[sl]||null)!==want)ch++;r.eq[sl]=want;}if(Object.values(r.eq).some(Boolean))n++;}
+  if(ch){recalc();save();}return{n,sig,fit,ch};}
+function autoGearHtml(){const inv=(S.inv||[]).length;if(!inv)return'';return`<div class="autobox"><div><b>🎒 장비 자동 맞추기</b><small>전용 도구 → 잘맞는 장비 → 높은 등급 순으로 ${inv}개를 나눠 입혀요</small></div><button class="buy" data-act="autogear">지금 맞추기</button></div>`;}
+$('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="autogear"]');if(!b)return;e.stopImmediatePropagation();const r=autoGear();sfx('chime');if(!r.ch)toast('이미 가장 잘 맞게 입고 있어요');else note({h:'장비 자동 맞춤 완료',t:`<small>${r.n}명 착용 · 전용 ${r.sig} · 잘맞음 ${r.fit} · 바뀐 칸 ${r.ch}</small>`,ms:4500});renderSheet();},true);
 function autoHtml(){if(!autoOpen())return'';
   const tiles=D.modAt.size,used=Object.keys(S.asg).length;
-  return`<div class="autobox"><div><b>⚙ 자동 배치</b><small>일터 ${used}/${tiles} · 딱 맞는 사람을 먼저 앉혀요</small></div><button class="buy" data-act="autoasg">지금 맞추기</button><button class="tgl${S.autoAsg?' on':''}" data-act="autotgl" role="switch" aria-checked="${!!S.autoAsg}" title="빈 일터를 항상 자동으로 채우기"><i></i></button></div>`;}
+  return`<div class="autobox"><div><b>⚙ 자동 배치</b><small>일터 ${used}/${tiles} · 딱 맞는 사람을 먼저 앉혀요</small></div><button class="buy" data-act="autoasg">지금 맞추기</button><button class="tgl${S.autoAsg?' on':''}" data-act="autotgl" role="switch" aria-checked="${!!S.autoAsg}" title="빈 일터를 항상 자동으로 채우기"><i></i></button></div>`+autoGearHtml();}
 $('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="autoasg"],[data-act="autotgl"]');if(!b)return;e.stopImmediatePropagation();
   if(b.dataset.act==='autotgl'){S.autoAsg=!S.autoAsg;save();toast(S.autoAsg?'빈 일터를 자동으로 채워요':'자동 채우기를 껐어요');if(S.autoAsg)autoAssign(false);renderSheet();return;}
   const r=autoAssign(true);sfx('chime');note({h:'자동 배치 완료',t:`<small>${r.n}명 배치 · 딱 맞는 일터 ${r.fit}명${idleIds().length?` · 남은 ${idleIds().length}명은 쉴 때 할 일을 해요`:''}</small>`,kind:'find'});renderSheet();},true);
