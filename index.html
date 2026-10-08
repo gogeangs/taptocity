@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261009-trade">
+<link rel="stylesheet" href="qa.css?v=20261009-ped">
 <div id="app">
   <header>
     <div class="hud">
@@ -1225,7 +1225,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
       <div class="lvrow"><b id="lv">Lv.1 텐트</b><div class="inkbar"><i id="bar"></i></div><span id="barL"></span><small id="pop" hidden>생존자 0</small></div>
     </div>
     <div id="matsAll" hidden></div>
-    <div class="tape" id="tape"><div class="m" id="mis">…</div><button class="migchip" id="migchip" hidden>🔥 새 동네로</button><button class="claim" id="claim" hidden>받기</button></div>
+    <div class="tape" id="tape"><div class="m" id="mis">…</div><button class="migchip ped" id="pedchip" hidden>🛒 노친네</button><button class="migchip" id="migchip" hidden>🔥 새 동네로</button><button class="claim" id="claim" hidden>받기</button></div>
   </header>
   <div id="stage">
     <canvas id="cv" role="img" aria-label="쉘터 지도"></canvas>
@@ -1951,8 +1951,8 @@ let misKey=null,misDoneAt=0;
 function hastenStorm(m){if(S.gen||!m||m.done||!m.step)return;const g=m.step.goal;if(g!=='재폭풍 밤 한 번 버티기'&&g!=='대형 재폭풍 한 번 막아내기')return;S.hasten=S.hasten||{};if(S.hasten[g])return;S.hasten[g]=1;
   if(g==='대형 재폭풍 한 번 막아내기'){const n=S.nightCount||0,r=n%3;if(r!==2)S.nightCount=n+(2-r+3)%3;}
   if(!isNight()&&phase()<DAY-25)S.clock=(S.clock||0)+(DAY-25-phase());save();}
-function renderMission(){migrateSteps();const m=mission();hastenStorm(m);const key=S.mi+'|'+m.done+'|'+m.txt+(m.eg&&migrateHtml()?'|mig':'');if(key===misKey)return;misKey=key;const st=m.step,c=st?STORY[st.ci]:null;
-  $('mis').innerHTML=`${c?`<span class="chap">${c.ch} <i>${st.si+1}/${c.steps.length}</i></span>`:(m.reg?`<span class="chap">${REG().n} <i>${(S.rmi||0)+1}/${regionMis().length}</i></span>`:`<span class="chap">끝없는 불빛 <i>${(S.eg&&S.eg.i||0)+1}</i></span>`)}<span class="goal">${m.done?'<em>✓</em> ':''}${m.txt}</span>${!m.done?'<span class="more" aria-hidden="true">▾</span>':''}<span class="sub">${c?`<b>${c.ch} · ${c.title}</b>`:''}${m.sub?` — ${m.sub}`:''}</span>`;$('migchip').hidden=!(m.eg&&!m.done&&migrateHtml());
+function renderMission(){migrateSteps();const m=mission();hastenStorm(m);const key=S.mi+'|'+m.done+'|'+m.txt+(m.eg&&migrateHtml()?'|mig':'')+(pedHere()?'|ped':'');if(key===misKey)return;misKey=key;const st=m.step,c=st?STORY[st.ci]:null;
+  $('mis').innerHTML=`${c?`<span class="chap">${c.ch} <i>${st.si+1}/${c.steps.length}</i></span>`:(m.reg?`<span class="chap">${REG().n} <i>${(S.rmi||0)+1}/${regionMis().length}</i></span>`:`<span class="chap">끝없는 불빛 <i>${(S.eg&&S.eg.i||0)+1}</i></span>`)}<span class="goal">${m.done?'<em>✓</em> ':''}${m.txt}</span>${!m.done?'<span class="more" aria-hidden="true">▾</span>':''}<span class="sub">${c?`<b>${c.ch} · ${c.title}</b>`:''}${m.sub?` — ${m.sub}`:''}</span>`;$('migchip').hidden=!(m.eg&&!m.done&&migrateHtml());$('pedchip').hidden=!pedHere();
   $('claim').hidden=!m.done;$('tape').classList.toggle('done',!!m.done);misDoneAt=m.done?(misDoneAt||performance.now()):0;$('claim').innerHTML=`<b>받기</b><span class="rw">${Object.entries(m.rw).map(([k,v])=>`${micon(k,13)}${v}`).join(' ')}</span>`;}
 $('claim').onclick=e=>{e.stopPropagation();const m=mission();if(!m.done)return;sfx('chime');const got=give(m.rw);const r=$('claim').getBoundingClientRect();for(const k in m.rw)flyMat(k,null,null,r.left+r.width/2,r.top+r.height/2);
   const st=m.step;if(m.reg){const o=regOutro(S.rmi||0);S.rmi=(S.rmi||0)+1;if(o)openTalk(o,{tag:REG()?REG().n:''});}else if(S.mi<STEPS.length)S.mi++;else egNext();misKey=null;renderMission();save();
@@ -2682,7 +2682,7 @@ const WALL_P=[.35,.2,.1,.03];
 function edgeTiles(){const o=[];for(let i=0;i<N;i++)if(S.rev[i]&&i!==C0&&!D.modAt.has(i)&&S.ter[i]!==T.WATER&&S.ter[i]!==T.LM&&!S.ash[i]&&!D.prot[i]&&nb4(i).some(j=>!S.rev[j]))o.push(i);return o;}
 function modTargets(){const o=[];for(const[t]of D.modAt)if(!S.ash[t]&&!D.prot[t])o.push(t);return o;}
 function tickClock(dt){S.clock=(S.clock||0)+dt;const n=isNight();
-  if(n&&!wasNight){if(S.clock>5&&!bigNightNext())sfx('night');const big=(bigNightNext()||!!S.raid)&&revCount()>=16;S.nightCount=(S.nightCount||0)+1;night={n:0,lost:0};spawnT=2;if(big)startDefense();else if(stormOn())toast(S.shield?'밤이 왔어요. 방화포 덕에 재폭풍이 약해요':'해가 졌어요! 재폭풍이 밀려와요. 붉은 재를 두드려요');else toast('고요한 밤이에요');}
+  if(n&&!wasNight){pedLeave();if(S.clock>5&&!bigNightNext())sfx('night');const big=(bigNightNext()||!!S.raid)&&revCount()>=16;S.nightCount=(S.nightCount||0)+1;night={n:0,lost:0};spawnT=2;if(big)startDefense();else if(stormOn())toast(S.shield?'밤이 왔어요. 방화포 덕에 재폭풍이 약해요':'해가 졌어요! 재폭풍이 밀려와요. 붉은 재를 두드려요');else toast('고요한 밤이에요');}
   if(!n&&wasNight){onDawn();if(night.n){const held=night.n-night.lost,got=give({...scaleCost({scrap:held*2,wood:held},lvScale()),batt:1});S.nights=(S.nights||0)+1;toast(`밤을 버텼어요! 막아낸 재 ${held}/${night.n}${Object.keys(got).length?' · '+lootTxt(got):''}`);}S.shield=0;
     for(const k in S.ash)if(!S.ash[k].stuck)delete S.ash[k];}
   wasNight=n;
@@ -3013,6 +3013,42 @@ function radioSvg(spin){return`<svg class="radio${spin?' spin':''}" viewBox="0 0
 // ---- 무전 교대: call one person back from an earlier town; one of ours goes to take their place, so each town keeps its number ----
 const SWAP_COST={batt:2};
 const stayList=()=>{const o=[];for(const g in S.stay||{}){const t=S.stay[g];for(const id in t.sv)if(SURV[id])o.push({id:+id,gen:+g,town:REGIONS[t.region]?REGIONS[t.region].n:'첫 동네',r:t.sv[id]});}return o;};
+// ---------- 떠돌이 장사꾼 '노친네': comes by day, never stays the night ----------
+const PED_FIRST=4,PED_HANEUL=3;
+const PED_LINES=['있을 때 사 두는 겁니다. 다음엔 없어요.','해 지기 전엔 가야 해서요. …자리를 잡으면 안 되는 사람도 있어요.','(창고 문 닫히는 소리에 어깨가 움찔한다) …아, 아무것도 아닙니다. 뭘 보시겠어요?','오늘은 좀 많이 실었습니다. 다 못 팔아도 괜찮아요.','그날 밤 우리 가게 셔터는… 안에서 내려갔어요. …값은 적어 두세요, 다음에 받죠.'];
+const PED_MORE=['장사꾼은 편이 없어요. 사는 쪽이 손님이지.','길이 험해서 수레 바퀴가 또 빠졌지 뭡니까.','여기 불빛은 멀리서도 보여요. 그래서 왔지요.','하늘이 거는 값 안 받습니다. 그냥 그렇게 정했어요.'];
+const PED_RUMOR=['남쪽 급유탑 마을엔 물이 거의 없답니다','북쪽 공단 굴뚝에서 밤마다 불꽃이 튄대요','산골 분교 아이들이 난로를 돌아가며 쬔다더군요','어느 동네든 등불 켜진 데는 사람이 모여요','멀리서 3번, 1번, 1번 깜빡이는 불빛을 봤다는 사람이 있어요. 뭔진 모르겠고'];
+const PED_PRAC=[{m:{fuel:12},n:'랜턴 기름 두 통',d:'뚜껑에 테이프가 감겨 있다.',price:{wood:30,scrap:10}},{m:{med:4},n:'약품 상자',d:'유통기한은 지웠다.',price:{food:40,cloth:8}},{m:{food:30},n:'말린 고기 묶음',d:'“뭔 고기냐고는 묻지 마세요.”',price:{scrap:20,wood:10}},{m:{wire:4},n:'구리선 뭉치',d:'폐가전에서 뽑은 것.',price:{scrap:25,parts:5}},{m:{parts:8},n:'부품 자루',d:'크기가 제각각이다.',price:{scrap:30,wood:12}}];
+function pedState(){S.ped=S.ped||{next:0,here:null,stock:[],visits:0,bought:0};return S.ped;}
+const pedHere=()=>pedState().here!=null&&!isNight();
+function pedStock(){const P=pedState(),st=[];const rare=[];
+  const gp=Object.keys(GEAR).filter(k=>!GEAR[k].sig&&!GEAR[k].ug&&GEAR[k].g>=1&&!(S.inv||[]).some(x=>x.t===k));if(gp.length){const t=gp[(Math.random()*gp.length)|0],G=GEAR[t];rare.push({kind:'gear',t,n:G.n,d:G.d,price:{plate:4+2*G.g,rope:3+G.g},rare:1});}
+  const left=RSETS.flatMap(x=>x.items).filter(x=>!(S.relics||[]).includes(x));if(left.length){const it=left[(Math.random()*left.length)|0];rare.push({kind:'relic',it,n:it,d:'“어디서 났냐고요? 길에서요.”',price:{scrap:30,cloth:10,parts:4},rare:1});}
+  rare.push({kind:'mat',m:{batt:3},n:'건전지 세 개',d:'아직 살아 있다. 아마도.',price:{parts:10,fuel:8},rare:1});
+  st.push(rare[(Math.random()*rare.length)|0]);
+  const pr=PED_PRAC.slice().sort(()=>Math.random()-.5).slice(0,2).map(x=>Object.assign({kind:'mat'},x));
+  if(S.sv[PED_HANEUL])pr[0]=Object.assign({},pr[0],{price:{},free:1});
+  st.push(...pr);
+  if(P.visits>=2&&Math.random()<.35)st.push({kind:'mat',m:{food:20},n:'검은 새 표식 통조림',d:'뚜껑에 검은 새가 찍혀 있다. “어느 쪽 물건이냐고는… 묻지 마세요.”',price:{scrap:8},crow:1});
+  return st.map(x=>Object.assign(x,{sold:0}));}
+function pedDawn(){const P=pedState();if(S.lv<PED_FIRST||P.here!=null||(S.day||0)<P.next||DEFN)return;P.here=S.day||0;P.visits++;P.stock=pedStock();P.said=0;
+  note({h:P.visits===1?'딸랑 — 손수레 끄는 노인이 찾아왔어요':'딸랑 — 노친네가 수레를 끌고 왔어요',t:`<small>${P.visits===1?'만수: “저 노친네, 뭘 팔러 왔구먼.” · ':''}해 지기 전까지 쉘터 앞에 있어요 · 위 띠의 ‘노친네’를 눌러요</small>`,kind:'story',ms:6500});
+  if(P.visits===1)tlog('손수레 끄는 노인이 처음 찾아왔다. 만수가 “저 노친네”라고 불렀고, 그게 이름이 됐다.');renderMission();}
+function pedLeave(){const P=pedState();if(P.here==null)return;P.here=null;P.next=(S.day||0)+3+((Math.random()*2)|0);let t=PED_RUMOR[(Math.random()*PED_RUMOR.length)|0];
+  if(P.visits===4){give({food:8});t='수레가 섰던 자리에 통조림 몇 개가 값 없이 놓여 있었어요';tlog('노친네가 떠난 자리에 통조림이 놓여 있었다. 값은 받지 않았다.');}
+  if(P.visits===5)tlog('노친네: “그날 밤 우리 가게 셔터는 안에서 내려갔어요.” 그 뒤로는 다시 장사꾼 말투였다.');
+  note({h:'노친네가 해 지기 전에 떠났어요',t:`<small>${t}</small>`,ms:5200});if(!modal.hidden&&modal.querySelector('.pedpage'))closeModal();renderMission();save();}
+function pedLine(){const P=pedState();return P.visits<=PED_LINES.length?PED_LINES[P.visits-1]:PED_MORE[(P.visits+(S.day||0))%PED_MORE.length];}
+function pedAv(){return`<svg viewBox="0 0 40 40" width="40" height="40"><rect width="40" height="40" rx="8" fill="#efe3c4"/><circle cx="20" cy="15" r="7" fill="#dcb08a" stroke="#3b2a1a" stroke-width="1.4"/><path d="M12 13c1-5 15-6 16 0-4-1-11-1-16 0z" fill="#d9d4c8" stroke="#3b2a1a" stroke-width="1.2"/><path d="M8 38c1-9 6-13 12-13s11 4 12 13z" fill="#6b5a44" stroke="#3b2a1a" stroke-width="1.4"/><path d="M30 24l6 10" stroke="#3b2a1a" stroke-width="2" stroke-linecap="round"/><circle cx="17.5" cy="16" r="1" fill="#2a1c12"/><circle cx="22.5" cy="16" r="1" fill="#2a1c12"/></svg>`;}
+function openPed(){if(!pedHere())return;const P=pedState();
+  const items=P.stock.map((x,i)=>`<div class="row mcard${x.rare?' rare':''}${x.crow?' crow':''}"><div class="cb"><div class="t">${x.n}${x.rare?'<i class="ttag good">귀한 것</i>':''}${x.free?'<i class="ttag urg">하늘이 몫</i>':''}</div><div class="d q">${x.d}</div><div class="d">${x.kind==='mat'?Object.entries(x.m).map(([k,n])=>`${MN[k].n} ${n}`).join(', '):x.kind==='gear'?'장비 가방에 들어가요':'유물 · 폐허 도감'}${x.sold?'':x.free?' · <b>값 없음</b>':` · <span class="costs">${costHtml(x.price)}</span>`}</div></div>${x.sold?'<button class="buy" disabled>샀어요</button>':canPay(x.price)?`<button class="buy" data-act="pedbuy" data-arg="${i}">${x.free?'받기':'사기'}</button>`:'<button class="buy" disabled>자재 부족</button>'}</div>`).join('');
+  openModal(`<div class="page pedpage"><div class="tag">떠돌이 장사꾼 · ${P.visits}번째 방문</div><h3>노친네</h3><div class="row mcard" style="border:0!important"><span class="th">${pedAv()}</span><div class="cb"><div class="d q">“${pedLine()}”</div></div></div>${items}<div class="d" style="margin-top:8px">해가 지면 떠나요. 이름은 아무도 몰라요 — 만수가 부른 대로 다들 ‘노친네’라고 불러요.</div><div class="btns" style="margin-top:12px"><button class="alt">다음에 봐요</button></div></div>`,true);}
+function pedBuy(i){const P=pedState(),x=P.stock[i];if(!x||x.sold||!pedHere())return;if(!pay(x.price)){toast('자재가 모자라요');return;}x.sold=1;P.bought++;
+  if(x.kind==='mat')give(x.m);else if(x.kind==='gear')addGear(x.t,'ped');else if(x.kind==='relic'){(S.relics=S.relics||[]).push(x.it);const set=RSETS.find(s=>s.items.includes(x.it)),done=relicSet(set.k);note({h:`유물 · ${x.it}`,t:`<small>${RSTORY[x.it]}${done?`<br><b>‘${set.n}’ 세트 완성! ${set.fx}</b>`:''}</small>`,ms:6000});if(done)recalc();}
+  sfx('chime');toast(x.free?`노친네: “하늘이 거는 됐어요.”`:`${x.n}을(를) 샀어요`);
+  if(x.crow&&S.sv[JIN]&&!S.pedCrow){S.pedCrow=1;setTimeout(()=>note({h:'진이 통조림의 표식을 봤어요',t:'<small>한참 들여다보다가 아무 말 없이 돌아섰어요</small>',kind:'story',ms:5200}),1500);tlog('노친네 수레에서 나온 검은 새 표식 통조림을 진이 한참 들여다봤다.');}
+  openPed();save();}
+modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="pedbuy"]');if(!b)return;e.stopPropagation();pedBuy(+b.dataset.arg);},true);
 // ---------- 무전 거래: barter with the people who stayed behind ----------
 const TR_MAX=3,TR_TRUST=5;
 const TR_VAL={wood:1,scrap:1,food:1,cloth:1.2,fuel:2,parts:2.5,plate:4,rope:3,wire:6,med:6};
@@ -3577,7 +3613,7 @@ function wxMul(kind,k){const w=wxK();
   if(kind==='eat')return w==='cold'?1.3:1;if(kind==='fuel')return w==='cold'?2:1;
   if(kind==='scav')return w==='clear'?1.25:w==='acid'?.85:1;if(kind==='dig')return w==='clear'?1.2:w==='wind'?1.1:1;return 1;}
 const canForecast=()=>!!(S.sv[11]||hasMod(7));
-function onDawn(){S.wx=S.wxNext||rollWx();S.wxNext=rollWx();S.day=(S.day||0)+1;const W1=WX[S.wx];if(S.swap)swapArrive();trArrive();trState();
+function onDawn(){S.wx=S.wxNext||rollWx();S.wxNext=rollWx();S.day=(S.day||0)+1;const W1=WX[S.wx];if(S.swap)swapArrive();trArrive();trState();pedDawn();
   note({h:`${W1.ic} 오늘의 날씨 · ${W1.n}`,t:`<small>${W1.d}${canForecast()?` · 내일은 ${WX[S.wxNext].ic} ${WX[S.wxNext].n}`:''}</small>`,ms:5000});
   allyGifts();kidsDawn();}
 const wparts=Array.from({length:90},()=>({x:Math.random(),y:Math.random(),v:.5+Math.random()*.6,s:Math.random()}));
@@ -3876,7 +3912,7 @@ function migrate(){const old=S,g=(old.gen||0)+1,region=nextRegion();{const e=tlo
   const stay=Object.assign({},old.stay||{});if(Object.keys(stayed).length)stay[old.gen||0]={region:old.region||'home',n:old.gen||0,sv:stayed};
   const svGo={};for(const id of going)svGo[id]=old.sv[id];
   const keep={pf:old.pf,playT:old.playT,pfAsk:old.pfAsk,qc:old.qc,sv:svGo,party:(old.party||[]).filter(id=>svGo[id]),stay,inv:old.inv,iu:old.iu,relics:old.relics,ach:old.ach,title:old.title,kids:old.kids,dog:old.dog,endSeen:old.endSeen,conf:old.conf,hook:old.hook,tlog:old.tlog,rumor:old.rumor,sqN:old.sqN,cases:old.cases,odd:old.odd,dead:old.dead,egg:old.egg,crow:old.crow,pets:old.pets,petOn:old.petOn,stat:old.stat,gTotal:old.gTotal,gp:old.gp,heard:old.heard,found:old.found,mi:old.mi,storyI:old.storyI,
-    ug:old.ug||{best:0,runs:0,bestWith:{}},favDone:old.favDone,defWins:old.defWins,defs:old.defs,nights:old.nights,evDone:old.evDone,skillUses:old.skillUses,expDone:old.expDone,fevers:old.fevers,gUses:old.gUses,art:old.art,artNew:old.artNew,ehEnd:old.ehEnd,expTold:old.expTold,trade:old.trade&&{day:-1,offers:[],used:0,pend:old.trade.pend||[]}};
+    ug:old.ug||{best:0,runs:0,bestWith:{}},favDone:old.favDone,defWins:old.defWins,defs:old.defs,nights:old.nights,evDone:old.evDone,skillUses:old.skillUses,expDone:old.expDone,fevers:old.fevers,gUses:old.gUses,art:old.art,artNew:old.artNew,ehEnd:old.ehEnd,expTold:old.expTold,trade:old.trade&&{day:-1,offers:[],used:0,pend:old.trade.pend||[]},ped:old.ped&&{next:0,here:null,stock:[],visits:old.ped.visits,bought:old.ped.bought},pedCrow:old.pedCrow};
   const carryM={batt:old.m.batt||0};for(const k of['plate','rope','wire','med'])carryM[k]=Math.floor((old.m[k]||0)/2);
   closeModal();closeSheet();closeRing();DEFN=null;UG=null;WALK={};CHAT=null;KW=[];
   fresh();Object.assign(S,keep);S.gen=g;S.region=region;S.rmi=0;S.rsI=0;S.arriveWins=S.defWins||0;
@@ -5687,7 +5723,7 @@ function renderMatsAll(){$('matsAll').innerHTML=MATS.map(m=>`<div class="ma">${m
 function wireUI(){
   $('mats').onclick=e=>{e.stopPropagation();const p=$('matsAll'),o=p.hidden;p.hidden=!o;$('mats').setAttribute('aria-expanded',o);if(o)renderMatsAll();};
   document.addEventListener('pointerdown',e=>{const p=$('matsAll');if(!p.hidden&&!e.target.closest('#matsAll,#mats')){p.hidden=true;$('mats').setAttribute('aria-expanded','false');}},true);
-  $('tape').onclick=e=>{if(e.target.closest('#claim'))return;if(e.target.closest('.migchip')){e.stopPropagation();sfx('tap');closeSheet();openMigrate();return;}if(e.target.closest('.more')){$('tape').classList.toggle('open');return;}goMission();};
+  $('tape').onclick=e=>{if(e.target.closest('#claim'))return;if(e.target.closest('#pedchip')){e.stopPropagation();sfx('tap');closeSheet();openPed();return;}if(e.target.closest('.migchip')){e.stopPropagation();sfx('tap');closeSheet();openMigrate();return;}if(e.target.closest('.more')){$('tape').classList.toggle('open');return;}goMission();};
   $('camBtn').onclick=()=>{const g=$('camGroup'),o=g.hidden;g.hidden=!o;$('camBtn').setAttribute('aria-expanded',o);};
   $('setBtn').onclick=()=>sheetTab==='settings'?closeSheet():openSheet('settings');}
 // Regional colors are presentation only; they do not alter terrain or resources.
