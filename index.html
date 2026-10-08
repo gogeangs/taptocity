@@ -1432,7 +1432,7 @@ const svg=k=>`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-
 // eff applies while the survivor is working in a module, and grows with trust (x1 at trust 1 → x2 at trust 5).
 const SURV=[
  {name:'박만수',age:62,job:'정비공',match:[1,9],src:'sig',d:5,look:{skin:'#d9a883',hs:2,hair:'#9a948a',top:'#3f6fa0',acc:'cap'},eff:{craft:.25},trait:v=>`가공할 때 ${pc(v.craft)}% 확률로 하나 더`,
-  story:['마지막 운행 날, 승객 열한 명을 태우고 대피소까지 달렸다.','“브레이크 소리만 들어도 차 상태를 알지.” 고장 난 발전기를 한 번 보더니 웃었다.','승객 명단을 수첩에 적어 다닌다. 아직 세 명밖에 못 찾았다.','밤마다 운전대를 잡듯 두 손을 모으고 잠든다.','마을 불빛을 보고 처음으로 “운행 종료”를 외쳤다. 다들 여기 있었구나, 하면서.']},
+  story:['정비를 끝낸 버스를 시운전하던 밤, 재가 내렸다. 길에서 만난 열한 명을 태우고 대피소까지 달렸다.','“브레이크 소리만 들어도 차 상태를 알지.” 고장 난 발전기를 한 번 보더니 웃었다.','승객 명단을 수첩에 적어 다닌다. 아직 세 명밖에 못 찾았다.','밤마다 운전대를 잡듯 두 손을 모으고 잠든다.','마을 불빛을 보고 처음으로 “운행 종료”를 외쳤다. 다들 여기 있었구나, 하면서.']},
  {name:'강도윤',age:27,job:'배달 라이더',match:[9],src:'sig',d:7.5,look:{skin:'#e2b791',hs:0,hair:'#2a211b',top:'#e0b441',acc:'helmet'},eff:{tap:.5},trait:v=>`두드리는 힘 +${pc(v.tap)}%`,
   story:['재가 내리던 날에도 마지막 배달을 끝냈다. 받는 사람은 없었지만 문 앞에 두고 왔다.','골목 지도가 전부 머릿속에 있다. 무너진 길도 돌아가는 길을 안다.','“배달 완료” 알림음이 가끔 그립다고 했다.','만수 아저씨 버스를 몇 번이나 추월했었다며 머쓱하게 웃었다.','이제 이 마을이 자기 배달 주소라고 했다. 그 말이 마음에 든다고.']},
  {name:'최서진',age:34,job:'응급실 간호사',match:[6,3],src:'sig',d:9,look:{skin:'#f0c9a4',hs:3,hair:'#3a2a20',top:'#e8e2d0',acc:'mask'},eff:{thrift:.12},trait:v=>`식량 소비 -${pc(v.thrift)}%`,
@@ -1581,7 +1581,7 @@ function pFace(u,o){const J=JAW[o.jaw],sk=o.skin,dy=o.dy||0,ey=60+dy,b=o.brow;
 const pBody=(f,w=1.7)=>pF('M11 140C13 114 31 103 50 99L70 99C89 103 107 114 109 140Z',f,w);
 const pBodyShade=u=>pSh(u,'M84 103C98 109 107 121 109 140L86 140C88 126 88 114 84 103Z',.4);
 const P_ART=[
- // 0 박만수 — bus driver
+ // 0 박만수 — mechanic (test-driving the bus that night)
  u=>`<g opacity=".24" fill="none" stroke="${PI_}" stroke-width="1"><rect x="5" y="12" width="44" height="34" rx="4"/><rect x="71" y="12" width="44" height="34" rx="4"/><path d="M5 28h44M71 28h44"/></g><g opacity=".32"><circle cx="101" cy="96" r="9" fill="none" stroke="${PI_}"/><text x="101" y="99.5" font-size="9" text-anchor="middle" fill="${PI_}" font-family="Georgia,serif">73</text></g>`
   +pBody('#2e3d5c')+pF('M48 99L60 121L72 99Z','#bcd3e6',1.2)+pF('M47.5 99L55 109L60 101Z','#d8e6f2',1.1)+pF('M72.5 99L65 109L60 101Z','#d8e6f2',1.1)
   +pF('M58 103L62 103L63.6 121L60 127L56.4 121Z','#1d2740',1.1)+pF('M44 101L58 129L52 140L34 140C34 124 37 110 44 101Z','#283754',1.2)+pF('M76 101L62 129L68 140L86 140C86 124 83 110 76 101Z','#283754',1.2)
@@ -5070,7 +5070,7 @@ function tickGhost(){for(const id in WALK)if(!S.sv[id])delete WALK[id];if(CHAT&&
 // ---- 진 (까마귀 막내) joins as a survivor ----
 const JIN=SURV.length;
 SURV.push({name:'진',age:15,job:'전 까마귀 정찰병',hidden:true,alias:'검은 새 표식의 아이',hint:'까마귀 무리와 마주친 뒤에 만날 수 있어요',match:[9,4],src:'story',look:{skin:'#dcae88',hs:0,hair:'#1b1714',top:'#2e2e36'},eff:{scav:.15,tap:.2},trait:v=>`뒤지기 수확 +${pc(v.scav)}% · 두드리는 힘 +${pc(v.tap)}%`,
-  story:['재폭풍 속에서 가족과 흩어졌다. 혼자 떠돌던 그를 까마귀가 거뒀다. 무리에서 제일 어렸고, 제일 먼저 뛰고, 제일 늦게 먹었다.','팔뚝의 검은 새 표식을 소매로 가린다. 아무도 묻지 않아도.','하늘이가 처음으로 먼저 말을 걸었다. “형, 우산 같이 쓸래?”','독수리 대장 이야기가 나오면 입을 다문다. 미워하지도, 그리워하지도 못하는 얼굴로.','“여기선 불을 켜도 되는 거죠?” 처음으로 랜턴을 제 손으로 켰다.']});
+  story:['재폭풍 속에서 가족과 흩어졌다. 혼자 떠돌던 그를 까마귀가 거뒀다. 무리에서 제일 어렸고, 제일 먼저 뛰고, 제일 늦게 먹었다.','팔뚝의 검은 새 표식을 소매로 가린다. 아무도 묻지 않아도.','하늘이가 처음으로 먼저 말을 걸었다. “오빠, 우산 같이 쓸래?”','독수리 대장 이야기가 나오면 입을 다문다. 미워하지도, 그리워하지도 못하는 얼굴로.','“여기선 불을 켜도 되는 거죠?” 처음으로 랜턴을 제 손으로 켰다.']});
 SURV[JIN].id=JIN;SURV[JIN].grade=2;
 SKILLS.push({n:'지름길',cd:100,d:'60초간 폐허 뒤지기 수확 ×1.8',fn:()=>{setBuff({k:'scav',m:1.8,t:60,label:'지름길'});toast('진이 아무도 모르는 뒷길로 앞장섰어요');return true;}});
 ROLE.push(['scout','guard']);
