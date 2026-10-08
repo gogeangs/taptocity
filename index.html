@@ -3112,10 +3112,10 @@ Object.assign(GEAR,{
  helmet:{n:'안전모',slot:'wear',g:1,ic:'helmet',eff:{tap:.08,fever:1},fit:[6,22],cost:{plate:6,cloth:6},wb:2,d:'공단 로고가 반쯤 지워졌다.'},
  apron:{n:'가죽 앞치마',slot:'wear',g:1,ic:'apron',eff:{craft:.1,thrift:.04},fit:[5,19],cost:{cloth:18,rope:2},wb:2,d:'불똥 자국이 별자리처럼 찍혀 있다.'},
  parka:{n:'설산 파카',slot:'wear',g:2,ic:'parka',eff:{thrift:.12,hope:2},fit:[16,26],cost:{cloth:36,rope:4,plate:2},wb:3,d:'모자 털이 아직 폭신하다.'},
- bell:{n:'작은 종',slot:'keep',g:0,ic:'bell',eff:{hope:3},fit:[28],d:'분교 종소리가 여기까지 왔다.'},
+ bell:{n:'작은 종',slot:'keep',g:0,ic:'bell',eff:{hope:3},fit:[28],d:'마을회관 종소리가 여기까지 왔다.'},
  compass:{n:'나침반',slot:'keep',g:1,ic:'compass',eff:{scav:.1},fit:[1,15],cost:{parts:6,plate:2},wb:2,d:'바늘이 아직 북쪽을 안다.'},
- notebook:{n:'관측 수첩',slot:'keep',g:1,ic:'book',eff:{global:.04},fit:[9,21],d:'바람과 재의 기록이 빼곡하다.'},
- ring:{n:'조류 연구소 가락지',slot:'keep',g:2,ic:'ring',eff:{hope:4,fever:1},fit:[14],d:'번호가 새겨진 작은 금속 고리.'},
+ notebook:{n:'등대 일지',slot:'keep',g:1,ic:'book',eff:{global:.04},fit:[9,21],d:'불 꺼진 날들의 기록이 빼곡하다.'},
+ ring:{n:'조류 연구소 가락지',slot:'keep',g:2,ic:'ring',eff:{hope:4,fever:1},fit:[7],d:'번호가 새겨진 작은 금속 고리.'},
  drvglove:{n:'낡은 운전 장갑',slot:'wear',g:2,ic:'glove',eff:{scav:.1,tap:.15},fit:[0],sig:1,d:'핸들 모양대로 닳은 손바닥.'},
  bag:{n:'배달 가방',slot:'keep',g:2,ic:'box',eff:{scav:.12,fever:1},fit:[1],sig:1,d:'“배달 완료” 스티커가 붙어 있다.'},
  steth:{n:'청진기',slot:'tool',g:2,ic:'coin',eff:{thrift:.1,hope:3},fit:[2],sig:1,d:'차가운 금속에 이름이 새겨져 있다.'},
@@ -3125,10 +3125,10 @@ Object.assign(GEAR,{
  tape2:{n:'반장의 줄자',slot:'tool',g:2,ic:'box',eff:{cost:.08,craft:.1},fit:[6],sig:1,d:'눈금 옆에 인부들 이름이 적혀 있다.'},
  sketch:{n:'숯 스케치북',slot:'keep',g:2,ic:'photo',eff:{hope:4,scav:.08},fit:[7],sig:1,d:'마지막 장에 벽화 제목이 적혀 있다.'},
  rope2:{n:'구조 로프',slot:'tool',g:2,ic:'harm',eff:{tap:.25,fever:1},fit:[8],sig:1,d:'동료의 매듭이 그대로 남아 있다.'},
- meter:{n:'방사선 측정기',slot:'tool',g:3,ic:'watch',eff:{global:.08,craft:.1},fit:[9],sig:1,d:'바늘이 이제는 조용하다.'},
+ meter:{n:'출력 측정기',slot:'tool',g:3,ic:'watch',eff:{global:.08,craft:.1},fit:[9],sig:1,d:'바늘이 이제는 조용하다.'},
  mic:{n:'한밤의 마이크',slot:'tool',g:3,ic:'tape',eff:{hope:6,scav:.1},fit:[10],sig:1,d:'“여기는 심야 방송 한밤입니다.”'},
  vane:{n:'풍향계 브로치',slot:'keep',g:3,ic:'flame',eff:{tap:.2,fever:1.5},fit:[11],sig:1,d:'바람이 바뀌기 전에 먼저 돈다.'},
- ckey:{n:'제어실 열쇠',slot:'keep',g:3,ic:'key',eff:{global:.08,cost:.05},fit:[13],sig:1,d:'마지막 교대 때 챙겨 나온 열쇠.'},
+ ckey:{n:'제어실 열쇠',slot:'keep',g:3,ic:'key',eff:{global:.08,cost:.05},fit:[13],sig:1,d:'심지와 함께 금고에서 꺼내 온 열쇠.'},
  herbbag:{n:'사막 약초 가방',slot:'wear',g:2,ic:'apron',eff:{food:.15,hope:3},fit:[14],sig:1,d:'마른 잎 냄새가 난다.'},
  wmask:{n:'용접 마스크',slot:'wear',g:2,ic:'helmet',eff:{craft:.18,tap:.1},fit:[15],sig:1,d:'유리 너머로만 불꽃을 본다.'},
  rope3:{n:'산악 구조 로프',slot:'tool',g:2,ic:'harm',eff:{scav:.15,tap:.1},fit:[16],sig:1,d:'매듭마다 이름이 있다.'},
@@ -3154,7 +3154,7 @@ const QUESTS={
    {k:'bond',id:4,say:'“우리 할머니도 불빛 보고 오실 거야. 할머니가 오시면 같이 할 게 있어!”'},
    {k:'find',f:2,item:'노란 우산 손잡이',say:'“대피할 때 우산 손잡이가 부러졌어. 지하 계단에 떨어졌을 거야.”'},
    {k:'give',cost:{cloth:10,wood:10},say:'“할머니랑 같이 우산 고칠래. 천이랑 나무가 있으면 돼!”'}],
-  end:[[3,'할머니가 우산을 고쳐 주셨어! 이제 재가 와도 안 무서워.'],[4,'하늘아, 이제 할머니 손 놓지 마라.']]},
+  end:[[3,'순례 할머니가 우산을 고쳐 주셨어! 우리 할머니 오시면 보여 줄 거야.'],[4,'하늘아, 그때까진 이 할머니 손 놓지 마라.']]},
  4:{t:'이웃의 씨앗',gear:'hoe',steps:[
    {k:'give',cost:{food:20},say:'“씨앗 봉투에 적힌 이웃들, 배곯지 않게 먼저 먹여야지.”'},
    {k:'find',f:3,item:'이웃 이름 씨앗 봉투',say:'“한 봉투가 모자라. 지하 저장고에 떨어뜨린 것 같구나.”'},
@@ -3181,7 +3181,7 @@ const QUESTS={
    {k:'give',cost:{fuel:15,med:1},say:'“소방서 앞에 작은 등불을 하나 켜 두고 싶어요.”'}],
   end:[[8,'번호판을 등불 옆에 걸었어요. 이제 그 친구도 여기 있어요.'],[8,'불을 끄는 사람에서, 불을 지키는 사람이 됐네요.']]},
  9:{t:'발전소의 진실',gear:'meter',steps:[
-   {k:'find',f:6,item:'제어실 출입 기록',say:'“그날 제어실에 누가 있었는지 기록이 남아 있을 거예요. 발전소와 이어진 지하 6층 아래예요.”'},
+   {k:'find',f:6,item:'제어실 출입 기록',say:'“그날 제어실에 누가 있었는지 기록이 남아 있을 거예요. 발전소와 이어진 지하 6층 아래예요.”',note:'시간은 남았는데 이름 칸은 재에 지워져 있다.'},
    {k:'exp',say:'“직접 가서 확인해야겠어요. 원정에 저를 보내 주세요.”'},
    {k:'give',cost:{wire:4,parts:30},say:'“탑에 올릴 렌즈를 깎아 볼게요. 빛을 걸러 줄 거예요. 부품이 필요해요.”'}],
   end:[[9,'기록은 3시 11분에서 끊겨 있었어요. 그리고 1분 뒤… 저는 문을 열고 나갔어요.'],[9,'이번엔 도망치지 않을게요. 이 렌즈를 탑에 올리면, 빛이 더 멀리 닿아요.']]},
@@ -3300,7 +3300,7 @@ function ugResolve(c){const f=UG.floor,sc=1+(f-1)*.35;
       else if(guard&&Math.random()<.5)UG.msg='천장이 무너졌다! 우진이 몸으로 막아냈다.';
       else if(ok.length){const id=ok[(Math.random()*ok.length)|0];UG.hurt.push(id);UG.msg=`천장이 무너졌다! ${jo(SURV[id].name,'이','가')} 다쳤다.`;}}
     sfx('night');}
-  else if(c.c==='quest'){UG.found.push(c.qid);UG.msg=`${SURV[c.qid].name}: “찾았어요… ${QUESTS[c.qid].steps[S.sv[c.qid].q.s].item}!”`;sfx('find');qAdvance(c.qid);}
+  else if(c.c==='quest'){UG.found.push(c.qid);const qs=QUESTS[c.qid].steps[S.sv[c.qid].q.s];UG.msg=`${SURV[c.qid].name}: “찾았어요… ${qs.item}!”${qs.note?` ${qs.note}`:''}`;sfx('find');qAdvance(c.qid);}
   else if(c.c==='stairs'){UG.msg='아래로 이어지는 계단을 찾았다. 눌러서 내려가요.';}
   else if(c.c==='rest'){UG.msg='쉼터를 찾았다! 눌러서 쉬어 가면 챙긴 물건을 위로 올려 보내고, 다음엔 여기서 시작할 수 있어요.';sfx('find');}
   else if(c.c==='key'){UG.keys++;UG.msg='녹슨 열쇠를 주웠다. 이 층 어딘가에 잠긴 문이 있다.';sfx('get');}
@@ -3613,7 +3613,7 @@ const DECO={pot:{n:'화분',hope:1,cost:{wood:6,food:4}},flag:{n:'깃발',hope:1
 const FAV={0:'bench',1:'flag',2:'pot',3:'string',4:'pot',5:'bench',6:'lamp',7:'mural',8:'lamp',9:'chime',10:'string',11:'chime',12:'statue',13:'lamp',14:'pot',15:'statue',16:'flag',17:'string',
  18:'lamp',19:'pot',20:'bench',21:'chime',22:'statue',23:'pot',24:'string',25:'bench',26:'string',27:'lamp',28:'flag',29:'chime'};
 const FAV_SAY={0:'정류장 벤치 같구먼. 잠깐 앉았다 가야지.',1:'깃발이 있으면 배달 올 때 못 찾을 일이 없죠.',2:'초록이 하나 있으니까 숨이 좀 쉬어져요.',3:'불빛이 줄줄이! 할머니도 보일 거야.',4:'흙이 있으면 심을 게 있지. 고맙네.',5:'앉아서 국 한 그릇 먹기 딱 좋네.',6:'가로등 하나에 밤 공사가 되겠어.',7:'벽이 있으면 그려야죠. 이번엔 꽃부터.',8:'밤에 길이 보이면 사고가 줄어요.',9:'바람 소리가… 기록해 둘게요.',10:'불빛 줄이라. 오늘 밤 방송 배경으로 딱이네요.',11:'풍경 소리로 바람 방향을 알 수 있어요.',12:'기념물이군요. 시간이 쌓이는 자리예요.',13:'가로등 전압은 제가 봐 드릴게요.',14:'사막에서도 화분은 살아요. 제가 알아요.',15:'쇠로 만든 건 오래 가죠. 좋아요.',16:'깃발은 길 잃은 사람한테 등대예요.',17:'…불빛 줄, 처음 봐요. 예쁘네요.',
- 18:'가로등은 제가 손봐 둘게요.',19:'화분 옆에서 요리하면 기분이 달라요.',20:'벤치… 짐 내려놓을 데가 생겼네.',21:'풍경이 울면 바람 기록을 적어요.',22:'기념물이라. 공장에도 하나 있었죠.',23:'화분에 허브 심어도 될까요?',24:'전선 줄은 제가 안전하게 묶을게요.',25:'앉아서 쉬는 것도 치료예요.',26:'등불 줄… 산장 생각이 나요.',27:'가로등 밑은 눈이 덜 쌓여요.',28:'깃발 보고 아이들이 길을 찾아요.',29:'풍경 소리로 밤 바람을 읽을 수 있어요.'};
+ 18:'가로등은 제가 손봐 둘게요.',19:'화분 옆에서 요리하면 기분이 달라요.',20:'벤치… 짐 내려놓을 데가 생겼네.',21:'풍경이 울면 등대 일지에 적어요.',22:'기념물이라. 공장에도 하나 있었죠.',23:'화분에 허브 심어도 될까요?',24:'전선 줄은 제가 안전하게 묶을게요.',25:'앉아서 쉬는 것도 치료예요.',26:'등불 줄… 산장 생각이 나요.',27:'가로등 밑은 눈이 덜 쌓여요.',28:'깃발 보고 아이들이 길을 찾아요.',29:'풍경 소리로 밤 바람을 읽을 수 있어요.'};
 const DECO_TALK={pot:['화분에 새 잎이 났어요.','물 주는 거 잊지 마요.'],flag:['깃발이 저쪽으로 펄럭이네.','멀리서도 보이겠다.'],bench:['벤치 생기니까 살 것 같네.','잠깐만 앉았다 갈게요.'],lamp:['가로등 밑이 제일 따뜻해요.','밤이 덜 무섭네요.'],chime:['풍경 소리 들려요?','바람이 바뀌었어요.'],string:['불빛 줄 아래 모여요.','밤이 축제 같아요.'],mural:['벽화 앞에서 사진 찍고 싶다.','누가 그렸는지 알 것 같아요.'],statue:['여기 서면 마음이 가라앉아요.','기억하자는 거죠, 이거.']};
 // sets: decorations placed within two tiles of each other make a place with its own effect
 const DSETS={park:{n:'작은 공원',need:['pot','bench','lamp'],d:'희망 +5 · 쉬는 사람들이 모여요'},gate:{n:'마을 입구',need:['flag','string'],d:'방문객이 더 자주 찾아와요'},watch:{n:'밤의 파수',need:['chime','lamp'],d:'순찰이 1.3배 잘 돼요'},square:{n:'기념 광장',need:['statue','mural'],d:'희망 +4 · 밤마다 사람들이 모여요'}};
@@ -5092,18 +5092,18 @@ const CR_='npc:crow',JN_='npc:jin';
 const RES0=SURV.length;
 const RESIDENTS=[
  // 사막 (desert)
- {name:'고수현',age:34,job:'급유탑 정비사',region:'desert',grade:1,d:7,match:[1,5],look:{skin:'#d8a57e',hs:0,hair:'#2b2420',top:'#b8773a'},eff:{craft:.2},trait:v=>`가공할 때 ${pc(v.craft)}% 확률로 하나 더`,role:['mech'],
-  story:['모래에 묻힌 급유탑을 혼자 파내며 버텼다.','기계 소리만 들으면 어디가 고장인지 안다고 한다.','“여기 사람들, 참 많이 두드리네요.” 그게 첫마디였다.'],skill:{n:'모래 털기',cd:90,d:'60초간 가공 보너스 +30%',k:'craft'},
-  small:['모래가 기계에 제일 안 좋아요.','오늘도 나사 하나 주웠어요.','탑 꼭대기 바람은 시원해요.'],exq:['“모래바람 속에서 길 잃을 뻔했어요.”','“급유탑 그늘에서 잠깐 쉬었어요.”'],need:{cloth:8,food:10},why:'모래에 반쯤 묻힌 급유탑 안에서 신호를 보내고 있어요. 햇볕을 가릴 천과 식량이 필요해요.'},
+ {name:'고수현',age:34,job:'항만 정비창 정비사',region:'desert',grade:1,d:7,match:[1,5],look:{skin:'#d8a57e',hs:0,hair:'#2b2420',top:'#b8773a'},eff:{craft:.2},trait:v=>`가공할 때 ${pc(v.craft)}% 확률로 하나 더`,role:['mech'],
+  story:['모래에 묻힌 정비창을 혼자 파내며 버텼다.','기계 소리만 들으면 어디가 고장인지 안다고 한다.','“고치면 다시 돌아요. 사람도 그렇고요.”'],skill:{n:'모래 털기',cd:90,d:'60초간 가공 보너스 +30%',k:'craft'},
+  small:['모래가 기계에 제일 안 좋아요.','오늘도 나사 하나 주웠어요.','정비창 지붕 바람은 시원해요.'],exq:['“모래바람 속에서 길 잃을 뻔했어요.”','“정비창 그늘에서 잠깐 쉬었어요.”'],need:{cloth:8,food:10},why:'모래에 반쯤 묻힌 정비창 안에서 신호를 보내고 있어요. 햇볕을 가릴 천과 식량이 필요해요.'},
  {name:'마리아',age:29,job:'오아시스 식당 요리사',region:'desert',grade:0,d:8,match:[2,4],look:{skin:'#e3b893',hs:1,hair:'#3a2a20',top:'#d9483b'},eff:{food:.25},trait:v=>`식량 생산 +${pc(v.food)}%`,role:['cook'],
   story:['물이 마른 오아시스 식당에서 마지막 손님까지 밥을 지었다.','향신료 통을 아직 버리지 않았다.','“먹을 게 있으면 사람은 안 떠나요.”'],skill:{n:'향신료 한 줌',cd:100,d:'60초간 식량 ×1.5',k:'farm'},
   small:['오늘 국은 좀 짰나요?','향신료가 다 떨어져 가요.','사막 밤은 춥네요.'],exq:['“길에서 먹을 만한 풀을 찾았어요.”','“물통이 모자랐어요.”'],need:{food:14},why:'마른 오아시스 식당에서 혼자 버티고 있어요. 함께 먹을 식량이 있어야 따라나서요.'},
- {name:'바위',age:52,job:'카라반 짐꾼',region:'desert',grade:0,d:9,match:[9,4],look:{skin:'#c9926a',hs:3,hair:'#5a4a3a',top:'#8a6a3a'},eff:{scav:.15},trait:v=>`폐허 뒤지기 수확 +${pc(v.scav)}%`,role:['guard'],
-  story:['카라반이 흩어진 뒤에도 짐은 버리지 않았다.','등에 진 자루에는 남의 물건만 들어 있다. 돌려줄 생각이다.','말이 적고 손이 크다.'],skill:{n:'짐꾼의 등',cd:100,d:'45초간 폐허 뒤지기 수확 ×1.6',k:'scav'},
-  small:['짐은 무거울수록 든든하죠.','오늘은 등이 좀 아프네요.','낙타가 그리워요.'],exq:['“무거운 건 제가 들었어요.”','“길가에 버려진 짐을 챙겼어요.”'],need:{rope:4,food:10},why:'짐을 진 채 모래 언덕에 주저앉아 있어요. 끌어올릴 밧줄과 식량이 필요해요.'},
- {name:'유나래',age:23,job:'기상 관측소 조수',region:'desert',grade:1,d:10,match:[7,3],look:{skin:'#f0c9a4',hs:4,hair:'#2a1f18',top:'#3f6fa0'},eff:{hope:5,scav:.05},trait:v=>`희망 +${Math.round(v.hope)} · 뒤지기 수확 +${pc(v.scav)}%`,role:['sci'],
-  story:['관측소 옥상에서 매일 바람 방향을 적었다.','재폭풍이 오는 날을 세 번 맞혔다.','“기록은 거짓말을 안 해요.”'],skill:{n:'바람 읽기',cd:120,d:'내일 날씨를 알려 주고 60초간 모든 생산 +20%',k:'all'},
-  small:['오늘 풍향은 남서예요.','구름 모양이 이상해요.','기록장이 거의 다 찼어요.'],exq:['“바람이 바뀌기 전에 돌아왔어요.”','“관측 장비 조각을 주웠어요.”'],need:{parts:6,food:8},why:'관측소 옥상에서 거울로 신호를 보내요. 내려올 사다리를 고칠 부품과 식량이 필요해요.'},
+ {name:'바위',age:52,job:'화물 트럭 짐꾼',region:'desert',grade:0,d:9,match:[9,4],look:{skin:'#c9926a',hs:3,hair:'#5a4a3a',top:'#8a6a3a'},eff:{scav:.15},trait:v=>`폐허 뒤지기 수확 +${pc(v.scav)}%`,role:['guard'],
+  story:['트럭 행렬이 흩어진 뒤에도 짐은 버리지 않았다.','등에 진 자루에는 남의 물건만 들어 있다. 돌려줄 생각이다.','“짐은 주인한테 가야지.” 그것 말고는 말이 없다.'],skill:{n:'짐꾼의 등',cd:100,d:'45초간 폐허 뒤지기 수확 ×1.6',k:'scav'},
+  small:['짐은 무거울수록 든든하죠.','오늘은 등이 좀 아프네요.','트럭 소리가 그리워요.'],exq:['“무거운 건 제가 들었어요.”','“길가에 버려진 짐을 챙겼어요.”'],need:{rope:4,food:10},why:'짐을 진 채 모래 언덕에 주저앉아 있어요. 끌어올릴 밧줄과 식량이 필요해요.'},
+ {name:'유나래',age:23,job:'등대 조수',region:'desert',grade:1,d:10,match:[7,3],look:{skin:'#f0c9a4',hs:4,hair:'#2a1f18',top:'#3f6fa0'},eff:{hope:5,scav:.05},trait:v=>`희망 +${Math.round(v.hope)} · 뒤지기 수확 +${pc(v.scav)}%`,role:['sci'],
+  story:['불 꺼진 등대 꼭대기에서 매일 바다 쪽을 적었다.','등대 렌즈를 혼자 닦아 두었다. 언젠가 켜질 거라고.','“불빛은 누가 보고 있는지 몰라도 켜 두는 거예요.”'],skill:{n:'등대 당번',cd:120,d:'60초간 모든 생산 +20%',k:'all'},
+  small:['렌즈는 매일 닦아야 해요.','바다 쪽은 아직 조용해요.','기록장이 거의 다 찼어요.'],exq:['“등대 길로 돌아서 왔어요.”','“등대 창고에서 부품을 주웠어요.”'],need:{parts:6,food:8},why:'등대 꼭대기에서 거울로 신호를 보내요. 내려올 사다리를 고칠 부품과 식량이 필요해요.'},
  // 공단 (factory)
  {name:'강태오',age:41,job:'프레스 공장 반장',region:'factory',grade:1,d:7,match:[1,9],look:{skin:'#d6a37c',hs:0,hair:'#2b2420',top:'#5d6b78'},eff:{craft:.15,cost:.05},trait:v=>`가공할 때 ${pc(v.craft)}% 확률로 하나 더 · 건설 자재 -${pc(v.cost)}%`,role:['mech','guard'],
   story:['멈춘 프레스 기계 사이에서 사람들을 밖으로 내보냈다.','손끝에 기름때가 지워지지 않는다.','“기계는 사람이 돌리는 거야.”'],skill:{n:'프레스 한 판',cd:110,d:'철판을 한 번에 만들어요',give:'plate'},
@@ -5124,9 +5124,9 @@ const RESIDENTS=[
  {name:'최도현',age:45,job:'제설차 기사',region:'snow',grade:0,d:8,match:[9,1],look:{skin:'#d6a37c',hs:0,hair:'#2b2420',top:'#2f3f4b'},eff:{scav:.12,tap:.1},trait:v=>`뒤지기 수확 +${pc(v.scav)}% · 두드리는 힘 +${pc(v.tap)}%`,role:['drive','mech'],
   story:['제설차로 길을 열다가 연료가 떨어졌다.','차를 두고 온 게 아직 마음에 걸린다.','“길은 누군가 먼저 내야 하는 거예요.”'],skill:{n:'제설 삽날',cd:90,d:'가까운 구름 4칸을 한 번에 걷어요',clear:4},
   small:['눈 치우는 건 자신 있어요.','제설차가 아직 거기 있을까요.','아침 길은 제가 열게요.'],exq:['“길을 내면서 왔어요.”','“눈 속에서 연료통을 찾았어요.”'],need:{fuel:8,food:8},why:'멈춘 제설차 안에서 신호를 보내요. 시동을 걸 연료와 식량이 필요해요.'},
- {name:'윤가을',age:25,job:'분교 보조교사',region:'snow',grade:0,d:9,match:[6,7],look:{skin:'#f2caa6',hs:4,hair:'#4a3526',top:'#d9483b'},eff:{hope:8},trait:v=>`쉘터 희망 +${Math.round(v.hope)}`,role:['heart'],
-  story:['분교 아이들을 집까지 데려다주고 돌아오지 못했다.','주머니에 분필 토막이 들어 있다.','“아이들은 어른이 웃으면 안심해요.”'],skill:{n:'출석 부르기',cd:120,d:'희망이 잠시 오르고 60초간 모든 생산 +15%',k:'all',hope:1},
-  small:['오늘도 다 모였나요?','분필이 아까워요.','아이들 노랫소리가 듣고 싶어요.'],exq:['“아이들 이야기를 하며 걸었어요.”','“분교 창고에서 공책을 찾았어요.”'],need:{food:12,cloth:6},why:'눈 덮인 분교에서 손을 흔들고 있어요. 내려올 동안 먹을 것과 두를 천이 필요해요.'},
+ {name:'윤가을',age:25,job:'마을회관 보조',region:'snow',grade:0,d:9,match:[6,7],look:{skin:'#f2caa6',hs:4,hair:'#4a3526',top:'#d9483b'},eff:{hope:8},trait:v=>`쉘터 희망 +${Math.round(v.hope)}`,role:['heart'],
+  story:['마을회관에 모인 아이들을 집까지 데려다주고 돌아오지 못했다.','주머니에 분필 토막이 들어 있다.','“아이들은 어른이 웃으면 안심해요.”'],skill:{n:'출석 부르기',cd:120,d:'희망이 잠시 오르고 60초간 모든 생산 +15%',k:'all',hope:1},
+  small:['오늘도 다 모였나요?','분필이 아까워요.','아이들 노랫소리가 듣고 싶어요.'],exq:['“아이들 이야기를 하며 걸었어요.”','“마을회관 창고에서 공책을 찾았어요.”'],need:{food:12,cloth:6},why:'눈 덮인 마을회관 지붕에서 손을 흔들고 있어요. 내려올 동안 먹을 것과 두를 천이 필요해요.'},
  {name:'서준호',age:38,job:'산림 감시원',region:'snow',grade:1,d:10,match:[3,8],look:{skin:'#e3b893',hs:2,hair:'#1f1a16',top:'#4a6a4a'},eff:{scav:.2},trait:v=>`폐허 뒤지기 수확 +${pc(v.scav)}%`,role:['scout','guard'],
   story:['감시탑에서 재폭풍이 오는 걸 가장 먼저 봤다.','산길은 눈 감고도 걷는다.','“불은 지키는 사람이 있어야 꺼지지 않아요.”'],skill:{n:'감시탑의 눈',cd:100,d:'45초간 폐허 뒤지기 수확 ×1.6',k:'scav'},
   small:['감시탑에서 보면 다 보여요.','산길은 제가 더 잘 알아요.','바람이 바뀌고 있어요.'],exq:['“산길로 질러 왔어요.”','“감시탑에서 쓸 만한 걸 챙겼어요.”'],need:{rope:5,food:8},why:'감시탑 꼭대기에 올라가 있어요. 내려올 밧줄과 식량이 필요해요.'}];
@@ -5459,9 +5459,9 @@ function renderOdd(){const L=S.odd||[];if(!L.length)return'';const nm={shadow:'�
 // Never: 만수 (the guide), 하늘·진 (children), 은호, 재혁·미영 (Season 2 leads), 태식 before his watch is seen.
 const LAST={1:'“배달 완료.” 늘 하던 그 말이 마지막 말이 됐다.',2:'마지막까지 다친 사람 손을 잡고 있었다. 그 손은 깨끗이 씻겨 있었다.',4:'씨앗 봉투 하나가 남았다. 봉투엔 우리 쉘터 이름이 적혀 있었다.',
  5:'국밥 솥에 불씨가 아직 남아 있었다. 누군가 그 불로 아침을 지었다.',6:'줄자 하나가 남았다. 방벽 치수가 빼곡히 적혀 있었다.',7:'마지막 그림은 쉘터였다. 한 사람도 빠짐없이 그려져 있었다. 자기만 빼고.',
- 8:'“다음 사람이 있으니까.” 그는 그렇게 말하고 불 속으로 먼저 들어갔다.',11:'“내일은 맑겠습니다.” 그녀의 마지막 예보는 틀리지 않았다.',12:'멈춘 시계 하나가 남았다. 이번엔 아무도 태엽을 감지 않았다.',
+ 8:'“다음 사람이 있으니까.” 그는 창고 문을 마지막까지 막고 서 있었다.',11:'“내일은 맑겠습니다.” 그녀의 마지막 예보는 틀리지 않았다.',12:'멈춘 괘종시계 하나가 남았다. 이번엔 아무도 태엽을 감지 않았다.',
  14:'약초 씨앗이 가방 가득 남았다. 봄이 오면 심기로 했다.',15:'용접 불꽃이 꺼졌다. 그가 고쳐 둔 문은 아직 튼튼하다.',16:'“구조는 끝나지 않아요.” 그녀가 묶어 둔 매듭은 끝내 풀리지 않았다.'};
-RESIDENTS.forEach((r,n)=>{const q=r.story[2],m=q.match(/^“[^”]*”$/);LAST[RES0+n]=m?q+' 그 말이 마지막이 됐다.':q;});
+['“고치면 다시 돌아요.” 그가 고쳐 둔 기계는 아직 돈다.','향신료 통 하나가 남았다. 누군가 그 통으로 아침 국을 끓였다.','짐 자루 하나가 남았다. 주인 이름이 적힌 물건들은 모두 돌려주었다.','등대 일지 마지막 장에 “오늘도 켜 둠”이라고 적혀 있었다.','가죽 장갑 한 켤레가 남았다. 라인은 이제 다른 손이 돌린다.','배급표가 남았다. 그날도 아무도 두 번 받지 않았다.','배선도 한 장이 남았다. 그가 이어 둔 길로 아직 불이 흐른다.','수첩에 적힌 이름들은 모두 살아남았다. 적은 사람만 빼고.','창고 재고표가 남았다. 봄까지 가는 숫자였다.','제설 삽날 하나가 남았다. 아침 길은 다른 사람이 열었다.','분필 토막 하나가 남았다. 아이들은 아직 그 노래를 부른다.','감시탑에 밧줄 사리가 남았다. 매듭은 끝내 풀리지 않았다.'].forEach((t,n)=>{LAST[RES0+n]=t;});
 const SAFE=()=>[0,3,9,10,13,JIN].concat(S.egg&&S.egg.c?[]:[12]);
 function deathPick(){const safe=SAFE(),ids=Object.keys(S.sv).map(Number).filter(id=>!safe.includes(id)&&!S.sv[id].away);if(Object.keys(S.sv).length<(S.gen?7:8)||!ids.length)return null; // towers need 7 people (6 in later towns); never let deaths make a town unwinnable
   const w=id=>(S.sv[id].hurt>0?2:1)*(S.sv[id].at>=0?1.5:1);let tot=0;for(const id of ids)tot+=w(id);let r=Math.random()*tot;for(const id of ids){r-=w(id);if(r<=0)return id;}return ids[0];}
