@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261008b">
+<link rel="stylesheet" href="qa.css?v=20261008c">
 <div id="app">
   <header>
     <div class="hud">
@@ -3198,12 +3198,14 @@ const ugOpen=()=>S.lv>=3||lmOn('station');
 const ugRole=(team,r)=>team.some(id=>!(UG&&UG.hurt.includes(id))&&ROLE[id]&&ROLE[id].includes(r))||ugPetRole(r);
 let UG=null,ugPrep={team:[],fuel:0};
 function ugOil0(team,fuel){return 14+fuel*3+(team.some(id=>ROLE[id].includes('cook'))?6:0);}
+// more hands carry more fuel: 8 / 12 / 16 cans for a team of 1 / 2 / 3
+const ugFuelMax=team=>4+4*Math.max(1,Math.min(3,(team||ugPrep.team).length));
 function ugCard(){if(!S.ug)S.ug={best:0,runs:0,bestWith:{}};
   if(!ugOpen())return'';
   const qs=Object.keys(S.sv).map(Number).filter(id=>{const st=qStep(id);return st&&(st.k==='find'||st.k==='ug');});
   return`<div class="exp ugc"><div class="top"><b>지하 구역</b><span class="meta">최고 ${S.ug.best}층 · ${S.ug.runs}번 탐험</span></div><div class="ugzones">${UG_TH.map(t=>`<span class="${S.ug.best>=t.f?'on':''}"><b>${t.f}층~</b>${S.ug.best>=t.f?t.n:'???'}</span>`).join('')}</div><p>기름이 버티는 만큼 깊이. 5층마다 쉼터에서 다시 시작해요.${qs.length?`<br><b style="color:#7a4a1c">${qs.map(id=>SURV[id].name).join(', ')}의 이야기가 지하에 있어요</b>`:''}</p><button class="buy" data-act="ugprep" ${Object.keys(S.sv).length?'':'disabled'}>내려갈 준비</button>${(S.ug.diary||[]).length?`<button class="buy ghost" data-act="ugdiary" style="margin-left:6px">지하 기록 ${(S.ug.diary||[]).length}/${UG_DIARY.length}</button>`:''}</div>`;}
 function openUGPrep(){if(!ugOpen())return;const free=Object.keys(S.sv).map(Number).filter(id=>!busy(id));ugPrep.team=ugPrep.team.filter(id=>free.includes(id));ugPrep.fuel=Math.min(ugPrep.fuel,S.m.fuel||0);closeSheet();renderPrep(true);}
-function renderPrep(first){const free=Object.keys(S.sv).map(Number).filter(id=>!busy(id)),t=ugPrep.team,oil=ugOil0(t,ugPrep.fuel);
+function renderPrep(first){const free=Object.keys(S.sv).map(Number).filter(id=>!busy(id)),t=ugPrep.team;ugPrep.fuel=Math.min(ugPrep.fuel,ugFuelMax(t),S.m.fuel||0);const oil=ugOil0(t,ugPrep.fuel),fmax=ugFuelMax(t);
   const P={scout:'정찰: 옆 칸의 위험이 보여요',sci:'연구: 계단 위치가 보여요',medic:'간호: 층마다 한 번 부상을 막아요',guard:'소방: 위험 피해 절반',mech:'기술: 자재 +30%',cook:'요리: 기름 +6',heart:'희망: 층을 내려갈 때 기름 +4',drive:'운전: 층을 내려갈 때 기름 +3',art:'그림: 옆 칸의 위험이 보여요',farm:'텃밭: 식량 두 배'};
   const perks=[...new Set(t.flatMap(id=>ROLE[id]))].map(r=>P[r]).filter(Boolean);
   const qs=t.map(id=>{const st=qStep(id);return st&&(st.k==='find'||st.k==='ug')?`${SURV[id].name}: ${qStepTxt(st)}`:null;}).filter(Boolean);
@@ -3211,13 +3213,13 @@ function renderPrep(first){const free=Object.keys(S.sv).map(Number).filter(id=>!
     <div class="team">${free.length?free.map(id=>`<button class="mem${t.includes(id)?' on':''}" data-act="ugm" data-arg="${id}" ${!t.includes(id)&&t.length>=3?'disabled':''}>${avatar(id)}${SURV[id].name}</button>`).join(''):'<span class="d">지금 함께 갈 수 있는 사람이 없어요</span>'}</div>
     ${ugPetBtn()?`<div class="team">${ugPetBtn()}</div>`:''}${perks.length?`<div class="prev">${perks.join('<br>')}</div>`:''}${qs.length?`<div class="prev" style="color:#7a4a1c">${qs.join('<br>')}</div>`:''}
     ${(S.ug.ck||[]).length?`<div class="ugstart"><span>시작 층</span>${[1,...(S.ug.ck||[])].map(f=>`<button class="pfo${(ugPrep.start||1)===f?' on':''}" data-act="ugs" data-arg="${f}">${f}층${f>1?` · ${ugTheme(f).n}`:''}</button>`).join('')}</div>`:''}
-    <div class="fuelrow"><span>${micon('fuel',16)} 연료 챙기기</span><button class="alt" data-act="ugf" data-arg="-1" ${ugPrep.fuel<=0?'disabled':''}>−</button><b>${ugPrep.fuel}</b><button class="alt" data-act="ugf" data-arg="1" ${ugPrep.fuel>=Math.min(10,S.m.fuel||0)?'disabled':''}>+</button></div>
+    <div class="fuelrow"><span>${micon('fuel',16)} 연료 챙기기 <small class="fmax">최대 ${fmax} · ${t.length||1}명</small></span><button class="alt" data-act="ugf" data-arg="-1" ${ugPrep.fuel<=0?'disabled':''}>−</button><b>${ugPrep.fuel}</b><button class="alt" data-act="ugf" data-arg="1" ${ugPrep.fuel>=Math.min(fmax,S.m.fuel||0)?'disabled':''}>+</button></div>
     <div class="d" style="margin:-4px 0 12px">랜턴 기름 <b id="ugOil">${oil}</b> · 어두운 칸을 한 번 두드릴 때마다 1씩 써요. 연료 1개 = 기름 3<br>이번 탐사에서 칸을 밝힌 층마다 동료 신뢰 +15 · 바로 돌아오면 보상이 없어요</div>
     <div class="btns"><button class="alt">취소</button><button data-act="ugo" ${t.length?'':'disabled'}>내려가기</button></div>${t.length?'':'<div class="ughint">함께 갈 사람을 골라 주세요 (최대 3명)</div>'}</div>`;
   if(first)openModal(h);else{const old=modal.querySelector('.page'),st=old?old.scrollTop:0;modal.innerHTML=h;const pg=modal.querySelector('.page');if(pg&&st)pg.scrollTop=st;}}
 let ugfT=0,ugfTimer=null;
-function ugfStep(g){ugPrep.fuel=Math.max(0,Math.min(10,S.m.fuel||0,ugPrep.fuel+g));const row=modal.querySelector('.fuelrow');if(!row)return;row.querySelector('b').textContent=ugPrep.fuel;
-  const bs=row.querySelectorAll('[data-act="ugf"]');bs[0].disabled=ugPrep.fuel<=0;bs[1].disabled=ugPrep.fuel>=Math.min(10,S.m.fuel||0);const o=$('ugOil');if(o)o.textContent=ugOil0(ugPrep.team,ugPrep.fuel);}
+function ugfStep(g){ugPrep.fuel=Math.max(0,Math.min(ugFuelMax(),S.m.fuel||0,ugPrep.fuel+g));const row=modal.querySelector('.fuelrow');if(!row)return;row.querySelector('b').textContent=ugPrep.fuel;
+  const bs=row.querySelectorAll('[data-act="ugf"]');bs[0].disabled=ugPrep.fuel<=0;bs[1].disabled=ugPrep.fuel>=Math.min(ugFuelMax(),S.m.fuel||0);const o=$('ugOil');if(o)o.textContent=ugOil0(ugPrep.team,ugPrep.fuel);}
 function ugfStop(){if(ugfTimer){clearTimeout(ugfTimer);clearInterval(ugfTimer);ugfTimer=null;}}
 modal.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-act="ugf"]');if(!b||b.disabled)return;e.preventDefault();const g=+b.dataset.arg;ugfT=performance.now();ugfStep(g);ugfStop();
   ugfTimer=setTimeout(()=>{ugfTimer=setInterval(()=>{ugfT=performance.now();if(!modal.querySelector('.fuelrow')){ugfStop();return;}ugfStep(g);},110);},380);});

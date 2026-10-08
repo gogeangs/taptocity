@@ -148,3 +148,5 @@
 .petp .petstrip .pst.on{border-color:#2f3f4b!important;background:#fff8e6!important;box-shadow:0 0 0 2px rgba(47,63,75,.18)!important}
 .petp .petstrip .pst i{position:absolute;right:-1px;bottom:-1px;width:12px;height:12px;border-radius:50%;border:2px solid #f3eee2}
 .petp .petstrip .pst i.hungry{background:#d9483b}.petp .petstrip .pst i.full{background:#6b8f4a}
+/* underground prep: fuel cap hint */
+.fuelrow span .fmax{font:500 11.5px/1 var(--body);color:var(--sepia-2,#6b5e52);margin-left:2px;white-space:nowrap}
