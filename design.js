@@ -11,7 +11,7 @@
   };
   const portraits=[['founders',0],['neighbors',0],['founders',1],['neighbors',1],['neighbors',2],['neighbors',3],['signals',0],['founders',2],['signals',1],['founders',3],['signals',2],['signals',3],['frontier',0],['frontier',1],['frontier',2],['frontier',3],['scouts',0],['scouts',1]];
   const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  // 까마귀(독수리·진)와 아이들: 3x2 sheet, cells 686x764 — crow 0, jin 1, kids 2..5 (봄이 다온 로운 하람)
+  // 까마귀 대장과 아이들: 3x2 sheet, cells 686x764 — crow 0, (1 unused: 진 keeps the scouts-sheet portrait), kids 2..5 (봄이 다온 로운 하람)
   const CK={file:'crows-kids.webp',w:2058,h:1528,cols:3,rows:2},ckImg=new Image();ckImg.decoding='async';ckImg.src=base+CK.file;
   const ckReady=()=>!!(ckImg.complete&&ckImg.naturalWidth);
   function ckCell(n,label){const w=CK.w/CK.cols,h=CK.h/CK.rows,x=n%CK.cols*w,y=Math.floor(n/CK.cols)*h;
@@ -19,15 +19,14 @@
   const KIDC={'봄이':2,'다온':3,'로운':4,'하람':5};
   function kid(name){const n=KIDC[name];return n!=null&&ckReady()?ckCell(n,name):null;}
   function portrait(s){
-    if(s&&s.name==='진'&&s.src==='story')return ckReady()?ckCell(1,s.name):null;
     const p=s&&portraits[s.id];if(!p)return null;
     const a=sheets[p[0]],w=a.w/a.cols,h=a.h/a.rows,x=p[1]%a.cols*w,y=Math.floor(p[1]/a.cols)*h;
     return '<svg class="illustrated-portrait" viewBox="0 0 120 140" role="img" aria-label="'+escape(s.name)+' 초상화"><svg width="120" height="140" viewBox="'+[x,y,w,h].join(' ')+'" preserveAspectRatio="xMidYMin slice"><image href="'+base+a.file+'" width="'+a.w+'" height="'+a.h+'" preserveAspectRatio="none"/></svg></svg>';
   }
   // undiscovered survivors: the real portrait as a dark cut-out (same crop as the portrait), so the shape hints at who they are
-  const SIL={file:'survivors-silhouettes.webp?v=2',cols:6,rows:4,w:1440,h:1120};
+  const SIL={file:'survivors-silhouettes.webp?v=2',cols:6,rows:4,w:1440,h:1120}; // ids 0..17 (row 3 spare)
   function silhouette(s){
-    const p=s&&(portraits[s.id]||(s.name==='진'&&s.src==='story'&&s.id===18));if(!p)return null;
+    const p=s&&portraits[s.id];if(!p)return null;
     const w=SIL.w/SIL.cols,h=SIL.h/SIL.rows,x=s.id%SIL.cols*w,y=Math.floor(s.id/SIL.cols)*h,hid=!!s.hidden;
     return '<svg class="illustrated-portrait sil" viewBox="0 0 120 140" role="img" aria-label="아직 만나지 못한 생존자"><rect width="120" height="140" fill="#e6d8b6"/><svg x="0" y="4" width="120" height="136" viewBox="'+[x,y,w,h].join(' ')+'" preserveAspectRatio="xMidYMin slice" opacity=".86"><image href="'+base+SIL.file+'" width="'+SIL.w+'" height="'+SIL.h+'" preserveAspectRatio="none"/></svg><circle cx="96" cy="112" r="16" fill="'+(hid?'#ffd24a':'#f3d9a0')+'" stroke="#3b2a1a" stroke-width="2.4"/><text x="96" y="'+(hid?'119':'120')+'" text-anchor="middle" font-family="Gowun Batang,serif" font-size="'+(hid?'18':'21')+'" font-weight="700" fill="#3b2a1a">'+(hid?'★':'?')+'</text></svg>';
   }

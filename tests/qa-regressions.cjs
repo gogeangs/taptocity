@@ -44,3 +44,9 @@ for(const floor of [1,5,10,15])test('checkpoint '+floor+' immediate return grant
 test('normal exploration rewards unique floors and persists pet XP',()=>{const c=context();run(c,16,[15,15,16]);c.ugEnd(true);assert.equal(c.S.sv[0].xp,70);assert.equal(c.S.pets.dog.xp,6);assert.equal(c.saved.at(-1).pets.dog.xp,6);assert.equal(c.saved.at(-1).pets.dog.away,false);c.ugEnd(true);assert.equal(c.S.sv[0].xp,70);});
 test('oil exhaustion keeps half material loss and earned exploration XP',()=>{const c=context();run(c,15,[15]);c.ugEnd(false);assert.equal(c.S.sv[0].xp,55);assert.match(c.messages[0].t,/wood.*4/);assert.match(c.messages[0].t,/장비를 떨어/);});
 test('partial hits and revisiting a cell do not award another floor',()=>{const c=context();run(c,15,[]);c.UG.cells=[{hp:3,rev:false,c:'empty'}];c.ugTap(0);c.ugTap(0);assert.equal(c.ugRewardUnits(c.UG),0);c.ugTap(0);assert.equal(c.ugRewardUnits(c.UG),1);c.ugTap(0);assert.equal(c.ugRewardUnits(c.UG),1);});
+
+// deploy hygiene: every versioned local asset the page loads must be precached under the same URL
+test('service worker shell lists the same versioned script/style URLs as index.html',()=>{const sw=fs.readFileSync(path.join(__dirname,'../sw.js'),'utf8');
+  const page=[...html.matchAll(/(?:src|href)="([a-z-]+\.(?:js|css)\?v=[^"]+)"/g)].map(m=>m[1]);assert.ok(page.length>=5,'page assets found');
+  for(const u of page)assert.ok(sw.includes("'./"+u+"'"),'sw.js SHELL is missing '+u);
+  for(const u of [...sw.matchAll(/'\.\/([a-z-]+\.(?:js|css)\?v=[^']+)'/g)].map(m=>m[1]))assert.ok(page.includes(u),'sw.js precaches stale URL '+u);});

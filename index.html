@@ -1260,10 +1260,10 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
   </div>
 </div>
 
-<script src="chapter-design.js?v=20261007-ck2"></script>
+<script src="chapter-design.js?v=20261008-jin"></script>
 <script src="settlement.js?v=20261006-petscale"></script>
 <script src="people.js?v=20261001-people"></script>
-<script src="design.js?v=20261007-ck2"></script>
+<script src="design.js?v=20261008-jin"></script>
 <script>
 
 (function(){
@@ -3367,7 +3367,7 @@ const ugCkOk=f=>(S.ug.ck||[]).includes(f);
 let DEFN=null,DEFR={rx:220,ry:120,up:150};
 const WALL_RED=[0,.3,.5,.7];
 const bigNightNext=()=>{const r=REG(),p=(S.rq&&S.rq.pick==='smash')?3:(r&&r.big||3);return S.lv>=2&&ashLearned()&&((S.nightCount||0)%p===p-1);};
-function startDefense(){const lv=S.lv;closeRing();if(sheetTab)closeSheet();frameDefense();{for(const q of NQ.splice(0))if(!defHold.some(h=>h.h===q.h))defHold.push(q);for(const d of $('toasts').querySelectorAll('.tt.note:not(.out)'))d.classList.add('out');}DEFN={t:0,dur:80,hp:100,max:100,wave:0,foes:[],kills:0,shake:0,waveT:0,fire:0,raid:S.raid||null};S.raid=null;CHAT=null;if(DEFN.raid)note({t:`${DEFN.raid}이(가) 쳐들어와요!`,def:1});if(!(S.defs||0))note({h:'대형 재폭풍이 몰려와요!',t:'<small>두드리면 가까운 괴물을, 문지르면 한꺼번에 베어요. 랜턴 버튼은 쉘터 옆부터 쳐요</small>',ms:6000,def:1});sfx('night');}
+function startDefense(){const lv=S.lv;closeRing();if(sheetTab)closeSheet();frameDefense();{const keep=[];for(const q of NQ.splice(0)){if(q.def)keep.push(q);else if(!defHold.some(h=>h.h===q.h))defHold.push(q);}NQ.push(...keep);for(const d of $('toasts').querySelectorAll('.tt.note:not(.out)'))d.classList.add('out');}DEFN={t:0,dur:80,hp:100,max:100,wave:0,foes:[],kills:0,shake:0,waveT:0,fire:0,raid:S.raid||null};S.raid=null;CHAT=null;if(DEFN.raid)note({t:`${DEFN.raid}이(가) 쳐들어와요!`,def:1});if(!(S.defs||0))note({h:'대형 재폭풍이 몰려와요!',t:'<small>두드리면 가까운 괴물을, 문지르면 한꺼번에 베어요. 랜턴 버튼은 쉘터 옆부터 쳐요</small>',ms:6000,def:1});sfx('night');}
 function spawnWave(){const D2=DEFN,w=++D2.wave,n=3+S.lv*2+w*2,[cx,cy]=tileC(C0);
   for(let k=0;k<n;k++){const a=Math.random()*Math.PI*2,brute=w>=2&&Math.random()<.18+w*.08,hp=tapPow()*(brute?7:2.4)*(1+S.lv*.25);
     const ry=Math.sin(a)<0?DEFR.up:DEFR.ry;D2.foes.push({x:cx+Math.cos(a)*DEFR.rx*(.92+Math.random()*.08),y:cy+Math.sin(a)*ry*(.9+Math.random()*.1),hp,max:hp,spd:(brute?9:14+Math.random()*6)*(1+w*.06),brute,delay:k*.45+Math.random()*.6,ph:Math.random()*6,hit:0});}
@@ -4460,7 +4460,7 @@ function note(o){const nbox=$('toasts');if(DEFN&&!o.def){if(o.h&&!defHold.some(q
   if((NCUR&&NCUR.h===o.h)||NQ.some(q=>q.h===o.h))return;
   NQ.push(o);while(NQ.length>4){const i=NQ.findIndex(q=>q.kind!=='story');NQ.splice(i>=0?i:0,1);}
   if(!NCUR)noteNext();}
-function noteNext(){if(DEFN){for(const q of NQ.splice(0))if(!q.def&&!defHold.some(h=>h.h===q.h))defHold.push(q);}const o=NQ.shift();if(!o){NCUR=null;return;}NCUR=o;const box=$('toasts');
+function noteNext(){if(DEFN){const keep=[];for(const q of NQ.splice(0)){if(q.def)keep.push(q);else if(!defHold.some(h=>h.h===q.h))defHold.push(q);}NQ.push(...keep);}const o=NQ.shift();if(!o){NCUR=null;return;}NCUR=o;const box=$('toasts');
   const d=document.createElement('div');d.className='tt note '+noteKind(o);d.innerHTML=`<i class="ni"></i><div class="nb"><b>${o.h}</b>${o.t||''}</div>`;d.dataset.h=o.h;d.dataset.m=o.t||'';box.prepend(d);
   const ms=NQ.length?Math.min(o.ms||3600,2600):(o.ms||3600);
   setTimeout(()=>{d.classList.add('out');setTimeout(()=>{d.remove();noteNext();},280);},ms);}
