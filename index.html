@@ -3198,8 +3198,8 @@ const ugOpen=()=>S.lv>=3||lmOn('station');
 const ugRole=(team,r)=>team.some(id=>!(UG&&UG.hurt.includes(id))&&ROLE[id]&&ROLE[id].includes(r))||ugPetRole(r);
 let UG=null,ugPrep={team:[],fuel:0};
 function ugOil0(team,fuel){return 14+fuel*3+(team.some(id=>ROLE[id].includes('cook'))?6:0);}
-// more hands carry more fuel: 8 / 12 / 16 cans for a team of 1 / 2 / 3
-const ugFuelMax=team=>4+4*Math.max(1,Math.min(3,(team||ugPrep.team).length));
+// more hands carry a little more fuel: 6 / 8 / 10 cans for a team of 1 / 2 / 3 (a full team equals the old flat cap)
+const ugFuelMax=team=>4+2*Math.max(1,Math.min(3,(team||ugPrep.team).length));
 function ugCard(){if(!S.ug)S.ug={best:0,runs:0,bestWith:{}};
   if(!ugOpen())return'';
   const qs=Object.keys(S.sv).map(Number).filter(id=>{const st=qStep(id);return st&&(st.k==='find'||st.k==='ug');});
