@@ -213,3 +213,8 @@
 .pedpage .row.mcard .t{display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px}
 .pedpage .row.mcard .buy{flex:0 0 auto;width:auto!important;min-width:0!important;padding:9px 14px!important;font-size:13px!important}
 .pedpage .row.mcard .th{flex:0 0 auto}
+/* 장비 일러스트 아이콘 */
+.gi.art{background:#efe3c4;padding:1px;overflow:hidden}
+.gi.art svg.gart{display:block;width:100%!important;height:100%!important}
+.gi.art.g3{box-shadow:0 0 8px rgba(255,210,74,.6)}
+.page .gslot:not(.empty) .gi.art{background:#efe3c4}
