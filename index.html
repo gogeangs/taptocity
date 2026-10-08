@@ -3940,7 +3940,7 @@ function migPickHtml(){const ids=Object.keys(S.sv).map(Number),sel=migPick||[],r
 function openMigrate(){const nr=REGIONS[nextRegion()],g=(S.gen||0)+1,ids=Object.keys(S.sv).map(Number),n=ids.length;if(!migPick||migPick.some(id=>!S.sv[id]))migPick=ids.slice(0,MIG_MAX);const pick=n>MIG_MAX;
   openModal(`<div class="page"><div class="tag">이주 · ${g}번째 동네</div><h3>${nr.n}</h3><p>${nextCaller()?`${nextCaller().sub} ${nextCaller().n}의 신호를 따라, 불씨를 나누러 떠나요.`:'불씨를 들고 다음 동네로 떠나요.'} 이 동네의 불은 남는 사람들이 지켜요.</p>
     <div class="fx" style="color:#5a3f24">${nr.d}<br>구름이 조금 더 단단해요 (×${(1+.2*g).toFixed(1)})</div>
-    ${pick?migPickHtml():''}<div class="sec2">함께 가는 것</div><div class="d">생존자 ${pick?`${migPick.length}명`:`${n}명`}(등급·성급·신뢰·장비·이야기) · 장비 가방 · 유물 · 업적과 칭호 · 아이들과 등불 · 건전지 · 철판·밧줄·전선·약품 절반</div>
+    ${pick?migPickHtml():''}<div class="sec2">함께 가는 것</div><div class="d">생존자 ${pick?`${migPick.length}명`:`${n}명`}(등급·성급·신뢰·장비·이야기) · 장비 가방 · 유물 · 업적과 칭호 · 아이들과 등불 · 건전지 · 철판·밧줄·전선·약품 절반(새 창고에 들어가는 만큼)</div>
     <div class="sec2" style="margin-top:6px">처음부터 다시</div><div class="d">지도 · 쉘터 단계 · 모듈 · 방벽 · 기본 자재 · 동맹</div>
     <div class="sec2" style="margin-top:6px">새로 얻는 것</div><div class="d"><b>등불의 기억 ${g}단계</b> · 모든 생산 +${g*10}% · 두드리는 힘 +${g*10}% (영구)<br>함께 온 사람 수만큼 침상 추가</div>
     <div class="btns" style="margin-top:14px"><button class="alt">조금 더 머물기</button><button data-act="migok" ${pick&&!migPick.length?'disabled':''}>떠나기</button></div></div>`,true);}
@@ -3955,7 +3955,7 @@ function migrate(){const old=S,g=(old.gen||0)+1,region=nextRegion();{const e=tlo
   const svGo={};for(const id of going)svGo[id]=old.sv[id];
   const keep={pf:old.pf,playT:old.playT,pfAsk:old.pfAsk,qc:old.qc,sv:svGo,party:(old.party||[]).filter(id=>svGo[id]),stay,inv:old.inv,iu:old.iu,relics:old.relics,ach:old.ach,title:old.title,kids:old.kids,dog:old.dog,endSeen:old.endSeen,conf:old.conf,hook:old.hook,tlog:old.tlog,rumor:old.rumor,sqN:old.sqN,cases:old.cases,odd:old.odd,dead:old.dead,egg:old.egg,crow:old.crow,pets:old.pets,petOn:old.petOn,stat:old.stat,gTotal:old.gTotal,gp:old.gp,heard:old.heard,found:old.found,mi:old.mi,storyI:old.storyI,
     ug:old.ug||{best:0,runs:0,bestWith:{}},favDone:old.favDone,defWins:old.defWins,defs:old.defs,nights:old.nights,evDone:old.evDone,skillUses:old.skillUses,expDone:old.expDone,fevers:old.fevers,gUses:old.gUses,art:old.art,artNew:old.artNew,ehEnd:old.ehEnd,expTold:old.expTold,trade:old.trade&&{day:-1,offers:[],used:0,pend:old.trade.pend||[]},ped:old.ped&&{next:0,here:null,stock:[],visits:old.ped.visits,bought:old.ped.bought},pedCrow:old.pedCrow};
-  const carryM={batt:old.m.batt||0};for(const k of['plate','rope','wire','med'])carryM[k]=Math.floor((old.m[k]||0)/2);
+  const carryM={batt:old.m.batt||0};for(const k of['plate','rope','wire','med'])carryM[k]=Math.min(Math.floor((old.m[k]||0)/2),(MN[k].tier||0)===2?Math.ceil(CAP[0]/4):CAP[0]);
   closeModal();closeSheet();closeRing();DEFN=null;UG=null;WALK={};CHAT=null;KW=[];
   fresh();Object.assign(S,keep);S.gen=g;S.region=region;S.rmi=0;S.rsI=0;S.arriveWins=S.defWins||0;
   for(const id in S.sv){const r=S.sv[id];r.at=-1;r.away=false;r.hurt=0;}S.asg={};S.exp={};S.cd={};S.camp={};S.allies=[];S.band=null;S.deco={};S.raid=null;
@@ -5100,8 +5100,8 @@ const SQT={
  wood:{ok:()=>true,n:()=>Math.round(70*lvScale()),v:()=>gotN('wood'),t:n=>`목재 ${fmt(n)}개 모으기`,go:'lamp',say:['“장작이 모자라요. 오늘 밤 불 좀 넉넉히 피우고 싶어요.”','“침상 다리가 또 부러졌어요. 나무가 필요해요.”']},
  scrap:{ok:()=>true,n:()=>Math.round(70*lvScale()),v:()=>gotN('scrap'),t:n=>`고철 ${fmt(n)}개 모으기`,go:'lamp',say:['“고철만 있으면 이것저것 고쳐 볼게요.”','“녹슨 거라도 좋아요. 쇠붙이 좀 모아 와요.”']},
  food:{ok:()=>true,n:()=>Math.round(60*lvScale()),v:()=>gotN('food'),t:n=>`식량 ${fmt(n)}개 모으기`,go:'lamp',say:['“창고가 비어 가요. 아이들 먹을 거라도 채워 둬요.”','“오늘은 제대로 한 끼 차려 보고 싶어요.”']},
- plate:{ok:()=>wbL()>=1&&S.lv>=2,n:()=>Math.round(12*lvScale()),v:()=>gotN('plate'),t:n=>`철판 ${fmt(n)}장 만들기`,go:'craft',say:['“지붕에 구멍이 났어요. 철판으로 덮어야 해요.”','“철판 몇 장만 있으면 문을 단단히 달 수 있어요.”']},
- rope:{ok:()=>wbL()>=1&&S.lv>=2,n:()=>Math.round(8*lvScale()),v:()=>gotN('rope'),t:n=>`밧줄 ${fmt(n)}개 만들기`,go:'craft',say:['“빨랫줄이 끊어졌어요. 밧줄 좀 꼬아 줄래요?”','“망루에 올라갈 밧줄이 필요해요.”']},
+ plate:{ok:()=>wbL()>=1&&S.lv>=2&&(S.m.plate||0)<capOf('plate'),n:()=>Math.round(12*lvScale()),v:()=>gotN('plate'),t:n=>`철판 ${fmt(n)}장 만들기`,go:'craft',say:['“지붕에 구멍이 났어요. 철판으로 덮어야 해요.”','“철판 몇 장만 있으면 문을 단단히 달 수 있어요.”']},
+ rope:{ok:()=>wbL()>=1&&S.lv>=2&&(S.m.rope||0)<capOf('rope'),n:()=>Math.round(8*lvScale()),v:()=>gotN('rope'),t:n=>`밧줄 ${fmt(n)}개 만들기`,go:'craft',say:['“빨랫줄이 끊어졌어요. 밧줄 좀 꼬아 줄래요?”','“망루에 올라갈 밧줄이 필요해요.”']},
  reveal:{ok:()=>{let f=0;for(let i=0;i<N;i++)if(isFrontier(i))f++;return f>=30;},n:()=>10+S.lv*2,v:()=>revCount(),t:n=>`어둠 ${n}칸 걷어내기`,go:'lamp',say:['“저 너머에 뭐가 있는지 궁금해요. 조금만 더 밝혀 줘요.”','“구름 속에서 뭔가 반짝였어요. 가까이 가 봐요.”']},
  exp:{ok:()=>S.expDone>0||S.mi>STEP_I('첫 원정 보내기'),n:()=>1,v:()=>S.expDone||0,t:()=>'원정 한 번 다녀오기',go:'fExp',say:['“지도에 표시해 둔 곳이 있어요. 누가 다녀와 줄래요?”','“멀리서 연기가 올라와요. 확인해 봐야겠어요.”']},
  ug:{ok:()=>ugOpen()&&S.ug&&S.ug.runs>0,n:()=>1,v:()=>(S.ug&&S.ug.runs)||0,t:()=>'지하 구역 한 번 내려가기',go:'fExp',say:['“지하에서 이상한 소리가 났대요. 한번 내려가 봐요.”','“지하철역 매점에 통조림이 남아 있을지도 몰라요.”']},
@@ -5113,7 +5113,7 @@ function sqPickWho(){const ids=Object.keys(S.sv).map(Number).filter(id=>!S.sv[id
 function sqNew(){const last=S.sq&&S.sq.k,ks=Object.keys(SQT).filter(k=>k!==last&&SQT[k].ok());if(!ks.length)return;
   const w=k=>['wood','scrap','food','reveal'].includes(k)?1:1.4;let tot=0;ks.forEach(k=>tot+=w(k));let r=Math.random()*tot,k=ks[0];for(const q of ks){r-=w(q);if(r<=0){k=q;break;}}
   const T=SQT[k],n=T.n();S.sq={k,n,b:T.v(),at:Date.now(),who:sqPickWho(),say:T.say[(Math.random()*T.say.length)|0]};save();renderSq(true);}
-const sqProg=()=>{const q=S.sq;if(!q||!SQT[q.k])return 0;return Math.max(0,Math.min(q.n,SQT[q.k].v()-q.b));};
+const sqProg=()=>{const q=S.sq;if(!q||!SQT[q.k])return 0;if(SQT[q.k].go==='craft'&&MN[q.k]&&(S.m[q.k]||0)>=capOf(q.k))return q.n;return Math.max(0,Math.min(q.n,SQT[q.k].v()-q.b));};
 const sqDone=()=>!!S.sq&&sqProg()>=S.sq.n;
 // the reward follows what the next shelter step or tower floor still needs
 function sqReward(){const tgt=S.lv<5?scaleCost(SHUP[S.lv-1].cost,costMult()):(typeof towerNext==='function'&&towerOpen()?scaleCost(towerNext().cost,costMult()):null);const rw={};
@@ -5166,8 +5166,8 @@ function craftMax(k){const r=RECIPES[k];if(!r||!wbL()||recipeLock(r))return 0;co
   return Math.max(0,n);}
 // crafting: tap = 1, hold = keeps going and speeds up; one button per recipe
 function craftHintHtml(){return`<div class="chint">탭하면 1개 · 꾹 누르면 계속 만들어요${acraftOpen()?' · <b>자동</b>을 켜면 남는 재료를 알아서 가공해요':''}</div>`;}
-function craftBtn(k){const ok=craftMax(k)>=1;
-  return`<div class="cbwrap"><button class="buy cbtn${ok?'':' off'}" data-cb="${k}" ${ok?'':'disabled'}>만들기${ok?'':'<small class="why">재료 부족</small>'}</button>${acraftOpen()?`<button class="acr${(S.acraft||{})[k]?' on':''}" data-act="acr" data-arg="${k}"><i></i>자동</button>`:''}</div>`;}
+function craftBtn(k){const ok=craftMax(k)>=1,r=RECIPES[k],full=(S.m[r.out]||0)>=capOf(r.out);
+  return`<div class="cbwrap"><button class="buy cbtn${ok?'':' off'}" data-cb="${k}" ${ok?'':'disabled'}>만들기${ok?'':`<small class="why">${full?'창고 가득':'재료 부족'}</small>`}</button>${acraftOpen()?`<button class="acr${(S.acraft||{})[k]?' on':''}" data-act="acr" data-arg="${k}"><i></i>자동</button>`:''}</div>`;}
 function craftQuiet(k,n){const r=RECIPES[k];let made=0,c=0;for(let q=0;q<n;q++){if(!pay(r.inp()))break;c++;const extra=Math.random()<((D.E.craft||0)+craftBuff())?1:0;const got=give({[r.out]:(r.n||1)+extra});made+=got[r.out]||0;}return{c,made};}
 let CH=null;
 function chStop(){if(!CH)return;clearTimeout(CH.t);const h=CH;CH=null;if(h.made>1)toast(`${MN[RECIPES[h.k].out].n} ${fmt(h.made)}개를 만들었어요`);renderSheet();save();}
