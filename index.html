@@ -1326,7 +1326,7 @@ const lmOn=key=>S.lm&&Object.values(S.lm).some(L=>L.ok&&LMS[L.k].key===key);
 // One shelter in the middle grows through five stages; modules snap into the slots around it.
 const SHELTER=[{n:'텐트',h:22},{n:'판잣집 쉘터',h:30},{n:'컨테이너 쉘터',h:40},{n:'요새',h:64},{n:'불빛의 도시',h:110}];
 const SLOTS=[3,5,8,12,16],CAP=[150,600,900,1400,2000];
-const SHUP=[{cost:{wood:130,scrap:70,cloth:40},need:3},{cost:{scrap:300,wood:250,plate:50,rope:25,cloth:45},need:5},{cost:{plate:280,wood:690,parts:280,fuel:185,rope:36},need:8},{cost:{plate:760,parts:700,wire:42,fuel:480,med:20,rope:60},need:11}];
+const SHUP=[{cost:{wood:104,scrap:56,cloth:32},need:3},{cost:{scrap:300,wood:250,plate:50,rope:25,cloth:45},need:5},{cost:{plate:280,wood:690,parts:280,fuel:185,rope:36},need:8},{cost:{plate:608,parts:560,wire:34,fuel:384,med:16,rope:48},need:11}];
 const SLOT_OFF=[[0,-1],[1,0],[0,1],[-1,0],[1,-1],[1,1],[-1,1],[-1,-1],[0,-2],[2,0],[0,2],[-2,0],[1,-2],[2,1],[-1,2],[-2,-1],[2,-2],[2,2],[-2,2],[-2,-2],[-1,-2],[2,-1],[1,2],[-2,1]];
 const slotTile=k=>(CY+SLOT_OFF[k][1])*W+CX+SLOT_OFF[k][0];
 const MODS={
@@ -1942,7 +1942,11 @@ function mission(){if(S.gen&&S.mi>=STEPS.length){const RM=regionMis();if((S.rmi|
   if(S.mi<STEPS.length){const m=STEPS[S.mi];return{txt:m.goal,done:m.done(),rw:{...m.rw,batt:(m.rw.batt||0)+1},sub:m.hint,step:m};}
   return egMission();}
 let misKey=null,misDoneAt=0;
-function renderMission(){migrateSteps();const m=mission(),key=S.mi+'|'+m.done+'|'+m.txt;if(key===misKey)return;misKey=key;const st=m.step,c=st?STORY[st.ci]:null;
+// first town pacing: when a storm mission opens, the storm comes the very next night instead of up to two days later
+function hastenStorm(m){if(S.gen||!m||m.done||!m.step)return;const g=m.step.goal;if(g!=='재폭풍 밤 한 번 버티기'&&g!=='대형 재폭풍 한 번 막아내기')return;S.hasten=S.hasten||{};if(S.hasten[g])return;S.hasten[g]=1;
+  if(g==='대형 재폭풍 한 번 막아내기'){const n=S.nightCount||0,r=n%3;if(r!==2)S.nightCount=n+(2-r+3)%3;}
+  if(!isNight()&&phase()<DAY-25)S.clock=(S.clock||0)+(DAY-25-phase());save();}
+function renderMission(){migrateSteps();const m=mission();hastenStorm(m);const key=S.mi+'|'+m.done+'|'+m.txt;if(key===misKey)return;misKey=key;const st=m.step,c=st?STORY[st.ci]:null;
   $('mis').innerHTML=`${c?`<span class="chap">${c.ch} <i>${st.si+1}/${c.steps.length}</i></span>`:(m.reg?`<span class="chap">${REG().n} <i>${(S.rmi||0)+1}/${regionMis().length}</i></span>`:`<span class="chap">끝없는 불빛 <i>${(S.eg&&S.eg.i||0)+1}</i></span>`)}<span class="goal">${m.done?'<em>✓</em> ':''}${m.txt}</span>${!m.done?'<span class="more" aria-hidden="true">▾</span>':''}<span class="sub">${c?`<b>${c.ch} · ${c.title}</b>`:''}${m.sub?` — ${m.sub}`:''}</span>`;
   $('claim').hidden=!m.done;$('tape').classList.toggle('done',!!m.done);misDoneAt=m.done?(misDoneAt||performance.now()):0;$('claim').innerHTML=`<b>받기</b><span class="rw">${Object.entries(m.rw).map(([k,v])=>`${micon(k,13)}${v}`).join(' ')}</span>`;}
 $('claim').onclick=e=>{e.stopPropagation();const m=mission();if(!m.done)return;sfx('chime');const got=give(m.rw);const r=$('claim').getBoundingClientRect();for(const k in m.rw)flyMat(k,null,null,r.left+r.width/2,r.top+r.height/2);
@@ -4502,11 +4506,11 @@ modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="confa"],
 const heartCount=()=>(BONDS.filter(b=>b.ids.every(j=>S.sv[j])).length)+Object.values(S.sv).filter(r=>r.q&&r.q.done).length+Object.keys(S.pets||{}).filter(k=>petLv(k)>=3).length+(S.kids||[]).filter(k=>k.g>=1).length;
 const trustN=l=>Object.values(S.sv).filter(r=>trustLv(r.xp)>=l).length;
 const TOWER=[
- {n:'토대',d:'쉘터 한가운데 단단한 바닥을 다져요',cost:{plate:450,wood:900},req:[['생존자 7명',()=>Object.keys(S.sv).length>=7]]},
- {n:'기둥',d:'서로 믿는 손들이 철골을 붙잡아요',cost:{plate:600,parts:550,rope:90},req:[['신뢰도 4 이상 생존자 3명',()=>trustN(4)>=3]]},
- {n:'전선',d:'발전기에서 꼭대기까지 빛이 흐를 길',cost:{wire:45,parts:650,fuel:450},req:[['마음 하나 · 인연·이야기 완결·친밀한 펫·자란 아이 중 하나',()=>heartCount()>=1]]},
- {n:'렌즈',d:'심지의 빛을 모아 하늘로 쏘아 올려요',cost:{plate:650,med:25,fuel:600},req:[['오재혁 신뢰도 3 (일을 맡기거나 선물해요)',()=>S.sv[9]&&trustLv(S.sv[9].xp)>=3],['탁미영 신뢰도 2 (일을 맡기거나 선물해요)',()=>S.sv[13]&&trustLv(S.sv[13].xp)>=2]]},
- {n:'점화',d:'모두가 탑 아래 모이면, 랜턴 불빛으로 심지를 깨워요',cost:{fuel:500,parts:600,batt:8},req:[['희망 60',()=>D.hope>=60],['원정 간 사람 없이 모두 쉘터에',()=>!Object.values(S.sv).some(r=>r.away)]]}];
+ {n:'토대',d:'쉘터 한가운데 단단한 바닥을 다져요',cost:{plate:290,wood:585},req:[['생존자 7명',()=>Object.keys(S.sv).length>=7]]},
+ {n:'기둥',d:'서로 믿는 손들이 철골을 붙잡아요',cost:{plate:390,parts:360,rope:60},req:[['신뢰도 4 이상 생존자 3명',()=>trustN(4)>=3]]},
+ {n:'전선',d:'발전기에서 꼭대기까지 빛이 흐를 길',cost:{wire:30,parts:420,fuel:290},req:[['마음 하나 · 인연·이야기 완결·친밀한 펫·자란 아이 중 하나',()=>heartCount()>=1]]},
+ {n:'렌즈',d:'심지의 빛을 모아 하늘로 쏘아 올려요',cost:{plate:420,med:16,fuel:390},req:[['오재혁 신뢰도 3 (일을 맡기거나 선물해요)',()=>S.sv[9]&&trustLv(S.sv[9].xp)>=3],['탁미영 신뢰도 2 (일을 맡기거나 선물해요)',()=>S.sv[13]&&trustLv(S.sv[13].xp)>=2]]},
+ {n:'점화',d:'모두가 탑 아래 모이면, 랜턴 불빛으로 심지를 깨워요',cost:{fuel:325,parts:390,batt:5},req:[['희망 60',()=>D.hope>=60],['원정 간 사람 없이 모두 쉘터에',()=>!Object.values(S.sv).some(r=>r.away)]]}];
 const towerOpen=()=>S.gen?S.lv>=5:(S.mi>=STEP_I('등불 탑 토대 놓기')&&STEP_I('등불 탑 토대 놓기')>=0);
 // after the first light the tower keeps growing, one floor at a time, with no top
 function towerFloor(n){const f=n-4,k=Math.pow(1.22,f-1);return{n:`${n+1}층`,d:'탑을 한 층 더 올려 빛이 더 멀리 닿게 해요',cost:scaleCost({plate:260,parts:240,wood:500,food:350,fuel:180,wire:(f%3===0?12:0)},k),req:[[`희망 ${60+f*4}`,()=>D.hope>=60+f*4]]};}
