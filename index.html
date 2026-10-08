@@ -1282,6 +1282,7 @@ const MATS=[
  {k:'wire',s2:'작업대 조립·벙커·원정',n:'전선',c:'#f0c94a',tier:2,src:'작업대(2단계)에서 조립하거나 벙커·랜드마크·먼 원정에서 구해요'},{k:'med',s2:'약초 달이기·상점·원정',n:'약품',c:'#f6efe2',tier:2,src:'작업대(3단계)에서 달이거나 털린 상점·아파트 원정에서 구해요'},
  {k:'batt',s2:'목표·밤·원정',n:'건전지',c:'#9fe07a',tier:3,src:'이야기 목표·밤 버티기·원정·부탁·벙커에서 얻어요'}];
 const MN=Object.fromEntries(MATS.map(m=>[m.k,m]));
+const capOf=k=>{const t=MN[k].tier||0;return t>=3?1e9:t===2?Math.ceil(D.cap/4):D.cap;};
 const BASE=['scrap','wood','cloth','parts','fuel','food'];
 const MI={
  scrap:'<path d="M4 17l4-9 6 3 5-6M8 8l2.5 9"/><circle cx="16" cy="16.5" r="3"/>',
@@ -1298,7 +1299,7 @@ const MI={
 const micon=(k,s=16)=>`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="${MN[k].c}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="mi" aria-hidden="true">${MI[k]}</svg>`;
 const lvScale=()=>1+(S.lv-1)*.6;
 const scaleCost=(o,f=1)=>{const r={};for(const k in o){const v=Math.ceil(o[k]*f);if(v>0)r[k]=v;}return r;};
-function give(o){const got={};for(const k in o){const n=Math.max(0,Math.round(o[k]));if(!n)continue;const cap=MN[k].tier?1e9:D.cap;const room=Math.max(0,cap-(S.m[k]||0)),a=Math.min(n,room);S.m[k]=(S.m[k]||0)+a;S.got[k]=(S.got[k]||0)+a;if(a)got[k]=a;}return got;}
+function give(o){const got={};for(const k in o){const n=Math.max(0,Math.round(o[k]));if(!n)continue;const cap=capOf(k);const room=Math.max(0,cap-(S.m[k]||0)),a=Math.min(n,room);S.m[k]=(S.m[k]||0)+a;S.got[k]=(S.got[k]||0)+a;if(a)got[k]=a;}return got;}
 const canPay=o=>Object.entries(o).every(([k,v])=>(S.m[k]||0)>=v);
 function pay(o){if(!canPay(o))return false;for(const k in o)S.m[k]-=o[k];return true;}
 const costHtml=o=>Object.entries(o).sort(([a,x],[b,y])=>((S.m[a]||0)>=x)-((S.m[b]||0)>=y)).map(([k,v])=>{const h=S.m[k]||0;if(h>=v)return`<span class="cost cc ok mini" title="${MN[k].n} ${fmt(v)}">${micon(k,12)}${fmt(v)}</span>`;return`<span class="cost cc no" style="--p:${Math.min(1,h/Math.max(1,v)).toFixed(3)}">${micon(k,13)}${MN[k].n} <b>${fmt(Math.min(h,v))}<i>/${fmt(v)}</i></b><u></u></span>`;}).join('');
@@ -2348,7 +2349,7 @@ function upShelter(){if(S.lv>=5)return;const u=SHUP[S.lv-1],c=scaleCost(u.cost,c
   const R=S.lv+1;for(let y=CY-R;y<=CY+R;y++)for(let x=CX-R;x<=CX+R;x++){const i=y*W+x;if(x>=0&&y>=0&&x<W&&y<H&&!S.rev[i])reveal(i);}
   recalc();levelUp(S.lv);renderSheet();peekSheet(C0);save();}
 function upWalls(){if(S.walls>=3)return;const c=scaleCost(WALLS[S.walls].cost,costMult());if(S.lv<2||!pay(c))return;S.half=false;S.walls++;recalc();toast(`${jo(WALLS[S.walls-1].n,'을','를')} 둘렀어요`);renderSheet();peekSheet(C0);save();}
-function craft(k,times){const r=RECIPES[k];if(!wbL()||recipeLock(r))return;let n=0,made=0;for(let q=0;q<times;q++){if(!pay(r.inp()))break;n++;const extra=Math.random()<((D.E.craft||0)+craftBuff())?1:0;const got=give({[r.out]:(r.n||1)+extra});made+=got[r.out]||0;}
+function craft(k,times){const r=RECIPES[k];if(!wbL()||recipeLock(r))return;let n=0,made=0;for(let q=0;q<times;q++){if((S.m[r.out]||0)>=capOf(r.out)){toast(`${MN[r.out].n} 창고가 가득 찼어요`);break;}if(!pay(r.inp()))break;n++;const extra=Math.random()<((D.E.craft||0)+craftBuff())?1:0;const got=give({[r.out]:(r.n||1)+extra});made+=got[r.out]||0;}
   if(n){sfx('get');if(n>1)toast(`${MN[r.out].n} ${fmt(made)}개를 만들었어요`);}else toast('재료가 모자라요');renderSheet();save();}
 function buyUp(k){const u=UPG[k],c=u.cost();if(S[u.k]>=u.max||wbL()<u.wb()||!pay(c))return;S[u.k]++;renderSheet();save();}
 function reset(){if(confirmKey!=='reset'){confirmKey='reset';renderSheet();return;}confirmKey=null;fresh();aim=-1;closeRing();recalc();centerCam();closeSheet();misKey=null;renderMission();save();toast('새 땅에서 다시 시작해요');}
@@ -2434,7 +2435,7 @@ function renderShelter(){const L=S.lv;$('shTitle').textContent=`Lv.${L} ${LVNAME
     h+=card('u'+k,`<span class="th ico">${ICO[k]||ICO.tap}</span>`,`${u.name}<small>Lv.${lv}${mx?'':` / ${u.max}`}</small>`,mx?'최대 단계예요':u.d(),mx||wbL()<need?'':costHtml(c),mx?doneBadge('최대'):wbL()<need?lockBadge(`작업대 ${need}단계`):btnCost('upg',k,'연구',c),'research');}
   }else if(shTab==='deco'){h+=renderDecoTab();
   }else{
-  h+='<div class="sec">창고</div><div class="store">'+MATS.map(m=>{const v=S.m[m.k]||0,cap=m.tier?0:D.cap;return`<span class="st2${cap&&v>=cap?' full':''}">${micon(m.k,18)}<span><b>${fmt(v)}</b><small>${m.n}${cap?` · ${fmt(cap)}`:''}</small>${cap?`<u style="--p:${Math.min(1,v/cap).toFixed(3)}"></u>`:''}</span></span>`;}).join('')+'</div>';
+  h+='<div class="sec">창고</div><div class="store">'+MATS.map(m=>{const v=S.m[m.k]||0,cap=(m.tier||0)>=3?0:capOf(m.k);return`<span class="st2${cap&&v>=cap?' full':''}">${micon(m.k,18)}<span><b>${fmt(v)}</b><small>${m.n}${cap?` · ${fmt(cap)}`:''}</small>${cap?`<u style="--p:${Math.min(1,v/cap).toFixed(3)}"></u>`:''}</span></span>`;}).join('')+'</div>';
   h+=`<button class="banner b2" data-act="bag"><span><b>장비 가방 ${(S.inv||[]).length}개 →</b><br>생존자 장비를 모아 둔 곳</span></button>`;}
   return h;}
 function renderSheet(){if(!sheetTab)return;let h='';const st=$('shBody').scrollTop;
@@ -3830,7 +3831,7 @@ modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="copycode
 // guidebook
 function renderGuide(){const sec=(t,b)=>`<div class="gsec"><b>${t}</b>${b}</div>`;let h='';
   h+=sec('기본 조작','<p>· 빛이 새는 구름을 두드려 땅을 밝혀요. <b>꾹 누르고 있으면</b> 계속 두드려요. 화면 안에 보이는 구름까지, 한 번에 최대 30개 걷혀요. 더 걷으려면 손을 뗐다 다시 누르거나 지도를 옮겨요.<br>· 왼쪽 아래 <b>랜턴 버튼</b>은 조준한 칸(점선 원)을 두드려요.<br>· 쉬지 않고 두드리면 랜턴이 차올라 <b>피버</b>가 켜지고, 그동안 모든 수확이 두 배예요.<br>· 두 손가락으로 확대·축소, 끌어서 지도를 옮겨요.<br>· 왼쪽 위 초상화를 누르면 내 프로필이 열려요. 이름과 초상화를 바꾸고 지금까지의 기록을 볼 수 있어요.</p>');
-  h+=sec('자재와 창고','<p>· 무너진 집·폐차·상점·벙커를 두드리면 자재가 나와요. 털린 곳은 시간이 지나면 다시 쌓여요.<br>· 기본 자재 6종은 창고 한도까지만 모여요. 창고 모듈과 증축으로 늘려요.<br>· 철판·밧줄은 작업대에서 만들고, 전선·약품은 벙커·원정·지하에서 나오고, 작업대에서 조립하거나 달여 만들 수도 있어요.<br>· 남는 목재는 숯으로 구워 연료로, 남는 식량은 약초 달이기나 마을 잔치(쉘터 Lv.3)에 써요.</p>');
+  h+=sec('자재와 창고','<p>· 무너진 집·폐차·상점·벙커를 두드리면 자재가 나와요. 털린 곳은 시간이 지나면 다시 쌓여요.<br>· 기본 자재와 철판·밧줄은 창고 한도까지, 전선·약품은 그 1/4까지만 모여요(건전지는 한도 없음). 창고 모듈과 증축으로 늘려요.<br>· 철판·밧줄은 작업대에서 만들고, 전선·약품은 벙커·원정·지하에서 나오고, 작업대에서 조립하거나 달여 만들 수도 있어요.<br>· 남는 목재는 숯으로 구워 연료로, 남는 식량은 약초 달이기나 마을 잔치(쉘터 Lv.3)에 써요.</p>');
   h+=sec('쉘터와 모듈','<p>· 가운데 쉘터를 누르면 건설·가공·창고·꾸미기 화면이 열려요.<br>· 모듈이 일정 수 이상 있어야 증축할 수 있어요. 텃밭·고물상·창고·랜턴탑은 여러 개 지을 수 있어요.<br>· 지도의 모듈을 누르면 빠른 메뉴(강화·배치)가 떠요.</p>');
   h+=sec('생존자','<p>· 구조 신호를 따라가 잔해를 치우고 필요한 물자와 빈 침상이 있으면 구조해요.<br>· 딱 맞는 모듈에 배치하면 효과가 커지고, 일할수록 신뢰가 쌓여 사연과 개인 이야기가 열려요.<br>· 일터가 없는 사람은 ‘쉴 때 할 일’을 해요: 훈련(신뢰 절반 속도), 순찰(밤에 재 걷기), 주워 오기(자재 조금씩), 아이 돌보기(아이가 빨리 자라고 돌보는 사람을 닮아요).<br>· 쉘터 Lv.3부터 생존자 수첩의 ‘자동 배치’로 딱 맞는 사람을 한 번에 앉힐 수 있어요. 스위치를 켜 두면 빈 일터를 알아서 채워요.<br>· 쉘터 Lv.4부터 원정 탭의 ‘자동 원정’을 켜면, 쉬는 사람(순찰·아이 돌보기 제외)으로 가장 효율 좋은 팀을 꾸려 보내고 돌아오면 전리품을 알아서 챙겨요. 팀을 꾸릴 때 ‘자동 팀’ 버튼도 쓸 수 있어요.<br>· 등급: '+GR.slice(0,4).map(g=>`${g.n} ×${g.m}`).join(' · ')+' · 등급마다 1~5성, 처음 등급보다 최대 2단계까지 올라요.</p>');
   h+=sec('밤과 재폭풍','<p>· 밤마다 가장자리에 붉은 재가 쌓여요. 제때 걷어내지 않으면 땅이나 모듈을 잃어요.<br>· 세 번째 밤마다(공단은 두 번째) <b>대형 재폭풍</b>이 와요. 화면 어디든 두드리거나 문질러서 막아요. 랜턴탑·일하는 생존자·동맹이 함께 싸워요.</p>');
@@ -4954,7 +4955,7 @@ function setHdr(){const h=document.querySelector('header'),st=$('stage');if(!h||
 // crafting: how many can be made right now (materials and storage room), capped per press
 function craftMax(k){const r=RECIPES[k];if(!r||!wbL()||recipeLock(r))return 0;const inp=r.inp();let n=999;
   for(const m in inp){if(inp[m]>0)n=Math.min(n,Math.floor((S.m[m]||0)/inp[m]));}
-  if(!MN[r.out].tier){const room=Math.max(0,D.cap-(S.m[r.out]||0));n=Math.min(n,Math.floor(room/(r.n||1)));}
+  {const room=Math.max(0,capOf(r.out)-(S.m[r.out]||0));n=Math.min(n,Math.floor(room/(r.n||1)));}
   return Math.max(0,n);}
 // crafting: tap = 1, hold = keeps going and speeds up; one button per recipe
 function craftHintHtml(){return`<div class="chint">탭하면 1개 · 꾹 누르면 계속 만들어요${acraftOpen()?' · <b>자동</b>을 켜면 남는 재료를 알아서 가공해요':''}</div>`;}
@@ -5553,7 +5554,7 @@ function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;
   requestAnimationFrame(loop);}
 modal.addEventListener('click',e=>{if(UG&&e.target===modal)e.stopPropagation();},true);
 
-function renderMatsAll(){$('matsAll').innerHTML=MATS.map(m=>`<div class="ma">${micon(m.k,18)}<span>${m.n} <b>${fmt(S.m[m.k]||0)}</b>${m.tier?'':`<i style="font-style:normal;color:#b8a27c">/${fmt(D.cap)}</i>`}</span><small>${m.s2}</small></div>`).join('')+`<div class="cap">기본 자재 6종은 창고 한도 ${fmt(D.cap)}까지 모여요. 창고 모듈과 쉘터 증축으로 늘려요.</div>`;}
+function renderMatsAll(){$('matsAll').innerHTML=MATS.map(m=>`<div class="ma">${micon(m.k,18)}<span>${m.n} <b>${fmt(S.m[m.k]||0)}</b>${(m.tier||0)>=3?'':`<i style="font-style:normal;color:#b8a27c">/${fmt(capOf(m.k))}</i>`}</span><small>${m.s2}</small></div>`).join('')+`<div class="cap">기본 자재와 철판·밧줄은 창고 한도 ${fmt(D.cap)}, 전선·약품은 그 1/4까지 모여요. 창고 모듈과 쉘터 증축으로 늘려요. 건전지는 한도가 없어요.</div>`;}
 function wireUI(){
   $('mats').onclick=e=>{e.stopPropagation();const p=$('matsAll'),o=p.hidden;p.hidden=!o;$('mats').setAttribute('aria-expanded',o);if(o)renderMatsAll();};
   document.addEventListener('pointerdown',e=>{const p=$('matsAll');if(!p.hidden&&!e.target.closest('#matsAll,#mats')){p.hidden=true;$('mats').setAttribute('aria-expanded','false');}},true);
