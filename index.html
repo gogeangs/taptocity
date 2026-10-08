@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261009-gearart">
+<link rel="stylesheet" href="qa.css?v=20261009-migrec">
 <div id="app">
   <header>
     <div class="hud">
@@ -3911,7 +3911,22 @@ function migrateHtml(){if(S.lv<5||!(S.endSeen||S.gen)||(!S.gen&&!S.ehEnd&&svIn(1
   return`<button class="banner mig" data-act="migrate"><span><b>(선택) ${nextCaller()?nextCaller().n+'의 신호를 따라 ':''}새 동네로 떠나기 →</b><br>불씨를 들고 ${nr.n}에서 다시 시작해요 · 등불의 기억 ${g}단계 (생산·두드리기 +${g*10}%)</span></button>`;}
 let migConfirm=false;
 const MIG_MAX=5;let migPick=null;
-function migPickHtml(){const ids=Object.keys(S.sv).map(Number),sel=migPick||[];return`<div class="sec2">함께 갈 사람 <small>${sel.length}/${MIG_MAX}</small></div><div class="d" style="margin-bottom:6px">최대 ${MIG_MAX}명까지 데려가요. 남는 사람은 이 동네의 등불을 지키고, 나중에 무전으로 교대할 수 있어요.</div><div class="migpick">${ids.map(id=>{const s=SURV[id],on=sel.includes(id);return`<button class="mpk${on?' on':''}" data-act="migpick" data-arg="${id}" aria-pressed="${on}"><span class="fc">${portrait(s)}</span><b>${s.name}</b><small>${GR[gradeOf(id)].n} · ${s.job}</small></button>`;}).join('')}</div>`;}
+// ---------- migration pick: recommend a balanced five for the next town ----------
+const MIG_NEED={desert:{roles:['farm','cook'],eff:['thrift','food'],why:'물이 없는 동네 — 식량'},factory:{roles:['mech','guard'],eff:['craft','tap'],why:'재폭풍이 잦은 공단 — 가공·방어'},snow:{roles:['medic','guard'],eff:['hope','scav'],why:'한파의 산골 — 치료·수확'}};
+const ROLE_N={mech:'가공',drive:'운전',scout:'정찰',medic:'치료',heart:'사기',farm:'농사',cook:'요리',art:'그림',guard:'방어',sci:'기술'};
+function migScore(id,region){const N=MIG_NEED[region]||MIG_NEED.desert,r=S.sv[id],e=effOf(id)||{},why=[];let sc=gradeOf(id)*3+trustLv(r.xp||0);
+  const EN={thrift:'식량 절약',food:'식량 생산',craft:'가공',tap:'두드리기',hope:'희망',scav:'수확'};for(const k of N.eff)if(e[k]){sc+=3;why.push(EN[k]||k);}
+  for(const k of N.roles.concat('medic'))if((ROLE[id]||[]).includes(k)){sc+=k==='medic'&&!N.roles.includes(k)?2:4;why.push(ROLE_N[k]);}
+  if(sigWorn(id)){sc+=2;why.push('전용 도구');}
+  if(gradeOf(id)>=2)why.push(GR[gradeOf(id)].n);
+  return{sc,why:[...new Set(why)].slice(0,2)};}
+function migRecommend(region){const ids=Object.keys(S.sv).map(Number),N=MIG_NEED[region]||MIG_NEED.desert,sc={};for(const id of ids)sc[id]=migScore(id,region);
+  const pick=[],has=new Set();const take=id=>{if(!pick.includes(id)&&pick.length<MIG_MAX){pick.push(id);for(const k of ROLE[id]||[])has.add(k);}};
+  // one of each needed role first, then the rest by score; a medic is always worth a seat
+  for(const k of[...N.roles,'medic']){const c=ids.filter(id=>!pick.includes(id)&&(ROLE[id]||[]).includes(k)).sort((a,b)=>sc[b].sc-sc[a].sc)[0];if(c!=null&&!has.has(k))take(c);}
+  for(const id of ids.slice().sort((a,b)=>sc[b].sc-sc[a].sc))take(id);
+  return{pick,sc};}
+function migPickHtml(){const ids=Object.keys(S.sv).map(Number),sel=migPick||[],region=nextRegion(),R=migRecommend(region),N=MIG_NEED[region]||MIG_NEED.desert;return`<div class="sec2">함께 갈 사람 <small>${sel.length}/${MIG_MAX}</small></div><div class="d" style="margin-bottom:6px">최대 ${MIG_MAX}명까지 데려가요. 남는 사람은 이 동네의 등불을 지키고, 나중에 무전으로 교대할 수 있어요.</div><div class="row mcard migrec"><div class="cb"><div class="t">추천 다섯 명</div><div class="d">${N.why} · 필요한 역할 한 명씩 + 등급·신뢰 순</div></div><button class="buy" data-act="migrec">추천으로 고르기</button></div><div class="migpick">${ids.map(id=>{const s=SURV[id],on=sel.includes(id),rec=R.pick.includes(id),w=R.sc[id].why;return`<button class="mpk${on?' on':''}${rec?' rec':''}" data-act="migpick" data-arg="${id}" aria-pressed="${on}">${rec?'<i class="rtag">추천</i>':''}<span class="fc">${portrait(s)}</span><b>${s.name}</b><small>${GR[gradeOf(id)].n} · ${s.job}</small>${w.length?`<em>${w.join(' · ')}</em>`:''}</button>`;}).join('')}</div>`;}
 function openMigrate(){const nr=REGIONS[nextRegion()],g=(S.gen||0)+1,ids=Object.keys(S.sv).map(Number),n=ids.length;if(!migPick||migPick.some(id=>!S.sv[id]))migPick=ids.slice(0,MIG_MAX);const pick=n>MIG_MAX;
   openModal(`<div class="page"><div class="tag">이주 · ${g}번째 동네</div><h3>${nr.n}</h3><p>${nextCaller()?`${nextCaller().sub} ${nextCaller().n}의 신호를 따라, 불씨를 나누러 떠나요.`:'불씨를 들고 다음 동네로 떠나요.'} 이 동네의 불은 남는 사람들이 지켜요.</p>
     <div class="fx" style="color:#5a3f24">${nr.d}<br>구름이 조금 더 단단해요 (×${(1+.2*g).toFixed(1)})</div>
@@ -3919,6 +3934,7 @@ function openMigrate(){const nr=REGIONS[nextRegion()],g=(S.gen||0)+1,ids=Object.
     <div class="sec2" style="margin-top:6px">처음부터 다시</div><div class="d">지도 · 쉘터 단계 · 모듈 · 방벽 · 기본 자재 · 동맹</div>
     <div class="sec2" style="margin-top:6px">새로 얻는 것</div><div class="d"><b>등불의 기억 ${g}단계</b> · 모든 생산 +${g*10}% · 두드리는 힘 +${g*10}% (영구)<br>함께 온 사람 수만큼 침상 추가</div>
     <div class="btns" style="margin-top:14px"><button class="alt">조금 더 머물기</button><button data-act="migok" ${pick&&!migPick.length?'disabled':''}>떠나기</button></div></div>`,true);}
+modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="migrec"]');if(!b)return;e.stopPropagation();migPick=migRecommend(nextRegion()).pick;sfx('chime');openMigrate();},true);
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="migpick"]');if(!b)return;e.stopPropagation();const id=+b.dataset.arg;migPick=migPick||[];const i=migPick.indexOf(id);if(i>=0)migPick.splice(i,1);else if(migPick.length<MIG_MAX)migPick.push(id);else{toast(`최대 ${MIG_MAX}명까지 데려갈 수 있어요`);return;}sfx('tap');openMigrate();},true);
 function migrate(){const old=S,g=(old.gen||0)+1,region=nextRegion();{const e=tlogEntry();e.left={day:old.day||0,tower:old.tower||0,lv:old.lv||1,sets:Object.keys(decoSets()).map(q=>DSETS[q].n)};}{const c={};for(const t in old.deco||{})c[old.deco[t]]=(c[old.deco[t]]||0)+1;const ds=Object.keys(decoSets()).map(q=>DSETS[q].n);const parts=Object.keys(c).map(k=>`${DECO[k].n} ${c[k]}`);if(parts.length)tlog(`떠날 때 남긴 장식: ${parts.join(', ')}${ds.length?` · ${ds.join('·')}이(가) 있던 동네`:''}`);}
   // up to MIG_MAX people come along; the rest stay in this town (S.stay[g-1]) and can be swapped in by radio later
