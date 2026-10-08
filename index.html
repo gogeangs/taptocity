@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261009-ugrec">
+<link rel="stylesheet" href="qa.css?v=20261009-ptyrec">
 <div id="app">
   <header>
     <div class="hud">
@@ -2450,7 +2450,8 @@ function renderSheet(){if(!sheetTab)return;let h='';const st=$('shBody').scrollT
   if(sheetTab==='shelter')h=renderShelter();
   else if(sheetTab==='party'){$('shTitle').textContent='스킬 바에 데려갈 3명';
     const ids=Object.keys(S.sv).map(Number);if(!ids.length)h='<div class="row"><div class="d">아직 구조한 생존자가 없어요.</div></div>';
-    for(const id of ids){const s=SURV[id],on=S.party.includes(id);h+=`<div class="pick">${portrait(s)}<div><div class="t">${s.name} ${gradeTag(id)}<span class="badge ${on?'':'m'}">${on?'데려감':'대기'}</span></div><div class="d"><b>${SKILLS[id].n}</b> · ${SKILLS[id].d} (재사용 ${Math.round(skillCd(id))}초)</div></div><button class="buy ${on?'ghost':''}" data-act="pty" data-arg="${id}" ${!on&&S.party.length>=3?'disabled':''}>${on?'빼기':'넣기'}</button></div>`;}}
+    const R=ids.length>3?partyRecommend():null;if(R){const same=R.pick.every(id=>S.party.includes(id))&&S.party.length===R.pick.length;h+=`<div class="row mcard migrec"><div class="cb"><div class="t">추천 구성</div><div class="d">${R.pick.map(id=>`${SURV[id].name}(${SKCAT_N[skillCat(id)]||''})`).join(' · ')}${R.why.length?`<br>지금 상황: ${R.why.join(', ')}`:''}</div></div><button class="buy" data-act="ptyrec" ${same?'disabled':''}>${same?'적용됨':'추천으로 바꾸기'}</button></div>`;}
+    for(const id of ids){const s=SURV[id],on=S.party.includes(id),rec=R&&R.pick.includes(id);h+=`<div class="pick${rec?' rec':''}">${portrait(s)}<div><div class="t">${s.name} ${gradeTag(id)}<span class="badge ${on?'':'m'}">${on?'데려감':'대기'}</span>${rec?'<span class="badge rec">추천</span>':''}</div><div class="d"><b>${SKILLS[id].n}</b> · ${SKILLS[id].d} (재사용 ${Math.round(skillCd(id))}초)</div></div><button class="buy ${on?'ghost':''}" data-act="pty" data-arg="${id}" ${!on&&S.party.length>=3?'disabled':''}>${on?'빼기':'넣기'}</button></div>`;}}
   else if(sheetTab==='exp')h=renderExp();
   else if(sheetTab==='profile')h=renderProfile();
   else if(sheetTab==='pets')h=renderPets();
@@ -2736,6 +2737,25 @@ const skillCd=id=>SKILLS[id].cd*(1-.08*(trustLv(S.sv[id]?S.sv[id].xp:0)-1))*pw(i
 function useSkill(id){if(!S.sv[id]||busy(id)||(S.cd[id]||0)>0)return;const ok=SKILLS[id].fn();if(ok===false)return;S.cd[id]=skillCd(id);S.skillUses=(S.skillUses||0)+1;
   const[wx,wy]=[cam.x,cam.y];glow(wx,wy,260);floatText(wx,wy-20,`${SURV[id].name}: ${SKILLS[id].n}!`,'rgba(255,230,160,A)',30);buzz();renderSkills(true);save();}
 function tickSkills(dt){for(const k in S.cd){S.cd[k]-=dt;if(S.cd[k]<=0)delete S.cd[k];}}
+// ---------- skill bar: recommend three for what the shelter needs right now ----------
+// story survivors by id; residents carry skill.k themselves (craft/farm/scav/all)
+const SKILL_CAT={0:'reveal',1:'loot',2:'heal',3:'fever',4:'food',5:'all',6:'build',7:'find',8:'storm',9:'drone',10:'all',11:'scav',12:'reset',13:'all',14:'heal',15:'craft',16:'reveal',17:'scav'};
+const SKCAT_N={reveal:'땅 밝히기',loot:'자재 보따리',heal:'치료·복구',fever:'피버',food:'식량',all:'전체 생산',build:'건설 절반',find:'발견물',storm:'재폭풍',drone:'드론',scav:'뒤지기',reset:'재사용 되감기',craft:'가공'};
+function skillCat(id){if(SKILL_CAT[id])return SKILL_CAT[id];const k=SURV[id]&&SURV[id].skill&&SURV[id].skill.k;return k==='farm'?'food':k||'all';}
+function partyNeeds(){const m=mission(),g=(m&&m.txt)||'',w={all:2,scav:1.5,loot:1,fever:1,reset:1.6,craft:1,find:.8,heal:.8,storm:.5,food:.8,build:.6,reveal:.8,drone:hasMod(8)?1:0},why=[];
+  if(/밝히기|걷어|칸/.test(g)){w.reveal=3.2;w.find=1.5;why.push('땅 밝히기 목표');}
+  if(bigNightNext()||Object.keys(S.ash||{}).length){w.storm=3;w.heal=2;why.push(Object.keys(S.ash||{}).length?'재가 덮여 있음':'대형 재폭풍 예정');}
+  if(/만들기|짓기|세우기|쌓기|키우기|올리기|놓기|잇기|토대|기둥|렌즈/.test(g)){w.build=2.6;w.craft=1.8;why.push('건설 목표');}
+  if(D.hungry||(S.m.food||0)<40){w.food=3;why.push('식량 부족');}
+  if(Object.values(S.sv).some(r=>r.hurt>0)){w.heal=Math.max(w.heal,2.2);why.push('다친 사람 있음');}
+  return{w,why};}
+function partyRecommend(){const ids=Object.keys(S.sv).map(Number).filter(id=>SKILLS[id]);const{w,why}=partyNeeds();const sc={};
+  for(const id of ids){const c=skillCat(id);sc[id]=(w[c]||.5)*(1+.12*gradeOf(id))*Math.sqrt(60/Math.max(30,skillCd(id)));}
+  const order=ids.slice().sort((a,b)=>sc[b]-sc[a]),pick=[],cats=new Set();
+  for(const id of order){const c=skillCat(id);if(cats.has(c))continue;pick.push(id);cats.add(c);if(pick.length===3)break;}
+  for(const id of order){if(pick.length>=3)break;if(!pick.includes(id))pick.push(id);}
+  return{pick,sc,why};}
+$('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="ptyrec"]');if(!b)return;e.stopImmediatePropagation();S.party=partyRecommend().pick;sfx('chime');renderSkills(true);save();renderSheet();},true);
 function toggleParty(id){const k=S.party.indexOf(id);if(k>=0)S.party.splice(k,1);else if(S.party.length<3)S.party.push(id);renderSkills(true);save();}
 let skKey='';
 function renderSkills(force){const box=$('skills');const EP=effParty();const key=EP.map(e=>e.id+':'+e.sub).join(',')+'|'+S.party.map(id=>busy(id)?1:0).join('');

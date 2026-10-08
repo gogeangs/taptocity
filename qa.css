@@ -235,3 +235,9 @@
 .ugprep .mem.rec{border-color:#8a5a12!important;background:#fdf6df!important}
 .ugprep .mem .rtag{margin-left:auto;font:700 10px/1 var(--body);font-style:normal;padding:3px 7px;border-radius:999px;background:#e0b441;color:#3b2a1a;flex:none}
 .ugprep .mem.on .rtag{display:none}
+/* 스킬 바 추천 */
+.pick.rec{background:#fdf6df!important;border-left:3px solid #e0b441!important;padding-left:8px!important}
+.badge.rec{background:#e0b441!important;color:#3b2a1a!important}
+#shBody .row.mcard.migrec{display:flex;align-items:center;gap:10px;background:#fdf6df!important;border:1.5px solid #8a5a12!important;border-radius:10px!important;padding:8px 10px!important;margin:0 0 10px}
+#shBody .row.mcard.migrec .cb{flex:1;min-width:0}#shBody .row.mcard.migrec .buy{flex:0 0 auto;width:auto!important;min-width:0!important;padding:9px 12px!important;font-size:13px!important}
+#shBody .row.mcard.migrec .d{font-size:12px;line-height:1.45}
