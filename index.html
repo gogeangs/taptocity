@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261008a">
+<link rel="stylesheet" href="qa.css?v=20261008b">
 <div id="app">
   <header>
     <div class="hud">
@@ -4405,7 +4405,8 @@ function openPetName(k,first){const P=PETS[k],p=pets()[k];
 const petFeedCost=()=>scaleCost({food:8},Math.max(1,lvScale()*.8));
 function openPet(k){const P=PETS[k],p=pets()[k];if(!p)return;const l=petLv(k),m=petMul(k),on=S.petOn===k,fedW=Math.max(0,Math.ceil(((p.fedT||0)+120000-Date.now())/1000)),fc=petFeedCost(),pr=S.sv[P.pair];
   const nx=l<5?PXP[l]:0,pv=PXP[l-1];
-  openModal(`<div class="page petp"><div class="pethero"><div class="petimg sm"><img src="${petImg(k,p.c,120)}" alt=""></div><div><h3>${p.n}</h3><small>${P.n}${P.hidden?' · 히든':''}${p.away?' · 원정 중':''}</small>
+  const others=PKEYS.filter(q=>pets()[q]),strip=others.length>1?`<div class="petstrip" role="tablist">${others.map(q=>{const o=pets()[q],w=Math.max(0,Math.ceil(((o.fedT||0)+120000-Date.now())/1000));return`<button class="pst${q===k?' on':''}" role="tab" aria-selected="${q===k}" data-act="petopen" data-arg="${q}" title="${o.n}"><img src="${petImg(q,o.c,44)}" alt=""><i class="${w?'full':'hungry'}"></i></button>`;}).join('')}</div>`:'';
+  openModal(`<div class="page petp">${strip}<div class="pethero"><div class="petimg sm"><img src="${petImg(k,p.c,120)}" alt=""></div><div><h3>${p.n}</h3><small>${P.n}${P.hidden?' · 히든':''}${p.away?' · 원정 중':''}</small>
       <div class="svtr">${trustDots(l)}<div class="tbar"><i style="width:${l<5?Math.min(100,((p.xp||0)-pv)/(nx-pv)*100):100}%"></i></div><small>친밀도 ${l}/5</small></div></div></div>
     <div class="trait"><b>${on?'동행 효과':'쉬는 동안 (절반)'}</b> ${P.ed(on?m:m*.5)}${on?`<br><b>재주</b> ${P.act}`:''}<br><b>원정</b> ${P.expd} · <b>지하</b> ${P.ugd}</div>
     <div class="trait"><b>짝 · ${pr?P.pairN:'???'}</b> ${pr?`${jo(SURV[P.pair].name,'과','와')} 함께 있어요 · 희망 +3 · 친밀도 1.5배`:`${SURV[P.pair].hidden&&!S.sv[P.pair]?'아직 만나지 못한 누군가와':jo(SURV[P.pair].name,'과','와')} 잘 맞을 것 같아요`}</div>
@@ -4429,6 +4430,8 @@ function petBanner(){if(!petN()&&!S.stray)return'';return`<button class="banner 
 function renderPets(){$('shTitle').textContent='펫';let h='';const own=pets();
   if(S.stray&&strayVis())h+=`<button class="banner petb" data-act="petgo"><span class="pbimgs"><img src="${petImg(S.stray.k,null,40,true)}" alt=""></span><span><b>떠돌이 ${PETS[S.stray.k].hidden?'???':PETS[S.stray.k].n} · ${S.stray.n}/${S.stray.need}</b><br>지도에서 발자국 쪽으로 가기 →</span></button>`;
   if(!petN())h+=emptyHtml('🐾','아직 함께하는 펫이 없어요',petsOpen()?'구름을 걷다 보면 떠돌이 동물의 발자국이 지도에 찍혀요':'판잣집이 되고 생존자가 두 명 모이면 떠돌이 동물이 나타나요');
+  {const hungry=PKEYS.filter(k=>own[k]&&!(((own[k].fedT||0)+120000)>Date.now())),fc=petFeedCost(),tot={food:fc.food*hungry.length};
+   if(petN()>1)h+=`<div class="btns" style="margin:0 0 10px"><button class="buy" data-act="feedallpets" ${!hungry.length||!canPay(tot)?'disabled':''}>${hungry.length?`모두 먹이 주기 · ${hungry.length}마리 · 식량 ${tot.food}`:'모두 배불러요'}</button></div>`;}
   h+=`<div class="sec">함께하는 펫 ${petN()}/${PKEYS.length}</div><div class="petgrid">`;
   for(const k of PKEYS){const P=PETS[k],p=own[k];
     if(p)h+=`<button class="petc${S.petOn===k?' on':''}${P.hidden?' hid':''}" data-act="petopen" data-arg="${k}"><img src="${petImg(k,p.c,72)}" alt=""><b>${p.n}</b><small>${P.n} · 친밀도 ${petLv(k)}</small>${S.petOn===k?'<i class="pon">동행</i>':''}${p.away?'<i class="paw">원정</i>':''}</button>`;
@@ -4436,8 +4439,11 @@ function renderPets(){$('shTitle').textContent='펫';let h='';const own=pets();
   h+='</div><div class="sec">펫과 짝</div>'+PKEYS.filter(k=>own[k]).map(k=>{const P=PETS[k],on=!!S.sv[P.pair];return`<div class="bond ${on?'on':''}"><b>${on?P.pairN:'???'}</b> · ${own[k].n} + ${on||!SURV[P.pair].hidden?SURV[P.pair].name:'???'} ${on?'· 희망 +3 · 친밀도 1.5배':'함께 모이면 열려요'}</div>`;}).join('')||'<div class="emptyline"><span>펫을 데려오면 잘 맞는 생존자를 알려 줘요</span></div>';
   h+=`<div class="d" style="margin-top:10px">지도에서 펫을 누르면 쓰다듬고, 한 번 더 누르면 자세히 봐요.</div>`;
   return h;}
-$('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="petsheet"],[data-act="petopen"],[data-act="petgo"]');if(!b)return;e.stopImmediatePropagation();const a=b.dataset.act;
-  if(a==='petsheet')openSheet('pets');else if(a==='petopen')openPet(b.dataset.arg);else if(a==='petgo'&&S.stray){closeSheet();camFly(S.stray.i,10);}},true);
+$('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="petsheet"],[data-act="petopen"],[data-act="petgo"],[data-act="feedallpets"]');if(!b||b.disabled)return;e.stopImmediatePropagation();const a=b.dataset.act;
+  if(a==='petsheet')openSheet('pets');else if(a==='petopen')openPet(b.dataset.arg);else if(a==='petgo'&&S.stray){closeSheet();camFly(S.stray.i,10);}
+  else if(a==='feedallpets'){const fc=petFeedCost();let n=0;for(const k of PKEYS){const p=pets()[k];if(!p||((p.fedT||0)+120000)>Date.now())continue;if(!pay(fc))break;p.fedT=Date.now();petGain(k,12);n++;}if(n){sfx('get');toast(`펫 ${n}마리가 맛있게 먹었어요 · 친밀도 +12`);renderSheet();save();}}},true);
+// pet modal: the strip at the top switches pets without closing
+modal.addEventListener('click',e=>{const b=e.target.closest('.petstrip [data-act="petopen"]');if(!b)return;e.stopPropagation();sfx('tap');openPet(b.dataset.arg);},true);
 
 // ---------- per-second: companion tricks, bonding, stray spawns ----------
 function tickPets(){const own=pets();

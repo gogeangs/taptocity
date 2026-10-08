@@ -140,3 +140,11 @@
 .page .migpick .mpk b{font-size:13px}.page .migpick .mpk small{font-size:10.5px;color:var(--sepia-2,#6b5e52);white-space:normal}
 .page .migpick .mpk.on{border-color:#2f3f4b!important;background:#2f3f4b!important;color:#fff!important}.page .migpick .mpk.on small{color:#d9d4c8}
 .page .migpick .mpk.on .fc{border-color:#e0b441}
+/* pet modal: switch between pets without closing */
+.petp .petstrip{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;margin:-4px 0 6px;scrollbar-width:none}
+.petp .petstrip::-webkit-scrollbar{display:none}
+.petp .petstrip .pst{position:relative;flex:none;width:52px;height:52px;border-radius:50%;border:2px solid rgba(59,42,26,.25)!important;background:#efe6d2!important;padding:0!important;min-height:0!important;display:grid!important;place-items:center;box-shadow:none!important}
+.petp .petstrip .pst img{width:44px;height:44px;display:block}
+.petp .petstrip .pst.on{border-color:#2f3f4b!important;background:#fff8e6!important;box-shadow:0 0 0 2px rgba(47,63,75,.18)!important}
+.petp .petstrip .pst i{position:absolute;right:-1px;bottom:-1px;width:12px;height:12px;border-radius:50%;border:2px solid #f3eee2}
+.petp .petstrip .pst i.hungry{background:#d9483b}.petp .petstrip .pst i.full{background:#6b8f4a}
