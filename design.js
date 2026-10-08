@@ -18,7 +18,11 @@
     return '<svg class="illustrated-portrait" viewBox="0 0 120 140" role="img" aria-label="'+escape(label)+' 초상화"><svg width="120" height="140" viewBox="'+[x+6,y+6,w-12,h-14].join(' ')+'" preserveAspectRatio="xMidYMin slice"><image href="'+base+CK.file+'" width="'+CK.w+'" height="'+CK.h+'" preserveAspectRatio="none"/></svg></svg>';}
   const KIDC={'봄이':2,'다온':3,'로운':4,'하람':5};
   function kid(name){const n=KIDC[name];return n!=null&&ckReady()?ckCell(n,name):null;}
+  // 동네 사람들 (12 residents, ids 18..29): 4x3 sheet residents.webp, cells 686x764, in RESIDENTS order
+  const RS={file:'residents.webp',w:2744,h:2292,cols:4,rows:3},rsImg=new Image();rsImg.decoding='async';rsImg.src=base+RS.file;
   function portrait(s){
+    if(s&&s.src==='town'&&s.id>=18&&s.id<30){if(!(rsImg.complete&&rsImg.naturalWidth))return null;const n=s.id-18,w=RS.w/RS.cols,h=RS.h/RS.rows,x=n%RS.cols*w,y=Math.floor(n/RS.cols)*h;
+      return '<svg class="illustrated-portrait" viewBox="0 0 120 140" role="img" aria-label="'+escape(s.name)+' 초상화"><svg width="120" height="140" viewBox="'+[x+6,y+6,w-12,h-14].join(' ')+'" preserveAspectRatio="xMidYMin slice"><image href="'+base+RS.file+'" width="'+RS.w+'" height="'+RS.h+'" preserveAspectRatio="none"/></svg></svg>';}
     const p=s&&portraits[s.id];if(!p)return null;
     const a=sheets[p[0]],w=a.w/a.cols,h=a.h/a.rows,x=p[1]%a.cols*w,y=Math.floor(p[1]/a.cols)*h;
     return '<svg class="illustrated-portrait" viewBox="0 0 120 140" role="img" aria-label="'+escape(s.name)+' 초상화"><svg width="120" height="140" viewBox="'+[x,y,w,h].join(' ')+'" preserveAspectRatio="xMidYMin slice"><image href="'+base+a.file+'" width="'+a.w+'" height="'+a.h+'" preserveAspectRatio="none"/></svg></svg>';
