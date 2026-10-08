@@ -20,7 +20,13 @@
   function kid(name){const n=KIDC[name];return n!=null&&ckReady()?ckCell(n,name):null;}
   // 동네 사람들 (12 residents, ids 18..29): 4x3 sheet residents.webp, cells 686x764, in RESIDENTS order
   const RS={file:'residents.webp',w:2744,h:2292,cols:4,rows:3},rsImg=new Image();rsImg.decoding='async';rsImg.src=base+RS.file;
-  function portrait(s){
+  // 전용 도구를 든 초상: survivors-signature-1/2.webp, 3x3 each, cells 387x452, ids 0..8 and 9..17 in reading order
+  const SG=[{file:'survivors-signature-1.webp',w:1161,h:1356,cols:3,rows:3},{file:'survivors-signature-2.webp',w:1161,h:1356,cols:3,rows:3}],sgImg=SG.map(a=>{const im=new Image();im.decoding='async';im.src=base+a.file;return im;});
+  function sigPortrait(s){const id=s&&s.id;if(!(id>=0&&id<18))return null;const k=id<9?0:1,n=id<9?id:id-9,A=SG[k],im=sgImg[k];if(!(im.complete&&im.naturalWidth))return null;
+    const w=A.w/A.cols,h=A.h/A.rows,x=n%A.cols*w,y=Math.floor(n/A.cols)*h;
+    return '<svg class="illustrated-portrait sig" viewBox="0 0 120 140" role="img" aria-label="'+escape(s.name)+' 초상화"><svg width="120" height="140" viewBox="'+[x+4,y+4,w-8,h-10].join(' ')+'" preserveAspectRatio="xMidYMin slice"><image href="'+base+A.file+'" width="'+A.w+'" height="'+A.h+'" preserveAspectRatio="none"/></svg></svg>';}
+  function portrait(s,sig){
+    if(sig){const r=sigPortrait(s);if(r)return r;}
     if(s&&s.src==='town'&&s.id>=18&&s.id<30){if(!(rsImg.complete&&rsImg.naturalWidth))return null;const n=s.id-18,w=RS.w/RS.cols,h=RS.h/RS.rows,x=n%RS.cols*w,y=Math.floor(n/RS.cols)*h;
       return '<svg class="illustrated-portrait" viewBox="0 0 120 140" role="img" aria-label="'+escape(s.name)+' 초상화"><svg width="120" height="140" viewBox="'+[x+6,y+6,w-12,h-14].join(' ')+'" preserveAspectRatio="xMidYMin slice"><image href="'+base+RS.file+'" width="'+RS.w+'" height="'+RS.h+'" preserveAspectRatio="none"/></svg></svg>';}
     const p=s&&portraits[s.id];if(!p)return null;
@@ -78,5 +84,5 @@
   const gsImg={};for(const k in GS){const im=new Image();im.decoding='async';im.src=base+GS[k].file;gsImg[k]=im;}
   function gear(t){const c=GCELL[t];if(!c)return null;const A=GS[c[0]],im=gsImg[c[0]];if(!(im.complete&&im.naturalWidth))return null;const w=A.w/A.cols,h=A.h/A.rows,x=c[1]%A.cols*w,y=Math.floor(c[1]/A.cols)*h;
     return '<svg class="gart" viewBox="'+[x+8,y+8,w-16,h-16].join(' ')+'" aria-hidden="true"><image href="'+base+A.file+'" width="'+A.w+'" height="'+A.h+'"/></svg>';}
-  window.TTCDesign={portrait,silhouette,kid,core,module,moduleHeight,site,siteHeight,landmark,landmarkHeight,thumb,radio,gear,version:'landmarks-20261002',assets:[...Object.values(sheets).map(a=>base+a.file),...Object.values(GS).map(a=>base+a.file),base+SIL.file,base+'shelters.webp',base+'modules.webp',base+'radio.webp',base+'exploration-sites.webp',base+'landmarks.webp']};
+  window.TTCDesign={portrait,silhouette,kid,core,module,moduleHeight,site,siteHeight,landmark,landmarkHeight,thumb,radio,gear,sigPortrait,version:'landmarks-20261002',assets:[...Object.values(sheets).map(a=>base+a.file),...Object.values(GS).map(a=>base+a.file),...SG.map(a=>base+a.file),base+SIL.file,base+'shelters.webp',base+'modules.webp',base+'radio.webp',base+'exploration-sites.webp',base+'landmarks.webp']};
 })();

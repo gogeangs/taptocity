@@ -1260,10 +1260,10 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
   </div>
 </div>
 
-<script src="chapter-design.js?v=20261009-gear"></script>
+<script src="chapter-design.js?v=20261009-sig"></script>
 <script src="settlement.js?v=20261006-petscale"></script>
 <script src="people.js?v=20261001-people"></script>
-<script src="design.js?v=20261009-gear"></script>
+<script src="design.js?v=20261009-sig"></script>
 <script>
 
 (function(){
@@ -1527,6 +1527,8 @@ const itemAt=uid=>S.inv&&S.inv.find(x=>x.u===uid);
 // signature gear belongs to one person: nobody else can wear it
 const gearOnly=G=>G&&G.sig&&G.fit.length===1?G.fit[0]:null;
 const canWear=(id,t)=>{const o=gearOnly(GEAR[t]);return o==null||o===id;};
+// true when this survivor is wearing their own signature gear (portrait swaps to the 'holding it' version)
+function sigWorn(id){const r=(S&&S.sv&&S.sv[id])||(()=>{for(const g in (S&&S.stay)||{})if(S.stay[g].sv[id])return S.stay[g].sv[id];})();if(!r||!r.eq||!S.inv)return false;for(const sl in r.eq){const u=r.eq[sl];if(!u)continue;const it=S.inv.find(x=>x.u===u);if(it&&gearOnly(GEAR[it.t])===id)return true;}return false;}
 const wearer=uid=>{for(const id in S.sv){const q=S.sv[id].eq;if(q&&Object.values(q).includes(uid))return+id;}for(const g in S.stay||{})for(const id in S.stay[g].sv){const q=S.stay[g].sv[id].eq;if(q&&Object.values(q).includes(uid))return+id;}return null;};
 function gearEff(id){const o={},q=S.sv[id]&&S.sv[id].eq;if(!q)return o;for(const sl of SLOTK){const it=q[sl]!=null&&itemAt(q[sl]);if(!it)continue;const G=GEAR[it.t],f=G.fit.includes(id)?1.5:1;for(const k in G.eff)o[k]=(o[k]||0)+G.eff[k]*f;}return o;}
 
@@ -4764,7 +4766,7 @@ modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="gpick"],
   r.eq[sl]=uid;gearPick=null;recalc();save();sfx('get');toast(`${SURV[id].name}: ${GEAR[it.t].n} 장착`);reSurv(id);},true);
 // after crafting from the workbench sheet, equip() still brings you back to the page; keep the sheet you came from
 function equip(uid){const{id,slot}=gearCtx;const it=itemAt(uid);if(id==null||!it||GEAR[it.t].slot!==slot||!canWear(id,it.t))return;const w=wearer(uid);if(w!=null)S.sv[w].eq[slot]=null;
-  const r=S.sv[id];r.eq=r.eq||{};r.eq[slot]=uid;recalc();save();toast(`${SURV[id].name}: ${GEAR[it.t].n} 장착`);openSheet('surv');openSurv(id);}
+  const r=S.sv[id];r.eq=r.eq||{};r.eq[slot]=uid;recalc();save();const own=gearOnly(GEAR[it.t])===id;toast(own?`${SURV[id].name}: ${GEAR[it.t].n} 장착 · 초상이 바뀌었어요`:`${SURV[id].name}: ${GEAR[it.t].n} 장착`);if(own)sfx('chime');openSheet('surv');openSurv(id);}
 // flip through survivors without closing the page
 function svNavIds(){return Object.keys(S.sv).map(Number).sort((a,b)=>a-b);}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="svnav"]');if(!b)return;e.stopPropagation();const ids=svNavIds(),cur=+b.dataset.arg,k=ids.indexOf(cur),d=b.dataset.d==='1'?1:-1;
@@ -5752,7 +5754,7 @@ function landscape(){return LANDSCAPES[S.region]||LANDSCAPES.home;}
 // Approved illustrated presentation. Mechanics and saved progress retain their original paths.
 if(window.TTCDesign){
   const art=window.TTCDesign,oldPortrait=portrait,oldCore=drawCore,oldModule=drawModule;
-  portrait=function(s,locked){if(locked){const sil=art.silhouette&&art.silhouette(s);return sil?sil.replace(/<\/svg>$/,gradeFrame(s,1)+'</svg>'):oldPortrait(s,true);}return art.portrait(s)||oldPortrait(s,false);};
+  portrait=function(s,locked){if(locked){const sil=art.silhouette&&art.silhouette(s);return sil?sil.replace(/<\/svg>$/,gradeFrame(s,1)+'</svg>'):oldPortrait(s,true);}return art.portrait(s,sigWorn(s.id))||oldPortrait(s,false);};
   radioSvg=function(){return art.radio();};
   drawCore=function(time){if(!art.core(ctx,P,S.lv))return oldCore(time);const[x,y]=P(.5,.5,16);glowPts.push([x,y,42+S.lv*3,'240,192,113',.38]);};
   drawModule=function(i,m,time){if(!(window.TTCFinal&&TTCFinal.module(ctx,P,m.id,m.l,ZS))&&!art.module(ctx,P,m.id,m.l))return oldModule(i,m,time);if(m.l){const[x,y]=P(.5,.8,1);ctx.fillStyle='#efc77f';for(let k=0;k<m.l;k++)ctx.fillRect(x-3+k*4,y,2,2);}if(m.id===8||m.id===5&&S.m.fuel>0){const[x,y]=P(.5,.5,m.id===8?34:12);glowPts.push([x,y,m.id===8?34:22,'240,192,113',.42]);}};
