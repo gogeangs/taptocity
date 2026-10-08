@@ -153,3 +153,10 @@
 /* unmet survivor with a known signal: tappable row */
 .svrow.locked.sigrow{opacity:1;cursor:pointer;grid-template-columns:54px minmax(0,1fr) auto!important}
 .svrow.locked.sigrow small{color:#3f6fa0}
+
+/* migration: make the road out of a finished town visible */
+.banner.mig{background:linear-gradient(90deg,#6b3a1a,#b0452a)!important;color:#ffe9c4!important;border:0!important;box-shadow:0 0 0 2px rgba(255,200,110,.35),0 6px 18px rgba(176,69,42,.35)!important;animation:migglow 2.4s ease-in-out infinite}.banner.mig b{color:#ffe2a0!important}
+@keyframes migglow{0%,100%{box-shadow:0 0 0 2px rgba(255,200,110,.25),0 6px 18px rgba(176,69,42,.25)}50%{box-shadow:0 0 0 3px rgba(255,210,120,.6),0 8px 24px rgba(176,69,42,.5)}}
+#tape .migchip{flex:none;align-self:center;display:inline-flex!important;align-items:center;gap:4px;margin:0 0 0 8px;padding:8px 11px;border-radius:999px;border:0!important;background:linear-gradient(90deg,#6b3a1a,#b0452a)!important;color:#ffe2a0!important;font:700 12.5px/1 var(--body)!important;white-space:nowrap;box-shadow:0 2px 8px rgba(176,69,42,.4);animation:migglow 2.4s ease-in-out infinite;cursor:pointer;min-height:0!important}
+#tape .migchip[hidden]{display:none!important}
+@media(prefers-reduced-motion:reduce){.banner.mig,#tape .migchip{animation:none}}

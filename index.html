@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261008e">
+<link rel="stylesheet" href="qa.css?v=20261008f">
 <div id="app">
   <header>
     <div class="hud">
@@ -1225,7 +1225,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
       <div class="lvrow"><b id="lv">Lv.1 텐트</b><div class="inkbar"><i id="bar"></i></div><span id="barL"></span><small id="pop" hidden>생존자 0</small></div>
     </div>
     <div id="matsAll" hidden></div>
-    <div class="tape" id="tape"><div class="m" id="mis">…</div><button class="claim" id="claim" hidden>받기</button></div>
+    <div class="tape" id="tape"><div class="m" id="mis">…</div><button class="migchip" id="migchip" hidden>🔥 새 동네로</button><button class="claim" id="claim" hidden>받기</button></div>
   </header>
   <div id="stage">
     <canvas id="cv" role="img" aria-label="쉘터 지도"></canvas>
@@ -1947,8 +1947,8 @@ let misKey=null,misDoneAt=0;
 function hastenStorm(m){if(S.gen||!m||m.done||!m.step)return;const g=m.step.goal;if(g!=='재폭풍 밤 한 번 버티기'&&g!=='대형 재폭풍 한 번 막아내기')return;S.hasten=S.hasten||{};if(S.hasten[g])return;S.hasten[g]=1;
   if(g==='대형 재폭풍 한 번 막아내기'){const n=S.nightCount||0,r=n%3;if(r!==2)S.nightCount=n+(2-r+3)%3;}
   if(!isNight()&&phase()<DAY-25)S.clock=(S.clock||0)+(DAY-25-phase());save();}
-function renderMission(){migrateSteps();const m=mission();hastenStorm(m);const key=S.mi+'|'+m.done+'|'+m.txt;if(key===misKey)return;misKey=key;const st=m.step,c=st?STORY[st.ci]:null;
-  $('mis').innerHTML=`${c?`<span class="chap">${c.ch} <i>${st.si+1}/${c.steps.length}</i></span>`:(m.reg?`<span class="chap">${REG().n} <i>${(S.rmi||0)+1}/${regionMis().length}</i></span>`:`<span class="chap">끝없는 불빛 <i>${(S.eg&&S.eg.i||0)+1}</i></span>`)}<span class="goal">${m.done?'<em>✓</em> ':''}${m.txt}</span>${!m.done?'<span class="more" aria-hidden="true">▾</span>':''}<span class="sub">${c?`<b>${c.ch} · ${c.title}</b>`:''}${m.sub?` — ${m.sub}`:''}</span>`;
+function renderMission(){migrateSteps();const m=mission();hastenStorm(m);const key=S.mi+'|'+m.done+'|'+m.txt+(m.eg&&migrateHtml()?'|mig':'');if(key===misKey)return;misKey=key;const st=m.step,c=st?STORY[st.ci]:null;
+  $('mis').innerHTML=`${c?`<span class="chap">${c.ch} <i>${st.si+1}/${c.steps.length}</i></span>`:(m.reg?`<span class="chap">${REG().n} <i>${(S.rmi||0)+1}/${regionMis().length}</i></span>`:`<span class="chap">끝없는 불빛 <i>${(S.eg&&S.eg.i||0)+1}</i></span>`)}<span class="goal">${m.done?'<em>✓</em> ':''}${m.txt}</span>${!m.done?'<span class="more" aria-hidden="true">▾</span>':''}<span class="sub">${c?`<b>${c.ch} · ${c.title}</b>`:''}${m.sub?` — ${m.sub}`:''}</span>`;$('migchip').hidden=!(m.eg&&!m.done&&migrateHtml());
   $('claim').hidden=!m.done;$('tape').classList.toggle('done',!!m.done);misDoneAt=m.done?(misDoneAt||performance.now()):0;$('claim').innerHTML=`<b>받기</b><span class="rw">${Object.entries(m.rw).map(([k,v])=>`${micon(k,13)}${v}`).join(' ')}</span>`;}
 $('claim').onclick=e=>{e.stopPropagation();const m=mission();if(!m.done)return;sfx('chime');const got=give(m.rw);const r=$('claim').getBoundingClientRect();for(const k in m.rw)flyMat(k,null,null,r.left+r.width/2,r.top+r.height/2);
   const st=m.step;if(m.reg){const o=regOutro(S.rmi||0);S.rmi=(S.rmi||0)+1;if(o)openTalk(o,{tag:REG()?REG().n:''});}else if(S.mi<STEPS.length)S.mi++;else egNext();misKey=null;renderMission();save();
@@ -2408,7 +2408,7 @@ const card=(key,th,t,d,costs,btn,cls='')=>`<div class="row mcard ${cls}" data-k=
 function renderShelter(){const L=S.lv;$('shTitle').textContent=`Lv.${L} ${LVNAME[L-1]}`;let h='';
   h+=`<div class="sumchips"><span>${micon('scrap',13)}보관 한도 <b>${fmt(D.cap)}</b></span><span>침상 <b>${bedsUsed()}/${bedsMax()}</b></span><span>희망 <b>${D.hope}</b></span><span class="${D.hungry?'bad':''}">${micon('food',13)}<b>+${fmt(D.prod.food||0)}</b> / -${fmt(D.eat)}</span>${hasMod(5)?`<span class="${S.m.fuel>0?'':'bad'}">${micon('fuel',13)}-${fmt(D.fuelUse)}${S.m.fuel>0?'':' 멈춤'}</span>`:''}</div>${D.hungry?'<div class="warnline">배고파서 생산이 절반으로 줄었어요 · 텃밭을 늘리거나 식량을 모아요</div>':''}`;
   const segs=[['build','건설'],['craft','가공'],['research','연구'],['store','창고'],['deco','꾸미기']];h+=`<div class="segs" role="tablist">${segs.map(([k,n])=>`<button role="tab" class="seg${shTab===k?' on':''}" data-act="seg" data-arg="${k}" aria-selected="${shTab===k}">${n}${segNew('shelter',k)?'<i class="nw">N</i>':''}</button>`).join('')}</div>`;
-  if(shTab==='build'){h+=towerHtml();
+  if(shTab==='build'){h+=migrateHtml();h+=towerHtml();
   if(L<5){const u=SHUP[L-1],c=scaleCost(u.cost,costMult()),ok=modCount()>=u.need;
     h+=card('shup',thImg(coreThumb(L+1),'big'),`${jo(LVNAME[L],'으로','로')} 증축<small>Lv.${L+1}</small>`,`빈 자리 +${SLOTS[L]-SLOTS[L-1]} · 침상 +${BEDS[L]-BEDS[L-1]} · 랜턴 빛이 더 멀리 닿아요`,`<span class="cost cc${ok?' ok':' no'}" style="--p:${Math.min(1,modCount()/u.need).toFixed(3)}">모듈 <b>${modCount()}<i>/${u.need}</i></b><u></u></span>`+costHtml(c),btnCost('shup',0,'증축',c,!ok,'모듈 부족'),'hero');}
   const fs=freeSlot();h+=`<div class="sec">모듈 <small>빈 자리 ${fs<0?0:SLOTS[L-1]-modCount()}</small></div>`;
@@ -2421,7 +2421,6 @@ function renderShelter(){const L=S.lv;$('shTitle').textContent=`Lv.${L} ${LVNAME
   h+='<div class="sec">방벽</div>';
   if(S.walls>=3)h+=card('wall',`<span class="th ico">${ICO.wall}</span>`,`${WALLS[2].n}${pips(2)}`,'밤에 쉘터를 덮치는 재를 거의 다 막아요','',doneBadge());
   else{const c=scaleCost(WALLS[S.walls].cost,costMult());h+=card('wall',`<span class="th ico">${ICO.wall}</span>`,`${WALLS[S.walls].n}${S.walls?pips(S.walls-1):''}`,S.lv<2?'쉘터 Lv.2에 열려요':'밤마다 쉘터 모듈을 덮치는 재를 줄여요',S.lv<2?'':costHtml(c),S.lv<2?lockBadge('Lv.2'):btnCost('wall',0,'세우기',c),S.lv<2?'locked':'');}
-  h+=migrateHtml();
   }else if(shTab==='craft'){
   h+='<div class="sec">작업대 가공</div>'+(wbL()?craftHintHtml():'');
   if(!wbL())h+=emptyHtml(`<span class="th"><img src="${modThumb(1,0)}" alt=""></span>`,'작업대가 아직 없어요','작업대를 세우면 고철로 철판을, 천으로 밧줄을 만들 수 있어요');
@@ -5570,7 +5569,7 @@ function renderMatsAll(){$('matsAll').innerHTML=MATS.map(m=>`<div class="ma">${m
 function wireUI(){
   $('mats').onclick=e=>{e.stopPropagation();const p=$('matsAll'),o=p.hidden;p.hidden=!o;$('mats').setAttribute('aria-expanded',o);if(o)renderMatsAll();};
   document.addEventListener('pointerdown',e=>{const p=$('matsAll');if(!p.hidden&&!e.target.closest('#matsAll,#mats')){p.hidden=true;$('mats').setAttribute('aria-expanded','false');}},true);
-  $('tape').onclick=e=>{if(e.target.closest('#claim'))return;if(e.target.closest('.more')){$('tape').classList.toggle('open');return;}goMission();};
+  $('tape').onclick=e=>{if(e.target.closest('#claim'))return;if(e.target.closest('.migchip')){e.stopPropagation();sfx('tap');closeSheet();openMigrate();return;}if(e.target.closest('.more')){$('tape').classList.toggle('open');return;}goMission();};
   $('camBtn').onclick=()=>{const g=$('camGroup'),o=g.hidden;g.hidden=!o;$('camBtn').setAttribute('aria-expanded',o);};
   $('setBtn').onclick=()=>sheetTab==='settings'?closeSheet():openSheet('settings');}
 // Regional colors are presentation only; they do not alter terrain or resources.
