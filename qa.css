@@ -194,3 +194,11 @@
 .rmap .rway span{display:block}
 .sec .lnk{float:right;border:0;background:transparent;color:#8a5a12;font:600 12px/1.4 var(--body);padding:0;min-height:0;box-shadow:none;text-decoration:underline;text-underline-offset:2px}
 .page .migpick .mpk:disabled{opacity:.55}
+/* 무전 거래 */
+.row.mcard.tro .t{display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px}
+.ttag{display:inline-block;font:600 10.5px/1 var(--body);padding:3px 7px;border-radius:999px;background:rgba(59,42,26,.1);color:var(--sepia);font-style:normal}
+.ttag.good{background:rgba(96,160,80,.18);color:#2f6b2a}.ttag.poor{background:rgba(120,120,120,.16);color:#555}.ttag.urg{background:rgba(224,120,60,.2);color:#9a4612}
+.row.mcard.tro .d.q{font-style:italic;color:var(--sepia);margin:3px 0}
+.row.mcard.tro .costs{display:inline-flex;vertical-align:middle}
+.row.mcard.tro.urg{border-left:3px solid #e07a45!important;padding-left:8px!important}
+.row.mcard.tro .warn{font-style:normal;color:#9a4612;font-weight:600}

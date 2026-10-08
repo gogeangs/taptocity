@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261009-route">
+<link rel="stylesheet" href="qa.css?v=20261009-trade">
 <div id="app">
   <header>
     <div class="hud">
@@ -2500,7 +2500,7 @@ $('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act]');
   if(a==='sf'){survF=g;renderSheet();return;}
   if(a==='set'){toggleSet(g);return;}
   if(a==='geq')equip(+g);else if(a==='guneq')unequip();else if(a==='gcraft')craftGear(g);else if(a==='gdis')dismantle(+g);else if(a==='gback'){const id=gearCtx.id;closeSheet();openSurv(id);}else if(a==='bag'){gearCtx={id:null,slot:null};openSheet('gear');}
-  else if(a==='pull')pull(+g);else if(a==='swapin')openSwapOut(+g);else if(a==='swapcancel')swapCancel();else if(a==='exch')exchange();else if(a==='radio')openSheet('radio');else if(a==='upg')buyUp(g);else if(a==='reset')reset();else if(a==='diary')openDiary(+g);else if(a==='sv')openSurv(+g);else if(a==='pty'){toggleParty(+g);renderSheet();}
+  else if(a==='pull')pull(+g);else if(a==='swapin')openSwapOut(+g);else if(a==='trok')trAccept(+g);else if(a==='swapcancel')swapCancel();else if(a==='exch')exchange();else if(a==='radio')openSheet('radio');else if(a==='upg')buyUp(g);else if(a==='reset')reset();else if(a==='diary')openDiary(+g);else if(a==='sv')openSurv(+g);else if(a==='pty'){toggleParty(+g);renderSheet();}
   else if(a==='xplan'){expPlan={key:g,team:[]};renderSheet();}else if(a==='xmem'){toggleMem(+g);}else if(a==='xgo')startExp();else if(a==='xcancel'){expPlan=null;renderSheet();}else if(a==='xback')claimExp(g);
   else if(a==='asg')assign(asgTile,+g);else if(a==='unasg'){unassign(+g);recalc();save();closeSheet();openRing(+g);}
   else if(a==='shup'){upShelter();flashCard('shup');}else if(a==='mbuild'){const n0=modCount();buildMod(+g);if(modCount()>n0){const ks=Object.keys(S.mods).filter(k=>S.mods[k].id===+g);flashCard('m'+ks[ks.length-1]);}}else if(a==='mup'){upMod(+g);flashCard('m'+g);}else if(a==='wall'){upWalls();flashCard('wall');}else if(a==='craft'){const[k,n]=g.split(':');craft(+k,+n);}});
@@ -3013,6 +3013,44 @@ function radioSvg(spin){return`<svg class="radio${spin?' spin':''}" viewBox="0 0
 // ---- 무전 교대: call one person back from an earlier town; one of ours goes to take their place, so each town keeps its number ----
 const SWAP_COST={batt:2};
 const stayList=()=>{const o=[];for(const g in S.stay||{}){const t=S.stay[g];for(const id in t.sv)if(SURV[id])o.push({id:+id,gen:+g,town:REGIONS[t.region]?REGIONS[t.region].n:'첫 동네',r:t.sv[id]});}return o;};
+// ---------- 무전 거래: barter with the people who stayed behind ----------
+const TR_MAX=3,TR_TRUST=5;
+const TR_VAL={wood:1,scrap:1,food:1,cloth:1.2,fuel:2,parts:2.5,plate:4,rope:3,wire:6,med:6};
+const TR_REG={home:['wood','food','cloth','scrap'],desert:['fuel','fuel','scrap','cloth'],factory:['scrap','parts','parts','plate'],snow:['wood','wood','cloth','rope']};
+const TR_ROLE={mech:'parts',drive:'fuel',scout:'fuel',medic:'med',sci:'wire',farm:'food',cook:'food',art:'cloth',guard:'scrap',heart:'food'};
+const josa=(w,a,b)=>w+((w.charCodeAt(w.length-1)-0xac00)%28>0?a:b);
+const nj=(n,a,b)=>n+('013678'.includes(String(n).slice(-1))?a:b),nro=n=>n+('036'.includes(String(n).slice(-1))?'으로':'로');
+function trMake(x){const reg=(S.stay[x.gen]||{}).region||'home',pool=(TR_REG[reg]||TR_REG.home).slice();for(const r of(ROLE[x.id]||[]))if(TR_ROLE[r])pool.push(TR_ROLE[r],TR_ROLE[r]);
+  const gk=pool[(Math.random()*pool.length)|0];
+  // they want something we are long on; never the thing they send
+  const cand=Object.keys(TR_VAL).filter(k=>k!==gk&&(S.m[k]||0)>=4).sort((a,b)=>(S.m[b]||0)/capOf(b)*TR_VAL[b]-(S.m[a]||0)/capOf(a)*TR_VAL[a]).slice(0,3);
+  const wk=cand.length?cand[(Math.random()*cand.length)|0]:(gk==='food'?'wood':'food');
+  const urgent=Math.random()<1/6;let f=urgent?1.5:1.15*(0.75+Math.random()*.5);
+  let base=(36+10*(S.gen||0))*(0.8+Math.random()*.4);
+  if(S.wx==='cold'&&gk==='wood'){base*=.7;f*=.85;}if(S.wx==='clear'&&gk==='fuel')f*=1.15;if(S.wx==='acid'&&gk==='food'){base*=.7;f*=.9;}
+  const gn=Math.max(2,Math.round(base/TR_VAL[gk])),wn=Math.max(1,Math.round(gn*TR_VAL[gk]/f/TR_VAL[wk]));
+  const nm=SURV[x.id].name,G=MN[gk].n,W=MN[wk].n;
+  const txt=urgent?`${josa(W,'이','가')} 급해요. ${G} ${nro(gn)} 갚을게요.`:[`${G} ${gn} 보낼게요. ${W} ${wn} 주실 수 있어요?`,`여긴 ${josa(G,'이','가')} 남아요. ${W} ${nj(wn,'이랑','랑')} 바꿔요.`,`${G} ${gn}, 길 건너 보낼게요. ${W} ${wn}만 챙겨 줘요.`][(Math.random()*3)|0];
+  return{id:x.id,gen:x.gen,give:{[gk]:gn},want:{[wk]:wn},f,urgent,txt:`${nm}: “${txt}”`};}
+function trState(){S.trade=S.trade||{day:-1,offers:[],used:0,pend:[]};const L=stayList();if(!L.length){S.trade.offers=[];return S.trade;}
+  if(S.trade.day!==(S.day||0)){S.trade.day=S.day||0;S.trade.used=0;const pick=L.slice().sort(()=>Math.random()-.5).slice(0,TR_MAX);S.trade.offers=pick.map(trMake);}
+  S.trade.offers=S.trade.offers.filter(o=>S.stay[o.gen]&&S.stay[o.gen].sv[o.id]);return S.trade;}
+const trTag=o=>o.urgent?['급한 부탁','urg']:o.f>=1.3?['후한 편','good']:o.f<=.95?['박한 편','poor']:['보통',''];
+function trAccept(i){const T=trState(),o=T.offers[i];if(!o)return;if(T.used>=TR_MAX){toast(`오늘은 ${TR_MAX}건까지만 무전이 닿아요`);return;}
+  const gk=Object.keys(o.give)[0];if((S.m[gk]||0)>=capOf(gk)){toast(`${MN[gk].n} 창고가 꽉 찼어요`);return;}
+  if(!pay(o.want)){toast('자재가 모자라요');return;}
+  T.used++;T.offers.splice(i,1);T.pend.push({id:o.id,gen:o.gen,give:o.give,day:S.day||0});
+  const r=S.stay[o.gen]&&S.stay[o.gen].sv[o.id];if(r)r.xp=(r.xp||0)+TR_TRUST;
+  sfx('chime');toast(`${SURV[o.id].name}에게 보냈어요 · 새벽에 도착해요`);S.stat=S.stat||{};S.stat.trades=(S.stat.trades||0)+1;renderSheet();save();}
+function trArrive(){const T=S.trade;if(!T||!T.pend||!T.pend.length)return;const got=[];for(const p of T.pend.splice(0)){give(p.give);got.push(`${SURV[p.id].name}의 ${Object.entries(p.give).map(([k,n])=>`${MN[k].n} ${n}`).join(', ')}`);}
+  note({h:'무전 거래 물건이 도착했어요',t:`<small>${got.join(' · ')}</small>`,ms:5200});}
+function tradeHtml(){const L=stayList();if(!L.length)return'';const T=trState();
+  let h=`<div class="sec">무전 거래 · 남은 사람들 <small style="font-weight:500">오늘 ${T.used}/${TR_MAX}</small></div><div class="d" style="margin-bottom:6px">이전 동네에 남은 사람들이 그 동네에 남는 걸 보내 줘요. 내 자재는 바로 나가고, 물건은 다음 새벽에 길을 건너와요.</div>`;
+  for(const p of T.pend)h+=`<div class="row mcard trp"><span class="th"><span class="fc">${portrait(SURV[p.id])}</span></span><div class="cb"><div class="t">${SURV[p.id].name}<small>오는 중 · 새벽에 도착</small></div><div class="d">${Object.entries(p.give).map(([k,n])=>`${MN[k].n} ${n}`).join(', ')}</div></div></div>`;
+  if(T.used>=TR_MAX)h+='<div class="d">오늘 무전은 다 썼어요. 내일 새벽에 새 제안이 와요.</div>';
+  else if(!T.offers.length)h+='<div class="d">오늘은 더 제안이 없어요. 내일 새벽에 다시 와요.</div>';
+  else h+=T.offers.map((o,i)=>{const s=SURV[o.id],[tn,tc]=trTag(o),gk=Object.keys(o.give)[0],room=Math.max(0,capOf(gk)-(S.m[gk]||0)),full=room<=0,clip=room<o.give[gk];return`<div class="row mcard tro${o.urgent?' urg':''}"><span class="th"><span class="fc">${portrait(s)}</span></span><div class="cb"><div class="t">${s.name}<small>${L.find(x=>x.id===o.id).town}</small><i class="ttag ${tc}">${tn}</i></div><div class="d q">${o.txt}</div><div class="d">받는 것 <b>${MN[gk].n} ${o.give[gk]}</b>${clip&&!full?` <i class="warn">창고에 ${room}만 들어가요</i>`:''} · 보내는 것 <span class="costs">${costHtml(o.want)}</span></div></div>${full?'<button class="buy" disabled>창고 가득</button>':canPay(o.want)?`<button class="buy" data-act="trok" data-arg="${i}">보내기</button>`:'<button class="buy" disabled>자재 부족</button>'}</div>`;}).join('');
+  return h;}
 function swapHtml(){const L=stayList();if(!L.length&&!S.swap)return'';let h='<div class="sec">무전 교대 · 남은 사람들 <button class="lnk" data-act="route">노선도 보기 →</button></div><div class="d" style="margin-bottom:6px">이전 동네에 남은 사람을 불러요. 대신 여기 한 명이 그 동네로 가서 자리를 지켜요 · 다음 새벽에 도착</div>';
   if(S.swap){const w=S.swap;h+=`<div class="row mcard"><span class="th"><span class="fc">${portrait(SURV[w.inId])}</span></span><div class="cb"><div class="t">${SURV[w.inId].name}<small>오는 중 · 새벽에 도착</small></div><div class="d">${SURV[w.outId].name}이(가) 떠날 채비를 해요</div></div><button class="buy" data-act="swapcancel">취소</button></div>`;}
   else h+=L.map(x=>{const s=SURV[x.id];return`<div class="row mcard"><span class="th"><span class="fc">${portrait(s)}</span></span><div class="cb"><div class="t">${s.name}<small>${GR[s.grade||0].n} · ${s.job}</small></div><div class="d">${x.town}에 남아 있어요</div><div class="costs">${costHtml(SWAP_COST)}</div></div>${canPay(SWAP_COST)?`<button class="buy" data-act="swapin" data-arg="${x.id}">부르기</button>`:'<button class="buy" disabled>건전지 부족</button>'}</div>`;}).join('');
@@ -3032,7 +3070,7 @@ function renderRadio(){$('shTitle').textContent='주파수 탐색';const b=batt(
   h+=`<div class="row"><div><div class="t">건전지 만들기</div><div class="costs">${costHtml(c)}</div></div>${btnCost('exch',0,'만들기',c)}</div>`;
   h+='<div class="d" style="margin:8px 0 0">건전지는 목표·밤·원정·부탁에서 얻어요.</div>';
   h+='<div class="sec">히든 생존자</div><div class="cards">'+HIDDEN.map(id=>{const s=SURV[id];return S.sv[id]?`<button class="card hid" data-act="sv" data-arg="${id}">${portrait(s)}<b>${s.name}</b><small>${s.job}</small></button>`:`<div class="card locked hid">${portrait(s,true)}<b>???</b><small>${s.alias}</small></div>`;}).join('')+'</div>';
-  h+=swapHtml();
+  h+=tradeHtml();h+=swapHtml();
   h+=`<div class="sec">확률</div><div class="odds">${GTABLE.map(([,p,n])=>`<span>${n}</span><b>${Math.round(p*100)}%</b>`).join('')}</div><div class="d" style="margin-top:4px">히든 생존자를 모두 만나면 그 몫은 희귀 자재가 돼요. ${PITY}번 안에 한 번은 반드시 히든 신호가 잡혀요.</div>`;
   return h;}
 $('radio').onclick=()=>sheetTab==='radio'?closeSheet():openSheet('radio');
@@ -3539,7 +3577,7 @@ function wxMul(kind,k){const w=wxK();
   if(kind==='eat')return w==='cold'?1.3:1;if(kind==='fuel')return w==='cold'?2:1;
   if(kind==='scav')return w==='clear'?1.25:w==='acid'?.85:1;if(kind==='dig')return w==='clear'?1.2:w==='wind'?1.1:1;return 1;}
 const canForecast=()=>!!(S.sv[11]||hasMod(7));
-function onDawn(){S.wx=S.wxNext||rollWx();S.wxNext=rollWx();S.day=(S.day||0)+1;const W1=WX[S.wx];if(S.swap)swapArrive();
+function onDawn(){S.wx=S.wxNext||rollWx();S.wxNext=rollWx();S.day=(S.day||0)+1;const W1=WX[S.wx];if(S.swap)swapArrive();trArrive();trState();
   note({h:`${W1.ic} 오늘의 날씨 · ${W1.n}`,t:`<small>${W1.d}${canForecast()?` · 내일은 ${WX[S.wxNext].ic} ${WX[S.wxNext].n}`:''}</small>`,ms:5000});
   allyGifts();kidsDawn();}
 const wparts=Array.from({length:90},()=>({x:Math.random(),y:Math.random(),v:.5+Math.random()*.6,s:Math.random()}));
@@ -3838,7 +3876,7 @@ function migrate(){const old=S,g=(old.gen||0)+1,region=nextRegion();{const e=tlo
   const stay=Object.assign({},old.stay||{});if(Object.keys(stayed).length)stay[old.gen||0]={region:old.region||'home',n:old.gen||0,sv:stayed};
   const svGo={};for(const id of going)svGo[id]=old.sv[id];
   const keep={pf:old.pf,playT:old.playT,pfAsk:old.pfAsk,qc:old.qc,sv:svGo,party:(old.party||[]).filter(id=>svGo[id]),stay,inv:old.inv,iu:old.iu,relics:old.relics,ach:old.ach,title:old.title,kids:old.kids,dog:old.dog,endSeen:old.endSeen,conf:old.conf,hook:old.hook,tlog:old.tlog,rumor:old.rumor,sqN:old.sqN,cases:old.cases,odd:old.odd,dead:old.dead,egg:old.egg,crow:old.crow,pets:old.pets,petOn:old.petOn,stat:old.stat,gTotal:old.gTotal,gp:old.gp,heard:old.heard,found:old.found,mi:old.mi,storyI:old.storyI,
-    ug:old.ug||{best:0,runs:0,bestWith:{}},favDone:old.favDone,defWins:old.defWins,defs:old.defs,nights:old.nights,evDone:old.evDone,skillUses:old.skillUses,expDone:old.expDone,fevers:old.fevers,gUses:old.gUses,art:old.art,artNew:old.artNew,ehEnd:old.ehEnd,expTold:old.expTold};
+    ug:old.ug||{best:0,runs:0,bestWith:{}},favDone:old.favDone,defWins:old.defWins,defs:old.defs,nights:old.nights,evDone:old.evDone,skillUses:old.skillUses,expDone:old.expDone,fevers:old.fevers,gUses:old.gUses,art:old.art,artNew:old.artNew,ehEnd:old.ehEnd,expTold:old.expTold,trade:old.trade&&{day:-1,offers:[],used:0,pend:old.trade.pend||[]}};
   const carryM={batt:old.m.batt||0};for(const k of['plate','rope','wire','med'])carryM[k]=Math.floor((old.m[k]||0)/2);
   closeModal();closeSheet();closeRing();DEFN=null;UG=null;WALK={};CHAT=null;KW=[];
   fresh();Object.assign(S,keep);S.gen=g;S.region=region;S.rmi=0;S.rsI=0;S.arriveWins=S.defWins||0;
@@ -3863,6 +3901,7 @@ const FEAT=[
  {k:'auto',tab:'fSurv',sheet:'surv',on:()=>S.lv>=3,msg:'생존자 수첩 맨 위에서 버튼 한 번으로 일터를 채울 수 있어요',h:'자동 배치'},
  {k:'autoexp',tab:'fExp',sheet:'exp',on:()=>S.lv>=4,msg:'원정 탭 맨 위에서 자동 원정을 켤 수 있어요',h:'자동 원정'},
  {k:'acraft',tab:'fUp',sheet:'shelter',seg:'craft',on:()=>acraftOpen(),msg:'가공 탭에서 레시피마다 자동 가공을 켤 수 있어요 (쉘터 Lv.4 · 작업대 2단계)',h:'자동 가공'},
+ {k:'trade',tab:'radio',sheet:'radio',on:()=>stayList().length>0,msg:'라디오 ‘무전 거래’에서 남은 사람들과 물건을 바꿀 수 있어요',h:'무전 거래'},
  {k:'route',tab:'fDiary',sheet:'diary',seg:'towns',on:()=>(S.gen||0)>0,msg:'일지 ‘노선도’에서 지나온 동네와 남은 사람들을 볼 수 있어요',h:'만수의 노선도'},
  {k:'migrate',tab:'fUp',sheet:'shelter',seg:'build',on:()=>!!S.endSeen&&S.lv>=5&&(S.gen||S.ehEnd||!svIn(10)),msg:'쉘터 화면에서 새 동네로 떠날 수 있어요',h:'이주'}];
 function tickFeat(){if(!S.feat){S.feat={};for(const f of FEAT)if(f.on())S.feat[f.k]=2;}for(const f of FEAT){if(S.feat[f.k])continue;if(f.on()){S.feat[f.k]=1;(S.featQ=S.featQ||[]).push(f.k);}}
