@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261008f">
+<link rel="stylesheet" href="qa.css?v=20261008h">
 <div id="app">
   <header>
     <div class="hud">
@@ -1785,6 +1785,7 @@ function recalc(){calcEff();const E=D.E;FEVER_T=6+E.fever;
     if(m.id===6){D.heal=Math.max(D.heal,[2,3,4][l]*q);D.trustM=Math.max(D.trustM,1+[.1,.2,.3][l]*q);}
     if(m.id===7){D.visitDisc=Math.max(D.visitDisc,[.2,.35,.5][l]);D.expDisc=Math.max(D.expDisc,[0,.1,.2][l]);}}
   if(relicSet('hospital'))D.heal*=1.5;if(relicSet('station'))D.expDisc=Math.min(.6,D.expDisc+.1);
+  {const ds=decoSets();D.sets=ds;D.patrolM=ds.watch?1.3:1;if(ds.gate)D.visitDisc=Math.min(.6,D.visitDisc+.1);}
   const home=Object.values(S.sv).filter(r=>!r.away).length;
   D.eat=home*1*(1-E.thrift)*(1-Math.min(.7,waterRed));D.fuelUse=fuelUse;D.tapAdd=tapAdd;
   const mult=(1+E.global+genB)*(D.hungry?.5:1);
@@ -2514,7 +2515,7 @@ const trustDots=tl=>`<div class="trust">${[1,2,3,4,5].map(k=>`<i class="${k<=tl?
 function rescue(id,via){if(S.sv[id])return;S.sv[id]={xp:0,at:-1};sfx('join');if(S.party.length<3){S.party.push(id);renderSkills(true);}recalc();save();svNew=true;const s=SURV[id];
   const bond=BONDS.find(b=>b.ids.includes(id)&&b.ids.every(j=>S.sv[j]));
   openModal(`<div class="page"><div class="tag">${via==='visit'?'누군가 문을 두드려요':'구조 신호 · 생존자 발견'}</div><div class="pf">${portrait(s)}</div><h3>${s.name} ${gradeTag(id)}<small>${s.age}세 · ${s.job}</small></h3><p>${s.story[0]}</p>
-    <div class="trait">특기: ${s.trait(effOf(id))}<br>딱 맞는 일터: ${s.match.map(b=>BNAME[b]).join(', ')} (효과 ×2)${bond?`<br><b>인연 ‘${bond.name}’</b> ${bond.txt} ${bond.d}`:''}</div><button>마을로 맞이하기</button></div>`);}
+    <div class="trait">특기: ${s.trait(effOf(id))}<br>딱 맞는 일터: ${s.match.map(b=>BNAME[b]).join(', ')} (효과 ×2)${FAV[id]?`<br>좋아하는 장식: ${DECO[FAV[id]].n}${(S.favDone||{})[id]?' ✓':''}`:''}${bond?`<br><b>인연 ‘${bond.name}’</b> ${bond.txt} ${bond.d}`:''}</div><button>마을로 맞이하기</button></div>`);}
 function giftCost(id){return{food:Math.ceil(6*Math.pow(2.5,trustLv(S.sv[id].xp)-1))};}
 function openSurv(id,force){const s=SURV[id],r=S.sv[id],tl=trustLv(r.xp),nx=tl<5?TRUST[tl]:0,pv=TRUST[tl-1],gc=giftCost(id);
   const story=s.story.map((t,k)=>k<tl?`<li>${t}</li>`:`<li class="lock">신뢰도 ${k+1}에 열려요</li>`).join('');
@@ -3469,7 +3470,7 @@ const PAIRS={'0-1':[[1,'아저씨 버스, 제가 몇 번 추월했었죠?'],[0,'
 const NIGHTLINE=['불 좀 더 쬐고 가요.','오늘도 무사히 넘겼네.','별이 하나 보여요!','내일은 뭘 고칠까.'];
 let WALK={},chatT=8,CHAT=null,bubbleHit=[];
 function lifeTiles(){const R=S.lv+1,o=[];for(let y=CY-R;y<=CY+R;y++)for(let x=CX-R;x<=CX+R;x++){const i=y*W+x;if(x<0||y<0||x>=W||y>=H||!S.rev[i]||S.ter[i]===T.WATER||i===C0||D.modAt.has(i))continue;o.push(i);}return o;}
-function pickSpot(night){if(night){const[cx,cy]=tileC(C0),a=Math.random()*Math.PI*2;return[cx+Math.cos(a)*44,cy+14+Math.sin(a)*18];}
+function pickSpot(night){{const d=Math.random()<.5?decoSpot(night):null;if(d)return d;}if(night){const[cx,cy]=tileC(C0),a=Math.random()*Math.PI*2;return[cx+Math.cos(a)*44,cy+14+Math.sin(a)*18];}
   const L=lifeTiles();if(!L.length){const[cx,cy]=tileC(C0);return[cx+20,cy+20];}const i=L[(Math.random()*L.length)|0],[x,y]=tileC(i);return[x+(Math.random()-.5)*22,y+(Math.random()-.5)*8];}
 function tickLife(dt){const night=isNight()&&!DEFN;
   for(const k in S.sv){const id=+k,r=S.sv[id];let w=WALK[id];const free=!r.away&&!(r.hurt>0),working=r.at>=0;
@@ -3488,7 +3489,7 @@ function tickLife(dt){const night=isNight()&&!DEFN;
     for(let i=0;i<ids.length;i++)for(let j=i+1;j<ids.length;j++){if(pairKey(ids[i],ids[j])==='10-13')continue;const a=WALK[ids[i]],b=WALK[ids[j]],d=Math.hypot(a.x-b.x,a.y-b.y)+(PAIRS[pairKey(ids[i],ids[j])]?-60:0)+Math.random()*30;if(d<bd){bd=d;best=[ids[i],ids[j]];}}
     if(best&&bd<120){const[a,b]=best;const wa=WALK[a],wb=WALK[b];const mx=(wa.x+wb.x)/2,my=(wa.y+wb.y)/2;wa.tx=mx-12;wa.ty=my;wb.tx=mx+12;wb.ty=my;wa.idle=wb.idle=9;
       CHAT={a,b,t:0,dur:8,lines:convo(a,b)};}
-    else if(ids.length){const a=ids[(Math.random()*ids.length)|0];CHAT={a,b:a,t:0,dur:4,solo:1,lines:[[a,isNight()?NIGHTLINE[(Math.random()*4)|0]:SMALL[a][(Math.random()*3)|0]]]};}}}}
+    else if(ids.length){const a=ids[(Math.random()*ids.length)|0],w=WALK[a],dk=w&&decoNear(w.x,w.y);CHAT={a,b:a,t:0,dur:4,solo:1,lines:[[a,dk&&Math.random()<.6?DECO_TALK[dk][(Math.random()*2)|0]:isNight()?NIGHTLINE[(Math.random()*4)|0]:SMALL[a][(Math.random()*3)|0]]]};}}}}
 const pairKey=(a,b)=>a<b?`${a}-${b}`:`${b}-${a}`;
 function convo(a,b){const p=PAIRS[pairKey(a,b)];if(p)return p;const r=(Math.random()*3)|0;return[[a,SMALL[a][r]],[b,SMALL[b][(r+1)%3]]];}
 function drawLife(time){const list=Object.entries(WALK).sort((a,b)=>a[1].y-b[1].y);
@@ -3585,18 +3586,39 @@ function drawKids(time){(S.kids||[]).forEach((k,n)=>{const w=KW[n];if(!w)return;
 // ================= DECORATIONS (꾸미기) =================
 const DECO={pot:{n:'화분',hope:1,cost:{wood:6,food:4}},flag:{n:'깃발',hope:1,cost:{cloth:8,wood:4}},bench:{n:'벤치',hope:1,cost:{wood:12}},lamp:{n:'가로등',hope:2,cost:{scrap:10,parts:3,fuel:2}},
  chime:{n:'풍경',hope:2,cost:{scrap:6,rope:1}},string:{n:'등불 줄',hope:3,cost:{rope:2,parts:4,fuel:3}},mural:{n:'벽화 담장',hope:3,cost:{wood:15,cloth:10},lv:2},statue:{n:'기념 조각',hope:4,cost:{plate:8,parts:6},lv:3}};
+// ================= 꾸미기가 사람에게 닿도록: 취향 · 세트 · 반응 =================
+// each survivor has one decoration they love: placing it earns trust once and a line from them
+const FAV={0:'bench',1:'flag',2:'pot',3:'string',4:'pot',5:'bench',6:'lamp',7:'mural',8:'lamp',9:'chime',10:'string',11:'chime',12:'statue',13:'lamp',14:'pot',15:'statue',16:'flag',17:'string',
+ 18:'lamp',19:'pot',20:'bench',21:'chime',22:'statue',23:'pot',24:'string',25:'bench',26:'string',27:'lamp',28:'flag',29:'chime'};
+const FAV_SAY={0:'정류장 벤치 같구먼. 잠깐 앉았다 가야지.',1:'깃발이 있으면 배달 올 때 못 찾을 일이 없죠.',2:'초록이 하나 있으니까 숨이 좀 쉬어져요.',3:'불빛이 줄줄이! 할머니도 보일 거야.',4:'흙이 있으면 심을 게 있지. 고맙네.',5:'앉아서 국 한 그릇 먹기 딱 좋네.',6:'가로등 하나에 밤 공사가 되겠어.',7:'벽이 있으면 그려야죠. 이번엔 꽃부터.',8:'밤에 길이 보이면 사고가 줄어요.',9:'바람 소리가… 기록해 둘게요.',10:'불빛 줄이라. 오늘 밤 방송 배경으로 딱이네요.',11:'풍경 소리로 바람 방향을 알 수 있어요.',12:'기념물이군요. 시간이 쌓이는 자리예요.',13:'가로등 전압은 제가 봐 드릴게요.',14:'사막에서도 화분은 살아요. 제가 알아요.',15:'쇠로 만든 건 오래 가죠. 좋아요.',16:'깃발은 길 잃은 사람한테 등대예요.',17:'…불빛 줄, 처음 봐요. 예쁘네요.',
+ 18:'가로등은 제가 손봐 둘게요.',19:'화분 옆에서 요리하면 기분이 달라요.',20:'벤치… 짐 내려놓을 데가 생겼네.',21:'풍경이 울면 바람 기록을 적어요.',22:'기념물이라. 공장에도 하나 있었죠.',23:'화분에 허브 심어도 될까요?',24:'전선 줄은 제가 안전하게 묶을게요.',25:'앉아서 쉬는 것도 치료예요.',26:'등불 줄… 산장 생각이 나요.',27:'가로등 밑은 눈이 덜 쌓여요.',28:'깃발 보고 아이들이 길을 찾아요.',29:'풍경 소리로 밤 바람을 읽을 수 있어요.'};
+const DECO_TALK={pot:['화분에 새 잎이 났어요.','물 주는 거 잊지 마요.'],flag:['깃발이 저쪽으로 펄럭이네.','멀리서도 보이겠다.'],bench:['벤치 생기니까 살 것 같네.','잠깐만 앉았다 갈게요.'],lamp:['가로등 밑이 제일 따뜻해요.','밤이 덜 무섭네요.'],chime:['풍경 소리 들려요?','바람이 바뀌었어요.'],string:['불빛 줄 아래 모여요.','밤이 축제 같아요.'],mural:['벽화 앞에서 사진 찍고 싶다.','누가 그렸는지 알 것 같아요.'],statue:['여기 서면 마음이 가라앉아요.','기억하자는 거죠, 이거.']};
+// sets: decorations placed within two tiles of each other make a place with its own effect
+const DSETS={park:{n:'작은 공원',need:['pot','bench','lamp'],d:'희망 +5 · 쉬는 사람들이 모여요'},gate:{n:'마을 입구',need:['flag','string'],d:'방문객이 더 자주 찾아와요'},watch:{n:'밤의 파수',need:['chime','lamp'],d:'순찰이 1.3배 잘 돼요'},square:{n:'기념 광장',need:['statue','mural'],d:'희망 +4 · 밤마다 사람들이 모여요'}};
+const SET_HOPE={park:5,square:4};
+function decoSets(){const out={};const D=S.deco||{};const tiles=Object.keys(D).map(Number);for(const k in DSETS){const need=DSETS[k].need;for(const t of tiles){if(D[t]!==need[0])continue;const tx=t%W,ty=t/W|0;const ok=need.slice(1).every(n=>tiles.some(u=>D[u]===n&&Math.abs(u%W-tx)<=2&&Math.abs((u/W|0)-ty)<=2));if(ok){out[k]=t;break;}}}return out;}
+const decoFans=k=>Object.keys(FAV).map(Number).filter(id=>FAV[id]===k);
+function decoReact(k,i){const[x,y]=tileC(i,10);let n=0;S.favDone=S.favDone||{};
+  for(const id of decoFans(k)){if(!S.sv[id]||S.favDone[id])continue;S.favDone[id]=1;{const r=S.sv[id],b=trustLv(r.xp);r.xp+=30*D.trustM;if(trustLv(r.xp)>b){svNew=true;setTimeout(()=>toast(`${SURV[id].name} 신뢰도 ${trustLv(r.xp)}! 새 사연이 열렸어요`),1600);}}n++;
+    setTimeout(()=>{const w=WALK[id];if(w){w.tx=x+(Math.random()-.5)*14;w.ty=y+8;w.idle=6;CHAT={a:id,b:id,t:0,dur:4,solo:1,lines:[[id,FAV_SAY[id]||'좋네요.']]};}toast(`${jo(SURV[id].name,'이','가')} ${jo(DECO[k].n,'을','를')} 좋아해요 · 신뢰 +30`);},400*n);}
+  const before=S.setsSeen||{},now=decoSets();S.setsSeen=S.setsSeen||{};for(const q in now){if(before[q])continue;S.setsSeen[q]=1;const Z=DSETS[q];sfx('chime');note({h:`'${Z.n}'이(가) 생겼어요`,t:`<small>${Z.d}</small>`,kind:'story',ms:5200});tlog(`${Z.n}을(를) 꾸몄다.`);}
+  recalc();}
+// walkers lean toward decorations: a bench or a lantern string is where people linger
+function decoSpot(night){const D=S.deco||{};const pick=Object.keys(D).map(Number).filter(t=>night?(D[t]==='string'||D[t]==='lamp'||D[t]==='statue'):(D[t]==='bench'||D[t]==='pot'||D[t]==='mural'||D[t]==='statue'));if(!pick.length)return null;const t=pick[(Math.random()*pick.length)|0],[x,y]=tileC(t);return[x+(Math.random()-.5)*16,y+6+(Math.random()-.5)*6];}
+function decoNear(x,y){const D=S.deco||{};let best=null,bd=TW*1.1;for(const t in D){const[cx,cy]=tileC(+t);const d=Math.hypot(cx-x,(cy-y)*2);if(d<bd){bd=d;best=D[t];}}return best;}
 let PLACE=null;
 function decoHope(){const c={};for(const t in S.deco||{})c[S.deco[t]]=(c[S.deco[t]]||0)+1;let h=0;for(const k in c)h+=DECO[k].hope*Math.min(3,c[k]);return h;}
 const decoOk=i=>{const x=i%W-CX,y=(i/W|0)-CY;return Math.max(Math.abs(x),Math.abs(y))<=S.lv+2&&S.rev[i]&&i!==C0&&!D.modAt.has(i)&&!(S.site[i]&&S.site[i].c>0)&&!S.camp[i]&&S.ter[i]!==T.WATER&&S.ter[i]!==T.LM&&!(S.band&&S.band.tile===i)&&!(S.deco&&S.deco[i]);};
-function renderDecoTab(){let h=`<div class="d" style="margin-bottom:6px">장식은 희망을 올려요. 같은 장식은 3개까지 효과가 있어요. 지금 장식 희망 +${decoHope()}</div>`;
+function renderDecoTab(){let h=`<div class="d" style="margin-bottom:6px">장식은 희망을 올려요(같은 장식은 3개까지). 사람마다 좋아하는 장식이 있고, 가까이 놓은 장식끼리는 '장소'가 돼요. 지금 장식 희망 +${decoHope()+Object.keys(decoSets()).reduce((a,q)=>a+(SET_HOPE[q]||0),0)}</div>`;
+  {const ds=decoSets();h+='<div class="sec">장소</div><div class="setlist">'+Object.entries(DSETS).map(([q,Z])=>`<div class="dset${ds[q]?' on':''}"><b>${ds[q]?'✓ ':''}${Z.n}</b><small>${Z.need.map(n=>DECO[n].n).join(' + ')} 가까이 · ${Z.d}</small></div>`).join('')+'</div>';}
   for(const k in DECO){const d=DECO[k],c=scaleCost(d.cost,1),lock=d.lv&&S.lv<d.lv,n=Object.values(S.deco||{}).filter(x=>x===k).length;
-    const preview=window.TTCSettlement&&TTCSettlement.thumb(k);h+=card('dk'+k,`<span class="th">${preview?`<img src="${preview}" alt="">`:''}</span>`,`${d.n}<small>희망 +${d.hope}${n?` · 놓은 것 ${n}`:''}</small>`,lock?`쉘터 Lv.${d.lv}에 열려요`:'',lock?'':costHtml(c),lock?lockBadge(`Lv.${d.lv}`):btnCost('deco',k,'놓기',c));}
+    const preview=window.TTCSettlement&&TTCSettlement.thumb(k);h+=card('dk'+k,`<span class="th">${preview?`<img src="${preview}" alt="">`:''}</span>`,`${d.n}<small>희망 +${d.hope}${n?` · 놓은 것 ${n}`:''}${(()=>{const f=decoFans(k).filter(id=>S.sv[id]);return f.length?` · ${f.map(id=>SURV[id].name).join('·')}${f.some(id=>!(S.favDone||{})[id])?'이(가) 좋아해요':'의 취향'}`:'';})()}</small>`,lock?`쉘터 Lv.${d.lv}에 열려요`:'',lock?'':costHtml(c),lock?lockBadge(`Lv.${d.lv}`):btnCost('deco',k,'놓기',c));}
   const placed=Object.entries(S.deco||{});if(placed.length)h+='<div class="sec">놓은 장식</div><div class="d">지도에서 장식을 누르면 치울 수 있어요.</div>';
   return h;}
 function startPlace(k){if(!canPay(scaleCost(DECO[k].cost,1)))return;PLACE=k;closeSheet();$('placeBar').hidden=false;$('placeBar').innerHTML=`<b>${DECO[k].n}</b> 놓을 곳을 눌러요 <small>쉘터 둘레의 빈 땅</small><button id="placeX">취소</button>`;$('placeX').onclick=endPlace;}
 function endPlace(){PLACE=null;$('placeBar').hidden=true;}
 function placeAt(sx,sy){const w=toWorld(sx,sy),i=pickTile(w.x,w.y);if(i<0||!decoOk(i)){toast('여기엔 놓을 수 없어요. 쉘터 둘레의 빈 땅을 눌러요');return;}
-  const k=PLACE,c=scaleCost(DECO[k].cost,1);if(!pay(c)){endPlace();return;}(S.deco=S.deco||{})[i]=k;anims.set(i,0);sfx('get');const[cx,cy]=tileC(i,6);burst(cx,cy,'#ffd98a',14);recalc();save();
+  const k=PLACE,c=scaleCost(DECO[k].cost,1);if(!pay(c)){endPlace();return;}(S.deco=S.deco||{})[i]=k;anims.set(i,0);sfx('get');const[cx,cy]=tileC(i,6);burst(cx,cy,'#ffd98a',14);decoReact(k,i);save();
   if(canPay(c))toast(`${DECO[k].n}을(를) 놓았어요. 계속 놓거나 취소를 눌러요`);else{toast(`${DECO[k].n}을(를) 놓았어요`);endPlace();}}
 function drawDeco(i,k,time){if(window.TTCSettlement&&TTCSettlement.prop(ctx,P,TTCSettlement.deco[k],ZS)){if(k==='lamp'||k==='string'){const[x,y]=P(.5,.5,k==='lamp'?22:15);glowPts.push([x,y,k==='lamp'?24:30,'240,192,113',.36]);}return;}const g='#3b2a1a';
   if(k==='pot'){box(.4,.4,.6,.6,0,6,'#b0452a');for(let q=0;q<3;q++){const[x,y]=P(.5,.5,10+q*2);ctx.fillStyle=['#5c8f45','#79a852','#9fcf6a'][q];ctx.beginPath();ctx.arc(x+(q-1)*3,y,3.5,0,7);ctx.fill();}}
@@ -3651,7 +3673,7 @@ function renderAch(){S.ach=S.ach||{};const title=S.title||'등불지기';let h=`
 function achGet(k){const a=ACH.find(x=>x[0]===k);if(!a||S.ach[k]!==1)return;S.ach[k]=2;give({batt:a[5]});S.title=a[1];sfx('chime');toast(`칭호 ‘${a[1]}’ · 건전지 +${a[5]}`);renderSheet();save();}
 
 // ================= glue =================
-function extraEff(E){relicEff(E);kidEff(E);petEff(E);towerEff(E);feastEff(E);townEff(E);E.hope+=decoHope();const g=S.gen||0;if(g){E.global+=.1*g;E.tap+=.1*g;}}
+function extraEff(E){relicEff(E);kidEff(E);petEff(E);towerEff(E);feastEff(E);townEff(E);E.hope+=decoHope();{const ds=decoSets();for(const q in ds)E.hope+=SET_HOPE[q]||0;}const g=S.gen||0;if(g){E.global+=.1*g;E.tap+=.1*g;}}
 function worldFight(D2,dt){const A=(S.allies||[]).length;if(!A||!D2)return;D2.ally=(D2.ally||0)+dt;if(D2.ally<1.4/A)return;D2.ally=0;const live=D2.foes.filter(f=>!f.dead&&f.delay<=0);if(!live.length)return;const f=live[(Math.random()*live.length)|0];hurtFoe(f,tapPow()*.8);const[cx,cy]=tileC(C0);D2.beams=(D2.beams||[]).concat([{x0:f.x-40,y0:f.y-60,x1:f.x,y1:f.y-8,t:.25,c:'160,210,255'}]);}
 function openDecoTile(i){const k=S.deco[i];openModal(`<div class="page"><div class="tag">장식</div><h3>${DECO[k].n}</h3><p>쉘터 사람들이 오가며 한 번씩 쳐다봐요. 희망 +${DECO[k].hope}</p><div class="btns"><button class="alt">그대로 두기</button><button data-act="decorm" data-arg="${i}">치우기 (재료 절반 돌려받기)</button></div></div>`);}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,g=b.dataset.arg;
@@ -3679,7 +3701,7 @@ function tickDuty(){dutyT++;const ids=idleIds();if(!ids.length)return;const by={
   if(!D.hungry)for(const id of by.train){const r=S.sv[id],b=trustLv(r.xp);r.xp+=.5*D.trustM;const a=trustLv(r.xp);if(a>b){svNew=true;toast(`${SURV[id].name} 신뢰도 ${a}! 새 사연이 열렸어요`);recalc();}}
   // patrol: every 3s each patroller swings at the ash closest to the shelter
   if(by.patrol.length&&dutyT%3===0){const keys=Object.keys(S.ash||{}).map(Number).filter(k=>!S.ash[k].stuck||true).sort((a,b)=>dist(a)-dist(b));
-    by.patrol.forEach((id,n)=>{const i=keys[n%Math.max(1,keys.length)];if(i==null||!S.ash[i])return;const[x,y]=tileC(i,12);floatText(x,y-26,`${SURV[id].name.slice(1)} 순찰!`,'rgba(200,230,255,A)',16);hitAsh(i,tapPow()*.6);(S.stat=S.stat||{}).patrol=((S.stat||{}).patrol||0)+1;});}
+    by.patrol.forEach((id,n)=>{const i=keys[n%Math.max(1,keys.length)];if(i==null||!S.ash[i])return;const[x,y]=tileC(i,12);floatText(x,y-26,`${SURV[id].name.slice(1)} 순찰!`,'rgba(200,230,255,A)',16);hitAsh(i,tapPow()*.6*(D.patrolM||1));(S.stat=S.stat||{}).patrol=((S.stat||{}).patrol||0)+1;});}
   // scavenging: a small bundle every 25s each
   if(by.gather.length&&dutyT%25===0){by.gather.forEach((id,n)=>{const k=BASE[(Math.random()*BASE.length)|0],o={[k]:Math.max(1,Math.round(2.4*lvScale()))},w=WALK[id],i=w&&gatherSpot(id);
       if(w&&i>=0){const[tx,ty]=tileC(i);w.tx=tx+(Math.random()-.5)*10;w.ty=ty+6;w.idle=99;w.gat={i,o,t:0,n};}
@@ -3783,7 +3805,7 @@ function openMigrate(){const nr=REGIONS[nextRegion()],g=(S.gen||0)+1,ids=Object.
     <div class="sec2" style="margin-top:6px">새로 얻는 것</div><div class="d"><b>등불의 기억 ${g}단계</b> · 모든 생산 +${g*10}% · 두드리는 힘 +${g*10}% (영구)<br>함께 온 사람 수만큼 침상 추가</div>
     <div class="btns" style="margin-top:14px"><button class="alt">조금 더 머물기</button><button data-act="migok" ${pick&&!migPick.length?'disabled':''}>떠나기</button></div></div>`,true);}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="migpick"]');if(!b)return;e.stopPropagation();const id=+b.dataset.arg;migPick=migPick||[];const i=migPick.indexOf(id);if(i>=0)migPick.splice(i,1);else if(migPick.length<MIG_MAX)migPick.push(id);else{toast(`최대 ${MIG_MAX}명까지 데려갈 수 있어요`);return;}sfx('tap');openMigrate();},true);
-function migrate(){const old=S,g=(old.gen||0)+1,region=nextRegion();
+function migrate(){const old=S,g=(old.gen||0)+1,region=nextRegion();{const c={};for(const t in old.deco||{})c[old.deco[t]]=(c[old.deco[t]]||0)+1;const ds=Object.keys(decoSets()).map(q=>DSETS[q].n);const parts=Object.keys(c).map(k=>`${DECO[k].n} ${c[k]}`);if(parts.length)tlog(`떠날 때 남긴 장식: ${parts.join(', ')}${ds.length?` · ${ds.join('·')}이(가) 있던 동네`:''}`);}
   // up to MIG_MAX people come along; the rest stay in this town (S.stay[g-1]) and can be swapped in by radio later
   if(old.swap){old.m.batt=(old.m.batt||0)+SWAP_COST.batt;old.swap=null;}
   const all=Object.keys(old.sv).map(Number),going=all.length>MIG_MAX?(migPick||[]).filter(id=>old.sv[id]).slice(0,MIG_MAX):all;migPick=null;
@@ -3791,7 +3813,7 @@ function migrate(){const old=S,g=(old.gen||0)+1,region=nextRegion();
   const stay=Object.assign({},old.stay||{});if(Object.keys(stayed).length)stay[old.gen||0]={region:old.region||'home',n:old.gen||0,sv:stayed};
   const svGo={};for(const id of going)svGo[id]=old.sv[id];
   const keep={pf:old.pf,playT:old.playT,pfAsk:old.pfAsk,qc:old.qc,sv:svGo,party:(old.party||[]).filter(id=>svGo[id]),stay,inv:old.inv,iu:old.iu,relics:old.relics,ach:old.ach,title:old.title,kids:old.kids,dog:old.dog,endSeen:old.endSeen,conf:old.conf,hook:old.hook,tlog:old.tlog,rumor:old.rumor,sqN:old.sqN,cases:old.cases,odd:old.odd,dead:old.dead,egg:old.egg,crow:old.crow,pets:old.pets,petOn:old.petOn,stat:old.stat,gTotal:old.gTotal,gp:old.gp,heard:old.heard,found:old.found,mi:old.mi,storyI:old.storyI,
-    ug:old.ug||{best:0,runs:0,bestWith:{}},defWins:old.defWins,defs:old.defs,nights:old.nights,evDone:old.evDone,skillUses:old.skillUses,expDone:old.expDone,fevers:old.fevers,gUses:old.gUses,art:old.art,artNew:old.artNew,ehEnd:old.ehEnd,expTold:old.expTold};
+    ug:old.ug||{best:0,runs:0,bestWith:{}},favDone:old.favDone,defWins:old.defWins,defs:old.defs,nights:old.nights,evDone:old.evDone,skillUses:old.skillUses,expDone:old.expDone,fevers:old.fevers,gUses:old.gUses,art:old.art,artNew:old.artNew,ehEnd:old.ehEnd,expTold:old.expTold};
   const carryM={batt:old.m.batt||0};for(const k of['plate','rope','wire','med'])carryM[k]=Math.floor((old.m[k]||0)/2);
   closeModal();closeSheet();closeRing();DEFN=null;UG=null;WALK={};CHAT=null;KW=[];
   fresh();Object.assign(S,keep);S.gen=g;S.region=region;S.rmi=0;S.rsI=0;S.arriveWins=S.defWins||0;
@@ -4086,7 +4108,7 @@ function openSurv(id,force){const s=SURV[id],r=S.sv[id],tl=trustLv(r.xp),nx=tl<5
     <div class="svhero"><div class="pf pg${gradeOf(id)}">${portrait(s)}</div><div class="svid"><h3>${s.name}</h3><div class="svgr">${gradeTag(id)}</div><small>${s.age}세 · ${s.job}</small>
       <span class="svst${r.at>=0&&!r.away?' on':''}">${where}</span><div class="svtr">${trustDots(tl)}<div class="tbar"><i style="width:${tl<5?Math.min(100,(r.xp-pv)/(nx-pv)*100):100}%"></i></div><small>신뢰도 ${tl}/5</small></div></div>${Object.keys(S.sv).length>1?`<div class="svnav"><button data-act="svnav" data-arg="${id}" data-d="-1" aria-label="이전 생존자">‹</button><button data-act="svnav" data-arg="${id}" data-d="1" aria-label="다음 생존자">›</button></div>`:''}</div>
     <div class="segs stabs" role="tablist">${tabs.map(([k,nm,dot])=>`<button role="tab" class="seg${survTab===k?' on':''}" data-stab="${k}">${nm}${dot?'<i class="nw"></i>':''}</button>`).join('')}</div>
-    <div class="stp${survTab==='info'?' on':''}" data-p="info"><div class="sline"><b>특기</b><span>${s.trait(effOf(id))}</span></div><div class="sline"><b>일터</b><span>${s.match.map(b=>BNAME[b]).join(', ')}</span></div>
+    <div class="stp${survTab==='info'?' on':''}" data-p="info"><div class="sline"><b>특기</b><span>${s.trait(effOf(id))}</span></div><div class="sline"><b>일터</b><span>${s.match.map(b=>BNAME[b]).join(', ')}</span></div>${FAV[id]?`<div class="sline"><b>장식</b><span>${jo(DECO[FAV[id]].n,'을','를')} 좋아해요${(S.favDone||{})[id]?' ✓':''}</span></div>`:''}
       <div class="sline"><b>스킬</b><span>${SKILLS[id].n} · ${SKILLS[id].d}</span></div>${dutyHtml(id)}</div>
     <div class="stp${survTab==='grow'?' on':''}" data-p="grow"><div class="stiles"><div><b>×${p.m.toFixed(2)}</b><small>특기 효과</small></div><div><b>×${(2+p.w).toFixed(2)}</b><small>딱 맞는 일터</small></div><div><b>-${Math.round((1-p.cd)*100)}%</b><small>스킬 대기</small></div></div>${promoHtml(id)}</div>
     <div class="stp${survTab==='gear'?' on':''}" data-p="gear">${gearHtml(id)}</div>

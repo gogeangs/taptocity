@@ -160,3 +160,8 @@
 #tape .migchip{flex:none;align-self:center;display:inline-flex!important;align-items:center;gap:4px;margin:0 0 0 8px;padding:8px 11px;border-radius:999px;border:0!important;background:linear-gradient(90deg,#6b3a1a,#b0452a)!important;color:#ffe2a0!important;font:700 12.5px/1 var(--body)!important;white-space:nowrap;box-shadow:0 2px 8px rgba(176,69,42,.4);animation:migglow 2.4s ease-in-out infinite;cursor:pointer;min-height:0!important}
 #tape .migchip[hidden]{display:none!important}
 @media(prefers-reduced-motion:reduce){.banner.mig,#tape .migchip{animation:none}}
+/* decoration sets */
+.setlist{display:grid;gap:6px;margin:0 0 12px}
+.dset{padding:8px 10px;border-radius:10px;border:1px solid rgba(59,42,26,.18);background:rgba(255,255,255,.35);font:600 13px/1.35 var(--body);color:var(--sepia)}
+.dset small{display:block;font:11.5px/1.4 var(--body);color:var(--sepia-2,#6b5e52)}
+.dset.on{background:#2f3f4b;color:#fff;border-color:#2f3f4b}.dset.on small{color:#d9d4c8}
