@@ -271,3 +271,25 @@
 .page.tidyp .gn{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:999px;background:rgba(96,160,80,.14);color:#2f5a28;font:600 12.5px/1 var(--body)}
 .page.tidyp .trow{flex:0 0 auto!important;height:auto!important;padding:8px 10px!important;line-height:1.3!important;overflow:visible!important}
 .page.tidyp .trow>span{display:block;min-width:0}
+/* 잃은 사람 장면 */
+#ttcDeath{position:fixed;inset:0;z-index:500;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 40%,rgba(24,21,24,.97),rgba(5,4,6,.995));opacity:0;transition:opacity 1.2s ease}
+#ttcDeath.on{opacity:1}#ttcDeath.out{opacity:0;transition:opacity .7s ease}
+#ttcDeath .dbox{width:min(330px,100%);text-align:center;color:#e9e1d1;font-family:var(--body)}
+#ttcDeath .dtag{font-size:12px;letter-spacing:.08em;color:#9b927f;margin-bottom:16px;opacity:0;animation:dIn 1.4s ease var(--t1) forwards}
+#ttcDeath .dpf{width:150px;height:176px;margin:0 auto 16px;border-radius:12px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.6),0 0 0 1px rgba(233,225,209,.18);opacity:0;animation:dIn 1.6s ease .2s forwards,dFade 3s ease var(--t1) forwards}
+#ttcDeath .dpf svg,#ttcDeath .dpf img{width:100%;height:100%;display:block}
+#ttcDeath h3{font:700 26px/1.2 var(--display,inherit);margin:0;letter-spacing:.02em;opacity:0;animation:dIn 1.2s ease var(--t1) forwards}
+#ttcDeath .dsub{font-size:13px;color:#a79e8a;margin-top:4px;opacity:0;animation:dIn 1.2s ease var(--t1) forwards}
+#ttcDeath .dlast{margin:20px 4px 0;font-size:15.5px;line-height:1.7;color:#e9e1d1;opacity:0;animation:dIn 1.8s ease var(--t2) forwards;word-break:keep-all}
+#ttcDeath .dlamp{margin:22px auto 6px;height:44px;opacity:0;animation:dIn 1s ease var(--t2) forwards}
+#ttcDeath .dlamp .fl{transform-origin:20px 32px;animation:dFlick .18s ease-in-out infinite alternate,dOut 1.1s ease var(--t3) forwards,dRelit 1.4s ease var(--t4) forwards}
+#ttcDeath .dok{margin-top:14px;min-width:170px;padding:12px 20px;border-radius:999px;border:1px solid rgba(233,225,209,.35);background:transparent;color:#e9e1d1;font:600 14.5px/1 var(--body);transition:opacity .6s,background .3s}
+#ttcDeath .dok:disabled{opacity:.25}#ttcDeath .dok:not(:disabled):active{background:rgba(233,225,209,.12)}
+@keyframes dIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes dFade{from{filter:grayscale(0) brightness(1)}to{filter:grayscale(1) brightness(.78) contrast(.95)}}
+@keyframes dFlick{from{transform:scale(1,1)}to{transform:scale(.92,1.06)}}
+@keyframes dOut{to{opacity:.0;transform:scale(.3,.2)}}
+@keyframes dRelit{from{opacity:0;transform:scale(.3,.2)}to{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){#ttcDeath .dlamp .fl{animation:none}}
+#ttcDeath h3{font-size:28px}
+#ttcDeath .dlamp svg{filter:drop-shadow(0 0 10px rgba(255,190,110,.35))}

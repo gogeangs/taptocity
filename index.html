@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261010-tidy">
+<link rel="stylesheet" href="qa.css?v=20261010-death2">
 <div id="app">
   <header>
     <div class="hud">
@@ -1392,7 +1392,8 @@ function sfx(k){const a=ac();if(!a)return;const now=a.currentTime;if(lastS[k]&&n
   else if(k==='hit'){noise(0,.06,.26,900+Math.random()*300,1.2);tone(210+Math.random()*60,0,.08,'triangle',.06,120);}            // muffled crunch of ash and rubble
   else if(k==='get'){if(now-getT>1.6)getI=0;getT=now;const n=PENTA[Math.min(PENTA.length-1,getI++)];bell(n,0,.07,.5);}        // pickups climb a pentatonic run, then rest
   else if(k==='reveal'){noise(0,.5,.08,600,.4,'lowpass');bell(64,.06,.03,1.2);}                                                     // ash parts: a breath and a far bell
-  else if(k==='chime'){[[67,0],[72,.09],[76,.18]].forEach(([n,t])=>pno(n,t,.55,1.6));}                                              // small good thing: three piano notes
+  else if(k==='chime'){[[67,0],[72,.09],[76,.18]].forEach(([n,t])=>pno(n,t,.55,1.6));}
+  else if(k==='toll'){bell(43,0,.16,5.5);bell(55,.015,.035,3.8);noise(0,.12,.05,300,.6,'lowpass');}                              // one low bell for the lost                                              // small good thing: three piano notes
   else if(k==='find'){bell(79,0,.06,1.4);bell(84,.12,.04,1.2);}                                                                      // something found in the dark
   else if(k==='join'){[[60,0],[64,.07],[67,.14],[72,.21]].forEach(([n,t])=>pno(n,t,.6,2.4));bell(84,.32,.035,1.8);}                // someone joins the shelter
   else if(k==='level'){[60,64,67,71,74,79].forEach((n,i)=>pno(n,i*.11,.5+i*.06,2.4));pno(48,0,.5,3);}                              // the shelter grows
@@ -4615,7 +4616,7 @@ function petDrawMap(time){const night=isNight();
     ctx.scale(w.f*1.15,1.15);petShape(ctx,k,time,w.mv,COLLAR[p.c||0],night);ctx.restore();
     if(k==='fox'&&night)glowPts.push([w.x,w.y-6,26,'200,220,255',.45]);}
   for(const h of PHEART){const a=1-h.t/1.2;ctx.fillStyle=`rgba(230,90,90,${a})`;const x=h.x+Math.sin(h.t*6+h.o)*3,y=h.y-h.t*24;ctx.beginPath();ctx.moveTo(x,y+2.5);ctx.bezierCurveTo(x-4,y-1,x-2,y-4,x,y-1.6);ctx.bezierCurveTo(x+2,y-4,x+4,y-1,x,y+2.5);ctx.fill();}
-  strayDraw(time);towerDraw(time);townDraw(time);}
+  strayDraw(time);towerDraw(time);townDraw(time);memoDraw(time);}
 function petHit(sx,sy){for(const k in PW){const w=PW[k],a=window.TTCSettlement&&TTCSettlement.petMetric(k),h=a?a.h*1.15:12,s=toScreen(w.x,w.y-h/2);if(Math.hypot(s.x-sx,s.y-sy)<Math.max(16,(h/2+4)*cam.z))return k;}
   if(S.stray&&strayVis()){const[x,y]=tileC(S.stray.i,6),s=toScreen(x,y);if(Math.hypot(s.x-sx,s.y-sy)<Math.max(22,20*cam.z))return'stray';}return null;}
 let petPatT={};
@@ -5621,7 +5622,8 @@ modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="scenerep
   openTalk(src.lines,{tag:'회상 · '+src.tag,replay:1,noskip:E||undefined,onLine:E?endingLine:undefined,after:()=>{if(E){endFx=null;musicTick();}if(sheetTab==='diary')openScene(n);}});if(E){endFx={mood:'air'};musicTick();}},true);
 
 // ---- 배경 음악: pick the score's mood from what is happening ----
-function musicMood(){if(!SET.mus)return'off';
+let mournUntil=0;
+function musicMood(){if(!SET.mus)return'off';if(mournUntil&&(document.getElementById('ttcDeath')||Date.now()<mournUntil))return'off';
   if(endFx){if(talk||document.getElementById('endcard')||(endFx.until&&Date.now()<endFx.until))return endFx.mood;endFx=null;}
   if(S.tut){const U=S.tut;if(U.i<2)return'tut';if(U.i===2)return U.radio?'off':'air';return'storm';} // 그날 밤: the song on the radio, three silent minutes, then the flash
   if(typeof UG!=='undefined'&&UG)return'under';if(DEFN)return'storm';
@@ -5698,13 +5700,38 @@ function deathPick(){const safe=SAFE(),ids=Object.keys(S.sv).map(Number).filter(
   const w=id=>(S.sv[id].hurt>0?2:1)*(S.sv[id].at>=0?1.5:1);let tot=0;for(const id of ids)tot+=w(id);let r=Math.random()*tot;for(const id of ids){r-=w(id);if(r<=0)return id;}return ids[0];}
 function killSurv(id){const r=S.sv[id];if(!r)return;if(r.at>=0)delete S.asg[r.at];delete S.sv[id];S.party=S.party.filter(x=>x!==id);delete S.cd[id];delete WALK[id];if(CHAT&&(CHAT.a===id||CHAT.b===id))CHAT=null;
   S.dead=S.dead||[];S.dead.push({id,g:S.gen||0,town:REG()?REG().n:'',at:Date.now()});recalc();renderSkills(true);save();}
+// 가장 가까웠던 사람(짝 대화가 있는 사람 → 같은 인연 → 신뢰가 제일 높은 사람)
+function deathFriend(id){const here=Object.keys(S.sv).map(Number).filter(j=>j!==id&&!isDead(j));const pk=j=>PAIRS[pairKey(id,j)];
+  let f=here.find(pk);if(f==null){const b=BONDS.find(b=>b.ids.includes(id));if(b)f=b.ids.find(j=>j!==id&&here.includes(j));}
+  if(f==null&&here.length)f=here.slice().sort((a,b)=>(S.sv[b].xp||0)-(S.sv[a].xp||0))[0];return f==null?null:f;}
+// ---- 잃은 사람 장면: 지도가 잿빛으로 가라앉고 음악이 멎는다 → 종 한 번 → 초상이 흑백으로 바래고 마지막 한 줄 → 랜턴이 꺼졌다 다시 켜진다 ----
+function deathScene(id,o){const s=SURV[id],nm=s.name,R0=REG(),slow=!reduce,T=k=>slow?k:k*.35;
+  if(document.getElementById('ttcDeath'))document.getElementById('ttcDeath').remove();
+  closeModal();if(sheetTab)closeSheet();talk=null;mournUntil=Date.now()+(slow?9000:4000);
+  stage.style.transition='filter 1.6s ease';stage.style.filter='grayscale(.9) brightness(.7)';
+  sfx('toll');try{if(SET.vib&&navigator.vibrate)navigator.vibrate([80,140,80]);}catch(e){}
+  const d=document.createElement('div');d.id='ttcDeath';d.setAttribute('role','dialog');d.setAttribute('aria-label',nm+'을(를) 잃었어요');d.style.setProperty('--t1',T(.7)+'s');d.style.setProperty('--t2',T(2.4)+'s');d.style.setProperty('--t3',T(3.4)+'s');d.style.setProperty('--t4',T(5.2)+'s');
+  d.innerHTML=`<div class="dbox"><div class="dtag">${R0?R0.n+' · ':''}${S.day||1}일째 새벽</div><div class="dpf">${portrait(s)}</div><h3>${nm}</h3><div class="dsub">${s.age}세 · ${s.job}</div>
+    <p class="dlast">${LAST[id]||'그가 앉던 자리는 한동안 비워 두었다.'}</p>
+    <div class="dlamp" aria-hidden="true"><svg viewBox="0 0 40 52" width="34" height="44"><path d="M13 12h14M15 12V8h10v4M12 14h16l-2 26H14z" fill="none" stroke="#c9b48c" stroke-width="2" stroke-linejoin="round"/><path d="M15 40h10v4H15z" fill="#c9b48c"/><path class="fl" d="M20 20c4 4 4 9 0 12-4-3-4-8 0-12z" fill="#ffcf7a"/></svg></div>
+    <button class="dok" disabled>…</button></div>`;
+  document.body.appendChild(d);requestAnimationFrame(()=>d.classList.add('on'));
+  const ok=d.querySelector('.dok');setTimeout(()=>{ok.disabled=false;ok.textContent='이름을 새긴다';},T(5.4)*1000);
+  ok.onclick=()=>{if(ok.disabled)return;d.classList.add('out');stage.style.filter='';sfx('chime');setTimeout(()=>{d.remove();mournUntil=Date.now()+1500;
+    const fr=o.friend!=null&&S.sv[o.friend]?SURV[o.friend].name:null;
+    openTalk([o.raid?[ME,`${jo(o.raid,'이','가')} 물러간 새벽, ${jo(nm,'이','가')} 쓰러져 있었다.`]:[ME,`폭풍이 걷힌 새벽, ${jo(nm,'이','가')} 보이지 않았다.`],
+      o.raid?[G,`아이들 숨겨 둔 창고 문을 혼자 막고 있었대. 끝까지 비키지 않았다고.`]:[G,`…${o.where} 옆에서 찾았어. 끝까지 불을 지키고 있었더라고.`],
+      fr?[ME,`${jo(fr,'은','는')} 한참 동안 ${nm}의 자리를 떠나지 못했다.`]:null,
+      [ME,`우리는 ${nm}의 이름을 쉘터 문설주에 새겼다. ${o.tile!=null&&o.tile!==C0?`그리고 ${o.where} 옆에 작은 초를 하나 켜 두었다.`:'그리고 다시 불을 켰다.'}`]].filter(Boolean),{tag:`${R0?R0.n+' · ':''}잃은 사람`});},slow?700:200);};}
+// 그 동네에 있는 동안 그 사람이 일하던 자리에 작은 초가 켜져 있다
+function memoDraw(time){const m=S.memo&&S.memo[S.gen||0];if(!m||m.i==null||!S.rev[m.i])return;const[x,y]=tileC(m.i,2),f=reduce?1:.85+.15*Math.sin(time/180+m.i);
+  ctx.save();ctx.fillStyle='#efe6d2';ctx.strokeStyle='#231a14';ctx.lineWidth=.9;ctx.beginPath();ctx.rect(x+12,y-9,3.2,7);ctx.fill();ctx.stroke();
+  ctx.fillStyle=`rgba(255,207,122,${f})`;ctx.beginPath();ctx.moveTo(x+13.6,y-15*f);ctx.quadraticCurveTo(x+16,y-11,x+13.6,y-9.5);ctx.quadraticCurveTo(x+11.2,y-11,x+13.6,y-15*f);ctx.fill();ctx.restore();glowPts.push([x+13.6,y-11,16,'255,200,120',.35*f]);}
 {const o=endDefense;endDefense=function(win){const D2=DEFN,r=o.apply(this,arguments);
   if(S.gen&&D2&&(S.rmi||0)>=1&&!(S.deathG||{})[S.gen]){S.deathTry=S.deathTry||{};const n=S.deathTry[S.gen]=(S.deathTry[S.gen]||0)+1,p=win===false?.8:([.3,.5,.75][n-1]||1)*(n<4&&D2.hp>=80?.5:1);
-    if(Math.random()<p){const id=deathPick();if(id!=null){(S.deathG=S.deathG||{})[S.gen]=1;const nm=SURV[id].name,raid=D2.raid,where=S.sv[id].at>=0?workName(S.sv[id].at):'방벽';killSurv(id);
+    if(Math.random()<p){const id=deathPick();if(id!=null){(S.deathG=S.deathG||{})[S.gen]=1;const nm=SURV[id].name,raid=D2.raid,where=S.sv[id].at>=0?workName(S.sv[id].at):'방벽',tile=S.sv[id].at>=0?S.sv[id].at:C0,friend=deathFriend(id);killSurv(id);(S.memo=S.memo||{})[S.gen]={i:tile,id};
       tlog(`${jo(nm,'을','를')} 잃었다.`);
-      setTimeout(()=>openTalk([raid?[ME,`${jo(raid,'이','가')} 물러간 새벽, ${jo(nm,'이','가')} 쓰러져 있었다.`]:[ME,`폭풍이 걷힌 새벽, ${jo(nm,'이','가')} 보이지 않았다.`],
-        raid?[G,`아이들 숨겨 둔 창고 문을 혼자 막고 있었대. 끝까지 비키지 않았다고.`]:[G,`…${where} 옆에서 찾았어. 끝까지 불을 지키고 있었더라고.`],
-        [ME,LAST[id]||'그가 앉던 자리는 한동안 비워 두었다.'],[ME,`우리는 ${nm}의 이름을 쉘터 문설주에 새겼다. 그리고 다시 불을 켰다.`]],{tag:`${REG()?REG().n+' · ':''}잃은 사람`}),2600);}}}
+      setTimeout(()=>deathScene(id,{raid,where,tile,friend}),2200);}}}
   return r;};}
 function memorialHtml(){const L=S.dead||[];if(!L.length)return'';
   return`<div class="sec">잃은 사람들 ${L.length}</div>`+L.map(d=>{const s=SURV[d.id];return`<div class="svrow locked mem"><span class="fc">${portrait(s)}</span><span class="mid"><b>${s.name}</b><small>${s.job}${d.town?` · ${d.town}에서`:''}</small><small class="ep">${LAST[d.id]||''}</small></span></div>`;}).join('');}
