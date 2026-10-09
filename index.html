@@ -4588,15 +4588,16 @@ function strayDraw(time){const s=S.stray;if(!s||!strayVis())return;const[x,y]=ti
   ctx.save();ctx.globalAlpha=a;ctx.translate(x+4,y+4);ctx.scale(-1.25,1.25);petShape(ctx,s.k,time,false,'#8a7a64',s.k==='fox');ctx.restore();
   const by=y-24-(reduce?0:Math.abs(Math.sin(time/300))*4);ctx.fillStyle='#fff8e6';ctx.strokeStyle='#3b2a1a';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(x+4,by,7,0,7);ctx.fill();ctx.stroke();
   ctx.fillStyle='#b0452a';ctx.font='700 10px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(s.n?'♥':'?',x+4,by+.5);if(s.k==='fox')glowPts.push([x,y-6,30,'200,220,255',.4]);}
-const strayCost=()=>scaleCost({food:6},Math.max(1,lvScale()*.8));
-function openStray(){const s=S.stray;if(!s)return;const P=PETS[s.k],c=strayCost(),wait=Math.max(0,Math.ceil((s.t-Date.now())/1000));
-  const moods=['낯선 사람을 경계하며 멀찍이 떨어져 있어요.','조금 가까이 다가왔어요. 코를 킁킁거려요.','이제 손을 내밀면 냄새를 맡아요.'];
+const ROBO=k=>k==='bot';
+const strayCost=k=>scaleCost(ROBO(k)?{fuel:4}:{food:6},Math.max(1,lvScale()*.8));
+function openStray(){const s=S.stray;if(!s)return;const P=PETS[s.k],c=strayCost(s.k),wait=Math.max(0,Math.ceil((s.t-Date.now())/1000));
+  const robo=ROBO(s.k),moods=robo?['삐빅, 경계음을 내며 멀찍이 떨어져 있어요.','조금 가까이 다가왔어요. 눈의 센서가 깜빡여요.','이제 손을 내밀면 센서로 훑어봐요.']:['낯선 사람을 경계하며 멀찍이 떨어져 있어요.','조금 가까이 다가왔어요. 코를 킁킁거려요.','이제 손을 내밀면 냄새를 맡아요.'];
   openModal(`<div class="page petp"><div class="tag">떠돌이 ${P.hidden?'???':P.n} · ${s.n}/${s.need}</div><div class="petimg stray"><img src="${petImg(s.k,null,120)}" alt="" style="opacity:${.45+.5*s.n/s.need}"></div>
     <p>${moods[Math.min(2,s.n)]}${s.k==='fox'?'<br><small>밤에만 모습을 보여요.</small>':''}</p>
-    <div class="d" style="text-align:center">먹이를 두고 몇 번 찾아오면 마음을 열어요 ${needHtml(c)}</div>
-    <div class="btns" style="margin-top:12px"><button class="alt">돌아가기</button><button data-act="strayfeed" ${canPay(c)&&!wait?'':'disabled'}>${wait?`${wait}초 뒤에 다시`:'먹이 두고 오기'}</button></div></div>`,true);}
-function strayFeed(){const s=S.stray;if(!s||!pay(strayCost()))return;s.n++;s.t=Date.now()+20000;sfx('get');const[x,y]=tileC(s.i,8);for(let q=0;q<3;q++)PHEART.push({x:x+(q-1)*6,y:y-12,t:q*-.15,o:q});
-  if(s.n>=s.need){S.stray=null;S.strayT=300+Math.random()*120;closeModal();petAdopt(s.k);}else{closeModal();toast(`${jo(PETS[s.k].hidden?'그 동물':PETS[s.k].n,'이','가')} 먹이를 먹었어요 · ${s.n}/${s.need}`);}save();}
+    <div class="d" style="text-align:center">${robo?'연료를 채워 주고 몇 번 찾아오면 따라와요':'먹이를 두고 몇 번 찾아오면 마음을 열어요'} ${needHtml(c)}</div>
+    <div class="btns" style="margin-top:12px"><button class="alt">돌아가기</button><button data-act="strayfeed" ${canPay(c)&&!wait?'':'disabled'}>${wait?`${wait}초 뒤에 다시`:robo?'연료 채워 주기':'먹이 두고 오기'}</button></div></div>`,true);}
+function strayFeed(){const s=S.stray;if(!s||!pay(strayCost(s.k)))return;s.n++;s.t=Date.now()+20000;sfx('get');const[x,y]=tileC(s.i,8);for(let q=0;q<3;q++)PHEART.push({x:x+(q-1)*6,y:y-12,t:q*-.15,o:q});
+  if(s.n>=s.need){S.stray=null;S.strayT=300+Math.random()*120;closeModal();petAdopt(s.k);}else{closeModal();toast(ROBO(s.k)?`삐빅… 연료를 받아 들였어요 · ${s.n}/${s.need}`:`${jo(PETS[s.k].hidden?'그 동물':PETS[s.k].n,'이','가')} 먹이를 먹었어요 · ${s.n}/${s.need}`);}save();}
 function petAdopt(k,quiet){if(pets()[k])return;pets()[k]={n:PETS[k].def,xp:0,c:PKEYS.indexOf(k)%COLLAR.length,at:Date.now()};if(!S.petOn)S.petOn=k;if(k==='dog')S.dog=1;recalc();save();
   if(!quiet)setTimeout(()=>openPetName(k,true),200);}
 function openPetName(k,first){const P=PETS[k],p=pets()[k];
@@ -4607,8 +4608,8 @@ function openPetName(k,first){const P=PETS[k],p=pets()[k];
     <div class="btns" style="margin-top:12px"><button data-act="pnok" data-arg="${k}">${first?'함께 가자':'바꾸기'}</button></div></div>`,true);}
 
 // ---------- pet page ----------
-const petFeedCost=()=>scaleCost({food:8},Math.max(1,lvScale()*.8));
-function openPet(k){const P=PETS[k],p=pets()[k];if(!p)return;const l=petLv(k),m=petMul(k),on=S.petOn===k,fedW=Math.max(0,Math.ceil(((p.fedT||0)+120000-Date.now())/1000)),fc=petFeedCost(),pr=S.sv[P.pair];
+const petFeedCost=k=>scaleCost(ROBO(k)?{fuel:5}:{food:8},Math.max(1,lvScale()*.8));
+function openPet(k){const P=PETS[k],p=pets()[k];if(!p)return;const l=petLv(k),m=petMul(k),on=S.petOn===k,fedW=Math.max(0,Math.ceil(((p.fedT||0)+120000-Date.now())/1000)),fc=petFeedCost(k),pr=S.sv[P.pair];
   const nx=l<5?PXP[l]:0,pv=PXP[l-1];
   const others=PKEYS.filter(q=>pets()[q]),strip=others.length>1?`<div class="petstrip" role="tablist">${others.map(q=>{const o=pets()[q],w=Math.max(0,Math.ceil(((o.fedT||0)+120000-Date.now())/1000));return`<button class="pst${q===k?' on':''}" role="tab" aria-selected="${q===k}" data-act="petopen" data-arg="${q}" title="${o.n}"><img src="${petImg(q,o.c,44)}" alt=""><i class="${w?'full':'hungry'}"></i></button>`;}).join('')}</div>`:'';
   openModal(`<div class="page petp">${strip}<div class="pethero"><div class="petimg sm"><img src="${petImg(k,p.c,120)}" alt=""></div><div><h3>${p.n}</h3><small>${P.n}${P.hidden?' · 히든':''}${p.away?' · 원정 중':''}</small>
@@ -4616,7 +4617,7 @@ function openPet(k){const P=PETS[k],p=pets()[k];if(!p)return;const l=petLv(k),m=
     <div class="trait"><b>${on?'동행 효과':'쉬는 동안 (절반)'}</b> ${P.ed(on?m:m*.5)}${on?`<br><b>재주</b> ${P.act}`:''}<br><b>원정</b> ${P.expd} · <b>지하</b> ${P.ugd}</div>
     <div class="trait"><b>짝 · ${pr?P.pairN:'???'}</b> ${pr?`${jo(SURV[P.pair].name,'과','와')} 함께 있어요 · 희망 +3 · 친밀도 1.5배`:`${SURV[P.pair].hidden&&!S.sv[P.pair]?'아직 만나지 못한 누군가와':jo(SURV[P.pair].name,'과','와')} 잘 맞을 것 같아요`}</div>
     <div class="sec2">사연</div><ul class="story">${P.story.map((t,q)=>q<l?`<li>${petStory(k,t)}</li>`:`<li class="lock">친밀도 ${q+1}에 열려요</li>`).join('')}</ul>
-    <div class="btns wrap"><button class="alt" data-act="ppat" data-arg="${k}">쓰다듬기</button><button class="alt" data-act="pfeed" data-arg="${k}" ${fedW||!canPay(fc)?'disabled':''}>${fedW?`배불러요 ${fedW}초`:`먹이 · 식량 ${fc.food}`}</button>
+    <div class="btns wrap"><button class="alt" data-act="ppat" data-arg="${k}">쓰다듬기</button><button class="alt" data-act="pfeed" data-arg="${k}" ${fedW||!canPay(fc)?'disabled':''}>${fedW?(ROBO(k)?`충전됨 ${fedW}초`:`배불러요 ${fedW}초`):ROBO(k)?`충전 · 연료 ${fc.fuel}`:`먹이 · 식량 ${fc.food}`}</button>
       <button class="alt" data-act="pname" data-arg="${k}">이름·목걸이</button>${on?'<button disabled>동행 중</button>':`<button data-act="pcomp" data-arg="${k}" ${p.away?'disabled':''}>동행하기</button>`}</div></div>`,true);}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="strayfeed"],[data-act="pcol"],[data-act="pnok"],[data-act="ppat"],[data-act="pfeed"],[data-act="pname"],[data-act="pcomp"]');if(!b||b.disabled)return;e.stopPropagation();const a=b.dataset.act,g=b.dataset.arg;
   if(a==='strayfeed'){strayFeed();return;}
@@ -4625,7 +4626,7 @@ modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="strayfee
     const f=!pets()[k].named;pets()[k].named=1;if(f)note({h:`${jo(pets()[k].n,'이','가')} 식구가 됐어요`,t:`<small>${S.petOn===k?'랜턴 곁을 따라다녀요. ':''}지도에서 누르면 쓰다듬고, 두 번 누르면 자세히 볼 수 있어요</small>`,kind:'story',ms:6000});return;}
   const k=g,p=pets()[k];if(!p)return;
   if(a==='ppat'){const w=PW[k];if(w)for(let q=0;q<3;q++)PHEART.push({x:w.x+(q-1)*5,y:w.y-14,t:q*-.12,o:q});sfx('tap');if(!p.patT||Date.now()-p.patT>8000){p.patT=Date.now();petGain(k,2);}else toast(`${jo(p.n,'이','가')} 기분 좋아해요`);openPet(k);}
-  else if(a==='pfeed'){if(!pay(petFeedCost()))return;p.fedT=Date.now();petGain(k,12);sfx('get');toast(`${jo(p.n,'이','가')} 맛있게 먹었어요 · 친밀도 +12`);openPet(k);}
+  else if(a==='pfeed'){if(!pay(petFeedCost(k)))return;p.fedT=Date.now();petGain(k,12);sfx('get');toast(ROBO(k)?`${jo(p.n,'이','가')} 삐빅, 충전 완료 · 친밀도 +12`:`${jo(p.n,'이','가')} 맛있게 먹었어요 · 친밀도 +12`);openPet(k);}
   else if(a==='pname')openPetName(k,false);
   else if(a==='pcomp'){S.petOn=k;recalc();save();sfx('chime');toast(`${jo(p.n,'이','가')} 랜턴 곁을 따라다녀요`);openPet(k);}
   save();},true);
@@ -4635,8 +4636,9 @@ function petBanner(){if(!petN()&&!S.stray)return'';return`<button class="banner 
 function renderPets(){$('shTitle').textContent='펫';let h='';const own=pets();
   if(S.stray&&strayVis())h+=`<button class="banner petb" data-act="petgo"><span class="pbimgs"><img src="${petImg(S.stray.k,null,40,true)}" alt=""></span><span><b>떠돌이 ${PETS[S.stray.k].hidden?'???':PETS[S.stray.k].n} · ${S.stray.n}/${S.stray.need}</b><br>지도에서 발자국 쪽으로 가기 →</span></button>`;
   if(!petN())h+=emptyHtml('🐾','아직 함께하는 펫이 없어요',petsOpen()?'구름을 걷다 보면 떠돌이 동물의 발자국이 지도에 찍혀요':'판잣집이 되고 생존자가 두 명 모이면 떠돌이 동물이 나타나요');
-  {const hungry=PKEYS.filter(k=>own[k]&&!(((own[k].fedT||0)+120000)>Date.now())),fc=petFeedCost(),tot={food:fc.food*hungry.length};
-   if(petN()>1)h+=`<div class="btns" style="margin:0 0 10px"><button class="buy" data-act="feedallpets" ${!hungry.length||!canPay(tot)?'disabled':''}>${hungry.length?`모두 먹이 주기 · ${hungry.length}마리 · 식량 ${tot.food}`:'모두 배불러요'}</button></div>`;}
+  {const hungry=PKEYS.filter(k=>own[k]&&!(((own[k].fedT||0)+120000)>Date.now())),tot={};for(const k of hungry){const c=petFeedCost(k);for(const r in c)tot[r]=(tot[r]||0)+c[r];}
+   const totTxt=Object.keys(tot).map(r=>`${r==='fuel'?'연료':'식량'} ${tot[r]}`).join(' · ');
+   if(petN()>1)h+=`<div class="btns" style="margin:0 0 10px"><button class="buy" data-act="feedallpets" ${!hungry.length||!canPay(tot)?'disabled':''}>${hungry.length?`모두 먹이 주기 · ${hungry.length}마리 · ${totTxt}`:'모두 배불러요'}</button></div>`;}
   h+=`<div class="sec">함께하는 펫 ${petN()}/${PKEYS.length}</div><div class="petgrid">`;
   for(const k of PKEYS){const P=PETS[k],p=own[k];
     if(p)h+=`<button class="petc${S.petOn===k?' on':''}${P.hidden?' hid':''}" data-act="petopen" data-arg="${k}"><img src="${petImg(k,p.c,72)}" alt=""><b>${p.n}</b><small>${P.n} · 친밀도 ${petLv(k)}</small>${S.petOn===k?'<i class="pon">동행</i>':''}${p.away?'<i class="paw">원정</i>':''}</button>`;
@@ -4646,7 +4648,7 @@ function renderPets(){$('shTitle').textContent='펫';let h='';const own=pets();
   return h;}
 $('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="petsheet"],[data-act="petopen"],[data-act="petgo"],[data-act="feedallpets"]');if(!b||b.disabled)return;e.stopImmediatePropagation();const a=b.dataset.act;
   if(a==='petsheet')openSheet('pets');else if(a==='petopen')openPet(b.dataset.arg);else if(a==='petgo'&&S.stray){closeSheet();camFly(S.stray.i,10);}
-  else if(a==='feedallpets'){const fc=petFeedCost();let n=0;for(const k of PKEYS){const p=pets()[k];if(!p||((p.fedT||0)+120000)>Date.now())continue;if(!pay(fc))break;p.fedT=Date.now();petGain(k,12);n++;}if(n){sfx('get');toast(`펫 ${n}마리가 맛있게 먹었어요 · 친밀도 +12`);renderSheet();save();}}},true);
+  else if(a==='feedallpets'){let n=0;for(const k of PKEYS){const p=pets()[k];if(!p||((p.fedT||0)+120000)>Date.now())continue;if(!pay(petFeedCost(k)))continue;p.fedT=Date.now();petGain(k,12);n++;}if(n){sfx('get');toast(`펫 ${n}마리가 맛있게 먹었어요 · 친밀도 +12`);renderSheet();save();}}},true);
 // pet modal: the strip at the top switches pets without closing
 modal.addEventListener('click',e=>{const b=e.target.closest('.petstrip [data-act="petopen"]');if(!b)return;e.stopPropagation();sfx('tap');openPet(b.dataset.arg);},true);
 
