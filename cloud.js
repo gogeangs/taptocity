@@ -10,14 +10,14 @@ const sum=s=>{try{const o=JSON.parse(s);return{t:o.t||0,lv:o.lv||1,gen:o.gen||0,
 const when=t=>{if(!t)return'';const d=new Date(t);return`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;};
 function ui(){const box=$('ttcCloud');if(!box)return;const u=st.user;
   let h='';
-  if(!st.ok)h=`<div class="d">클라우드 저장을 준비하고 있어요.</div>`;
+  if(!st.ok)h=`<div class="d">${st.offline?'지금은 인터넷에 닿지 않아 클라우드 저장이 쉬고 있어요. 진행은 이 기기에 그대로 저장되고, 다음에 온라인으로 열면 다시 백업돼요.':'클라우드 저장을 준비하고 있어요.'}</div>`;
   else if(!u)h=`<div class="d">연결하는 중…</div>`;
   else{const g=!u.isAnonymous,em=g&&(u.email||u.displayName)||'';
     h=`<div class="row setrow"><div><div class="t">${g?'구글 계정에 저장 중':'이 기기로 자동 저장 중'}</div><div class="d">${g?`${em} · 다른 기기에서 같은 계정으로 로그인하면 이어서 할 수 있어요`:IOS?'진행이 서버에도 자동으로 백업돼요':'구글 계정을 연결하면 휴대폰을 바꿔도 진행이 이어져요'}${st.last?`<br>마지막 저장 ${when(st.last)}`:''}${st.msg?`<br><b>${st.msg}</b>`:''}</div></div></div>
       <div class="btns" style="gap:8px">${g?`<button class="buy ghost" data-cloud="now">지금 저장</button><button class="buy ghost" data-cloud="out">로그아웃</button>`:`${IOS?'':'<button class="buy" data-cloud="google">구글 계정 연결</button>'}<button class="buy ghost" data-cloud="now">지금 저장</button>`}</div>
       <div class="d" style="margin-top:8px"><button class="buy ghost" data-cloud="delete" style="font-size:12px;padding:6px 10px">클라우드 데이터 삭제</button> · 서버에 저장된 진행과 계정 연결을 지워요. 이 기기의 진행은 남아요.</div>`;}
   box.innerHTML=h;}
-function inject(){if(!st.ok)return;const t=$('shTitle'),b=$('shBody');if(!t||!b||t.textContent!=='설정'||$('ttcCloud'))return;
+function inject(){if(!st.ok&&!st.offline)return;const t=$('shTitle'),b=$('shBody');if(!t||!b||t.textContent!=='설정'||$('ttcCloud'))return;
   const s=document.createElement('div');s.innerHTML='<div class="sec">클라우드 저장</div><div id="ttcCloud"></div>';const first=b.querySelector('.sec');
   if(first)b.insertBefore(s,first);else b.appendChild(s);ui();}
 new MutationObserver(inject).observe(document.documentElement,{childList:true,subtree:true});
@@ -26,8 +26,11 @@ function ask(title,body,yes,no){return new Promise(res=>{const d=document.create
   document.body.appendChild(d);d.querySelector('.y').onclick=()=>{d.remove();res(true);};d.querySelector('.n').onclick=()=>{d.remove();res(false);};});}
 const css=document.createElement('style');css.textContent=`#ttcAsk{position:fixed;inset:0;z-index:400;background:rgba(10,8,5,.7);display:grid;place-items:center;padding:16px}#ttcAsk .bx{background:#efe3c4;color:#3b2a1a;border-radius:16px;max-width:340px;width:100%;padding:18px 16px 14px;font:14.5px/1.55 "Gowun Dodum",system-ui,sans-serif;box-shadow:0 12px 30px rgba(0,0,0,.6)}#ttcAsk b{font:700 17px "Gowun Batang",serif}#ttcAsk p{margin:8px 0 14px}#ttcAsk .bt{display:flex;gap:8px}#ttcAsk button{flex:1;border:0;border-radius:99px;padding:11px 8px;font:700 14px "Gowun Dodum",sans-serif}#ttcAsk .y{background:#3b2a1a;color:#efe3c4}#ttcAsk .n{background:transparent;border:1.5px solid rgba(59,42,26,.35);color:#3b2a1a}`;
 document.head.appendChild(css);
-if(CFG){
-  const [{initializeApp},A,F]=await Promise.all([import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`),import(`https://www.gstatic.com/firebasejs/${V}/firebase-auth.js`),import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`)]);
+// 오프라인이거나 Firebase 서버에 닿지 않으면 클라우드 저장만 끄고 게임은 그대로 이어간다(기기 저장은 항상 동작).
+let FB=null;
+if(CFG){try{FB=await Promise.all([import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`),import(`https://www.gstatic.com/firebasejs/${V}/firebase-auth.js`),import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`)]);}catch(e){st.ok=false;st.offline=true;}}
+if(CFG&&FB){
+  const [{initializeApp},A,F]=FB;
   const app=initializeApp(CFG),auth=A.getAuth(app),db=F.getFirestore(app),prov=new A.GoogleAuthProvider();prov.setCustomParameters({prompt:'select_account'});
   const ref=()=>F.doc(db,'saves',st.user.uid);
   let lastData=null;
