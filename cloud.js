@@ -13,7 +13,8 @@ function ui(){const box=$('ttcCloud');if(!box)return;const u=st.user;
   else if(!u)h=`<div class="d">연결하는 중…</div>`;
   else{const g=!u.isAnonymous,em=g&&(u.email||u.displayName)||'';
     h=`<div class="row setrow"><div><div class="t">${g?'구글 계정에 저장 중':'이 기기로 자동 저장 중'}</div><div class="d">${g?`${em} · 다른 기기에서 같은 계정으로 로그인하면 이어서 할 수 있어요`:'구글 계정을 연결하면 휴대폰을 바꿔도 진행이 이어져요'}${st.last?`<br>마지막 저장 ${when(st.last)}`:''}${st.msg?`<br><b>${st.msg}</b>`:''}</div></div></div>
-      <div class="btns" style="gap:8px">${g?`<button class="buy ghost" data-cloud="now">지금 저장</button><button class="buy ghost" data-cloud="out">로그아웃</button>`:`<button class="buy" data-cloud="google">구글 계정 연결</button><button class="buy ghost" data-cloud="now">지금 저장</button>`}</div>`;}
+      <div class="btns" style="gap:8px">${g?`<button class="buy ghost" data-cloud="now">지금 저장</button><button class="buy ghost" data-cloud="out">로그아웃</button>`:`<button class="buy" data-cloud="google">구글 계정 연결</button><button class="buy ghost" data-cloud="now">지금 저장</button>`}</div>
+      <div class="d" style="margin-top:8px"><button class="buy ghost" data-cloud="delete" style="font-size:12px;padding:6px 10px">클라우드 데이터 삭제</button> · 서버에 저장된 진행과 계정 연결을 지워요. 이 기기의 진행은 남아요.</div>`;}
   box.innerHTML=h;}
 function inject(){if(!st.ok)return;const t=$('shTitle'),b=$('shBody');if(!t||!b||t.textContent!=='설정'||$('ttcCloud'))return;
   const s=document.createElement('div');s.innerHTML='<div class="sec">클라우드 저장</div><div id="ttcCloud"></div>';const first=b.querySelector('.sec');
@@ -43,6 +44,7 @@ if(CFG){
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')up(false);});
   document.addEventListener('click',async e=>{const b=e.target.closest('[data-cloud]');if(!b)return;e.stopPropagation();const a=b.dataset.cloud;
     if(a==='now'){await up(true);if(!st.msg)st.msg='저장했어요';ui();}
+    else if(a==='delete'){if(await ask('클라우드 데이터를 삭제할까요?','서버에 저장된 진행 상황과 계정 연결(익명 식별자 또는 구글 연결)이 지워져요. 이 기기의 진행은 그대로 남고, 다음 저장부터 새 익명 식별자로 다시 시작해요.','삭제','취소')){try{st.busy=true;if(st.user){await F.deleteDoc(ref());try{await st.user.delete();}catch(e2){await A.signOut(auth);}}lastData=null;st.last=null;st.busy=false;st.msg='클라우드 데이터를 삭제했어요';ui();}catch(e){st.busy=false;st.msg='삭제하지 못했어요. 인터넷 연결을 확인해 주세요';ui();}}}
     else if(a==='out'){if(await ask('로그아웃할까요?','이 기기의 진행은 그대로 남아요. 다시 구글로 로그인하면 클라우드 진행을 불러올 수 있어요.','로그아웃','취소')){await A.signOut(auth);}}
     else if(a==='google'){const cur=auth.currentUser;
       try{if(cur&&cur.isAnonymous)await A.linkWithPopup(cur,prov);else await A.signInWithPopup(auth,prov);st.user=auth.currentUser;st.msg='구글 계정에 연결했어요';ui();sync();}
