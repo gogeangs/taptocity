@@ -1328,6 +1328,9 @@ const lmOn=key=>S.lm&&Object.values(S.lm).some(L=>L.ok&&LMS[L.k].key===key);
 const SHELTER=[{n:'텐트',h:22},{n:'판잣집 쉘터',h:30},{n:'컨테이너 쉘터',h:40},{n:'요새',h:64},{n:'불빛의 도시',h:110}];
 const SLOTS=[3,5,8,12,16],CAP=[150,600,900,1400,2000];
 const SHUP=[{cost:{wood:104,scrap:56,cloth:32},need:3},{cost:{scrap:300,wood:250,plate:50,rope:25,cloth:45},need:5},{cost:{plate:280,wood:690,parts:280,fuel:185,rope:36},need:8},{cost:{plate:608,parts:560,wire:34,fuel:384,med:16,rope:48},need:11}];
+// 템포(2026-10-10): 첫 동네 중반 승급(Lv.3→4, 4→5)은 30% 싸게, 두 번째 동네부터는 같은 승급을 다시 하는 셈이라 크게 줄인다
+const SHUP_BASE=SHUP.map(u=>u.cost),shupPace=i=>S&&S.gen?[.8,.65,.55,.55][i]:[1,1,.7,.7][i];
+SHUP.forEach((u,i)=>Object.defineProperty(u,'cost',{get(){return scaleCost(SHUP_BASE[i],shupPace(i));},enumerable:true}));
 const SLOT_OFF=[[0,-1],[1,0],[0,1],[-1,0],[1,-1],[1,1],[-1,1],[-1,-1],[0,-2],[2,0],[0,2],[-2,0],[1,-2],[2,1],[-1,2],[-2,-1],[2,-2],[2,2],[-2,2],[-2,-2],[-1,-2],[2,-1],[1,2],[-2,1]];
 const slotTile=k=>(CY+SLOT_OFF[k][1])*W+CX+SLOT_OFF[k][0];
 const MODS={
@@ -1796,6 +1799,8 @@ function recalc(){calcEff();const E=D.E;FEVER_T=6+E.fever;
   D.eat=home*1*(1-E.thrift)*(1-Math.min(.7,waterRed));D.fuelUse=fuelUse;D.tapAdd=tapAdd;
   const mult=(1+E.global+genB)*(D.hungry?.5:1);
   for(const k in prod)prod[k]*=mult*(k==='food'?(1+E.food)*(lmOn('tower')?1.5:1):1);
+  // 템포: 건설 자재(목재·고철·천·부품·연료)의 자동 생산 +30% — 두드리기만으로 채우지 않게. 식량은 그대로
+  for(const k of['wood','scrap','cloth','parts','fuel'])if(prod[k])prod[k]*=1.3;
   D.prod=prod;D.cap=Math.floor(CAP[S.lv-1]+capAdd);
   let hope=Object.keys(S.sv).length*3+E.hope+(S.hopeB||0)+(S.hopeT&&S.hopeT.until>Date.now()?S.hopeT.v:0)+hopeM+(S.lv-1)*4+(S.lm?Object.values(S.lm).filter(L=>L.ok).length*5:0);D.hope=Math.round(hope);
   const Rg=S.lv+.5;for(let i=0;i<N;i++){const dx=i%W-CX,dy=(i/W|0)-CY,d=Math.max(Math.abs(dx),Math.abs(dy));D.green[i]=d<=Rg?Math.min(1,(Rg-d+.6)/2.2):0;}
@@ -2811,7 +2816,7 @@ const EXPQ=[['“길이 막혔길래 멈춘 트럭을 밀어서 치웠지.”','
  ['“불씨가 남은 곳은 전부 꺼 두고 왔습니다.”','“뒤쪽은 제가 맡았어요. 아무도 안 놓쳤습니다.”'],['“계측기 수치가 이상해요. 발전소에 가까울수록 높아져요.”','“…아무것도 아니에요. 그냥 기록만 해 뒀어요.”']];
 let expPlan=null;
 const hasRole=(team,r)=>team.some(id=>ROLE[id].includes(r));
-function expCalc(e,team,pk){const PX=pk&&PETS[pk]?PETS[pk].exp:{};const t=e.t*(1-D.expDisc)*(hasRole(team,'scout')?.7:1)*(hasRole(team,'drive')?.85:1)*(PX.t||1);
+function expCalc(e,team,pk){const PX=pk&&PETS[pk]?PETS[pk].exp:{};const t=e.t*.6*(1-D.expDisc)*(hasRole(team,'scout')?.7:1)*(hasRole(team,'drive')?.85:1)*(PX.t||1);
   const risk=e.risk*(hasRole(team,'medic')?.3:1)*(hasRole(team,'guard')?.5:1)*(PX.risk||1);const mult=e.mult*(1+.25*(team.length-1))*(hasRole(team,'mech')?1.25:1)*(PX.mult||1);
   const perks=[];if(hasRole(team,'scout'))perks.push('정찰: 시간 -30%');if(hasRole(team,'drive'))perks.push('운전: 시간 -15%');if(hasRole(team,'medic'))perks.push('간호: 부상 위험 크게 줄어듦');if(hasRole(team,'guard'))perks.push('소방: 위험 절반');
   if(hasRole(team,'mech'))perks.push('기술: 전리품 +25%');if(hasRole(team,'cook'))perks.push('요리: 동료 신뢰 +40');if(hasRole(team,'heart'))perks.push('하늘: 희망 +2');if(hasRole(team,'farm'))perks.push('순례: 식량 ×1.5 60초');if(hasRole(team,'art'))perks.push('유나: 지도 스케치 30초');if(hasRole(team,'sci'))perks.push('재혁: 어둠 +4칸');if(pk&&PETS[pk])perks.push(`${petNm(pk)}: ${PETS[pk].expd.replace('원정 ','')}`);
@@ -4034,7 +4039,7 @@ function migrate(){const old=S,g=(old.gen||0)+1,region=nextRegion();{const e=tlo
   closeModal();closeSheet();closeRing();DEFN=null;UG=null;WALK={};CHAT=null;KW=[];
   fresh();Object.assign(S,keep);S.gen=g;S.region=region;S.rmi=0;S.rsI=0;S.arriveWins=S.defWins||0;
   for(const id in S.sv){const r=S.sv[id];r.at=-1;r.away=false;r.hurt=0;}S.asg={};S.exp={};S.cd={};S.camp={};S.allies=[];S.band=null;S.deco={};S.raid=null;
-  S.carry=Object.keys(S.sv).length;Object.assign(S.m,{wood:30,scrap:20,food:40},carryM);
+  S.carry=Object.keys(S.sv).length;Object.assign(S.m,{wood:90,scrap:60,food:80,cloth:30},carryM); // 템포: 새 동네 첫 판잣집까지 빨리
   if(region==='desert')for(let i=0;i<N;i++)if(S.ter[i]===T.WATER)S.ter[i]=Math.random()<.3?T.RUIN:T.ASH;
   placeSignals();aim=-1;recalc();centerCam();ensureAim();misKey=null;renderMission();renderSkills(true);save();sfx('level');
   $('stLv').textContent=`${g}번째`;$('stNm').textContent=REGIONS[region].n;const st=$('stamp');st.hidden=false;st.classList.remove('go');void st.offsetWidth;st.classList.add('go');setTimeout(()=>{st.hidden=true;},2300);
@@ -4806,10 +4811,14 @@ const TOWER=[
  {n:'전선',d:'발전기에서 꼭대기까지 빛이 흐를 길',cost:{wire:30,parts:420,fuel:290},req:[['마음 하나 · 인연·이야기 완결·친밀한 펫·자란 아이 중 하나',()=>heartCount()>=1]]},
  {n:'렌즈',d:'심지의 빛을 모아 하늘로 쏘아 올려요',cost:{plate:420,med:16,fuel:390},req:[['오재혁 신뢰도 3 (일을 맡기거나 선물해요)',()=>S.sv[9]&&trustLv(S.sv[9].xp)>=3],['탁미영 신뢰도 2 (일을 맡기거나 선물해요)',()=>S.sv[13]&&trustLv(S.sv[13].xp)>=2]]},
  {n:'점화',d:'모두가 탑 아래 모이면, 랜턴 불빛으로 심지를 깨워요',cost:{fuel:325,parts:390,batt:5},req:[['희망 60',()=>D.hope>=60],['원정 간 사람 없이 모두 쉘터에',()=>!Object.values(S.sv).some(r=>r.away)]]}];
+// 템포: 두 번째 동네부터 탑 비용 40% 인하
+const TOWER_BASE=TOWER.map(t=>t.cost);TOWER.forEach((t,i)=>Object.defineProperty(t,'cost',{get(){return scaleCost(TOWER_BASE[i],S&&S.gen?.6:1);},enumerable:true}));
 const towerOpen=()=>S.gen?S.lv>=5:(S.mi>=STEP_I('등불 탑 토대 놓기')&&STEP_I('등불 탑 토대 놓기')>=0);
 // after the first light the tower keeps growing, one floor at a time, with no top
 function towerFloor(n){const f=n-4,k=Math.pow(1.22,f-1);return{n:`${n+1}층`,d:'탑을 한 층 더 올려 빛이 더 멀리 닿게 해요',cost:scaleCost({plate:260,parts:240,wood:500,food:350,fuel:180,wire:(f%3===0?12:0)},k),req:[[`희망 ${60+f*4}`,()=>D.hope>=60+f*4]]};}
-function towerNext(){const n=S.tower||0;if(n===0&&S.gen)return{...TOWER[0],req:[['생존자 6명',TOWER[0].req[0][1]]]};return n<5?TOWER[n]:towerFloor(n);}
+function towerNext(){const n=S.tower||0;if(n===0&&S.gen)return{...TOWER[0],req:[['생존자 6명',TOWER[0].req[0][1]]]};
+  // 재혁·미영을 이전 동네에 두고 왔으면 렌즈는 다른 손으로 올린다(탑이 막히지 않게)
+  if(n===3&&S.gen&&!(S.sv[9]&&S.sv[13]))return{...TOWER[3],req:[['신뢰도 4 이상 생존자 2명 (렌즈를 맞출 손)',()=>trustN(4)>=2]]};return n<5?TOWER[n]:towerFloor(n);}
 function towerOk(){const t=towerNext();if(!t)return false;return t.req.every(([,f])=>f())&&canPay(scaleCost(t.cost,costMult()));}
 function towerHtml(){if(!towerOpen()&&!S.tower)return'';const n=S.tower||0,t=towerNext(),c=scaleCost(t.cost,costMult()),ok=towerOk(),hi=n>=5;
   return`<div class="tower${hi?' lit':''}" data-k="tower"><div class="tt2"><b>${hi?`등불 탑 · ${t.n} 올리기`:`등불 탑 · ${n+1}단계 ${t.n}`}</b><span>${hi?`지금 ${n}층 · 모든 생산 +${Math.round(towerBonus()*100)}%`:`${n}/5`}</span></div>
@@ -5093,14 +5102,14 @@ function regGo(k){const Q=S.rq||{};if(k==='spot'&&Q.spotI>=0){if(sheetTab)closeS
 const opCost=()=>scaleCost({plate:40,parts:40,fuel:30},lvScale());
 const OP_STEP=['정문을 뚫는 중','재 배관을 막는 중','마지막 스위치로 가는 중'];
 let opTick=null;
-function opState(){const Q=S.rq||{},tot=Q.opDur||((S.sv[15]||S.sv[9])?90:180)*1000,left=Q.opEnd?Math.max(0,Q.opEnd-Date.now()):0,p=Q.opEnd?Math.min(1,1-left/tot):0;return{left:Math.ceil(left/1000),p,step:OP_STEP[Math.min(2,Math.floor(p*3))]};}
+function opState(){const Q=S.rq||{},tot=Q.opDur||((S.sv[15]||S.sv[9])?50:100)*1000,left=Q.opEnd?Math.max(0,Q.opEnd-Date.now()):0,p=Q.opEnd?Math.min(1,1-left/tot):0;return{left:Math.ceil(left/1000),p,step:OP_STEP[Math.min(2,Math.floor(p*3))]};}
 function opLiveHtml(){const o=opState();return`<div class="fx" style="text-align:left"><b>${o.step}…</b> <span style="float:right">${o.left}초</span><div style="height:8px;border-radius:99px;background:rgba(59,42,26,.15);margin-top:8px;overflow:hidden"><i style="display:block;height:100%;width:${Math.round(o.p*100)}%;background:#c98a3a;border-radius:99px;transition:width .9s linear"></i></div></div><div class="d" style="margin-top:8px">생존자들이 작전을 하고 있어요. <b>따로 할 일은 없어요</b> — 시간이 지나면 저절로 끝나고, 미션 띠에서 보상을 받아요. 창을 닫고 다른 일을 해도 돼요.</div>`;}
 function openOp(){const Q=S.rq||{};if(Q.op)return;const left=Q.opEnd?Math.max(0,Math.ceil((Q.opEnd-Date.now())/1000)):0,c=opCost(),fast=!!(S.sv[15]||S.sv[9]);
   openModal(`<div class="page"><div class="tag">녹슨 공단 · 3공장</div><h3>공장 끄기 작전</h3><p>재를 뿜으며 돌아가는 라인의 전원을 내려야 해요. 생존자들이 정문을 뚫고, 배관을 막고, 마지막 스위치를 내릴 거예요.</p>
-    ${left?`<div id="opLive">${opLiveHtml()}</div>`:`<div class="d" style="margin-bottom:6px"><b>할 일:</b> 아래 자재를 보내 작전을 시작하세요. 그다음은 기다리기만 하면 돼요.</div>${needHtml(c)}<div class="d" style="margin-top:6px">걸리는 시간 ${fast?'90초 (도진·재혁이 길을 알아요)':'3분'}</div>`}
+    ${left?`<div id="opLive">${opLiveHtml()}</div>`:`<div class="d" style="margin-bottom:6px"><b>할 일:</b> 아래 자재를 보내 작전을 시작하세요. 그다음은 기다리기만 하면 돼요.</div>${needHtml(c)}<div class="d" style="margin-top:6px">걸리는 시간 ${fast?'50초 (도진·재혁이 길을 알아요)':'100초'}</div>`}
     <div class="btns" style="margin-top:12px"><button class="alt">${left?'닫기':'돌아가기'}</button>${left?'':`<button data-act="opgo" ${canPay(c)?'':'disabled'}>자재 보내고 작전 시작</button>`}</div></div>`,true);
   clearInterval(opTick);if(left)opTick=setInterval(()=>{const el=$('opLive');if(!el||modal.hidden){clearInterval(opTick);return;}if((S.rq||{}).op||!opState().left){clearInterval(opTick);closeModal();return;}el.innerHTML=opLiveHtml();},1000);}
-modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="opgo"]');if(!b)return;e.stopPropagation();if(!pay(opCost()))return;const Q=S.rq=S.rq||{};Q.opDur=((S.sv[15]||S.sv[9])?90:180)*1000;Q.opEnd=Date.now()+Q.opDur;save();closeModal();misKey=null;renderMission();toast('작전 시작! 기다리면 저절로 끝나요 · 남은 시간은 미션 띠에');},true);
+modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="opgo"]');if(!b)return;e.stopPropagation();if(!pay(opCost()))return;const Q=S.rq=S.rq||{};Q.opDur=((S.sv[15]||S.sv[9])?50:100)*1000;Q.opEnd=Date.now()+Q.opDur;save();closeModal();misKey=null;renderMission();toast('작전 시작! 기다리면 저절로 끝나요 · 남은 시간은 미션 띠에');},true);
 
 // ---------- the choices ----------
 const TOWN_CHOICE={
@@ -5179,11 +5188,11 @@ function chooseEv(k){const e=evCur;if(!e)return;const o=k?e.b:e.a,c=evCost(o);if
 const SQ_ON=()=>Object.keys(S.sv).length>=2&&(S.lv>=2||!!S.gen);
 const gotN=k=>(S.got&&S.got[k])||0;
 const SQT={
- wood:{ok:()=>true,n:()=>Math.round(70*lvScale()),v:()=>gotN('wood'),t:n=>`목재 ${fmt(n)}개 모으기`,go:'lamp',say:['“장작이 모자라요. 오늘 밤 불 좀 넉넉히 피우고 싶어요.”','“침상 다리가 또 부러졌어요. 나무가 필요해요.”']},
- scrap:{ok:()=>true,n:()=>Math.round(70*lvScale()),v:()=>gotN('scrap'),t:n=>`고철 ${fmt(n)}개 모으기`,go:'lamp',say:['“고철만 있으면 이것저것 고쳐 볼게요.”','“녹슨 거라도 좋아요. 쇠붙이 좀 모아 와요.”']},
- food:{ok:()=>true,n:()=>Math.round(60*lvScale()),v:()=>gotN('food'),t:n=>`식량 ${fmt(n)}개 모으기`,go:'lamp',say:['“창고가 비어 가요. 아이들 먹을 거라도 채워 둬요.”','“오늘은 제대로 한 끼 차려 보고 싶어요.”']},
- plate:{ok:()=>wbL()>=1&&S.lv>=2&&(S.m.plate||0)<capOf('plate'),n:()=>Math.round(12*lvScale()),v:()=>gotN('plate'),t:n=>`철판 ${fmt(n)}장 만들기`,go:'craft',say:['“지붕에 구멍이 났어요. 철판으로 덮어야 해요.”','“철판 몇 장만 있으면 문을 단단히 달 수 있어요.”']},
- rope:{ok:()=>wbL()>=1&&S.lv>=2&&(S.m.rope||0)<capOf('rope'),n:()=>Math.round(8*lvScale()),v:()=>gotN('rope'),t:n=>`밧줄 ${fmt(n)}개 만들기`,go:'craft',say:['“빨랫줄이 끊어졌어요. 밧줄 좀 꼬아 줄래요?”','“망루에 올라갈 밧줄이 필요해요.”']},
+ wood:{ok:()=>true,n:()=>Math.round(45*lvScale()),v:()=>gotN('wood'),t:n=>`목재 ${fmt(n)}개 모으기`,go:'lamp',say:['“장작이 모자라요. 오늘 밤 불 좀 넉넉히 피우고 싶어요.”','“침상 다리가 또 부러졌어요. 나무가 필요해요.”']},
+ scrap:{ok:()=>true,n:()=>Math.round(45*lvScale()),v:()=>gotN('scrap'),t:n=>`고철 ${fmt(n)}개 모으기`,go:'lamp',say:['“고철만 있으면 이것저것 고쳐 볼게요.”','“녹슨 거라도 좋아요. 쇠붙이 좀 모아 와요.”']},
+ food:{ok:()=>true,n:()=>Math.round(40*lvScale()),v:()=>gotN('food'),t:n=>`식량 ${fmt(n)}개 모으기`,go:'lamp',say:['“창고가 비어 가요. 아이들 먹을 거라도 채워 둬요.”','“오늘은 제대로 한 끼 차려 보고 싶어요.”']},
+ plate:{ok:()=>wbL()>=1&&S.lv>=2&&(S.m.plate||0)<capOf('plate'),n:()=>Math.round(8*lvScale()),v:()=>gotN('plate'),t:n=>`철판 ${fmt(n)}장 만들기`,go:'craft',say:['“지붕에 구멍이 났어요. 철판으로 덮어야 해요.”','“철판 몇 장만 있으면 문을 단단히 달 수 있어요.”']},
+ rope:{ok:()=>wbL()>=1&&S.lv>=2&&(S.m.rope||0)<capOf('rope'),n:()=>Math.round(6*lvScale()),v:()=>gotN('rope'),t:n=>`밧줄 ${fmt(n)}개 만들기`,go:'craft',say:['“빨랫줄이 끊어졌어요. 밧줄 좀 꼬아 줄래요?”','“망루에 올라갈 밧줄이 필요해요.”']},
  reveal:{ok:()=>{let f=0;for(let i=0;i<N;i++)if(isFrontier(i))f++;return f>=30;},n:()=>10+S.lv*2,v:()=>revCount(),t:n=>`어둠 ${n}칸 걷어내기`,go:'lamp',say:['“저 너머에 뭐가 있는지 궁금해요. 조금만 더 밝혀 줘요.”','“구름 속에서 뭔가 반짝였어요. 가까이 가 봐요.”']},
  exp:{ok:()=>S.expDone>0||S.mi>STEP_I('첫 원정 보내기'),n:()=>1,v:()=>S.expDone||0,t:()=>'원정 한 번 다녀오기',go:'fExp',say:['“지도에 표시해 둔 곳이 있어요. 누가 다녀와 줄래요?”','“멀리서 연기가 올라와요. 확인해 봐야겠어요.”']},
  ug:{ok:()=>ugOpen()&&S.ug&&S.ug.runs>0,n:()=>1,v:()=>(S.ug&&S.ug.runs)||0,t:()=>'지하 구역 한 번 내려가기',go:'fExp',say:['“지하에서 이상한 소리가 났대요. 한번 내려가 봐요.”','“지하철역 매점에 통조림이 남아 있을지도 몰라요.”']},
