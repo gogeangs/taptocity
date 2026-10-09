@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261009-urg2">
+<link rel="stylesheet" href="qa.css?v=20261010-tidy">
 <div id="app">
   <header>
     <div class="hud">
@@ -2507,7 +2507,7 @@ $('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act]');
   if(a==='exp_save'){exportSave();return;}if(a==='imp_save'){importSave();return;}
   if(a==='sf'){survF=g;renderSheet();return;}
   if(a==='set'){toggleSet(g);return;}
-  if(a==='geq')equip(+g);else if(a==='guneq')unequip();else if(a==='gcraft')craftGear(g);else if(a==='gdis')dismantle(+g);else if(a==='gback'){const id=gearCtx.id;closeSheet();openSurv(id);}else if(a==='bag'){gearCtx={id:null,slot:null};openSheet('gear');}
+  if(a==='geq')equip(+g);else if(a==='guneq')unequip();else if(a==='gcraft')craftGear(g);else if(a==='gdis')dismantle(+g);else if(a==='gtidy'){tidyPick=null;openTidy();}else if(a==='glk')toggleLock(+g);else if(a==='bagf'){bagF=g;renderSheet();}else if(a==='bags'){bagSort=g;renderSheet();}else if(a==='gback'){const id=gearCtx.id;closeSheet();openSurv(id);}else if(a==='bag'){gearCtx={id:null,slot:null};openSheet('gear');}
   else if(a==='pull')pull(+g);else if(a==='swapin')openSwapOut(+g);else if(a==='trok'){const[i,id]=g.split(':').map(Number);trAccept(i,id);}else if(a==='swapcancel')swapCancel();else if(a==='exch')exchange();else if(a==='radio')openSheet('radio');else if(a==='upg')buyUp(g);else if(a==='reset')reset();else if(a==='diary')openDiary(+g);else if(a==='sv')openSurv(+g);else if(a==='pty'){toggleParty(+g);renderSheet();}
   else if(a==='xplan'){expPlan={key:g,team:[]};renderSheet();}else if(a==='xmem'){toggleMem(+g);}else if(a==='xgo')startExp();else if(a==='xcancel'){expPlan=null;renderSheet();}else if(a==='xback')claimExp(g);
   else if(a==='asg')assign(asgTile,+g);else if(a==='unasg'){unassign(+g);recalc();save();closeSheet();openRing(+g);}
@@ -3164,7 +3164,7 @@ modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="promo"]'
 // ---------- equipment: getting, equipping, crafting ----------
 const BAGMAX=40;
 function addGear(t,src){if(!S.inv)S.inv=[];S.iu=(S.iu||0)+1;const it={u:S.iu,t};S.inv.push(it);
-  if(S.inv.length>BAGMAX){const worn=new Set(Object.values(S.sv).flatMap(r=>Object.values(r.eq||{})));const cand=S.inv.filter(x=>x!==it&&!worn.has(x.u)&&!GEAR[x.t].sig).sort((a,b)=>GEAR[a.t].g-GEAR[b.t].g)[0];if(cand){S.inv=S.inv.filter(x=>x!==cand);const G=GEAR[cand.t];give(G.cost?scaleCost(G.cost,.5):{parts:4*(G.g+1)});toast(`가방이 가득 차 ${G.n}을(를) 분해했어요`);}}if(src)toast(`${src} ${GEAR[t].n}!`);if(sheetTab==='gear')renderSheet();return it;}
+  if(S.inv.length>BAGMAX){const worn=new Set(Object.values(S.sv).flatMap(r=>Object.values(r.eq||{})));const cand=S.inv.filter(x=>x!==it&&!worn.has(x.u)&&!GEAR[x.t].sig&&!x.lk).sort((a,b)=>GEAR[a.t].g-GEAR[b.t].g)[0];if(cand){S.inv=S.inv.filter(x=>x!==cand);const G=GEAR[cand.t];give(G.cost?scaleCost(G.cost,.5):{parts:4*(G.g+1)});toast(`가방이 가득 차 ${G.n}을(를) 분해했어요`);}}if(src)toast(`${src} ${GEAR[t].n}!`);if(sheetTab==='gear')renderSheet();return it;}
 function dropGear(g){const pool=Object.keys(GEAR).filter(k=>GEAR[k].g===g&&!GEAR[k].sig&&!GEAR[k].ug);return addGear(pool[(Math.random()*pool.length)|0]);}
 let gearCtx={id:null,slot:null};
 function openGear(id,slot){gearCtx={id,slot};closeModal();openSheet('gear');}
@@ -3173,8 +3173,32 @@ function equip(uid){const{id,slot}=gearCtx;const it=itemAt(uid);if(id==null||!it
 function unequip(){const{id,slot}=gearCtx;const r=S.sv[id];if(r&&r.eq){r.eq[slot]=null;recalc();save();renderSheet();}}
 function craftGear(t){const G=GEAR[t];if(!G.cost||wbL()<G.wb)return;const c=scaleCost(G.cost,costMult());if(!pay(c))return;const it=addGear(t);S.gearMade=(S.gearMade||0)+1;toast(`${G.n}을(를) 만들었어요`);
   if(gearCtx.id!=null&&GEAR[t].slot===gearCtx.slot&&!(S.sv[gearCtx.id].eq||{})[gearCtx.slot]){equip(it.u);return;}renderSheet();save();}
-function dismantle(uid){const it=itemAt(uid);if(!it||wearer(uid)!=null)return;const G=GEAR[it.t];S.inv=S.inv.filter(x=>x.u!==uid);
-  const back=G.cost?scaleCost(G.cost,.5):scaleCost({parts:4*(G.g+1),cloth:3*(G.g+1),batt:G.g>=2?1:0},1);const got=give(back);toast(`${G.n} 분해 · ${lootTxt(got)}`);renderSheet();save();}
+const dismBack=G=>G.cost?scaleCost(G.cost,.5):scaleCost({parts:4*(G.g+1),cloth:3*(G.g+1),batt:G.g>=2?1:0},1);
+function dismantle(uid){const it=itemAt(uid);if(!it||it.lk||wearer(uid)!=null)return;const G=GEAR[it.t];S.inv=S.inv.filter(x=>x.u!==uid);
+  const got=give(dismBack(G));toast(`${G.n} 분해 · ${lootTxt(got)}`);renderSheet();save();}
+// ---- 가방 정리: 남는 장비 고르기 → 확인 목록 → 한 번에 분해. 착용 중·전용·잠금 장비는 건드리지 않는다 ----
+let bagF='all',bagSort='grade',tidyPick=null;
+function bagSurplus(){const inv=S.inv||[],free=inv.filter(x=>!x.lk&&!GEAR[x.t].sig&&wearer(x.u)==null),out=[],kept={};
+  const bestSlot={};for(const x of inv){const G=GEAR[x.t];bestSlot[G.slot]=Math.max(bestSlot[G.slot]||0,G.g);}
+  for(const x of free.slice().sort((a,b)=>b.u-a.u)){const G=GEAR[x.t];
+    if(kept[x.t]){out.push({x,why:'같은 장비 여분'});continue;}
+    if(G.g===0&&(bestSlot[G.slot]||0)>0){out.push({x,why:'더 좋은 '+SLOTN[G.slot]+' 있음'});continue;}
+    kept[x.t]=1;}
+  return out;}
+const sumBack=list=>{const t={};for(const x of list){const b=dismBack(GEAR[x.t]);for(const k in b)t[k]=(t[k]||0)+b[k];}return t;};
+function tidyHtml(){const c=bagSurplus();if(!c.length)return`<div class="tidy none"><b>정리할 장비가 없어요</b><small>같은 장비 여분이나, 더 좋은 장비가 있는 일반 등급 장비를 골라 줘요</small></div>`;
+  return`<div class="tidy"><div><b>남는 장비 ${c.length}개</b><small>같은 장비 여분 · 더 좋은 장비가 있는 일반 등급 · 착용 중·전용·잠금은 빼고</small></div><button class="buy" data-act="gtidy">정리하기</button></div>`;}
+function openTidy(){const c=bagSurplus();if(!c.length){toast('정리할 장비가 없어요');return;}if(!tidyPick)tidyPick=new Set(c.map(o=>o.x.u));
+  const sel=c.filter(o=>tidyPick.has(o.x.u)).map(o=>o.x),back=sumBack(sel);
+  openModal(`<div class="page tidyp"><div class="tag">장비 가방 정리</div><h3>남는 장비 분해</h3><p class="d">체크를 풀면 그 장비는 남겨요. 분해하면 재료를 절반쯤 돌려받아요.</p>
+    <div class="tlist">${c.map(o=>{const G=GEAR[o.x.t],on=tidyPick.has(o.x.u);return`<button class="trow${on?' on':''}" data-act="tpk" data-arg="${o.x.u}" aria-pressed="${on}"><i class="ck">${on?'✓':''}</i>${gicon(o.x.t,24)}<span><b>${G.n}</b> <span class="gr g${G.g}">${GR[G.g].n}</span><small>${SLOTN[G.slot]} · ${o.why}</small></span></button>`;}).join('')}</div>
+    <div class="d" style="margin:10px 0 4px">돌려받는 재료</div><div class="gains">${sel.length?Object.entries(back).map(([k,v])=>`<span class="gn">${micon(k,15)}${MN[k].n} +${v}</span>`).join(''):'<span class="d">고른 장비가 없어요</span>'}</div>
+    <div class="btns" style="margin-top:12px"><button class="alt" data-act="tcancel">그만두기</button><button data-act="tgo" ${sel.length?'':'disabled'}>${sel.length}개 분해</button></div></div>`,true);}
+function doTidy(){const c=bagSurplus().map(o=>o.x).filter(x=>tidyPick&&tidyPick.has(x.u));tidyPick=null;if(!c.length){closeModal();return;}
+  const ids=new Set(c.map(x=>x.u));S.inv=S.inv.filter(x=>!ids.has(x.u));const got=give(sumBack(c));closeModal();toast(`장비 ${c.length}개 분해 · ${lootTxt(got)}`);sfx('get');renderSheet();save();}
+function toggleLock(uid){const it=itemAt(uid);if(!it)return;it.lk=it.lk?0:1;toast(it.lk?`${GEAR[it.t].n} 잠금 · 분해되지 않아요`:`${GEAR[it.t].n} 잠금 풀림`);renderSheet();save();}
+modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="tpk"],[data-act="tgo"],[data-act="tcancel"]');if(!b)return;e.stopPropagation();const a=b.dataset.act;
+  if(a==='tpk'){const u=+b.dataset.arg;tidyPick.has(u)?tidyPick.delete(u):tidyPick.add(u);openTidy();}else if(a==='tgo')doTidy();else{tidyPick=null;closeModal();}},true);
 function gearHtml(id){const q=(S.sv[id]&&S.sv[id].eq)||{};
   return`<div class="gearbox"><div class="sec2">장비 <small>일터에 있을 때 효과가 나요</small></div><div class="gslots">${SLOTK.map(sl=>{const it=q[sl]!=null&&itemAt(q[sl]);
     if(!it)return`<button class="gslot empty" data-act="gslot" data-arg="${id}:${sl}"><span class="gi"><b>+</b></span><span><b>${SLOTN[sl]}</b><small>비어 있음</small></span></button>`;
@@ -3189,10 +3213,15 @@ function renderGear(){const{id,slot}=gearCtx;let h='';
     h+=`<div class="sec">가방 속 ${SLOTN[slot]} ${list.length}개</div>`;
     if(!list.length)h+=emptyHtml(`<span class="ei2">${SLOTSVG[slot]}</span>`,`${SLOTN[slot]}이 아직 없어요`,'아래에서 만들거나 폐허·원정·주파수 탐색에서 찾아요');
     for(const it of list)h+=itemRow(it,(x,w)=>x.u===cur?'<button class="buy ghost" data-act="guneq">빼기</button>':`<button class="buy" data-act="geq" data-arg="${x.u}">${w!=null?'가져오기':'장착'}</button>`);}
-  else{$('shTitle').textContent=`장비 가방 ${(S.inv||[]).length}개`;
-    h+=autoGearHtml();h+='<div class="d" style="margin-bottom:6px">생존자에게 장착하려면 생존자 수첩에서 사람을 누르고 장비 칸을 눌러요. 쓰지 않는 장비는 분해해 재료를 돌려받아요.</div>';
-    for(const sl of SLOTK){const list=(S.inv||[]).filter(x=>GEAR[x.t].slot===sl).sort((a,b)=>GEAR[b.t].g-GEAR[a.t].g);h+=`<div class="sec">${SLOTN[sl]} ${list.length}개</div>`;if(!list.length)h+=`<div class="emptyline">${SLOTSVG[sl]}<span>비어 있어요 · 폐허·원정·라디오에서 찾거나 아래에서 만들어요</span></div>`;
-      for(const it of list)h+=itemRow(it,(x,w)=>w!=null?`<span class="dbadge">착용 중</span>`:`<button class="buy ghost" data-act="gdis" data-arg="${x.u}">분해</button>`);}}
+  else{$('shTitle').textContent=`장비 가방 ${(S.inv||[]).length}/${BAGMAX}`;
+    h+=autoGearHtml();h+=tidyHtml();
+    const fb=[['all','전체'],...SLOTK.map(k=>[k,SLOTN[k]])].map(([k,n])=>`<button class="bchip${bagF===k?' on':''}" data-act="bagf" data-arg="${k}" aria-pressed="${bagF===k}">${n} ${k==='all'?(S.inv||[]).length:(S.inv||[]).filter(x=>GEAR[x.t].slot===k).length}</button>`).join('');
+    const sb=[['grade','등급순'],['new','새로 얻은 순'],['name','이름순']].map(([k,n])=>`<button class="bchip s${bagSort===k?' on':''}" data-act="bags" data-arg="${k}" aria-pressed="${bagSort===k}">${n}</button>`).join('');
+    h+=`<div class="bagbar"><div>${fb}</div><div>${sb}</div></div>`;
+    const sorter=bagSort==='new'?(a,b)=>b.u-a.u:bagSort==='name'?(a,b)=>GEAR[a.t].n.localeCompare(GEAR[b.t].n,'ko'):(a,b)=>GEAR[b.t].g-GEAR[a.t].g||GEAR[a.t].n.localeCompare(GEAR[b.t].n,'ko');
+    const lockB=x=>`<button class="lkb${x.lk?' on':''}" data-act="glk" data-arg="${x.u}" aria-label="${x.lk?'잠금 풀기':'잠그기'}" aria-pressed="${!!x.lk}"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="${x.lk?'M5 7V5a3 3 0 0 1 6 0v2':'M5 7V5a3 3 0 0 1 5.6-1.5'}"/></svg></button>`;
+    for(const sl of (bagF==='all'?SLOTK:[bagF])){const list=(S.inv||[]).filter(x=>GEAR[x.t].slot===sl).sort(sorter);h+=`<div class="sec">${SLOTN[sl]} ${list.length}개</div>`;if(!list.length)h+=`<div class="emptyline">${SLOTSVG[sl]}<span>비어 있어요 · 폐허·원정·라디오에서 찾거나 아래에서 만들어요</span></div>`;
+      for(const it of list)h+=itemRow(it,(x,w)=>`<span class="gact">${lockB(x)}${w!=null?`<span class="dbadge">착용 중</span>`:x.lk||GEAR[x.t].sig?'':`<button class="buy ghost" data-act="gdis" data-arg="${x.u}">분해</button>`}</span>`);}}
   const rec=Object.keys(GEAR).filter(k=>GEAR[k].cost&&!GEAR[k].sig&&(slot==null||GEAR[k].slot===slot));
   h+=`<div class="sec">작업대에서 만들기${wbL()?` · 작업대 ${wbL()}단계`:''}</div>`;
   if(!wbL())h+='<div class="d">작업대를 세우면 장비를 만들 수 있어요.</div>';
