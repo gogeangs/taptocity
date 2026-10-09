@@ -5864,9 +5864,35 @@ if(window.TTCDesign){
     ctx.save();ctx.lineWidth=.7;ctx.strokeStyle=S.region==='snow'?'rgba(245,249,244,.55)':S.region==='desert'?'rgba(107,87,61,.24)':'rgba(58,69,70,.28)';ctx.beginPath();ctx.moveTo(...a);
     if(S.region==='desert')ctx.quadraticCurveTo(b[0],b[1]-3,c[0],c[1]);else{ctx.lineTo(...b);ctx.lineTo(...c);}ctx.stroke();ctx.restore();
   };
+  // 눈 덮인 소나무: 다른 일러스트 소품처럼 짙은 먹선 + 층마다 톱니 가지 + 가지 위에 얹힌 눈덩이(아랫면은 푸른 그늘)
+  function snowPine(u,v,s){const[x,y]=P(u,v,0),z=ZS,h=((u*97.13+v*41.7)%1+1)%1,w=1+(h-.5)*.2,tl=1+(h-.5)*.25,INK='#231a14';
+    ctx.save();ctx.lineJoin='round';ctx.lineCap='round';
+    ctx.fillStyle='rgba(40,55,70,.28)';ctx.beginPath();ctx.ellipse(x+3*s,y+1,8.5*s*w,3.2*s,0,0,7);ctx.fill();
+    ctx.fillStyle='#4a3324';ctx.strokeStyle=INK;ctx.lineWidth=1;ctx.beginPath();ctx.rect(x-1.5*s,y-6*s*z,3*s,6*s*z);ctx.fill();ctx.stroke();
+    // 아래층부터: 아래 가장자리는 축 처진 물결, 옆선은 살짝 오목
+    const T=[[9.5,4,12,'#1c372b','#2b4c3a'],[7.6,10,11,'#22412f','#315741'],[5.6,15.5,10,'#284a37','#386249']];
+    for(const[hw,b0,ht,dark,lite]of T){const base=y-b0*s*z*tl,top=base-ht*s*z*tl,W=hw*s*w,dip=2.2*s;
+      const path=()=>{ctx.beginPath();ctx.moveTo(x,top);ctx.quadraticCurveTo(x+W*.35,top+(base-top)*.55,x+W,base);
+        ctx.quadraticCurveTo(x+W*.82,base+dip,x+W*.55,base+.2*s);ctx.quadraticCurveTo(x+W*.3,base+dip*1.1,x,base+.4*s);
+        ctx.quadraticCurveTo(x-W*.3,base+dip*1.1,x-W*.55,base+.2*s);ctx.quadraticCurveTo(x-W*.82,base+dip,x-W,base);
+        ctx.quadraticCurveTo(x-W*.35,top+(base-top)*.55,x,top);ctx.closePath();};
+      path();ctx.fillStyle=dark;ctx.fill();
+      ctx.save();path();ctx.clip();ctx.fillStyle=lite;ctx.beginPath();ctx.moveTo(x,top);ctx.lineTo(x-W*1.1,base+dip);ctx.lineTo(x-W*.05,base+dip);ctx.closePath();ctx.fill();
+        ctx.strokeStyle='rgba(12,26,19,.5)';ctx.lineWidth=.7;for(const f of [-.55,-.2,.25,.6]){ctx.beginPath();ctx.moveTo(x+W*f*.25,top+(base-top)*.35);ctx.lineTo(x+W*f,base+.8*s);ctx.stroke();}
+        // 눈: 층 윗부분을 덮는 눈 + 가지 끝에 얹힌 작은 눈덩이
+        const ld=(base-top)*.66,lw=W*.78;ctx.fillStyle='#eaf0ef';ctx.beginPath();ctx.moveTo(x-lw,top+ld+.4*s);ctx.quadraticCurveTo(x-lw*.5,top+ld-1.8*s,x,top+ld-1.2*s);ctx.quadraticCurveTo(x+lw*.5,top+ld-1.8*s,x+lw,top+ld+.4*s);ctx.quadraticCurveTo(x+lw*.6,top+ld+1.2*s,x+lw*.3,top+ld+.6*s);ctx.quadraticCurveTo(x,top+ld+2*s,x-lw*.35,top+ld+.7*s);ctx.quadraticCurveTo(x-lw*.65,top+ld+1.4*s,x-lw,top+ld+.4*s);ctx.fill();
+        ctx.fillStyle='rgba(130,158,180,.5)';ctx.beginPath();ctx.moveTo(x+lw*.1,top+ld+.6*s);ctx.quadraticCurveTo(x+lw*.55,top+ld+.4*s,x+lw,top+ld+.4*s);ctx.quadraticCurveTo(x+lw*.6,top+ld+1.2*s,x+lw*.1,top+ld+.6*s);ctx.fill();
+        const sy=top+(base-top)*.5;ctx.fillStyle='#eef3f2';ctx.beginPath();ctx.moveTo(x,top-1);ctx.quadraticCurveTo(x+W*.3,top+(base-top)*.3,x+W*.55,sy+.6*s);
+        ctx.quadraticCurveTo(x+W*.35,sy+2.2*s,x+W*.12,sy+.9*s);ctx.quadraticCurveTo(x-W*.1,sy+2.6*s,x-W*.32,sy+1*s);ctx.quadraticCurveTo(x-W*.48,sy+2*s,x-W*.58,sy+.5*s);
+        ctx.quadraticCurveTo(x-W*.3,top+(base-top)*.3,x,top-1);ctx.fill();
+        ctx.fillStyle='rgba(130,158,180,.55)';ctx.beginPath();ctx.moveTo(x+W*.55,sy+.6*s);ctx.quadraticCurveTo(x+W*.35,sy+2.2*s,x+W*.12,sy+.9*s);ctx.quadraticCurveTo(x+W*.3,sy+1.1*s,x+W*.55,sy+.6*s);ctx.fill();
+      ctx.restore();
+      ctx.fillStyle='#f2f6f5';for(const f of [-.9,.9])ctx.beginPath(),ctx.ellipse(x+W*f,base-.6*s,1.6*s,1*s,0,0,7),ctx.fill();
+      path();ctx.lineWidth=1.1;ctx.strokeStyle=INK;ctx.stroke();}
+    ctx.restore();}
   const oldTree=tree;tree=function(u,v,s=1,kind=0){
     if(!S.region)return oldTree(u,v,s,kind);
-    if(S.region==='snow'){oldTree(u,v,s,1);for(const o of [6,12,17])poly([P(u,v,30*s),[P(u,v,0)[0]-4*s,P(u,v,0)[1]-(o+4)*s*ZS],[P(u,v,0)[0]+3*s,P(u,v,0)[1]-(o+4)*s*ZS]],'rgba(223,235,230,.65)');return;}
+    if(S.region==='snow'){snowPine(u,v,s);return;}
     const[x,y]=P(u,v,0);ctx.save();ctx.strokeStyle=S.region==='desert'?'#73654d':'#596d62';ctx.lineWidth=1.4*s;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y-11*s*ZS);ctx.moveTo(x,y-4*s*ZS);ctx.lineTo(x-5*s,y-8*s*ZS);ctx.moveTo(x,y-6*s*ZS);ctx.lineTo(x+4*s,y-12*s*ZS);ctx.stroke();ctx.restore();
   };
   const oldLandmark=drawLandmark;drawLandmark=function(i,time){const L=S.lm[i];if(!art.landmark(ctx,P,L.k,L.ok,ZS))return oldLandmark(i,time);
