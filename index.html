@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261010-death2">
+<link rel="stylesheet" href="qa.css?v=20261010-region">
 <div id="app">
   <header>
     <div class="hud">
@@ -1225,7 +1225,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
       <div class="lvrow"><b id="lv">Lv.1 텐트</b><div class="inkbar"><i id="bar"></i></div><span id="barL"></span><small id="pop" hidden>생존자 0</small></div>
     </div>
     <div id="matsAll" hidden></div>
-    <div class="tape" id="tape"><div class="m" id="mis">…</div><button class="migchip ped" id="pedchip" hidden>🛒 노친네</button><button class="migchip" id="migchip" hidden>🔥 새 동네로</button><button class="claim" id="claim" hidden>받기</button></div>
+    <div class="tape" id="tape"><div class="m" id="mis">…</div><button class="migchip ped" id="pedchip" hidden>🛒 노친네</button><button class="migchip fire" id="firechip" hidden>모닥불</button><button class="migchip" id="migchip" hidden>🔥 새 동네로</button><button class="claim" id="claim" hidden>받기</button></div>
   </header>
   <div id="stage">
     <canvas id="cv" role="img" aria-label="쉘터 지도"></canvas>
@@ -2053,25 +2053,28 @@ function updateGuide(){const g=$('guide'),tg=focusTarget();
 
 // ---------- iso helpers ----------
 const cv=$('cv'),stage=$('stage');let ctx=cv.getContext('2d');
-// ---- 눈 동네: 건물·폐허·소품 그림에 눈을 얹는다 ----
-// 그림 시트(아틀라스)를 한 번만 복사해 위를 향한 가장자리마다 눈을 쌓고(아래쪽은 푸른 그늘) 전체를 살짝 서리 낀 색으로.
-// 눈 동네에서 지도 캔버스가 이 시트들을 그릴 때만 눈 덮인 복사본을 쓴다. 초상·동물·장비 그림은 건드리지 않는다.
+// ---- 동네의 결: 건물·폐허·소품 그림을 동네마다 다르게 ----
+// 그림 시트(아틀라스)를 동네에 들어갈 때 한 번만 복사해, 위를 향한 가장자리마다 그 동네의 것을 얹고(눈·모래 먼지·그을음) 전체 색을 살짝 바꾼다.
+// 지도 캔버스가 이 시트들을 그릴 때만 바뀐 복사본을 쓴다. 초상·동물·장비 그림은 건드리지 않는다.
 const SNOW_FILES=['shelters.webp','modules.webp','exploration-sites.webp','landmarks.webp','settlement-props.webp','module-upgrades.webp'],snowImg=new Map();
-function makeSnowy(img){const w=img.naturalWidth,h=img.naturalHeight,c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(img,0,0);
-  const d=g.getImageData(0,0,w,h),p=d.data,D0=Math.max(8,Math.round(w/105)),o=new Uint8ClampedArray(p);
-  for(let x=0;x<w;x++){const nz=.62+.62*((Math.sin(x*.37)+Math.sin(x*.113+1.7)+2)/4),D1=Math.max(3,Math.round(D0*nz)),D2=Math.max(2,Math.round(D1*.75));let run=-1,D=D1,dark=0;
+const WEATHER={
+  snow:{cap:[243,247,249],shade:[196,210,222],k:.93,depth:1,tint:[225,232,238],tk:.1,sat:1},
+  desert:{cap:[226,201,152],shade:[176,140,92],k:.78,depth:.55,tint:[228,186,126],tk:.13,sat:1},
+  factory:{cap:[58,52,50],shade:[34,29,27],k:.72,depth:.55,tint:[118,78,56],tk:.2,sat:.62}};
+function makeSnowy(img,reg='snow'){const P0=WEATHER[reg],w=img.naturalWidth,h=img.naturalHeight,c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(img,0,0);
+  const d=g.getImageData(0,0,w,h),p=d.data,D0=Math.max(8,Math.round(w/105)*P0.depth),o=new Uint8ClampedArray(p),[cr,cg,cb]=P0.cap,[hr,hg,hb]=P0.shade,[tr,tg,tb]=P0.tint,tk=P0.tk;
+  for(let x=0;x<w;x++){const nz=.62+.62*((Math.sin(x*.37)+Math.sin(x*.113+1.7)+2)/4),D1=Math.max(2,Math.round(D0*nz)),D2=Math.max(2,Math.round(D1*.75));let run=-1,D=D1,dark=0;
     for(let y=0;y<h;y++){const i=(y*w+x)*4;if(o[i+3]<90){run=-1;D=D1;dark=0;continue;}
       const lum=o[i]*.3+o[i+1]*.59+o[i+2]*.11;
-      // 안쪽 먹선(진한 선) 바로 아래에도 눈이 얹힌다: 지붕 마루·처마·창턱. 바깥 테두리보다는 얇게.
       if(lum<52){dark++;if(run>D2+1||run<0){run=0;D=D2;}else run++;}else{if(dark>=1&&dark<=3&&run>D){run=1;D=D2;}dark=0;run++;}
-      let r=o[i],gg=o[i+1],b=o[i+2];
-      if(run>=1&&run<=D&&lum>=52){const t=run<=D*.7?1:1-(run-D*.7)/(D*.3+.001),sh=run>=D-1,sr=sh?196:243,sg=sh?210:247,sb=sh?222:249,k=t*.93;r+=(sr-r)*k;gg+=(sg-gg)*k;b+=(sb-b)*k;}
-      else{r=r*.9+22.5;gg=gg*.9+23.2;b=b*.9+23.8;}
+      let r=o[i],gg=o[i+1],b=o[i+2];if(P0.sat<1){const l=r*.3+gg*.59+b*.11;r=l+(r-l)*P0.sat;gg=l+(gg-l)*P0.sat;b=l+(b-l)*P0.sat;}
+      if(run>=1&&run<=D&&lum>=52){const t=run<=D*.7?1:1-(run-D*.7)/(D*.3+.001),sh=run>=D-1,kk=t*P0.k;r+=((sh?hr:cr)-r)*kk;gg+=((sh?hg:cg)-gg)*kk;b+=((sh?hb:cb)-b)*kk;}
+      else{r=r*(1-tk)+tr*tk;gg=gg*(1-tk)+tg*tk;b=b*(1-tk)+tb*tk;}
       p[i]=r;p[i+1]=gg;p[i+2]=b;}}
   g.putImageData(d,0,0);return c;}
-function snowQueue(img){if(snowImg.has(img.src))return;snowImg.set(img.src,null);const run=()=>{try{snowImg.set(img.src,makeSnowy(img));}catch(e){snowImg.set(img.src,false);}};if(window.requestIdleCallback)requestIdleCallback(run,{timeout:1200});else setTimeout(run,30);}
+function snowQueue(img,reg){const key=reg+'|'+img.src;if(snowImg.has(key))return;snowImg.set(key,null);const run=()=>{try{snowImg.set(key,makeSnowy(img,reg));}catch(e){snowImg.set(key,false);}};if(window.requestIdleCallback)requestIdleCallback(run,{timeout:1200});else setTimeout(run,30);}
 {const rawDI=ctx.drawImage.bind(ctx);
-  ctx.drawImage=function(img,...a){if(img&&img.src&&S&&S.region==='snow'&&img.complete&&img.naturalWidth&&SNOW_FILES.some(f=>img.src.includes(f))){const c=snowImg.get(img.src);if(c)return rawDI(c,...a);if(c===undefined)snowQueue(img);}return rawDI(img,...a);};}
+  ctx.drawImage=function(img,...a){const reg=S&&S.region;if(img&&img.src&&reg&&WEATHER[reg]&&img.complete&&img.naturalWidth&&SNOW_FILES.some(f=>img.src.includes(f))){const c=snowImg.get(reg+'|'+img.src);if(c)return rawDI(c,...a);if(c===undefined)snowQueue(img,reg);}return rawDI(img,...a);};}
 let cw=0,ch=0,dpr=1,cam={x:0,y:(CX+CY+1)*TH/2,z:1},camTw=null;
 let GX=0,GY=0,ZS=1;const hintQ=[];
 const P=(u,v,z=0)=>[(GX+u-GY-v)*TW/2,(GX+u+GY+v)*TH/2-z*ZS];
@@ -2292,7 +2295,7 @@ function draw(time){perfTick(time);
     else{ctx.fillStyle=p.col;ctx.globalAlpha=a;ctx.fillRect(p.x-1.5,p.y-1.5,p.s||3,p.s||3);ctx.globalAlpha=1;}}
   ctx.setTransform(dpr,0,0,dpr,0,0);
   drawBubbles(time);ctx.setTransform(dpr,0,0,dpr,0,0);
-  if(nt>0&&stormOn())drawFlakes(nt);drawWeather();
+  if(nt>0&&stormOn())drawFlakes(nt);drawWeather();drawRegionAir();
   const vg=ctx.createRadialGradient(cw/2,ch/2,Math.min(cw,ch)*.35,cw/2,ch/2,Math.max(cw,ch)*.75);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,fever>0?'rgba(120,60,10,.45)':'rgba(0,0,0,.5)');ctx.fillStyle=vg;ctx.fillRect(0,0,cw,ch);}
 
 // ---------- effects ----------
@@ -3965,11 +3968,11 @@ function tickAutoExp(now){if(!S.autoExp||!autoExpOpen())return;if(!now&&++autoEx
 // People, gear, relics, achievements and batteries come along; the map, shelter, modules and most materials start over.
 // Each move adds '등불의 기억' (+10% production, +10% tap power) and the next town has its own rules.
 const REGIONS={
- desert:{n:'메마른 사막 도시',d:'재와 모래가 뒤섞인 간척지, 사람들은 사막이라 불러요 · 물이 없어요 · 식량 생산 ×0.7 · 연료가 1.5배 잘 나와요 · 맑은 날이 잦아요',prod:{food:.7},scav:{fuel:1.5},wx:{normal:.3,clear:.4,acid:0,cold:.1,wind:.2},
+ desert:{n:'메마른 사막 도시',d:'재와 모래가 뒤섞인 간척지, 사람들은 사막이라 불러요 · 물이 없어요 · 식량 생산 ×0.7 · 연료가 1.5배 잘 나와요 · 맑은 날이 잦아요 · 낮이면 모래 위에 신기루가 아른거려요',prod:{food:.7},scav:{fuel:1.5},wx:{normal:.3,clear:.4,acid:0,cold:.1,wind:.2},
   talk:[[ME,'탑에 대답하던 그 먼 불빛을 따라 며칠을 걸었다.'],[ME,'모래바람 너머로 녹슨 급유탑이 늘어선 도시가 보였다. 물은 한 방울도 없다.'],[G,'대신 연료는 넘치네. 불은 안 꺼지겠어.']]},
- factory:{n:'녹슨 공단 지대',d:'대형 재폭풍이 두 밤마다 와요 · 고철·부품 수확 ×1.4',scav:{scrap:1.4,parts:1.4},big:2,
+ factory:{n:'녹슨 공단 지대',d:'대형 재폭풍이 두 밤마다 와요 · 고철·부품 수확 ×1.4 · 멈추지 않은 기계가 가끔 다시 돌아요',scav:{scrap:1.4,parts:1.4},big:2,
   talk:[[ME,'굴뚝이 숲처럼 서 있는 공단. 재가 가장 짙게 쌓인 곳이다.'],[G,'쓸 만한 부품은 많은데… 밤이 무섭겠어. 방벽부터 세우자고.']]},
- snow:{n:'눈 덮인 산골 마을',d:'한파가 자주 와요 · 목재 수확 ×1.5 · 연료를 아껴 써요',scav:{wood:1.5},wx:{normal:.3,clear:.15,acid:.05,cold:.4,wind:.1},
+ snow:{n:'눈 덮인 산골 마을',d:'한파가 자주 와요 · 목재 수확 ×1.5 · 연료를 아껴 써요 · 모닥불 온기를 지켜야 해요',scav:{wood:1.5},wx:{normal:.3,clear:.15,acid:.05,cold:.4,wind:.1},
   talk:[[ME,'재 위에 눈이 내려 온 세상이 잿빛 눈밭이다. 숲이 남아 있다.'],[G,'땔감 걱정은 없겠네. 대신 추위가 문제야.']]}};
 const RORDER=['desert','factory','snow'];
 const REG=()=>S.region&&REGIONS[S.region];
@@ -4621,7 +4624,7 @@ function petDrawMap(time){const night=isNight();
     ctx.scale(w.f*1.15,1.15);petShape(ctx,k,time,w.mv,COLLAR[p.c||0],night);ctx.restore();
     if(k==='fox'&&night)glowPts.push([w.x,w.y-6,26,'200,220,255',.45]);}
   for(const h of PHEART){const a=1-h.t/1.2;ctx.fillStyle=`rgba(230,90,90,${a})`;const x=h.x+Math.sin(h.t*6+h.o)*3,y=h.y-h.t*24;ctx.beginPath();ctx.moveTo(x,y+2.5);ctx.bezierCurveTo(x-4,y-1,x-2,y-4,x,y-1.6);ctx.bezierCurveTo(x+2,y-4,x+4,y-1,x,y+2.5);ctx.fill();}
-  strayDraw(time);towerDraw(time);townDraw(time);memoDraw(time);}
+  strayDraw(time);towerDraw(time);townDraw(time);memoDraw(time);rspotDraw(time);}
 function petHit(sx,sy){for(const k in PW){const w=PW[k],a=window.TTCSettlement&&TTCSettlement.petMetric(k),h=a?a.h*1.15:12,s=toScreen(w.x,w.y-h/2);if(Math.hypot(s.x-sx,s.y-sy)<Math.max(16,(h/2+4)*cam.z))return k;}
   if(S.stray&&strayVis()){const[x,y]=tileC(S.stray.i,6),s=toScreen(x,y);if(Math.hypot(s.x-sx,s.y-sy)<Math.max(22,20*cam.z))return'stray';}return null;}
 let petPatT={};
@@ -5736,6 +5739,66 @@ function deathScene(id,o){const s=SURV[id],nm=s.name,R0=REG(),slow=!reduce,T=k=>
 function memoDraw(time){const m=S.memo&&S.memo[S.gen||0];if(!m||m.i==null||!S.rev[m.i])return;const[x,y]=tileC(m.i,2),f=reduce?1:.85+.15*Math.sin(time/180+m.i);
   ctx.save();ctx.fillStyle='#efe6d2';ctx.strokeStyle='#231a14';ctx.lineWidth=.9;ctx.beginPath();ctx.rect(x+12,y-9,3.2,7);ctx.fill();ctx.stroke();
   ctx.fillStyle=`rgba(255,207,122,${f})`;ctx.beginPath();ctx.moveTo(x+13.6,y-15*f);ctx.quadraticCurveTo(x+16,y-11,x+13.6,y-9.5);ctx.quadraticCurveTo(x+11.2,y-11,x+13.6,y-15*f);ctx.fill();ctx.restore();glowPts.push([x+13.6,y-11,16,'255,200,120',.35*f]);}
+
+// ================= 동네의 결: 날리는 것과 그 동네에서만 하는 일 =================
+// 날리는 것(화면 공간): 사막 모래바람 줄기 · 공단 재 조각과 불티 · 산골 눈송이
+const RAIR=Array.from({length:60},()=>({x:Math.random(),y:Math.random(),v:.5+Math.random(),s:Math.random(),p:Math.random()*7}));
+const HAZE={desert:[[255,214,150,.16],[255,190,120,0]],factory:[[96,70,52,.28],[60,52,48,.1]],snow:[[220,232,245,.14],[200,215,232,0]]};
+function drawRegionAir(){const r=S&&S.region;if(!r||UG)return;const hz=HAZE[r];
+  if(hz){const nt=isNight()?.45:1,g=ctx.createLinearGradient(0,0,0,ch);g.addColorStop(0,`rgba(${hz[0][0]},${hz[0][1]},${hz[0][2]},${hz[0][3]*nt})`);g.addColorStop(.55,`rgba(${hz[1][0]},${hz[1][1]},${hz[1][2]},${hz[1][3]*nt})`);g.addColorStop(1,`rgba(${hz[1][0]},${hz[1][1]},${hz[1][2]},${(r==='factory'?.16:0)*nt})`);ctx.fillStyle=g;ctx.fillRect(0,0,cw,ch);}
+  if(reduce)return;const t=performance.now()/1000;
+  if(r==='desert'){ctx.save();ctx.lineCap='round';for(const q of RAIR){q.x+=(.0018+q.v*.0016)*FS;q.y+=Math.sin(t+q.p)*.0003*FS;if(q.x>1.05){q.x=-.05;q.y=Math.random();}
+      const a=.10+.12*q.s;ctx.strokeStyle=`rgba(214,184,128,${a})`;ctx.lineWidth=.8+q.s*1.2;ctx.beginPath();ctx.moveTo(q.x*cw,q.y*ch);ctx.quadraticCurveTo(q.x*cw+10+q.s*14,q.y*ch-2,q.x*cw+22+q.s*26,q.y*ch+1);ctx.stroke();}ctx.restore();}
+  else if(r==='factory'){for(const q of RAIR){q.y+=(.0006+q.v*.0006)*FS;q.x+=(Math.sin(t*.7+q.p)*.0004+.0003)*FS;if(q.y>1.02){q.y=-.02;q.x=Math.random();}
+      const ember=q.s>.9;ctx.fillStyle=ember?`rgba(255,${150+((t*90+q.p*40)%60)|0},70,${.55+.35*Math.sin(t*6+q.p)})`:`rgba(58,54,52,${.35+.2*q.s})`;const z=ember?1.6:1.4+q.s*1.8;ctx.fillRect(q.x*cw,q.y*ch,z,z*(ember?1:.7));}}
+  else if(r==='snow'&&wxK()!=='cold'){ctx.fillStyle='rgba(244,248,252,.55)';for(const q of RAIR){q.y+=(.0007+q.v*.0006)*FS;q.x+=Math.sin(t*.8+q.p)*.0005*FS;if(q.y>1.02){q.y=-.02;q.x=Math.random();}const z=1.2+q.s*1.6;ctx.beginPath();ctx.arc(q.x*cw,q.y*ch,z*.6,0,7);ctx.fill();}}}
+
+// 그 동네에서만 하는 일 — 사막: 신기루 / 공단: 멈추지 않은 기계 (지도 위 한 자리, 시간이 지나면 사라진다)
+function rspotTile(k){const c=[];for(let i=0;i<N;i++){if(!S.rev[i]||i===C0||isSlot(i)||S.ter[i]===T.WATER||S.ter[i]===T.LM||siteLive(i)||campAt(i)||modAtTile(i))continue;const d=dist(i);if(d<2.5||d>9)continue;if(k==='machine'&&S.ter[i]!==T.RUIN&&Math.random()<.6)continue;c.push(i);}return c.length?c[(Math.random()*c.length)|0]:-1;}
+function tickRegionSpot(){const r=S.region;if(!S.gen||(r!=='desert'&&r!=='factory')||DEFN||UG||S.tut)return;const now=Date.now(),sp=S.rspot;
+  if(sp&&now>sp.end){if(sp.k==='machine'&&sp.n>0)toast('기계가 다시 쿵쿵 돌기 시작했어요');S.rspot=null;S.rspotT=60+Math.random()*60;return;}
+  if(sp)return;S.rspotT=(S.rspotT==null?25:S.rspotT)-1;if(S.rspotT>0)return;
+  const k=r==='desert'?'mirage':'machine';if(k==='mirage'&&isNight()){S.rspotT=20;return;}
+  const i=rspotTile(k);if(i<0){S.rspotT=30;return;}
+  S.rspot={k,i,start:now,end:now+(k==='mirage'?26000:40000),n:0,t0:0,need:8};S.rs=S.rs||{};
+  if(!S.rs[k+'Told']){S.rs[k+'Told']=1;note(k==='mirage'?{h:'모래 위로 무언가 아른거려요',t:'<small>빛나는 자리를 눌러 봐요. 진짜일 수도, 신기루일 수도 있어요</small>',kind:'story',ms:6000}:{h:'멈춘 줄 알았던 기계가 쿵쿵 돌아요',t:'<small>불꽃 튀는 자리를 7초 안에 8번 두드려 꺼요. 부품이 쏟아져요</small>',kind:'story',ms:6000});}
+  else sfx(k==='mirage'?'reveal':'hit');}
+function rspotDraw(time){const sp=S.rspot;if(!sp||!S.rev[sp.i])return;const[x,y]=tileC(sp.i,4),now=Date.now(),life=Math.min(1,(now-sp.start)/900,(sp.end-now)/1500);if(life<=0)return;
+  ctx.save();ctx.globalAlpha=life;
+  if(sp.k==='mirage'){const w=reduce?0:Math.sin(time/260);ctx.strokeStyle='rgba(235,250,255,.55)';ctx.lineWidth=1.2;for(let q=0;q<3;q++){ctx.beginPath();ctx.ellipse(x,y,16+q*5+w*1.5,6+q*2,0,0,7);ctx.globalAlpha=life*(.55-q*.15);ctx.stroke();}
+    ctx.globalAlpha=life*.8;ctx.strokeStyle='rgba(255,246,220,.7)';for(let q=-1;q<=1;q++){ctx.beginPath();for(let k=0;k<6;k++){const yy=y-6-k*4,xx=x+q*8+Math.sin(time/200+k+q)*2;k?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy);}ctx.stroke();}
+    const g=.6+.4*Math.sin(time/180);ctx.globalAlpha=life;ctx.fillStyle=`rgba(255,250,230,${g})`;ctx.beginPath();ctx.moveTo(x,y-26);ctx.lineTo(x+2,y-21);ctx.lineTo(x+7,y-19);ctx.lineTo(x+2,y-17);ctx.lineTo(x,y-12);ctx.lineTo(x-2,y-17);ctx.lineTo(x-7,y-19);ctx.lineTo(x-2,y-21);ctx.closePath();ctx.fill();glowPts.push([x,y-10,30,'255,236,190',.35*life]);}
+  else{const pr=sp.n/sp.need,p2=.5+.5*Math.sin(time/140);ctx.strokeStyle=`rgba(230,80,50,${.5+.4*p2})`;ctx.lineWidth=2;ctx.setLineDash([4,3]);ctx.lineDashOffset=-time/40;ctx.beginPath();ctx.ellipse(x,y,20,8,0,0,7);ctx.stroke();ctx.setLineDash([]);
+    const gy=y-20,rot=time/(sp.n?120:300);ctx.fillStyle='#3a3532';ctx.strokeStyle='#231a14';ctx.lineWidth=1;ctx.beginPath();for(let k=0;k<16;k++){const a=rot+k*Math.PI/8,rr=k%2?7.5:10;ctx.lineTo(x+Math.cos(a)*rr,gy+Math.sin(a)*rr);}ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.fillStyle='#c9a35a';ctx.beginPath();ctx.arc(x,gy,3.2,0,7);ctx.fill();
+    if(sp.n){ctx.strokeStyle='#ffcf7a';ctx.lineWidth=3;ctx.beginPath();ctx.arc(x,gy,14,-Math.PI/2,-Math.PI/2+pr*Math.PI*2);ctx.stroke();}
+    if(!reduce&&Math.random()<.25)parts.push({x:x+(Math.random()-.5)*12,y:gy+4,vx:(Math.random()-.5)*1.6,vy:-1-Math.random()*1.4,life:.45,max:.45,col:'#ffb35a',s:.6});glowPts.push([x,gy,26,'255,150,80',.3+.2*p2]);}
+  ctx.restore();}
+function rspotHit(sx,sy){const sp=S.rspot;if(!sp||!S.rev[sp.i])return false;const[x,y]=tileC(sp.i,sp.k==='machine'?14:10),q=toScreen(x,y);if(Math.hypot(q.x-sx,q.y-sy)>Math.max(30,26*cam.z))return false;
+  S.rs=S.rs||{};const sc=lvScale();
+  if(sp.k==='mirage'){S.rspot=null;S.rspotT=70+Math.random()*60;const real=!S.rs.mirFirst||Math.random()<.62;
+    if(real){S.rs.mirFirst=1;S.rs.mir=(S.rs.mir||0)+1;const got=give(scaleCost({fuel:10,food:14},sc));sfx('get');burst(x,y,'#ffe7a8',14);toast(`모래 속에 묻힌 물통과 연료 통! · ${lootTxt(got)}`);if(S.rs.mir===1)tlog('신기루 속에서 진짜 물통을 찾았다.');}
+    else{sfx('reveal');ringFx(x,y,6,40,'235,250,255',.6);toast('가까이 가 보니… 신기루였어요');}save();return true;}
+  const now=Date.now();if(!sp.t0||now-sp.t0>7000){if(sp.t0&&sp.n<sp.need)toast('놓쳤어요! 다시 처음부터 두드려요');sp.t0=now;sp.n=0;}
+  sp.n++;sfx('hit');buzz();burst(x,y-6,'#ffb35a',5);
+  if(sp.n>=sp.need){S.rspot=null;S.rspotT=80+Math.random()*60;S.rs.mach=(S.rs.mach||0)+1;const got=give(scaleCost({parts:8,plate:3},sc));sfx('chime');ringFx(x,y,6,60,'255,200,120',.7);toast(`기계를 멈췄어요 · ${lootTxt(got)}`);if(S.rs.mach===1)tlog('혼자 돌던 기계 하나를 손으로 멈췄다.');}
+  save();return true;}
+{const o=selectAt;selectAt=function(sx,sy){if(rspotHit(sx,sy))return true;return o.apply(this,arguments);};}
+
+// 산골: 모닥불 온기 — 밤과 한파에 빨리 식는다. 장작(목재)을 넣어 지킨다
+// 온기 60% 이상: 희망 +4 · 두드리는 힘 +15% / 0%: 모든 생산 ×0.8
+const warmTier=()=>S.region!=='snow'||S.warm==null?1:S.warm>=60?2:S.warm>0?1:0;
+const fireCost=()=>scaleCost({wood:10},lvScale());
+function tickFire(){const chip=$('firechip');if(S.region!=='snow'||!S.gen){if(chip)chip.hidden=true;return;}
+  if(S.warm==null){S.warm=70;note({h:'모닥불을 꺼뜨리지 마세요',t:'<small>위 띠의 모닥불을 눌러 장작을 넣어요. 따뜻하면 희망이 오르고, 꺼지면 모두 굼떠져요</small>',kind:'story',ms:6500});}
+  const t0=warmTier();if(!UG)S.warm=Math.max(0,S.warm-(isNight()?.32:.13)*(S.wx==='cold'?2:1)*(DEFN?1.4:1));const t1=warmTier();
+  if(t0!==t1){recalc();if(t1===0)note({h:'모닥불이 꺼졌어요',t:'<small>추워서 모두 굼떠요 · 생산 ×0.8 · 장작을 넣어 다시 피워요</small>',ms:5000});}
+  if(chip){chip.hidden=false;const w=Math.round(S.warm);chip.textContent=`모닥불 ${w}%`;chip.dataset.t=t1;}}
+function feedFire(){if(S.region!=='snow')return;const c=fireCost();if(S.warm>=98){toast('불이 충분히 타고 있어요');return;}if(!pay(c)){toast(`목재가 모자라요 · 목재 ${c.wood}`);return;}
+  const t0=warmTier();S.warm=Math.min(100,(S.warm||0)+30);sfx('get');const[x,y]=tileC(C0,10);burst(x,y,'#ffb35a',12);ringFx(x,y,8,60,'255,190,110',.6);
+  if(warmTier()!==t0)recalc();toast(`장작을 넣었어요 · 온기 ${Math.round(S.warm)}% · 목재 -${c.wood}`);tickFire();save();}
+{const o=recalc;recalc=function(){const r=o.apply(this,arguments);if(S&&S.region==='snow'&&S.warm!=null){const t=warmTier();if(t===2){D.hope+=4;D.tapAdd=(D.tapAdd||0)+.15;}else if(t===0){for(const k in D.prod)D.prod[k]*=.8;}}return r;};}
+{const o=tickTownEvents;tickTownEvents=function(){const r=o.apply(this,arguments);try{tickRegionSpot();tickFire();}catch(e){}return r;};}
 {const o=endDefense;endDefense=function(win){const D2=DEFN,r=o.apply(this,arguments);
   if(S.gen&&D2&&(S.rmi||0)>=1&&!(S.deathG||{})[S.gen]){S.deathTry=S.deathTry||{};const n=S.deathTry[S.gen]=(S.deathTry[S.gen]||0)+1,p=win===false?.8:([.3,.5,.75][n-1]||1)*(n<4&&D2.hp>=80?.5:1);
     if(Math.random()<p){const id=deathPick();if(id!=null){(S.deathG=S.deathG||{})[S.gen]=1;const nm=SURV[id].name,raid=D2.raid,where=S.sv[id].at>=0?workName(S.sv[id].at):'방벽',tile=S.sv[id].at>=0?S.sv[id].at:C0,friend=deathFriend(id);killSurv(id);(S.memo=S.memo||{})[S.gen]={i:tile,id};
@@ -5892,7 +5955,7 @@ function renderMatsAll(){$('matsAll').innerHTML=MATS.map(m=>`<div class="ma">${m
 function wireUI(){
   $('mats').onclick=e=>{e.stopPropagation();const p=$('matsAll'),o=p.hidden;p.hidden=!o;$('mats').setAttribute('aria-expanded',o);if(o)renderMatsAll();};
   document.addEventListener('pointerdown',e=>{const p=$('matsAll');if(!p.hidden&&!e.target.closest('#matsAll,#mats')){p.hidden=true;$('mats').setAttribute('aria-expanded','false');}},true);
-  $('tape').onclick=e=>{if(e.target.closest('#claim'))return;if(e.target.closest('#pedchip')){e.stopPropagation();sfx('tap');closeSheet();openPed();return;}if(e.target.closest('.migchip')){e.stopPropagation();sfx('tap');closeSheet();openMigrate();return;}if(e.target.closest('.more')){$('tape').classList.toggle('open');return;}goMission();};
+  $('tape').onclick=e=>{if(e.target.closest('#claim'))return;if(e.target.closest('#pedchip')){e.stopPropagation();sfx('tap');closeSheet();openPed();return;}if(e.target.closest('#firechip')){e.stopPropagation();feedFire();return;}if(e.target.closest('.migchip')){e.stopPropagation();sfx('tap');closeSheet();openMigrate();return;}if(e.target.closest('.more')){$('tape').classList.toggle('open');return;}goMission();};
   $('camBtn').onclick=()=>{const g=$('camGroup'),o=g.hidden;g.hidden=!o;$('camBtn').setAttribute('aria-expanded',o);};
   $('setBtn').onclick=()=>sheetTab==='settings'?closeSheet():openSheet('settings');}
 // Regional colors are presentation only; they do not alter terrain or resources.

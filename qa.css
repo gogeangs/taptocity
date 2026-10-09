@@ -293,3 +293,7 @@
 @media (prefers-reduced-motion:reduce){#ttcDeath .dlamp .fl{animation:none}}
 #ttcDeath h3{font-size:28px}
 #ttcDeath .dlamp svg{filter:drop-shadow(0 0 10px rgba(255,190,110,.35))}
+/* 산골 모닥불 칩 */
+#tape .migchip.fire{background:linear-gradient(90deg,#6b2f17,#c4652a)!important;color:#ffe9c7!important;animation:none}
+#tape .migchip.fire[data-t="0"]{background:linear-gradient(90deg,#2d3a45,#4b5d6b)!important;color:#dfe8ef!important;animation:fireCold 1.2s ease-in-out infinite alternate}
+@keyframes fireCold{to{filter:brightness(1.25)}}
