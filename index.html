@@ -1945,7 +1945,7 @@ const STEP_I=g=>STEPS.findIndex(s=>s.goal===g);
 const STEPS=STORY.flatMap((c,ci)=>c.steps.map((s,si)=>({...s,ci,si,first:si===0})));
 // counting goals start from zero when the step begins, so things done earlier don't finish them at once
 STEPS.forEach(st=>{const f=st.done&&st.done.relF;if(!f)return;st.done=()=>{S.mb=S.mb||{};const k=st.goal;if(S.mb[k]==null)S.mb[k]=f();return f()-S.mb[k]>=1;};});
-function mission(){if(S.gen&&S.mi>=STEPS.length){const RM=regionMis();if((S.rmi||0)<RM.length){const m=RM[S.rmi||0];return{txt:m.goal+(m.k==='op'&&S.rq&&S.rq.opEnd&&!S.rq.op?` (${Math.max(0,Math.ceil((S.rq.opEnd-Date.now())/1000))}초)`:m.k==='cold'&&S.rq&&S.rq.coldBase!=null&&!S.rq.cold?` (${Math.min(3,(S.nights||0)-S.rq.coldBase)}/3밤)`:''),done:m.done(),rw:m.rw,sub:m.hint,step:null,reg:1,rk:m.k};}}
+function mission(){if(S.gen&&S.mi>=STEPS.length){const RM=regionMis();if((S.rmi||0)<RM.length){const m=RM[S.rmi||0];return{txt:m.goal+(m.k==='op'&&S.rq&&S.rq.opEnd&&!S.rq.op?` · 진행 중 ${Math.max(0,Math.ceil((S.rq.opEnd-Date.now())/1000))}초`:m.k==='cold'&&S.rq&&S.rq.coldBase!=null&&!S.rq.cold?` (${Math.min(3,(S.nights||0)-S.rq.coldBase)}/3밤)`:''),done:m.done(),rw:m.rw,sub:m.hint,step:null,reg:1,rk:m.k};}}
   if(S.mi<STEPS.length){const m=STEPS[S.mi];return{txt:m.goal,done:m.done(),rw:{...m.rw,batt:(m.rw.batt||0)+1},sub:m.hint,step:m};}
   return egMission();}
 let misKey=null,misDoneAt=0;
@@ -5037,11 +5037,16 @@ function regGo(k){const Q=S.rq||{};if(k==='spot'&&Q.spotI>=0){if(sheetTab)closeS
 
 // ---------- factory: the shut-down op ----------
 const opCost=()=>scaleCost({plate:40,parts:40,fuel:30},lvScale());
+const OP_STEP=['정문을 뚫는 중','재 배관을 막는 중','마지막 스위치로 가는 중'];
+let opTick=null;
+function opState(){const Q=S.rq||{},tot=Q.opDur||((S.sv[15]||S.sv[9])?90:180)*1000,left=Q.opEnd?Math.max(0,Q.opEnd-Date.now()):0,p=Q.opEnd?Math.min(1,1-left/tot):0;return{left:Math.ceil(left/1000),p,step:OP_STEP[Math.min(2,Math.floor(p*3))]};}
+function opLiveHtml(){const o=opState();return`<div class="fx" style="text-align:left"><b>${o.step}…</b> <span style="float:right">${o.left}초</span><div style="height:8px;border-radius:99px;background:rgba(59,42,26,.15);margin-top:8px;overflow:hidden"><i style="display:block;height:100%;width:${Math.round(o.p*100)}%;background:#c98a3a;border-radius:99px;transition:width .9s linear"></i></div></div><div class="d" style="margin-top:8px">생존자들이 작전을 하고 있어요. <b>따로 할 일은 없어요</b> — 시간이 지나면 저절로 끝나고, 미션 띠에서 보상을 받아요. 창을 닫고 다른 일을 해도 돼요.</div>`;}
 function openOp(){const Q=S.rq||{};if(Q.op)return;const left=Q.opEnd?Math.max(0,Math.ceil((Q.opEnd-Date.now())/1000)):0,c=opCost(),fast=!!(S.sv[15]||S.sv[9]);
-  openModal(`<div class="page"><div class="tag">녹슨 공단 · 3공장</div><h3>공장 끄기 작전</h3><p>재를 뿜으며 돌아가는 라인의 전원을 내려요. 문을 뚫고, 배관을 막고, 마지막 스위치까지.</p>
-    ${left?`<div class="fx">작전 중 · ${left}초 남았어요</div>`:`${needHtml(c)}<div class="d" style="margin-top:6px">걸리는 시간 ${fast?'90초 (도진·재혁이 길을 알아요)':'3분'}</div>`}
-    <div class="btns" style="margin-top:12px"><button class="alt">돌아가기</button>${left?'':`<button data-act="opgo" ${canPay(c)?'':'disabled'}>작전 시작</button>`}</div></div>`,true);}
-modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="opgo"]');if(!b)return;e.stopPropagation();if(!pay(opCost()))return;const Q=S.rq=S.rq||{};Q.opEnd=Date.now()+((S.sv[15]||S.sv[9])?90:180)*1000;save();closeModal();misKey=null;renderMission();toast('작전 시작! 미션 띠에서 남은 시간을 볼 수 있어요');},true);
+  openModal(`<div class="page"><div class="tag">녹슨 공단 · 3공장</div><h3>공장 끄기 작전</h3><p>재를 뿜으며 돌아가는 라인의 전원을 내려야 해요. 생존자들이 정문을 뚫고, 배관을 막고, 마지막 스위치를 내릴 거예요.</p>
+    ${left?`<div id="opLive">${opLiveHtml()}</div>`:`<div class="d" style="margin-bottom:6px"><b>할 일:</b> 아래 자재를 보내 작전을 시작하세요. 그다음은 기다리기만 하면 돼요.</div>${needHtml(c)}<div class="d" style="margin-top:6px">걸리는 시간 ${fast?'90초 (도진·재혁이 길을 알아요)':'3분'}</div>`}
+    <div class="btns" style="margin-top:12px"><button class="alt">${left?'닫기':'돌아가기'}</button>${left?'':`<button data-act="opgo" ${canPay(c)?'':'disabled'}>자재 보내고 작전 시작</button>`}</div></div>`,true);
+  clearInterval(opTick);if(left)opTick=setInterval(()=>{const el=$('opLive');if(!el||modal.hidden){clearInterval(opTick);return;}if((S.rq||{}).op||!opState().left){clearInterval(opTick);closeModal();return;}el.innerHTML=opLiveHtml();},1000);}
+modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="opgo"]');if(!b)return;e.stopPropagation();if(!pay(opCost()))return;const Q=S.rq=S.rq||{};Q.opDur=((S.sv[15]||S.sv[9])?90:180)*1000;Q.opEnd=Date.now()+Q.opDur;save();closeModal();misKey=null;renderMission();toast('작전 시작! 기다리면 저절로 끝나요 · 남은 시간은 미션 띠에');},true);
 
 // ---------- the choices ----------
 const TOWN_CHOICE={
