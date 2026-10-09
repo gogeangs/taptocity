@@ -1756,7 +1756,7 @@ function sprinkle(){const r=mulberry(S.seed+5);S.lm={};S.trace={};
 function placeSignals(){S.sig={};const r=mulberry(S.seed+77);
   SURV.forEach(s=>{const here=s.src==='sig'||(s.src==='town'&&S.gen&&s.region===S.region);if(!here||S.sv[s.id]||isDead(s.id)||inStay(s.id))return;for(let t=0;t<900;t++){const a=r()*Math.PI*2,rad=s.d+Math.floor(t/150)*.8,x=Math.round(CX+Math.cos(a)*rad),y=Math.round(CY+Math.sin(a)*rad);
     if(x<1||y<1||x>=W-1||y>=H-1)continue;const i=y*W+x;if(S.rev[i]||isSlot(i)||S.ter[i]===T.WATER||S.ter[i]===T.DIARY||S.ter[i]===T.SILO||S.sig[i]!==undefined)continue;S.sig[i]=s.id;break;}});}
-function load(snap){try{const raw=snap||JSON.parse(localStorage.getItem(KEY)||'null');if(raw&&raw.ter&&raw.ter.length===N&&raw.m){S=raw;if(!S.camp)S.camp={};try{fixDiaries();}catch(e){}if(!S.inv)S.inv=[];if(!S.ug)S.ug={best:0,runs:0,bestWith:{}};repairExpeditions(S);return true;}}catch(e){}fresh();return false;}
+function load(snap){try{const raw=snap||JSON.parse(localStorage.getItem(KEY)||'null');if(raw&&raw.ter&&raw.ter.length===N&&raw.m){S=raw;if(!S.camp)S.camp={};try{fixDiaries();}catch(e){}if(!S.inv)S.inv=[];if(!S.ug)S.ug={best:0,runs:0,bestWith:{}};repairExpeditions(S);try{dedupeStay();}catch(e){}return true;}}catch(e){}fresh();return false;}
 function save(){S.t=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 
 // ---------- derived ----------
@@ -5322,6 +5322,16 @@ while(P_ART.length<RES0)P_ART.push(P_ART[0]);
 RESIDENTS.forEach(r=>P_ART.push(resArt(r)));
 const isResident=id=>!!(SURV[id]&&SURV[id].src==='town');
 const inStay=id=>{if(!S||!S.stay)return false;for(const g in S.stay)if(S.stay[g].sv&&S.stay[g].sv[id])return true;return false;};
+// 같은 생존자가 지금 무리와 남은 동네에 동시에 있거나, 여러 동네에 남아 있는 저장을 바로잡는다 (예전 은호 중복 합류 버그)
+function dedupeStay(){if(!S||!S.stay)return 0;let fixed=0;const seen={};
+  for(const g of Object.keys(S.stay).map(Number).sort((a,b)=>b-a)){const t=S.stay[g];if(!t||!t.sv)continue;
+    for(const id of Object.keys(t.sv)){const r=t.sv[id];
+      if(S.sv[id]){S.sv[id].xp=Math.max(S.sv[id].xp||0,r.xp||0);delete t.sv[id];fixed++;continue;}
+      if(seen[id]!=null){const keep=S.stay[seen[id]].sv[id];keep.xp=Math.max(keep.xp||0,r.xp||0);delete t.sv[id];fixed++;continue;}
+      seen[id]=g;}
+    if(!Object.keys(t.sv).length)delete S.stay[g];}
+  if(fixed&&S.trade&&S.trade.offers)S.trade.offers=S.trade.offers.filter(o=>S.stay[o.gen]&&S.stay[o.gen].sv[o.id]);
+  return fixed;}
 
 // ---- scene gate: only when nothing else is on screen, and not right after another scene ----
 let scIdle=0;
@@ -5502,7 +5512,7 @@ modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="crow"]')
 
 // ---- 은호: arrives in 4장 (and older saves that skipped the step still meet him) ----
 let ehT=0;
-function tickEunho(){if(svIn(10))return false;const st=mission().step,ji=STEP_I('목소리의 주인 맞이하기');
+function tickEunho(){if(svIn(10)||inStay(10)||isDead(10))return false;const st=mission().step,ji=STEP_I('목소리의 주인 맞이하기');
   if((st&&st.goal==='목소리의 주인 맞이하기')||(S.mi>ji&&ji>=0)){rescue(10,'visit');return true;}return false;}
 
 let endingOn=false;
