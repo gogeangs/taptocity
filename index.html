@@ -2326,7 +2326,8 @@ function nextAim0(i){const x=i%W,y=i/W|0,nx=x+aimDir[0],ny=y+aimDir[1];
   const side=nb4(i).filter(j=>!S.rev[j]);if(side.length){setAim(side[(Math.random()*side.length)|0]);return;}
   setAim(nearestFrontierTo(i));}
 function ensureAim(){if(aimValid())return true;const c=toWorld(cw/2,ch/2),i=pickTile(c.x,c.y);setAim(i>=0?nearestFrontierTo(i):nearestFrontierTo(C0));return aim>=0;}
-function digAim(){if(DEFN){const f=urgentFoe();if(f){lastBtn=performance.now();tapFoe(f);return;}}const a=urgentAsh();if(a>=0){lastBtn=performance.now();hitAsh(a,tapPow()*(fever>0?2:1));return;}if(!ensureAim())return;lastBtn=performance.now();
+let defIdleT=0;
+function digAim(){if(DEFN){const f=urgentFoe();if(f){lastBtn=performance.now();tapFoe(f);return;}lastBtn=performance.now();const now=performance.now();if(now-defIdleT>1400){defIdleT=now;const[cx,cy]=tileC(C0);ringFx(cx,cy,4,40,'255,220,160',.45);floatText(cx,cy-30,'다음 무리를 기다려요','rgba(255,230,200,A)',13);}{const[cx,cy]=tileC(C0),sc=toScreen(cx,cy);if(sc.x<0||sc.x>cw||sc.y<0||sc.y>ch)frameDefense();}return;}const a=urgentAsh();if(a>=0){lastBtn=performance.now();hitAsh(a,tapPow()*(fever>0?2:1));return;}if(!ensureAim())return;lastBtn=performance.now();
   if(S.rev[aim]&&S.camp[aim])hitCamp(aim,tapPow()*(fever>0?2:1));else if(S.rev[aim]&&S.site[aim])hitSite(aim,tapPow()*(fever>0?2:1));else dig(aim);}
 function frontierAt(sx,sy){const r=TW*.8*cam.z;let best=-1,bd=r*r;
   for(let i=0;i<N;i++){if(!isFrontier(i))continue;const[wx,wy]=tileC(i,12),s=toScreen(wx,wy),d=(s.x-sx)**2+(s.y-sy)**2;if(d<bd){bd=d;best=i;}}return best;}
