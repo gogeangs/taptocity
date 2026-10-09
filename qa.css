@@ -201,7 +201,7 @@
 .row.mcard.tro .d.q{font-style:italic;color:var(--sepia);margin:3px 0}
 .row.mcard.tro .costs{display:inline-flex;vertical-align:middle}
 .row.mcard.tro.urg{position:relative;background:linear-gradient(135deg,#fbe9d6,#f6dcc2)!important;border:1.5px solid #e07a45!important;box-shadow:0 2px 10px rgba(224,122,69,.22)!important;overflow:visible!important}
-.row.mcard.tro.urg::after{content:'⚡ 후한 보상';position:absolute;top:-9px;right:12px;font:700 10.5px/1 var(--body);padding:4px 8px;border-radius:999px;background:#e07a45;color:#fff8ee;box-shadow:0 1px 4px rgba(120,50,10,.3);pointer-events:none}
+.row.mcard.tro.urg::after{content:'후한 보상';position:absolute;top:-9px;right:12px;font:700 10.5px/1 var(--body);padding:4px 8px;border-radius:999px;background:#e07a45;color:#fff8ee;box-shadow:0 1px 4px rgba(120,50,10,.3);pointer-events:none}
 .row.mcard.tro.urg .ttag.urg{background:#e07a45;color:#fff8ee}
 .row.mcard.tro .warn{font-style:normal;color:#9a4612;font-weight:600}
 /* 노친네 */
