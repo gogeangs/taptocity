@@ -3,7 +3,7 @@
 // The game calls TTCMusic.mood(name) about once a second. Moods: day, night, air (은호's broadcast night),
 // storm, under, tut (그날 밤), off. TTCMusic.blackout() is the '딸깍 → black' beat.
 (function(){
-let A=null,an=null,master=null,bus=null,hall=null,echo=null,started=false,enabled=true,cur='off',want='off',duck=1,black=0,timer=null;
+let susT=0,A=null,an=null,master=null,bus=null,hall=null,echo=null,started=false,enabled=true,cur='off',want='off',duck=1,black=0,timer=null;
 let t0=0,bar=0,nextBar=0,phraseLeft=0,lastDeg=2;
 const L={};
 const hz=n=>440*Math.pow(2,(n-69)/12);
@@ -24,7 +24,7 @@ function ctx(){if(A)return A;try{A=new(window.AudioContext||window.webkitAudioCo
   master.connect(comp);comp.connect(A.destination);an=A.createAnalyser();an.fftSize=1024;comp.connect(an);
   bus=A.createGain();bus.connect(master);
   // large dark hall: smoothed noise with a long exponential tail, so the tail is warm, not hissy
-  hall=A.createConvolver();const sec=4.2,len=Math.floor(A.sampleRate*sec),ir=A.createBuffer(2,len,A.sampleRate);
+  hall=A.createConvolver();const sec=2.8,len=Math.floor(A.sampleRate*sec),ir=A.createBuffer(2,len,A.sampleRate);
   for(let c=0;c<2;c++){const d=ir.getChannelData(c);let lp=0;for(let i=0;i<len;i++){const w=Math.random()*2-1,k=.12+.5*(1-i/len);lp+=k*(w-lp);d[i]=lp*Math.exp(-3.2*i/len)*(i<A.sampleRate*.012?i/(A.sampleRate*.012):1);}}
   hall.buffer=ir;const hg=A.createGain();hg.gain.value=.9;hall.connect(hg);hg.connect(master);
   // soft echo for the piano
@@ -74,7 +74,9 @@ function setLayers(){const m=M[cur],quiet=!enabled||cur==='off'||!m,t=A.currentT
   const lv={pad:m?m.pad:0,pno:m?m.pno:0,sub:m?m.sub:0,storm:m&&m.storm?.6:0,radio:m&&m.radio?.9:0,drip:m&&m.drip?.8:0};
   for(const x in lv)L[x].gain.setTargetAtTime(lv[x]*k,t,r);}
 function apply(){if(!A)return;if(want!==cur){cur=want;bar=0;songI=0;nextBar=A.currentTime+.2;}
-  master.gain.setTargetAtTime(enabled&&cur!=='off'?.85:0,A.currentTime,.8);setLayers();}
+  const on=enabled&&cur!=='off';master.gain.setTargetAtTime(on?.85:0,A.currentTime,.8);setLayers();
+  // 소리가 꺼져 있으면 잠깐 뒤 오디오 장치를 쉬게 해 휴대폰이 덜 데워지게 한다
+  clearTimeout(susT);if(!on)susT=setTimeout(()=>{if(A&&!(enabled&&cur!=='off')&&A.state==='running')A.suspend();},4000);else if(A.state==='suspended'&&!document.hidden)A.resume().catch(()=>{});}
 function start(){if(!enabled)return;if(!ctx())return;if(A.state!=='running')A.resume();if(!started){started=true;timer=setInterval(tick,120);}apply();}
 ['pointerdown','keydown','touchend'].forEach(ev=>window.addEventListener(ev,()=>{if(enabled&&want!=='off')start();},{passive:true,capture:true}));
 document.addEventListener('visibilitychange',()=>{if(!A)return;if(document.hidden)A.suspend();else if(enabled&&started)A.resume();});
