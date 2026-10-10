@@ -2072,9 +2072,14 @@ function makeSnowy(img,reg='snow'){const P0=WEATHER[reg],w=img.naturalWidth,h=im
       else{r=r*(1-tk)+tr*tk;gg=gg*(1-tk)+tg*tk;b=b*(1-tk)+tb*tk;}
       p[i]=r;p[i+1]=gg;p[i+2]=b;}}
   g.putImageData(d,0,0);return c;}
-function snowQueue(img,reg){const key=reg+'|'+img.src;if(snowImg.has(key))return;snowImg.set(key,null);const run=()=>{try{snowImg.set(key,makeSnowy(img,reg));}catch(e){snowImg.set(key,false);}};if(window.requestIdleCallback)requestIdleCallback(run,{timeout:1200});else setTimeout(run,30);}
+// 읽기용(CPU) 캔버스를 그대로 그리면 휴대폰은 매 프레임 GPU로 다시 올린다 → 완성본은 GPU용 사본으로 바꿔 둔다
+function gpuCopy(c,done){if(window.createImageBitmap){createImageBitmap(c).then(done,()=>{const k=document.createElement('canvas');k.width=c.width;k.height=c.height;k.getContext('2d').drawImage(c,0,0);done(k);});}else{const k=document.createElement('canvas');k.width=c.width;k.height=c.height;k.getContext('2d').drawImage(c,0,0);done(k);}}
+const snowByImg=new WeakMap();
+function snowQueue(img,reg){let m=snowByImg.get(img);if(!m){m={};snowByImg.set(img,m);}if(reg in m)return;m[reg]=null;const run=()=>{try{gpuCopy(makeSnowy(img,reg),b=>{m[reg]=b;});}catch(e){m[reg]=false;}};if(window.requestIdleCallback)requestIdleCallback(run,{timeout:1200});else setTimeout(run,30);}
 {const rawDI=ctx.drawImage.bind(ctx);
-  ctx.drawImage=function(img,...a){const reg=S&&S.region;if(img&&img.src&&reg&&WEATHER[reg]&&img.complete&&img.naturalWidth&&SNOW_FILES.some(f=>img.src.includes(f))){const c=snowImg.get(reg+'|'+img.src);if(c)return rawDI(c,...a);if(c===undefined)snowQueue(img,reg);}return rawDI(img,...a);};}
+  const isSheet=new WeakMap(),sheetOk=img=>{let v=isSheet.get(img);if(v===undefined){v=!!(img.src&&SNOW_FILES.some(f=>img.src.includes(f)));if(img.complete&&img.naturalWidth)isSheet.set(img,v);}return v;};
+  ctx.drawImage=function(img,a1,a2,a3,a4,a5,a6,a7,a8){const reg=S&&S.region;if(reg&&WEATHER[reg]&&img instanceof HTMLImageElement&&sheetOk(img)&&img.complete&&img.naturalWidth){const m=snowByImg.get(img),c=m&&m[reg];if(c)img=c;else if(!m||!(reg in m))snowQueue(img,reg);}
+    return arguments.length>5?rawDI(img,a1,a2,a3,a4,a5,a6,a7,a8):arguments.length>3?rawDI(img,a1,a2,a3,a4):rawDI(img,a1,a2);};}
 let cw=0,ch=0,dpr=1,cam={x:0,y:(CX+CY+1)*TH/2,z:1},camTw=null;
 let GX=0,GY=0,ZS=1;const hintQ=[];
 const P=(u,v,z=0)=>[(GX+u-GY-v)*TW/2,(GX+u+GY+v)*TH/2-z*ZS];
@@ -5744,14 +5749,14 @@ function memoDraw(time){const m=S.memo&&S.memo[S.gen||0];if(!m||m.i==null||!S.re
 // 날리는 것(화면 공간): 사막 모래바람 줄기 · 공단 재 조각과 불티 · 산골 눈송이
 const RAIR=Array.from({length:60},()=>({x:Math.random(),y:Math.random(),v:.5+Math.random(),s:Math.random(),p:Math.random()*7}));
 const HAZE={desert:[[255,214,150,.16],[255,190,120,0]],factory:[[96,70,52,.28],[60,52,48,.1]],snow:[[220,232,245,.14],[200,215,232,0]]};
+let hazeG=null,hazeK='';
 function drawRegionAir(){const r=S&&S.region;if(!r||UG)return;const hz=HAZE[r];
-  if(hz){const nt=isNight()?.45:1,g=ctx.createLinearGradient(0,0,0,ch);g.addColorStop(0,`rgba(${hz[0][0]},${hz[0][1]},${hz[0][2]},${hz[0][3]*nt})`);g.addColorStop(.55,`rgba(${hz[1][0]},${hz[1][1]},${hz[1][2]},${hz[1][3]*nt})`);g.addColorStop(1,`rgba(${hz[1][0]},${hz[1][1]},${hz[1][2]},${(r==='factory'?.16:0)*nt})`);ctx.fillStyle=g;ctx.fillRect(0,0,cw,ch);}
-  if(reduce)return;const t=performance.now()/1000;
-  if(r==='desert'){ctx.save();ctx.lineCap='round';for(const q of RAIR){q.x+=(.0018+q.v*.0016)*FS;q.y+=Math.sin(t+q.p)*.0003*FS;if(q.x>1.05){q.x=-.05;q.y=Math.random();}
-      const a=.10+.12*q.s;ctx.strokeStyle=`rgba(214,184,128,${a})`;ctx.lineWidth=.8+q.s*1.2;ctx.beginPath();ctx.moveTo(q.x*cw,q.y*ch);ctx.quadraticCurveTo(q.x*cw+10+q.s*14,q.y*ch-2,q.x*cw+22+q.s*26,q.y*ch+1);ctx.stroke();}ctx.restore();}
-  else if(r==='factory'){for(const q of RAIR){q.y+=(.0006+q.v*.0006)*FS;q.x+=(Math.sin(t*.7+q.p)*.0004+.0003)*FS;if(q.y>1.02){q.y=-.02;q.x=Math.random();}
-      const ember=q.s>.9;ctx.fillStyle=ember?`rgba(255,${150+((t*90+q.p*40)%60)|0},70,${.55+.35*Math.sin(t*6+q.p)})`:`rgba(58,54,52,${.35+.2*q.s})`;const z=ember?1.6:1.4+q.s*1.8;ctx.fillRect(q.x*cw,q.y*ch,z,z*(ember?1:.7));}}
-  else if(r==='snow'&&wxK()!=='cold'){ctx.fillStyle='rgba(244,248,252,.55)';for(const q of RAIR){q.y+=(.0007+q.v*.0006)*FS;q.x+=Math.sin(t*.8+q.p)*.0005*FS;if(q.y>1.02){q.y=-.02;q.x=Math.random();}const z=1.2+q.s*1.6;ctx.beginPath();ctx.arc(q.x*cw,q.y*ch,z*.6,0,7);ctx.fill();}}}
+  if(hz){const nt=isNight()?.45:1,k=r+':'+ch+':'+nt;if(k!==hazeK){hazeK=k;hazeG=ctx.createLinearGradient(0,0,0,ch);hazeG.addColorStop(0,`rgba(${hz[0][0]},${hz[0][1]},${hz[0][2]},${hz[0][3]*nt})`);hazeG.addColorStop(.55,`rgba(${hz[1][0]},${hz[1][1]},${hz[1][2]},${hz[1][3]*nt})`);hazeG.addColorStop(1,`rgba(${hz[1][0]},${hz[1][1]},${hz[1][2]},${(r==='factory'?.16:0)*nt})`);}ctx.fillStyle=hazeG;ctx.fillRect(0,0,cw,ch);}
+  if(reduce)return;const t=performance.now()/1000,n=LOWFX?30:RAIR.length;
+  if(r==='desert'){ctx.strokeStyle='rgba(214,184,128,.17)';ctx.lineWidth=1.3;ctx.beginPath();for(let k=0;k<n;k++){const q=RAIR[k];q.x+=(.0018+q.v*.0016)*FS;q.y+=Math.sin(t+q.p)*.0003*FS;if(q.x>1.05){q.x=-.05;q.y=Math.random();}const X=q.x*cw,Y=q.y*ch,L=18+q.s*26;ctx.moveTo(X,Y);ctx.lineTo(X+L,Y);}ctx.stroke();}
+  else if(r==='factory'){ctx.fillStyle='rgba(58,54,52,.45)';let em=0;for(let k=0;k<n;k++){const q=RAIR[k];q.y+=(.0006+q.v*.0006)*FS;q.x+=(Math.sin(t*.7+q.p)*.0004+.0003)*FS;if(q.y>1.02){q.y=-.02;q.x=Math.random();}if(q.s>.9){em++;continue;}const z=1.4+q.s*1.8;ctx.fillRect(q.x*cw,q.y*ch,z,z*.7);}
+    if(em){ctx.fillStyle='rgba(255,170,80,.8)';for(let k=0;k<n;k++){const q=RAIR[k];if(q.s>.9)ctx.fillRect(q.x*cw,q.y*ch,1.8,1.8);}}}
+  else if(r==='snow'&&wxK()!=='cold'){ctx.fillStyle='rgba(244,248,252,.6)';for(let k=0;k<n;k++){const q=RAIR[k];q.y+=(.0007+q.v*.0006)*FS;q.x+=Math.sin(t*.8+q.p)*.0005*FS;if(q.y>1.02){q.y=-.02;q.x=Math.random();}const z=1.4+q.s*1.6;ctx.fillRect(q.x*cw,q.y*ch,z,z);}}}
 
 // 그 동네에서만 하는 일 — 사막: 신기루 / 공단: 멈추지 않은 기계 (지도 위 한 자리, 시간이 지나면 사라진다)
 function rspotTile(k){const c=[];for(let i=0;i<N;i++){if(!S.rev[i]||i===C0||isSlot(i)||S.ter[i]===T.WATER||S.ter[i]===T.LM||siteLive(i)||campAt(i)||modAtTile(i))continue;const d=dist(i);if(d<2.5||d>9)continue;if(k==='machine'&&S.ter[i]!==T.RUIN&&Math.random()<.6)continue;c.push(i);}return c.length?c[(Math.random()*c.length)|0]:-1;}
@@ -5983,7 +5988,12 @@ if(window.TTCDesign){
     if(S.region==='desert')ctx.quadraticCurveTo(b[0],b[1]-3,c[0],c[1]);else{ctx.lineTo(...b);ctx.lineTo(...c);}ctx.stroke();ctx.restore();
   };
   // 눈 덮인 소나무: 다른 일러스트 소품처럼 짙은 먹선 + 층마다 톱니 가지 + 가지 위에 얹힌 눈덩이(아랫면은 푸른 그늘)
-  function snowPine(u,v,s){const[x,y]=P(u,v,0),z=ZS,h=((u*97.13+v*41.7)%1+1)%1,w=1+(h-.5)*.2,tl=1+(h-.5)*.25,INK='#231a14';
+  // 그린 소나무를 화면 배율별로 한 번만 그려 두고 찍어 낸다(나무가 많아 매 프레임 곡선을 다시 그리면 무겁다)
+  const PINE=new Map();
+  function snowPine(u,v,s){const[x0,y0]=P(u,v,0),h0=((u*97.13+v*41.7)%1+1)%1,vr=Math.min(3,(h0*4)|0),t=ctx.getTransform(),sc=Math.max(1,Math.min(8,Math.round(Math.hypot(t.a,t.b)*2)/2)),key=vr+':'+s.toFixed(2)+':'+ZS.toFixed(2)+':'+sc;
+    let c=PINE.get(key);if(!c){if(PINE.size>160)PINE.clear();const W2=26*s,H2=48*s*ZS;c=document.createElement('canvas');c.width=Math.ceil(W2*2*sc);c.height=Math.ceil(H2*sc);const g=c.getContext('2d'),old=ctx,oG=[GX,GY],uu=vr/4+.01;g.scale(sc,sc);g.translate(W2,H2-6*s);ctx=g;GX=-uu;GY=0;try{snowPineRaw(uu,0,s);}finally{ctx=old;[GX,GY]=oG;}PINE.set(key,c);}
+    const W2=26*s,H2=48*s*ZS;ctx.drawImage(c,x0-W2,y0-(H2-6*s),W2*2,H2);}
+  function snowPineRaw(u,v,s){const[x,y]=P(u,v,0),z=ZS,h=((u*97.13+v*41.7)%1+1)%1,w=1+(h-.5)*.2,tl=1+(h-.5)*.25,INK='#231a14';
     ctx.save();ctx.lineJoin='round';ctx.lineCap='round';
     ctx.fillStyle='rgba(40,55,70,.28)';ctx.beginPath();ctx.ellipse(x+3*s,y+1,8.5*s*w,3.2*s,0,0,7);ctx.fill();
     ctx.fillStyle='#4a3324';ctx.strokeStyle=INK;ctx.lineWidth=1;ctx.beginPath();ctx.rect(x-1.5*s,y-6*s*z,3*s,6*s*z);ctx.fill();ctx.stroke();
