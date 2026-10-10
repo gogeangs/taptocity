@@ -297,3 +297,44 @@
 #tape .migchip.fire{background:linear-gradient(90deg,#6b2f17,#c4652a)!important;color:#ffe9c7!important;animation:none}
 #tape .migchip.fire[data-t="0"]{background:linear-gradient(90deg,#2d3a45,#4b5d6b)!important;color:#dfe8ef!important;animation:fireCold 1.2s ease-in-out infinite alternate}
 @keyframes fireCold{to{filter:brightness(1.25)}}
+
+/* 2026-10-10 디자인 정리: 레벨 칩을 목표 띠에 합침 · 의뢰 칩 접기 · 증축 카드 · 장비 칸 */
+.hud{padding-bottom:6px!important}
+.lvchip{all:unset;box-sizing:border-box;flex:none;display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:70px;max-width:96px;padding:4px 8px;margin:-4px 0 -4px -4px;border-radius:7px;background:#2c333b;color:#f5ead0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.lvchip #lv{font:700 11.5px/1 var(--body)!important;color:#ffdf9e!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lvchip .lvbar{display:block;height:4px;border-radius:99px;background:rgba(245,234,208,.18);overflow:hidden}
+.lvchip .lvbar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#c9a24a,#f3a53a);transition:width .4s}
+.lvchip.ready{background:#d9a34e;color:#243039;animation:lvpulse 1.6s ease-in-out infinite}
+.lvchip.ready #lv{color:#243039!important}
+.lvchip.ready .lvbar{display:none}
+.lvchip.ready::after{content:'증축 가능 ›';font:700 10px/1 var(--body);color:#243039}
+@keyframes lvpulse{50%{box-shadow:0 0 0 3px rgba(243,165,58,.35)}}
+@media (prefers-reduced-motion:reduce){.lvchip.ready{animation:none}}
+body.calm .lvchip.ready{animation:none}
+.tape .m{min-width:0}
+
+.sq.mini{width:auto!important;padding:4px 8px 4px 4px;gap:6px}
+.sq.mini .sqm{display:none}
+.sq.mini .sqp{width:46px}
+.sq.mini .sqav{width:30px;height:30px}
+.sq:not(.mini){animation:sqin .18s ease-out}
+@keyframes sqin{from{opacity:.4;transform:translateX(-6px)}}
+
+.row.mcard.hero .costs{margin-left:calc(-1 * var(--heroTh,82px));margin-top:10px}
+.row.mcard.hero>.buy{font-size:15.5px!important;font-weight:700!important;min-height:46px}
+
+#shBody .pick.gear{grid-template-columns:50px 1fr auto;gap:10px;cursor:pointer;align-items:start}
+#shBody .pick.gear>.gi{width:50px!important;height:50px!important;margin-top:2px}
+#shBody .pick.gear>.gi svg{width:30px;height:30px}
+#shBody .pick.gear .t{line-height:1.35}
+#shBody .pick.gear .gfx{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+#shBody .pick.gear .gfx span{font:600 11.5px/1 var(--body);padding:4px 7px;border-radius:6px;background:rgba(77,122,79,.12);color:#3f6a42;white-space:nowrap}
+#shBody .pick.gear .gfx .sl{background:rgba(59,42,26,.08);color:var(--sepia-2,#73634e)}
+#shBody .pick.gear .gw{margin-top:5px}
+#shBody .pick.gear .gmore{display:none;margin-top:6px;font-size:12.5px;line-height:1.5}
+#shBody .pick.gear.open .gmore{display:block}
+#shBody .pick.gear .gact{align-self:center}
+#shBody .lkb{width:28px!important;height:28px!important;border-color:transparent!important;opacity:.55}
+#shBody .lkb.on{opacity:1}
+
+.resident-side .ready-label{font-size:11px!important;padding:3px 7px!important;border:0!important;background:rgba(217,163,78,.2)!important;color:#8a5a17!important;border-radius:99px!important}
