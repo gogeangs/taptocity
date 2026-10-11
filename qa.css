@@ -353,3 +353,11 @@ body.calm .mc.ric.low>.mi.rimg{animation:none}
 .cost .mi.rimg,.nr .mi.rimg,.gn .mi.rimg{--rs:20px!important;margin:-3px 2px -3px -2px}
 .mc.ric>.mi.rimg{--rs:24px!important;filter:drop-shadow(0 0 2px rgba(255,236,200,.18)) drop-shadow(0 1px 1px rgba(0,0,0,.5))}
 .sumchips .mi.rimg{--rs:15px!important}
+
+/* 2026-10-11 발열: 계속 도는 반짝임은 다시 칠하지 않는 방식(투명도만)으로 */
+.lvchip.ready{animation:none!important;position:relative}
+.lvchip.ready::before{content:'';position:absolute;inset:-3px;border-radius:9px;box-shadow:0 0 0 3px rgba(243,165,58,.45);opacity:0;animation:glowOp 1.6s ease-in-out infinite;pointer-events:none;will-change:opacity}
+.banner.mig,#tape .migchip{animation:none!important;position:relative}
+.banner.mig::after,#tape .migchip::after{content:'';position:absolute;inset:-2px;border-radius:inherit;box-shadow:0 0 0 3px rgba(255,210,120,.6),0 8px 24px rgba(176,69,42,.5);opacity:0;animation:glowOp 2.4s ease-in-out infinite;pointer-events:none;will-change:opacity}
+@keyframes glowOp{50%{opacity:1}}
+body.calm .lvchip.ready::before,body.calm .banner.mig::after,body.calm #tape .migchip::after{animation:none}

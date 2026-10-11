@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261011-ric">
+<link rel="stylesheet" href="qa.css?v=20261011-cool2">
 <div id="app">
   <header>
     <div class="hud">
@@ -2087,7 +2087,7 @@ let cw=0,ch=0,dpr=1,cam={x:0,y:(CX+CY+1)*TH/2,z:1},camTw=null;
 let GX=0,GY=0,ZS=1;const hintQ=[];
 const P=(u,v,z=0)=>[(GX+u-GY-v)*TW/2,(GX+u+GY+v)*TH/2-z*ZS];
 const tileC=(i,z=0)=>{const x=i%W,y=i/W|0;return[(x-y)*TW/2,(x+y+1)*TH/2-z];};
-function resize(){dpr=Math.min(window.devicePixelRatio||1,SET.eco?1.25:LOWFX?1.5:2);cw=stage.clientWidth;ch=stage.clientHeight;cv.width=cw*dpr;cv.height=ch*dpr;}
+function resize(){dpr=Math.min(window.devicePixelRatio||1,SET.eco?1.2:LOWFX?1.35:1.6);cw=stage.clientWidth;ch=stage.clientHeight;cv.width=cw*dpr;cv.height=ch*dpr;}
 const clampZ=z=>Math.max(.5,Math.min(3,z));
 function clampCam(){cam.x=Math.max(-W*TW/2,Math.min(W*TW/2,cam.x));cam.y=Math.max(0,Math.min((W+H)*TH/2,cam.y));}
 const toWorld=(sx,sy)=>({x:(sx-cw/2)/cam.z+cam.x,y:(sy-ch/2)/cam.z+cam.y});
@@ -5981,8 +5981,9 @@ function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;
   for(const[k,v]of flash){const n=v-dt*2;if(n<=0)flash.delete(k);else flash.set(k,n);}
   // 프레임 간격: 손가락으로 지도를 움직일 때만 60fps, 두드리는 중·효과가 남아 있을 땐 30fps, 가만히 두면 20fps, 30초 넘게 손대지 않으면 12fps.
   // 화면 주사율이 120Hz여도 60fps를 넘지 않는다. 절전 모드는 한 단계씩 더 느리게.
-  const quiet=now-lastInput,eco=!!SET.eco,drag=ptrs.size||camTw||camGoalY!=null,
-    gap=drag?(eco?31:15):(DEFN||UG||fever>0||quiet<1500||parts.length||anims.size||flash.size||glows.length)?(eco?48:31):quiet<30000?(eco?64:48):(eco?110:80);
+  // 창(시트·대화)이 지도를 거의 덮고 있으면 뒤 지도는 1초에 8번만
+  const quiet=now-lastInput,eco=!!SET.eco,drag=ptrs.size||camTw||camGoalY!=null,covered=!!sheetTab||!modal.hidden,
+    gap=drag?(eco?31:15):covered?125:(DEFN||UG||fever>0||quiet<1500||parts.length||anims.size||flash.size||glows.length)?(eco?48:31):quiet<15000?(eco?80:64):(eco?140:100);
   if(now-lastDraw>=gap-2){FS=Math.min(5,Math.max(.5,(now-(lastDraw||now-16.7))/16.7));lastDraw=now;const a=performance.now();draw(now);perfTick(performance.now()-a,now);placeRing();renderLamp();updateGuide();}
   uiT+=dt;if(uiT>.25){uiT=0;hud();}
   saveT+=dt;if(saveT>5){saveT=0;save();}
@@ -6094,7 +6095,10 @@ if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.r
 <script type="module" src="cloud.js?v=20261010-offline"></script>
 <script>
 (function(){
- if('serviceWorker' in navigator){addEventListener('load',()=>{navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(()=>{});});}
+ if('serviceWorker' in navigator){addEventListener('load',()=>{navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(reg=>{
+   // 새 버전이 깔리면, 다음에 앱으로 돌아올 때(백그라운드 → 앞) 저장하고 조용히 새로 연다. 켜 둔 채로 두는 사람도 고친 판을 받게.
+   let fresh=false,had=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had)fresh=true;had=true;});
+   document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(fresh){let busyNow=false;try{busyNow=!!(DEFN||UG);}catch(e){}if(!busyNow){try{save();}catch(e){}location.reload();return;}}reg.update().catch(()=>{});});}).catch(()=>{});});}
  const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
  if(standalone)return;
  let dp=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;});
