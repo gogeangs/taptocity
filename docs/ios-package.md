@@ -17,3 +17,9 @@
 - 테스트 기기 없이 올리기: 아카이브는 서명 없이(CODE_SIGNING_ALLOWED=NO), 내보내기에서 API 키로 Apple 클라우드 배포 서명.
 - App Store는 Xcode 26(iOS 26 SDK) 이상 빌드만 받는다 → macos-26 러너, Xcode_26 선택.
 - 실패하면 원인이 Actions 실행의 주석(annotations)에 `::error::`로 남는다.
+
+## 2026-10-11 App Store 출시 준비
+- iOS 앱은 아이폰 전용(TARGETED_DEVICE_FAMILY 1). 심사용 빌드 12.
+- 스토어 문구·카테고리·스크린샷: `ios/store/metadata`, `ios/store/screenshots/ko/*.jpg`(1320x2868). 고친 뒤 Actions의 'iOS store listing'을 실행하면 `ios/store/asc_upload.py`가 App Store Connect API로 올린다(스크린샷은 지우고 다시 올림, 제출은 안 함).
+- 웹에서 직접 한 것: 가격 무료·175개국, 연령 등급 13+, 콘텐츠 권한(타사 콘텐츠 없음), 앱 개인정보(사용자 ID·게임 플레이 콘텐츠, 앱 기능, 신원 연결, 추적 없음), 심사 메모(영문), 로그인 불필요.
+- ios/store 만 바뀐 푸시는 iOS 빌드를 다시 돌리지 않는다.
