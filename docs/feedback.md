@@ -13,7 +13,10 @@ match /feedback/{id} {
     && request.resource.data.text is string
     && request.resource.data.text.size() <= 800
     && request.resource.data.keys().hasOnly(['id','cat','text','at','ver','dev','uid']);
-  allow read, delete: if false;
+  // 관리자(ceo@itso.co.kr)만 읽기·삭제, '처리함(done)' 표시만 바꾸기
+  allow read, delete: if request.auth != null && request.auth.token.email == 'ceo@itso.co.kr' && request.auth.token.email_verified == true;
+  allow update: if request.auth != null && request.auth.token.email == 'ceo@itso.co.kr' && request.auth.token.email_verified == true
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['done']);
 }
 ```
 
@@ -21,7 +24,9 @@ match /feedback/{id} {
 
 ## 읽는 법
 
-Firebase 콘솔 → Firestore Database → 데이터 → `feedback`. 문서마다:
+**웹페이지:** https://gogeangs.github.io/taptocity/feedback.html — ceo@itso.co.kr 구글 계정으로 로그인. 분류·처리 상태 필터, 검색, '처리함' 표시, 삭제(두 번 눌러 확인)가 돼요. 새 피드백은 열어 둔 채로 실시간으로 올라와요.
+
+콘솔에서 보려면 Firebase 콘솔 → Firestore Database → 데이터 → `feedback`. 문서마다:
 
 - `cat`: bug(버그) · idea(제안) · hard(어려워요) · like(좋아요) · etc(기타)
 - `text`: 내용 (최대 800자)

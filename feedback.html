@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>탭투시티 피드백</title>
+<link rel="icon" href="icons/icon-192.png?v=2">
+<style>
+@font-face{font-family:"TTC Sans";src:url(fonts/ttc-sans.woff2) format("woff2");font-weight:100 900;font-display:swap}
+:root{--bg:#17110b;--panel:#211810;--card:#efe3c4;--ink:#3b2a1a;--ink2:#6e5638;--line:rgba(59,42,26,.16);--amber:#f3a53a;--glow:#ffcf7a;--rust:#b0452a;--ok:#5c8a3a;--mut:#b9a986;
+ --bug:#b0452a;--idea:#2f6f8f;--hard:#9a6a1c;--like:#5c8a3a;--etc:#6e5638;font-family:"TTC Sans","Noto Sans KR",system-ui,-apple-system,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#f1e5c6;min-height:100vh;-webkit-font-smoothing:antialiased}
+header{position:sticky;top:0;z-index:5;background:rgba(23,17,11,.94);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-bottom:1px solid rgba(239,227,196,.08)}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px}
+.top{display:flex;align-items:center;gap:12px;padding:14px 0 10px}
+.top img{width:34px;height:34px;border-radius:8px}
+.top h1{font-size:18px;margin:0;font-weight:800;letter-spacing:-.01em}
+.top .who{margin-left:auto;font-size:12.5px;color:var(--mut);display:flex;align-items:center;gap:8px;min-width:0}
+.top .who span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+button{font:inherit;cursor:pointer}
+.ghost{background:transparent;border:1px solid rgba(239,227,196,.22);color:#f1e5c6;border-radius:99px;padding:6px 12px;font-size:12.5px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:2px 0 10px}
+.stat{background:var(--panel);border:1px solid rgba(239,227,196,.07);border-radius:12px;padding:9px 11px}
+.stat b{display:block;font-size:20px;font-weight:800;color:var(--glow)}
+.stat small{font-size:11.5px;color:var(--mut)}
+.bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:0 0 12px}
+.chip{border:1px solid rgba(239,227,196,.2);background:transparent;color:#e8dbbb;border-radius:99px;padding:7px 12px;font-size:13px;min-height:34px;display:inline-flex;gap:6px;align-items:center}
+.chip i{font-style:normal;font-size:11.5px;opacity:.7}
+.chip.on{background:#efe3c4;color:var(--ink);border-color:transparent;font-weight:700}
+.sep{width:1px;height:20px;background:rgba(239,227,196,.15);margin:0 4px}
+.search{flex:1 1 180px;min-width:150px;background:var(--panel);border:1px solid rgba(239,227,196,.14);color:#f1e5c6;border-radius:99px;padding:8px 14px;font:inherit;font-size:13.5px}
+.search:focus{outline:none;border-color:var(--amber)}
+main{padding:14px 0 60px}
+.card{background:var(--card);color:var(--ink);border-radius:14px;padding:14px 15px 12px;margin-bottom:10px;box-shadow:0 4px 14px rgba(0,0,0,.3);border-left:5px solid var(--etc)}
+.card.done{opacity:.55}
+.card[data-cat=bug]{border-left-color:var(--bug)}.card[data-cat=idea]{border-left-color:var(--idea)}.card[data-cat=hard]{border-left-color:var(--hard)}.card[data-cat=like]{border-left-color:var(--like)}
+.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--ink2);margin-bottom:7px}
+.tag{font-weight:800;font-size:11.5px;padding:3px 8px;border-radius:99px;color:#fff;background:var(--etc)}
+.tag.bug{background:var(--bug)}.tag.idea{background:var(--idea)}.tag.hard{background:var(--hard)}.tag.like{background:var(--like)}
+.pill{background:rgba(59,42,26,.08);border-radius:99px;padding:3px 8px}
+.text{font-size:15px;line-height:1.6;white-space:pre-wrap;word-break:break-word;margin:0 0 8px}
+details{font-size:12px;color:var(--ink2)}
+details summary{cursor:pointer;list-style:none;display:inline-block;padding:2px 0}
+details summary::-webkit-details-marker{display:none}
+details dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:6px 0 2px;background:rgba(59,42,26,.06);border-radius:8px;padding:8px 10px}
+details dt{font-weight:700}details dd{margin:0;word-break:break-all}
+.acts{display:flex;gap:6px;justify-content:flex-end;margin-top:8px}
+.acts button{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:99px;padding:6px 12px;font-size:12.5px;min-height:32px}
+.acts .ok{background:var(--ink);color:#f3e7c9;border-color:transparent}
+.acts .del.arm{background:var(--rust);color:#fff;border-color:transparent}
+.empty,.gate{text-align:center;color:var(--mut);padding:60px 16px;line-height:1.7}
+.gate h2{color:#f1e5c6;font-size:20px;margin:0 0 8px}
+.gate .go{margin-top:16px;background:var(--amber);color:#2a1c0f;border:0;border-radius:99px;padding:12px 22px;font-weight:800;font-size:15px}
+.err{color:#ffb4a0}
+.more{display:block;margin:6px auto 0}
+@media (max-width:520px){.stats{grid-template-columns:repeat(2,1fr)}.top h1{font-size:16px}.sep{display:none}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="top"><img src="icons/icon-192.png?v=2" alt=""><h1>탭투시티 피드백</h1><div class="who" id="who"></div></div>
+  <div id="tools" hidden>
+    <div class="stats" id="stats"></div>
+    <div class="bar" id="cats"></div>
+    <div class="bar"><input class="search" id="q" type="search" placeholder="내용·기기·동네로 찾기"><span id="stf"></span></div>
+  </div>
+</div></header>
+<div class="wrap"><main id="list"><div class="gate">불러오는 중…</div></main></div>
+<script src="cloud-config.js"></script>
+<script type="module">
+// 관리자 전용 피드백 보기. 읽기·처리·삭제는 Firestore 규칙에서 관리자 이메일만 허용한다.
+// 게임과 같은 주소에서 열려도 게임의 익명 로그인과 섞이지 않게 별도 앱 이름('admin')으로 로그인한다.
+const V='10.12.2',ADMIN='ceo@itso.co.kr';
+let MODS;try{MODS=await Promise.all([import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`),import(`https://www.gstatic.com/firebasejs/${V}/firebase-auth.js`),import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`)]);}catch(e){document.getElementById('list').innerHTML='<div class="gate"><h2>연결하지 못했어요</h2>인터넷 연결을 확인하고 새로고침해 주세요.</div>';throw e;}
+const [{initializeApp},A,F]=MODS;
+const app=initializeApp(window.TTC_FIREBASE,'admin'),auth=A.getAuth(app),db=F.getFirestore(app),prov=new A.GoogleAuthProvider();prov.setCustomParameters({prompt:'select_account'});
+const $=id=>document.getElementById(id),esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const CAT={bug:'버그',idea:'제안',hard:'어려워요',like:'좋아요',etc:'기타'},REG={home:'첫 동네',desert:'사막',factory:'공장',snow:'설원'},APP={ios:'iPhone 앱',android:'Android 앱',web:'웹'};
+let rows=[],cat='all',stf='open',q='',lim=200,armed=null;
+const when=t=>{if(!t)return'';const d=new Date(t),n=Date.now()-t;if(n<6e4)return'방금';if(n<36e5)return Math.floor(n/6e4)+'분 전';if(n<864e5)return Math.floor(n/36e5)+'시간 전';return`${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;};
+function gate(h){$('tools').hidden=true;$('list').innerHTML=`<div class="gate">${h}</div>`;}
+function who(u){$('who').innerHTML=u&&!u.isAnonymous?`<span>${esc(u.email)}</span><button class="ghost" id="out">로그아웃</button>`:'';const o=$('out');if(o)o.onclick=()=>A.signOut(auth);}
+async function signIn(){try{await A.signInWithPopup(auth,prov);}catch(e){if(e.code==='auth/popup-blocked'||e.code==='auth/operation-not-supported-in-this-environment')await A.signInWithRedirect(auth,prov);else if(e.code!=='auth/popup-closed-by-user')gate(`<p class="err">로그인하지 못했어요 (${esc(e.code)})</p>`);}}
+let unsub=null;
+A.onAuthStateChanged(auth,u=>{who(u);if(unsub){unsub();unsub=null;}
+  if(!u||u.isAnonymous){gate('<h2>관리자 로그인</h2>플레이어가 게임에서 보낸 피드백을 모아 보는 곳이에요.<br>관리자 구글 계정으로 로그인해 주세요.<br><button class="go" id="go">구글로 로그인</button>');$('go').onclick=signIn;return;}
+  if((u.email||'').toLowerCase()!==ADMIN){gate(`<h2>볼 수 없는 계정이에요</h2>${esc(u.email)} 계정에는 권한이 없어요.<br>${ADMIN} 계정으로 다시 로그인해 주세요.<br><button class="go" id="go">다른 계정으로 로그인</button>`);$('go').onclick=async()=>{await A.signOut(auth);signIn();};return;}
+  listen();});
+function listen(){gate('불러오는 중…');
+  unsub=F.onSnapshot(F.query(F.collection(db,'feedback'),F.orderBy('at','desc'),F.limit(lim)),snap=>{rows=snap.docs.map(d=>({...d.data(),_id:d.id}));$('tools').hidden=false;render();},
+    e=>gate(`<h2>피드백을 읽지 못했어요</h2><span class="err">${esc(e.code||e.message)}</span><br>Firestore 규칙에 관리자 읽기 권한이 들어갔는지 확인해 주세요.`));}
+function render(){const open=rows.filter(r=>!r.done),day=Date.now()-864e5;
+  $('stats').innerHTML=[[rows.length,'전체'],[open.length,'처리 전'],[rows.filter(r=>r.at>day).length,'최근 24시간'],[rows.filter(r=>r.cat==='bug'&&!r.done).length,'남은 버그']].map(([n,t])=>`<div class="stat"><b>${n}</b><small>${t}</small></div>`).join('');
+  const cnt=k=>rows.filter(r=>(k==='all'||r.cat===k)&&(stf==='all'||(stf==='open')===!r.done)).length;
+  $('cats').innerHTML=[['all','전체'],...Object.entries(CAT)].map(([k,n])=>`<button class="chip${cat===k?' on':''}" data-cat="${k}">${n}<i>${cnt(k)}</i></button>`).join('');
+  $('stf').innerHTML=`<span style="display:inline-flex;gap:6px">${[['open','처리 전'],['done','처리함'],['all','모두']].map(([k,n])=>`<button class="chip${stf===k?' on':''}" data-st="${k}">${n}</button>`).join('')}</span>`;
+  const ql=q.trim().toLowerCase();
+  const list=rows.filter(r=>(cat==='all'||r.cat===cat)&&(stf==='all'||(stf==='open')===!r.done)&&(!ql||JSON.stringify([r.text,r.dev||{}]).toLowerCase().includes(ql)));
+  if(!rows.length){$('list').innerHTML='<div class="empty">아직 받은 피드백이 없어요.</div>';return;}
+  if(!list.length){$('list').innerHTML='<div class="empty">조건에 맞는 피드백이 없어요.</div>';return;}
+  $('list').innerHTML=list.map(r=>{const d=r.dev||{};const pills=[d.app&&APP[d.app]||d.app,d.lv&&`Lv.${d.lv}`,d.region&&(REG[d.region]||d.region),d.gen!=null&&d.gen>0&&`${d.gen+1}번째 동네`,d.play!=null&&`${d.play}분 플레이`].filter(Boolean);
+    return`<article class="card${r.done?' done':''}" data-cat="${esc(r.cat)}"><div class="meta"><span class="tag ${esc(r.cat)}">${CAT[r.cat]||esc(r.cat)}</span><span title="${new Date(r.at||0).toLocaleString('ko-KR')}">${when(r.at)}</span>${pills.map(p=>`<span class="pill">${esc(p)}</span>`).join('')}</div>
+      <p class="text">${esc(r.text)}</p>
+      ${r.dev?`<details><summary>기기·진행 정보 ›</summary><dl>${Object.entries({앱:APP[d.app]||d.app,화면:d.scr,레벨:d.lv,동네:REG[d.region]||d.region,'이동 횟수':d.gen,'미션 단계':d.mi,'버틴 밤':d.nights,'플레이(분)':d.play,브라우저:d.ua,버전:r.ver,'보낸 사람':(r.uid||'').slice(0,10)}).filter(([,v])=>v!=null&&v!=='').map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl></details>`:''}
+      <div class="acts"><button class="del" data-del="${esc(r._id)}">삭제</button><button class="${r.done?'':'ok'}" data-done="${esc(r._id)}">${r.done?'처리 전으로':'처리함'}</button></div></article>`;}).join('')+(rows.length>=lim?`<button class="ghost more" id="more">더 불러오기</button>`:'');
+  const m=$('more');if(m)m.onclick=()=>{lim+=200;if(unsub)unsub();listen();};}
+document.addEventListener('click',async e=>{const c=e.target.closest('[data-cat]');if(c&&c.classList.contains('chip')){cat=c.dataset.cat;render();return;}
+  const s=e.target.closest('[data-st]');if(s){stf=s.dataset.st;render();return;}
+  const d=e.target.closest('[data-done]');if(d){const r=rows.find(x=>x._id===d.dataset.done);try{await F.updateDoc(F.doc(db,'feedback',r._id),{done:!r.done});}catch(err){alert('바꾸지 못했어요: '+(err.code||err.message));}return;}
+  const x=e.target.closest('[data-del]');if(x){if(armed!==x){if(armed){armed.classList.remove('arm');armed.textContent='삭제';}armed=x;x.classList.add('arm');x.textContent='한 번 더 누르면 삭제';setTimeout(()=>{if(armed===x){x.classList.remove('arm');x.textContent='삭제';armed=null;}},3000);return;}
+    armed=null;try{await F.deleteDoc(F.doc(db,'feedback',x.dataset.del));}catch(err){alert('지우지 못했어요: '+(err.code||err.message));}}});
+$('q').addEventListener('input',e=>{q=e.target.value;render();});
+</script>
+</body>
+</html>
