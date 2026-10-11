@@ -411,6 +411,12 @@ body.calm *{animation-duration:.001s!important;animation-iteration-count:1!impor
 .chip{font-size:12px}#matsAll .ma small{font-size:11.5px}.grh small,.qbox .sec2 small{font-size:12px}
 #sheet.peek{transform:translateY(64%)!important;transition:transform .3s ease}
 #stage.danger::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;box-shadow:inset 0 0 60px 18px rgba(226,60,40,.55);animation:dng 1s ease-in-out infinite alternate}
+#stage.dread::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;background:radial-gradient(ellipse at 50% 46%,rgba(0,0,0,0) 26%,rgba(20,4,8,.55) 62%,rgba(4,2,6,.94) 100%);animation:drd 1.2s ease-in-out infinite alternate}
+@keyframes drd{from{opacity:.55}to{opacity:1}}
+#stage.oddhit::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:4;background:#05040a;animation:odh .9s ease-out forwards}
+@keyframes odh{0%{opacity:0}12%{opacity:.92}30%{opacity:.35}42%{opacity:.85}100%{opacity:0}}
+#lamp.flick svg{animation:lfl 1.9s steps(1) 1}
+@keyframes lfl{0%{opacity:1}12%{opacity:.25}20%{opacity:.9}34%{opacity:.15}52%{opacity:.6}70%{opacity:1}}
 @keyframes dng{to{box-shadow:inset 0 0 90px 26px rgba(226,60,40,.8)}}
 .tab.isnew .dot{display:none!important}
 .tab.isnew .ti::before{content:"NEW";position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#e2644f;color:#fff;font:700 8.5px/1 var(--body);padding:2px 4px 1px;border-radius:4px;letter-spacing:.03em;z-index:1}
@@ -1406,6 +1412,8 @@ function sfx(k){sfxAt=performance.now();const a=ac();if(!a)return;const now=a.cu
   else if(k==='level'){[60,64,67,71,74,79].forEach((n,i)=>pno(n,i*.11,.5+i*.06,2.4));pno(48,0,.5,3);}                              // the shelter grows
   else if(k==='win'){[[57,0],[60,0],[64,0]].forEach(([n,t])=>pno(n,t,.5,2.6));[[69,.25],[72,.4],[76,.55]].forEach(([n,t])=>pno(n,t,.6,2));} // the night is held
   else if(k==='lit'){[48,55,60,64,67,71,76].forEach((n,i)=>pno(n,i*.16,.45+i*.07,4));bell(88,1.1,.05,3);bell(91,1.3,.035,3);}      // the tower lights
+  else if(k==='heart'){tone(58,0,.2,'sine',.55,40);tone(54,.24,.24,'sine',.4,38);}                                                // dread: two low thumps
+  else if(k==='steps'){[0,.42,.86].forEach((t,i)=>{noise(t,.11,.32-i*.06,700,.9,'lowpass');noise(t+.03,.06,.12,2400,2);});}           // gravel underfoot, somewhere behind
   else if(k==='mystery'){pno(52,0,.5,3);pno(53,.02,.35,3);bell(76,.5,.025,2.2);}                                                    // a case, a shadow, 3 a.m.
   else if(k==='static'){                                                                                                               // turning an old radio dial: clicks, a drifting band of air, a passing whistle, then a station
     for(let i=0;i<5;i++)clk(i*.065+Math.random()*.01,.22+Math.random()*.08,DETENT,.4);
@@ -5851,7 +5859,7 @@ function musicMood(){if(!SET.mus)return'off';if(mournUntil&&(document.getElement
   if(S.tut){const U=S.tut;if(U.i<2)return'tut';if(U.i===2)return U.radio?'off':'air';return'storm';} // 그날 밤: the song on the radio, three silent minutes, then the flash
   if(typeof UG!=='undefined'&&UG)return'under';if(DEFN)return'storm';
   if(isNight())return S.airTonight===(S.nightCount||0)&&svIn(10)?'air':'night';return'day';}
-function musicTick(){if(!window.TTCMusic)return;try{TTCMusic.enable(!!SET.mus);TTCMusic.mood(musicMood());TTCMusic.duck(!!talk||!modal.hidden);}catch(e){}}
+function musicTick(){if(!window.TTCMusic)return;try{TTCMusic.enable(!!SET.mus);TTCMusic.mood(musicMood());TTCMusic.duck(!!talk||!modal.hidden||!!DRD);}catch(e){}}
 function tickSeason(){musicTick();tickOdd();tickDeathWarn();if(!sceneFree()){scIdle=0;return;}if(++scIdle<6)return;
   if(tickEunho()||tickCrow()||tickCases()||tickEnding())scIdle=-40;}
 
@@ -5893,13 +5901,42 @@ function shadowPos(){const s=SHD,f=Math.min(1,s.t/s.dur),e=f*f*(3-2*f);return[s.
 {const o=towerDraw;towerDraw=function(time){o.apply(this,arguments);
   if(S.oddSteps&&!isNight()&&S.oddSteps.n===nc0()){const[ax,ay]=tileC(C0,0),[bx,by]=tileC(S.oddSteps.to,0);ctx.save();ctx.fillStyle='rgba(40,28,20,.5)';
     for(let q=1;q<14;q++){const f=q/14,x=ax+(bx-ax)*f+(q%2?3:-3),y=ay+(by-ay)*f;ctx.beginPath();ctx.ellipse(x,y,2.2,1.3,0,0,7);ctx.fill();}ctx.restore();}
-  const s=SHD;if(!s)return;if(s.light!=null){const a=Math.sin(Math.min(1,s.t/s.dur)*Math.PI);if(s.light>=0){const[x,y]=tileC(s.light,18);ctx.save();const g=ctx.createRadialGradient(x,y,2,x,y,46);g.addColorStop(0,`rgba(255,226,150,${.85*a})`);g.addColorStop(1,'rgba(255,226,150,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,46,0,7);ctx.fill();ctx.restore();}return;}
+  const s=SHD;if(!s)return;if(s.light!=null){let a=Math.sin(Math.min(1,s.t/s.dur)*Math.PI);if(s.far)a=(Math.floor(s.t*2.4)%2||s.t>2.1?0:1)*.8;if(s.light>=0){const[x,y]=tileC(s.light,18);ctx.save();const g=ctx.createRadialGradient(x,y,2,x,y,46);g.addColorStop(0,`rgba(255,226,150,${.85*a})`);g.addColorStop(1,'rgba(255,226,150,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,46,0,7);ctx.fill();ctx.restore();}return;}
   const[x,y]=shadowPos(),f=s.t/s.dur,a=Math.min(1,s.t/1.2,(s.dur-s.t)/1.5)*.9,bob=Math.sin(time/140)*1.2;ctx.save();ctx.globalAlpha=Math.max(0,a);
   ctx.fillStyle='rgba(8,6,10,.92)';ctx.strokeStyle='rgba(240,225,200,.45)';ctx.lineWidth=1.2;
   ctx.beginPath();ctx.ellipse(x,y+1,9,3,0,0,7);ctx.fillStyle='rgba(0,0,0,.35)';ctx.fill();ctx.fillStyle='rgba(8,6,10,.92)';
   ctx.beginPath();ctx.moveTo(x-7,y);ctx.quadraticCurveTo(x-8,y-18+bob,x-4,y-22+bob);ctx.lineTo(x+4,y-22+bob);ctx.quadraticCurveTo(x+8,y-18+bob,x+7,y);ctx.closePath();ctx.fill();ctx.stroke();
   ctx.beginPath();ctx.arc(x,y-27+bob,5,0,7);ctx.fill();ctx.stroke();ctx.restore();};}
 function tickShadow(dt){if(!SHD)return;SHD.t+=dt;if(SHD.t>=SHD.dur){if(SHD.light==null&&!SHD.got)oddLog('shadow','새벽 3시, 쉘터 쪽에서 그림자가 어둠 속으로 사라졌다.');SHD=null;}}
+// ================= 기척: 손해 없는 불안 연출 =================
+// 수상한 밤이면 새벽 3시 직전 8초 동안 화면 가장자리가 조여 오고 심장 소리가 난다. 아무 일 없는 밤에도 가끔 '기척'만 스친다(잃는 것 없음, 누구인지 말하지 않음).
+let DRD=0,drBeat=0,PRS=null,prsNight=-1,prsDawn=null;
+const PRS_T=[['light','안개 너머에서 불빛이 세 번 깜빡였다. 그리고 꺼졌다.'],['steps','텐트 뒤에서 자갈 밟는 소리. 돌아보니 아무도 없다.'],['dog','멀리서 짖던 개가 갑자기 조용해졌다. 바람도 같이 멎었다.'],
+  ['lamp','랜턴 불꽃이 저절로 낮게 줄었다가 돌아왔다. 기름은 충분한데.'],['breath','재 너머에서 누가 숨을 고르는 소리가 났다. …내 숨이었나.'],['mud','']];
+const dreadOK=()=>!S.tut&&S.onb!==1&&!DEFN&&isNight();
+function setDread(on){on=!!on;if(on===!!DRD)return;DRD=on?1:0;$('stage').classList.toggle('dread',on&&!reduce);if(!on)drBeat=0;musicTick();}
+function tickDread(dt){
+  const n=isNight(),nc=S.nightCount||0,p=phase();
+  // the build-up before 3 a.m. on a strange night
+  const pre=dreadOK()&&oddPlan&&!oddPlan.done&&p>=ODD_AT-8&&p<ODD_AT;
+  // a small presence on an ordinary night: one in three, never the first nights, never on a broadcast night
+  if(n&&prsNight!==nc){prsNight=nc;PRS=null;if(dreadOK()&&!oddPlan&&nc>=2&&Math.random()<.34){const last=S.prsLast;const pool=PRS_T.filter(x=>x[0]!==last&&(x[0]!=='lamp'||$('lamp')));const pk=pool[(Math.random()*pool.length)|0];
+      PRS={k:pk[0],t:pk[1],at:DAY+8+Math.random()*(CYCLE-DAY-22),done:0};}}
+  const preP=PRS&&!PRS.done&&dreadOK()&&p>=PRS.at-3&&p<PRS.at;
+  setDread(pre||preP);
+  if(DRD){drBeat-=dt;if(drBeat<=0){const f=pre?Math.max(0,(ODD_AT-p)/8):1;drBeat=.95+f*.6;sfx('heart');if(SET.vib)try{navigator.vibrate&&navigator.vibrate([14,170,10])}catch(e){}}}
+  if(PRS&&!PRS.done&&n&&p>=PRS.at){PRS.done=1;S.prsLast=PRS.k;if(dreadOK())runPresence(PRS);}
+  if(!n&&prsDawn){const f=prsDawn;prsDawn=null;setTimeout(f,3200);}}
+function runPresence(P){const st=$('stage');
+  if(P.k==='mud'){prsDawn=()=>noteFirst({h:'아침 · 장화',t:'<small>장화 밑창에 젖은 흙이 묻어 있다. 어젯밤엔 텐트 밖으로 나간 적이 없는데.</small>',kind:'story',ms:5500});return;}
+  if(P.k==='steps')sfx('steps');else sfx('mystery');
+  if(P.k==='lamp'&&!reduce){const l=$('lamp');l.classList.remove('flick');void l.offsetWidth;l.classList.add('flick');setTimeout(()=>l.classList.remove('flick'),1900);}
+  if(P.k==='light'){const e=edgeTiles();if(e.length)SHD=SHD||{light:e[(Math.random()*e.length)|0],t:0,dur:4.5,far:1};}
+  if(P.k==='dog'&&window.TTCMusic)TTCMusic.blackout(3.2);
+  if(!reduce){st.classList.remove('oddhit');void st.offsetWidth;st.classList.add('oddhit');setTimeout(()=>st.classList.remove('oddhit'),900);}
+  toast(P.t);}
+{const o=runOdd;runOdd=function(){const st=$('stage');setDread(0);if(!reduce){st.classList.remove('oddhit');void st.offsetWidth;st.classList.add('oddhit');setTimeout(()=>st.classList.remove('oddhit'),900);}return o.apply(this,arguments);};}
+{const o=renderClock;renderClock=function(){o.apply(this,arguments);if(!DRD||!oddPlan||oddPlan.done)return;const left=Math.max(0,Math.ceil(ODD_AT-phase()));$('clockTxt').textContent=`새벽 2:5${Math.min(9,9-left+1)}`;};}
 {const o=bubbleAt;bubbleAt=function(sx,sy){if(SHD&&SHD.light==null&&!SHD.got){const[x,y]=shadowPos(),p=toScreen(x,y-14);if(Math.hypot(sx-p.x,sy-p.y)<34*Math.max(.8,cam.z))return{chat:{shadow:1}};}return o.apply(this,arguments);};}
 {const o=openChat;openChat=function(C){if(C&&C.shadow){catchShadow();return;}return o.apply(this,arguments);};}
 function catchShadow(){if(!SHD||SHD.got)return;SHD.got=true;SHD.t=Math.max(SHD.t,SHD.dur-1.2);const it=ODD_ITEMS[(S.oddItem=(S.oddItem||0)+1)%ODD_ITEMS.length];sfx('mystery');const[x,y]=shadowPos();burst(x,y-14,'#3a3040',14);
@@ -6169,7 +6206,7 @@ function hud(){renderMats();renderClock();renderDefBar();tickDusk();canvasLabel(
 function frontierNearest(){let best=-1,bd=1e9;for(let i=0;i<N;i++)if(isFrontier(i)){const d=dist(i)+speck[i]*1.5;if(d<bd){bd=d;best=i;}}return best;}
 let lastDraw=0,FS=1;// FS: this frame's length in 60fps frames, so per-draw motion keeps its speed at 30fps
 function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;
-  tickProd(dt);tickBuff(dt);tickClock(dt);tickDefense(dt);tickLife(dt);tickShadow(dt);tickKidWalk(dt);tickEvents(dt);tickSkills(dt);
+  tickProd(dt);tickBuff(dt);tickClock(dt);tickDefense(dt);tickLife(dt);tickShadow(dt);tickDread(dt);tickKidWalk(dt);tickEvents(dt);tickSkills(dt);
   idle+=dt;if(fever>0){fever=Math.max(0,fever-dt);}else if(idle>.7&&combo>0)combo=Math.max(0,combo-dt*10);
   acc+=dt;if(acc>=1){acc-=1;tickGhost();tickTwk();tickSide();tickACraft();tickSeason();tickSurv();tickExp();tickSites();tickQuests();tickBand();tickKids();tickPets();tickFinale();tickRegionStory();tickRegionHidden();tickTownEvents();tickDuty();tickAuto();tickAutoExp();tickAch();tickFeat();tickClaim();tickBeats();tickBatt();tickProfile();if(S.overT>0)S.overT--;if(S.hintT>0)S.hintT--;if(S.droneLv||S.overT>0){const i=frontierNearest();if(i>=0){damage(i,S.overT>0?Math.max(droneDmg(),tapPow())*4:droneDmg(),false);const[x,y]=tileC(i,14);burst(x,y,'#9fc6d2',4);}}}
   if(camGoalY!=null){const df=camGoalY-cam.y;if(Math.abs(df)<.5||ptrs.size){cam.y=ptrs.size?cam.y:camGoalY;camGoalY=null;}else cam.y+=df*Math.min(1,dt*9);}
