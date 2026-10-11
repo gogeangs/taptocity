@@ -3623,7 +3623,7 @@ const ugFuelMax=team=>4+2*Math.max(1,Math.min(3,(team||ugPrep.team).length));
 function ugCard(){if(!S.ug)S.ug={best:0,runs:0,bestWith:{}};
   if(!ugOpen())return'';
   const qs=Object.keys(S.sv).map(Number).filter(id=>{const st=qStep(id);return st&&(st.k==='find'||st.k==='ug');});
-  return`<div class="exp ugc"><div class="top"><b>지하 구역</b><span class="meta">최고 ${S.ug.best}층 · ${S.ug.runs}번 탐험</span></div><div class="ugzones">${UG_TH.map(t=>`<span class="${S.ug.best>=t.f?'on':''}"><b>${t.f}층~</b>${S.ug.best>=t.f?t.n:'???'}</span>`).join('')}</div><p>기름이 버티는 만큼 깊이. 5층마다 쉼터에서 다시 시작해요.${qs.length?`<br><b style="color:#7a4a1c">${qs.map(id=>SURV[id].name).join(', ')}의 이야기가 지하에 있어요</b>`:''}</p><button class="buy" data-act="ugprep" ${Object.keys(S.sv).length?'':'disabled'}>내려갈 준비</button>${(S.ug.diary||[]).length?`<button class="buy ghost" data-act="ugdiary" style="margin-left:6px">지하 기록 ${(S.ug.diary||[]).length}/${UG_DIARY.length}</button>`:''}</div>`;}
+  return`<div class="exp ugc"><div class="top"><b>지하 구역</b><span class="meta">최고 ${S.ug.best}층 · ${S.ug.runs}번 탐험</span></div><div class="ugzones">${UG_TH.map(t=>`<span class="${S.ug.best>=t.f?'on':''}"><b>${t.f}층~</b>${S.ug.best>=t.f?t.n:'???'}</span>`).join('')}</div><p>기름이 버티는 만큼 깊이. ${ugLast()>1?`다음엔 지난번 멈춘 ${ugLast()}층부터 시작해요.`:'다음엔 멈춘 층부터 다시 시작해요.'}${qs.length?`<br><b style="color:#7a4a1c">${qs.map(id=>SURV[id].name).join(', ')}의 이야기가 지하에 있어요</b>`:''}</p><button class="buy" data-act="ugprep" ${Object.keys(S.sv).length?'':'disabled'}>내려갈 준비</button>${(S.ug.diary||[]).length?`<button class="buy ghost" data-act="ugdiary" style="margin-left:6px">지하 기록 ${(S.ug.diary||[]).length}/${UG_DIARY.length}</button>`:''}</div>`;}
 function openUGPrep(){if(!ugOpen())return;const free=Object.keys(S.sv).map(Number).filter(id=>!busy(id));ugPrep.team=ugPrep.team.filter(id=>free.includes(id));ugPrep.fuel=Math.min(ugPrep.fuel,S.m.fuel||0);closeSheet();renderPrep(true);}
 // recommend a team of three: a guard, a scout(or artist), a researcher, then a medic; the pet can cover one of those; rest by grade
 const UG_ROLE_N={guard:'위험 피해 절반',scout:'옆 칸 위험',art:'옆 칸 위험',sci:'계단 위치',medic:'부상 한 번 막기',mech:'자재 +30%',cook:'기름 +6',heart:'기름 +4',drive:'기름 +3',farm:'식량 두 배'};
@@ -3642,7 +3642,7 @@ function renderPrep(first){const free=Object.keys(S.sv).map(Number).filter(id=>!
     ${free.length>3?`<div class="row mcard migrec"><div class="cb"><div class="t">추천 세 명</div><div class="d">소방·정찰·연구·간호 역할을 한 명씩, 나머지는 등급 순</div></div><button class="buy" data-act="ugrec">추천으로 고르기</button></div>`:''}
     <div class="team">${free.length?free.map(id=>{const rec=R.pick.includes(id),rl=(ROLE[id]||[]).filter(r=>UG_ROLE_N[r]).map(r=>({guard:'소방',scout:'정찰',art:'그림',sci:'연구',medic:'간호',mech:'기술',cook:'요리',heart:'희망',drive:'운전',farm:'텃밭'})[r]);return`<button class="mem${t.includes(id)?' on':''}${rec?' rec':''}" data-act="ugm" data-arg="${id}" ${!t.includes(id)&&t.length>=3?'disabled':''}>${avatar(id)}<span class="mtx"><b>${SURV[id].name}</b><small>${GR[gradeOf(id)].n}${rl.length?' · '+rl.join('·'):''}${R.why[id]?` · <i>${R.why[id]}</i>`:''}</small></span>${rec?'<i class="rtag">추천</i>':''}</button>`;}).join(''):'<span class="d">지금 함께 갈 수 있는 사람이 없어요</span>'}</div>
     ${ugPetBtn()?`<div class="team">${ugPetBtn()}</div>`:''}${perks.length?`<div class="prev">${perks.join('<br>')}</div>`:''}${qs.length?`<div class="prev" style="color:#7a4a1c">${qs.join('<br>')}</div>`:''}
-    ${(S.ug.ck||[]).length?`<div class="ugstart"><span>시작 층</span>${[1,...(S.ug.ck||[])].map(f=>`<button class="pfo${(ugPrep.start||1)===f?' on':''}" data-act="ugs" data-arg="${f}">${f}층${f>1?` · ${ugTheme(f).n}`:''}</button>`).join('')}</div>`:''}
+    ${ugLast()>1?`<div class="ugstart"><span>시작 층</span>${[1,ugLast()].map(f=>`<button class="pfo${ugStartF()===f?' on':''}" data-act="ugs" data-arg="${f}">${f===1?'1층부터':`지난번 ${f}층 · ${ugTheme(f).n}`}</button>`).join('')}</div>`:''}
     <div class="fuelrow"><span>${micon('fuel',16)} 연료 챙기기 <small class="fmax">최대 ${fmax} · ${t.length||1}명</small></span><button class="alt" data-act="ugf" data-arg="-1" ${ugPrep.fuel<=0?'disabled':''}>−</button><b>${ugPrep.fuel}</b><button class="alt" data-act="ugf" data-arg="1" ${ugPrep.fuel>=Math.min(fmax,S.m.fuel||0)?'disabled':''}>+</button></div>
     <div class="d" style="margin:-4px 0 12px">랜턴 기름 <b id="ugOil">${oil}</b> · 어두운 칸을 한 번 두드릴 때마다 1씩 써요. 연료 1개 = 기름 3<br>이번 탐사에서 칸을 밝힌 층마다 동료 신뢰 +15 · 바로 돌아오면 보상이 없어요</div>
     <div class="btns"><button class="alt">취소</button><button data-act="ugo" ${t.length?'':'disabled'}>내려가기</button></div>${t.length?'':'<div class="ughint">함께 갈 사람을 골라 주세요 (최대 3명)</div>'}</div>`;
@@ -3655,8 +3655,8 @@ modal.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-act="ug
   ugfTimer=setTimeout(()=>{ugfTimer=setInterval(()=>{ugfT=performance.now();if(!modal.querySelector('.fuelrow')){ugfStop();return;}ugfStep(g);},110);},380);});
 ['pointerup','pointercancel'].forEach(ev=>window.addEventListener(ev,ugfStop,{capture:true}));
 function ugStart(){const t=ugPrep.team.filter(id=>S.sv[id]&&!busy(id));if(!t.length)return;ugPrep.fuel=Math.min(ugPrep.fuel,ugFuelMax(t));if(ugPrep.fuel&&!pay({fuel:ugPrep.fuel}))return;
-  const oil=ugOil0(t,ugPrep.fuel),st=(ugPrep.start&&ugCkOk(ugPrep.start))?ugPrep.start:1;const upk=ugPrep.pet&&S.petOn&&petHere(S.petOn)?S.petOn:null;if(upk)pets()[upk].away='ug';UG={pet:upk,team:t,oil:oil+(st>1?12:0),max:oil+(st>1?12:0),floor:st-1,exploredFloors:[],carry:{},gear:[],hurt:[],found:[],keys:0,msg:st>1?`쉼터에서 다시 출발했다 · ${ugTheme(st).n}`:'랜턴을 들고 계단을 내려갔다.'};S.ug.runs++;ugFloor();sfx('reveal');renderUG();}
-function ugFloor(){const f=++UG.floor,n=UGW*UGH,cells=Array.from({length:n},()=>({c:'empty',rev:false,hp:1+Math.floor((f-1)/5)}));
+  const oil=ugOil0(t,ugPrep.fuel),st=ugStartF();const upk=ugPrep.pet&&S.petOn&&petHere(S.petOn)?S.petOn:null;if(upk)pets()[upk].away='ug';UG={pet:upk,team:t,oil:oil+(st>1?12:0),max:oil+(st>1?12:0),floor:st-1,exploredFloors:[],carry:{},gear:[],hurt:[],found:[],keys:0,msg:st>1?`지난번 멈춘 ${st}층에서 다시 출발했다 · ${ugTheme(st).n}`:'랜턴을 들고 계단을 내려갔다.'};S.ug.runs++;ugPrep.start=null;ugFloor();sfx('reveal');renderUG();}
+function ugFloor(){const f=++UG.floor;S.ug.last=f;const n=UGW*UGH,cells=Array.from({length:n},()=>({c:'empty',rev:false,hp:1+Math.floor((f-1)/5)}));
   const start=(UGH-1)*UGW+2;cells[start].rev=true;cells[start].c='start';
   const free=()=>{let i,g=0;do{i=(Math.random()*n)|0;g++;}while((cells[i].c!=='empty'||i===start||Math.abs((i%UGW)-2)+Math.abs((i/UGW|0)-(UGH-1))<2)&&g<200);return i;};
   const put=(c,extra)=>{const i=free();cells[i].c=c;Object.assign(cells[i],extra||{});return i;};
@@ -3810,6 +3810,9 @@ Object.assign(GEAR,{
 const ugGearPick=g=>{const pool=Object.keys(GEAR).filter(k=>GEAR[k].g===g&&!GEAR[k].sig&&!GEAR[k].ug&&!GEAR[k].line);return pool[(Math.random()*pool.length)|0];};
 const ugMiner=()=>['mpick','mhelm','mlamp'][(Math.random()*3)|0];
 const ugCkOk=f=>(S.ug.ck||[]).includes(f);
+// 지하 구역은 지난번 탐사가 끝난 층(가장 깊이 내려간 층)부터 다시 시작한다. 1층부터도 고를 수 있다. 예전 저장본은 가장 깊은 쉼터를 시작점으로.
+const ugLast=()=>Math.max(1,S.ug.last||Math.max(0,...(S.ug.ck||[]))||1);
+const ugStartF=()=>ugPrep.start===1?1:ugLast();
 
 // ---------- 대형 재폭풍 (shelter defense) ----------
 // Every third night from shelter Lv.2, ash beasts crawl in from the dark toward the shelter for about 80 seconds.
@@ -4303,7 +4306,7 @@ const FEAT_GUIDE={
  bag:{ic:()=>gicon('toolbox',60),what:'주운 장비를 생존자에게 입혀 생산과 두드리는 힘을 올려요.',steps:['생존자 수첩 위쪽 ‘장비’를 눌러요.','장비마다 ‘잘 맞는 사람’이 있어요. 그 사람이 입으면 효과가 1.5배예요.','‘지금 맞추기’를 누르면 가장 잘 맞게 한 번에 입혀요.','남는 장비는 ‘정리하기’로 분해해 재료로 돌려받아요.'],tip:'아끼는 장비는 자물쇠로 잠가 두면 분해되지 않아요.',sel:'[data-act="bag"]'},
  quest:{ic:()=>ugIcon({c:'quest'}),what:'신뢰가 쌓인 생존자의 개인 이야기가 열렸어요. 끝까지 따라가면 그 사람만의 전용 장비를 받아요.',steps:['생존자 수첩에서 그 사람을 눌러요.','‘개인 이야기’의 할 일을 확인해요. 물건을 건네거나, 지하에 함께 내려가는 일이에요.','모든 단계를 마치면 전용 장비와 희망 +3을 받아요.'],tip:'전용 장비는 그 사람이 입었을 때 제 힘을 내요.'},
  deco:{ic:()=>ugIcon({c:'rest'}),what:'쉘터 주변에 장식을 놓아 마을을 꾸며요.',steps:['쉘터 화면에서 ‘꾸미기’ 탭을 눌러요.','장식을 고르고 지도에서 놓을 칸을 눌러요.','놓은 장식은 다시 눌러 옮기거나 치울 수 있어요.']},
- ug:{ic:()=>ugIcon({c:'stairs'}),what:'랜턴 기름이 버티는 만큼 지하로 내려가 귀한 물자와 사람들의 기록을 찾아요.',steps:['원정 탭 맨 위 ‘지하 구역’에서 ‘내려갈 준비’를 눌러요.','최대 3명과 연료를 챙겨요. 연료 1개는 기름 3이에요.','어두운 칸을 한 번 두드릴 때마다 기름 1을 써요. 계단을 찾아 더 깊이 내려가요.','기름이 떨어지기 전에 올라와요. 떨어지면 챙긴 것의 절반을 잃어요.'],tip:'5층마다 쉼터가 있어, 다음에는 거기서 시작할 수 있어요.',sel:'[data-act="ugprep"]'},
+ ug:{ic:()=>ugIcon({c:'stairs'}),what:'랜턴 기름이 버티는 만큼 지하로 내려가 귀한 물자와 사람들의 기록을 찾아요.',steps:['원정 탭 맨 위 ‘지하 구역’에서 ‘내려갈 준비’를 눌러요.','최대 3명과 연료를 챙겨요. 연료 1개는 기름 3이에요.','어두운 칸을 한 번 두드릴 때마다 기름 1을 써요. 계단을 찾아 더 깊이 내려가요.','기름이 떨어지기 전에 올라와요. 떨어지면 챙긴 것의 절반을 잃어요.'],tip:'다음 탐사는 지난번 멈춘 층부터 시작해요. 1층부터 다시 내려갈 수도 있어요.',sel:'[data-act="ugprep"]'},
  relic:{ic:()=>ugIcon({c:'rare'}),what:'폐허에서 찾은 유물을 일지 ‘도감’에 모아요.',steps:['일지에서 ‘도감’ 탭을 눌러요.','찾은 유물의 이야기와 효과를 볼 수 있어요.','유물은 이주할 때도 함께 가져가요.']},
  auto:{ic:()=>ugIcon({c:'who'}),what:'버튼 한 번으로 빈 일터에 딱 맞는 사람을 앉혀요.',steps:['생존자 수첩 맨 위 ‘자동’을 눌러요.','스위치를 켜 두면 빈 일터가 생길 때 알아서 채워요.'],tip:'딱 맞는 사람이 일하면 모듈 효과가 커져요.',sel:'[data-act="svtool"][data-arg="auto"],[data-act="autoasg"]'},
  autoexp:{ic:()=>ugIcon({c:'start'}),what:'쉬는 사람으로 가장 효율 좋은 팀을 꾸려 원정을 보내고, 돌아오면 전리품도 챙겨요.',steps:['원정 탭 맨 위 ‘자동 원정’ 스위치를 켜요.','순찰·아이 돌보기 중인 사람은 빼고 팀을 꾸려요.'],sel:'[data-act="autoexp"]'},
