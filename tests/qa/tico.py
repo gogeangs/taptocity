@@ -15,7 +15,7 @@ try:
   pg.screenshot(path='aud/ico1.png')
   E("$('toasts').innerHTML='';NCUR=null;note({h:'나 · 30% 왔어요',t:'“쉘터에 새 기둥이 하나 더 섰다.”<br><small>작은 보상 · '+lootTxt({scrap:34,batt:1})+'</small>',kind:'story',ms:9000})");pg.wait_for_timeout(400)
   pg.screenshot(path='aud/ico2.png')
-  E("$('toasts').innerHTML='';NQ.length=0;NCUR=null;S.feat=S.feat||{};S.feat.radio=2;battNudged=0;S.m.batt=40;tickBatt()");pg.wait_for_timeout(400)
+  E("$('toasts').innerHTML='';NQ.length=0;NCUR=null;note({h:'모닥불을 꺼뜨리지 마세요',t:'<small>위 띠의 모닥불을 눌러 장작을 넣어요</small>',fc:'fire',kind:'story',ms:9000})");pg.wait_for_timeout(400)
   pg.screenshot(path='aud/ico3.png')
   E("document.querySelector('#toasts .tt.fc').click()");pg.wait_for_timeout(500)
   print('card open',E("!modal.hidden&&!!modal.querySelector('.featcard')"))

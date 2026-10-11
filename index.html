@@ -4392,7 +4392,7 @@ function tickBeats(){const m=mission();if(!m.step||m.done||!BEAT_GOALS.includes(
   if(n<th.length&&f>=th[n]){S.beats[k]=n+1;const got=give({...scaleCost({scrap:12,wood:12,food:10},lvScale()),batt:1}),[w,t]=BEAT_LINES[(BEAT_GOALS.indexOf(k)*2+n)%BEAT_LINES.length],sp=speaker(w);
     note({h:`${sp.name} · ${Math.round(th[n]*100)}% 왔어요`,t:`“${t}”<br><small>작은 보상 · ${lootTxt(got)}</small>`,kind:'story',ms:5200});sfx('chime');save();}}
 // ---- battery nudge
-let battNudged=0;function tickBatt(){const b=S.m.batt||0;const on=b>=10&&S.feat&&S.feat.radio;const rb=$('radio');if(rb)rb.classList.remove('pile');if(on&&b>=battNudged+15){battNudged=b;note({h:`건전지가 ${b}개 쌓였어요`,t:'<small>라디오에서 써 보세요</small>',fc:'radio',kind:'new',ms:4500});}}
+let battNudged=0;function tickBatt(){const b=S.m.batt||0;const on=b>=10&&S.feat&&S.feat.radio;const rb=$('radio');if(rb)rb.classList.remove('pile');/* 건전지 개수 알림은 없앴어요(라디오 탭 숫자로 충분) */}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="talkskip"]');if(!b||!talk)return;e.stopPropagation();talk.k=talk.lines.length-1;renderTalk();},true);
 // ---- phone back button / Esc closes the top layer instead of leaving the game
 let navOn=false,navIgnore=0;
