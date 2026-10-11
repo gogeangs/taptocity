@@ -1759,7 +1759,7 @@ function sprinkle(){const r=mulberry(S.seed+5);S.lm={};S.trace={};
   const free=i=>!S.rev[i]&&S.ter[i]===T.ASH&&S.sig[i]===undefined&&!isSlot(i)&&dist(i)>2.5;
   const put=(type,n)=>{let c=0,g=0;while(c<n&&g++<6000){const i=(r()*N)|0;if(dist(i)>19||!free(i))continue;S.ter[i]=type;c++;}};
   put(T.CAR,40);put(T.CRATE,28);put(T.RUIN,45);
-  SURV.forEach((s0,k)=>{if(s0.hidden)return;for(let g=0;g<500;g++){const i=(r()*N)|0,d=dist(i);if(d<3||d>15||!free(i))continue;S.ter[i]=T.TRACE;S.trace[i]=k;break;}});
+  SURV.forEach((s0,k)=>{if(s0.hidden||(s0.region&&s0.region!==(S.region||'home')))return;for(let g=0;g<500;g++){const i=(r()*N)|0,d=dist(i);if(d<3||d>15||!free(i))continue;S.ter[i]=T.TRACE;S.trace[i]=k;break;}});
   LMS.forEach((l,k)=>{for(let g=0;g<900;g++){const a=r()*Math.PI*2,rad=l.d+Math.floor(g/150)*.6,x=Math.round(CX+Math.cos(a)*rad),y=Math.round(CY+Math.sin(a)*rad);if(x<1||y<1||x>=W-1||y>=H-1)continue;const i=y*W+x;if(!free(i))continue;S.ter[i]=T.LM;S.lm[i]={k,ok:false};break;}});
   // cloth decides the container-shelter wait, so every map gets a fair share of stores and houses within reach
   const near=(type,min)=>{let c=0;for(let i=0;i<N;i++)if(S.ter[i]===type&&dist(i)<=7)c++;for(let g=0;c<min&&g<4000;g++){const a=r()*Math.PI*2,rad=3+r()*4,x=Math.round(CX+Math.cos(a)*rad),y=Math.round(CY+Math.sin(a)*rad),i=y*W+x;if(dist(i)<=7&&free(i)){S.ter[i]=type;c++;}}};
@@ -3427,7 +3427,7 @@ modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="qgive"]'
 // 연달아 들어가면 보상이 줄고(피로 ×1 → .75 → .55 → .4 → .3), 15분마다 한 단계씩 회복한다.
 const LN_TOWN={
  home:{n:'2호선 끊긴 구간',st:['시청역','중앙시장역','차량기지'],loot:['parts','scrap','wire','cloth'],boss:'차량기지의 재 거인',items:['lnTicket','lnLamp','lnMap'],
-  trace:['개찰구에 교통카드가 꽂힌 채 남아 있다. 잔액 4,200원.','벽에 분필로 적힌 이름들. “여기서 기다릴게.”','멈춘 전광판에 마지막 열차 시각이 남아 있다. 03:11.']},
+  trace:['개찰구에 교통카드가 꽂힌 채 남아 있다. 잔액 4,200원.','벽에 분필로 적힌 이름들. “여기서 기다릴게.”','역 벽시계가 03:11에 멈춰 있다. 아무도 다시 맞추지 않았다.']},
  desert:{n:'사막 순환선',st:['모래언덕역','급유탑역','사막 차고'],loot:['fuel','scrap','parts','cloth'],boss:'모래에 묻힌 재 거인',items:['lnCanteen','lnGoggle','lnCompass'],
   trace:['선로 위에 모래로 그린 화살표. 바람에 반쯤 지워졌다.','빈 물병 열두 개가 가지런히 놓여 있다.','“물은 급유탑 밑에” 라고 긁어 쓴 글씨.']},
  factory:{n:'공단 화물선',st:['제철소역','부품단지역','정비창'],loot:['parts','plate','scrap','wire'],boss:'멈추지 않는 굴착기',items:['lnWrench','lnApron','lnPiston'],
@@ -3437,7 +3437,7 @@ const LN_TOWN={
 Object.assign(GEAR,{
  lnTicket:{n:'구겨진 정기권',slot:'keep',g:1,ic:'photo',eff:{scav:.1,hope:2},fit:[],line:'home',d:'2호선 정기권. 잔액 4,200원.'},
  lnLamp:{n:'역무원 랜턴',slot:'tool',g:2,ic:'torch',eff:{tap:.2,fever:1},fit:[],line:'home',d:'플랫폼 끝까지 비추던 불빛.'},
- lnMap:{n:'노선도 원본',slot:'keep',g:3,ic:'photo',eff:{global:.07,hope:3},fit:[],line:'home',d:'끊긴 구간에 누군가 연필로 새 길을 그려 두었다.'},
+ lnMap:{n:'2호선 노선도',slot:'keep',g:3,ic:'photo',eff:{global:.07,hope:3},fit:[],line:'home',d:'끊긴 구간에 누군가 연필로 새 길을 그려 두었다.'},
  lnCanteen:{n:'모래 먹은 수통',slot:'keep',g:1,ic:'coin',eff:{thrift:.1},fit:[],line:'desert',d:'흔들면 아직 물소리가 난다.'},
  lnGoggle:{n:'터널 고글',slot:'wear',g:2,ic:'mask',eff:{scav:.15,fever:1},fit:[],line:'desert',d:'모래바람 속에서도 선로가 보인다.'},
  lnCompass:{n:'사막 철도 나침반',slot:'keep',g:3,ic:'watch',eff:{global:.06,scav:.1},fit:[],line:'desert',d:'바늘이 늘 다음 역을 가리킨다.'},
@@ -6080,7 +6080,7 @@ const TUT=[
  {t:'03:05',goal:'무너진 집에서 목재 5개 챙기기',hint:'밝힌 땅의 무너진 집·폐차를 두드려요',n:5,v:()=>(S.got&&S.got.wood)||0,focus:'site',
   say:[[ME,'아까 땅이 크게 흔들렸다. 발전소 쪽에서 우르릉 소리가 났다.'],[ME,'무너진 집에서 쓸 만한 걸 챙기자. 두드리면 뭔가 나온다.']]},
  {t:'03:08',goal:'가운데 텐트 눌러 보기',hint:'가운데 텐트를 누르면 쉘터 화면이 열려요',n:1,v:()=>tutSheet,focus:'center',
-  say:[[ME,'공터에 텐트를 쳤다. 쓰러진 슈퍼 간판 왼편. 오늘 밤은 여기서 버틴다.'],[ME,'텐트를 누르면 무엇을 지을 수 있는지 볼 수 있다.']]},
+  say:[[ME,'공터에 텐트를 쳤다. 쓰러진 슈퍼 간판 오른편. 오늘 밤은 여기서 버틴다.'],[ME,'텐트를 누르면 무엇을 지을 수 있는지 볼 수 있다.']]},
  {t:'03:14',goal:'쏟아지는 재 걷어내기',hint:'회색 재가 내려앉은 칸을 톡톡 두드려요',n:5,v:()=>(S.stat&&S.stat.ash)||0,focus:'ash',
   say:[[ME,'번쩍. 발전소 쪽 하늘이 하얗게 타올랐다.'],[ME,'그리고, 재가 내리기 시작했다.'],[ME,'쌓이기 전에 두드려 걷어내자!']]}];
 let tutSheet=0,tutAsh=0,tutEnd=0,tutResumed=false;
