@@ -5926,7 +5926,7 @@ function shadowPos(){const s=SHD,f=Math.min(1,s.t/s.dur),e=f*f*(3-2*f);return[s.
 {const o=towerDraw;towerDraw=function(time){o.apply(this,arguments);
   if(S.oddSteps&&!isNight()&&S.oddSteps.n===nc0()){const[ax,ay]=tileC(C0,0),[bx,by]=tileC(S.oddSteps.to,0);ctx.save();ctx.fillStyle='rgba(40,28,20,.5)';
     for(let q=1;q<14;q++){const f=q/14,x=ax+(bx-ax)*f+(q%2?3:-3),y=ay+(by-ay)*f;ctx.beginPath();ctx.ellipse(x,y,2.2,1.3,0,0,7);ctx.fill();}ctx.restore();}
-  const s=SHD;if(!s)return;if(s.light!=null){let a=Math.sin(Math.min(1,s.t/s.dur)*Math.PI);if(s.far)a=(Math.floor(s.t*2.4)%2||s.t>2.1?0:1)*.8;if(s.light>=0){const[x,y]=tileC(s.light,18);ctx.save();const g=ctx.createRadialGradient(x,y,2,x,y,46);g.addColorStop(0,`rgba(255,226,150,${.85*a})`);g.addColorStop(1,'rgba(255,226,150,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,46,0,7);ctx.fill();ctx.restore();}return;}
+  const s=SHD;if(!s)return;if(s.light!=null){let a=Math.sin(Math.min(1,s.t/s.dur)*Math.PI);if(s.far)a=s.t<1.6?.8:0;if(s.light>=0){const[x,y]=tileC(s.light,18);ctx.save();const g=ctx.createRadialGradient(x,y,2,x,y,46);g.addColorStop(0,`rgba(255,226,150,${.85*a})`);g.addColorStop(1,'rgba(255,226,150,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,46,0,7);ctx.fill();ctx.restore();}return;}
   const[x,y]=shadowPos(),f=s.t/s.dur,a=Math.min(1,s.t/1.2,(s.dur-s.t)/1.5)*.9,bob=Math.sin(time/140)*1.2;ctx.save();ctx.globalAlpha=Math.max(0,a);
   ctx.fillStyle='rgba(8,6,10,.92)';ctx.strokeStyle='rgba(240,225,200,.45)';ctx.lineWidth=1.2;
   ctx.beginPath();ctx.ellipse(x,y+1,9,3,0,0,7);ctx.fillStyle='rgba(0,0,0,.35)';ctx.fill();ctx.fillStyle='rgba(8,6,10,.92)';
@@ -5936,7 +5936,7 @@ function tickShadow(dt){if(!SHD)return;SHD.t+=dt;if(SHD.t>=SHD.dur){if(SHD.light
 // ================= 기척: 손해 없는 불안 연출 =================
 // 수상한 밤이면 새벽 3시 직전 8초 동안 화면 가장자리가 조여 오고 심장 소리가 난다. 아무 일 없는 밤에도 가끔 '기척'만 스친다(잃는 것 없음, 누구인지 말하지 않음).
 let DRD=0,drBeat=0,PRS=null,prsNight=-1,prsDawn=null;
-const PRS_T=[['light','안개 너머에서 불빛이 세 번 깜빡였다. 그리고 꺼졌다.'],['steps','텐트 뒤에서 자갈 밟는 소리. 돌아보니 아무도 없다.'],['dog','멀리서 짖던 개가 갑자기 조용해졌다. 바람도 같이 멎었다.'],
+const PRS_T=[['light','재구름 너머에서 불빛 하나가 켜졌다가, 누가 손으로 가린 것처럼 꺼졌다.'],['steps','텐트 뒤에서 자갈 밟는 소리. 돌아보니 아무도 없다.'],['dog','멀리서 짖던 개가 갑자기 조용해졌다. 바람도 같이 멎었다.'],
   ['lamp','랜턴 불꽃이 저절로 낮게 줄었다가 돌아왔다. 기름은 충분한데.'],['breath','재 너머에서 누가 숨을 고르는 소리가 났다. …내 숨이었나.'],['mud','']];
 const dreadOK=()=>!S.tut&&S.onb!==1&&!DEFN&&isNight();
 function setDread(on){on=!!on;if(on===!!DRD)return;DRD=on?1:0;$('stage').classList.toggle('dread',on&&!reduce);if(!on)drBeat=0;musicTick();}
@@ -5945,7 +5945,7 @@ function tickDread(dt){
   // the build-up before 3 a.m. on a strange night
   const pre=dreadOK()&&oddPlan&&!oddPlan.done&&p>=ODD_AT-8&&p<ODD_AT;
   // a small presence on an ordinary night: one in three, never the first nights, never on a broadcast night
-  if(n&&prsNight!==nc){prsNight=nc;PRS=null;if(dreadOK()&&!oddPlan&&nc>=2&&Math.random()<.34){const last=S.prsLast;const pool=PRS_T.filter(x=>x[0]!==last&&(x[0]!=='lamp'||$('lamp')));const pk=pool[(Math.random()*pool.length)|0];
+  if(n&&prsNight!==nc){prsNight=nc;PRS=null;if(dreadOK()&&!oddPlan&&nc>=2&&Math.random()<.34){const last=S.prsLast;const pool=PRS_T.filter(x=>x[0]!==last&&(x[0]!=='lamp'||$('lamp'))&&(svIn(10)||(x[0]!=='breath'&&x[0]!=='mud')));const pk=pool[(Math.random()*pool.length)|0];
       PRS={k:pk[0],t:pk[1],at:DAY+8+Math.random()*(CYCLE-DAY-22),done:0};}}
   const preP=PRS&&!PRS.done&&dreadOK()&&p>=PRS.at-3&&p<PRS.at;
   setDread(pre||preP);
