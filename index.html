@@ -1231,7 +1231,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261011-ux">
+<link rel="stylesheet" href="qa.css?v=20261011-lnrec">
 <div id="app">
   <header>
     <div class="hud">
@@ -3520,9 +3520,16 @@ function lnCard(){if(!lnOpen())return'';const T=LN_TOWN[lnReg()],L=lnState(),m=l
     <p>${LMS[4].name} 안쪽 터널. 갈림길마다 길을 골라 ${T.st[2]}까지 가요. 이 노선에서만 나오는 물건이 있어요.<br>${m<1?`<b>지금 보상 ×${m}</b> · ${w}분 뒤 한 단계 회복`:'지금 보상 온전'}</p>
     <div class="btns"><button class="buy" data-act="lnprep">노선 들어가기</button></div></div>`;}
 function openLnPrep(){if(!lnOpen())return;if(DEFN||UG){toast('지금은 들어갈 수 없어요');return;}lnPrep.team=lnPrep.team.filter(id=>lnFree().includes(id));if(sheetTab)closeSheet();closeRing();lnPrepRender(true);}
-function lnPrepRender(first){const free=lnFree(),t=lnPrep.team,T=LN_TOWN[lnReg()],m=lnMult(),c=lnCost(t.length),pk=lnPerks(t);
+// 끊긴 노선 추천 두 명: 싸움이 잦아 소방(덜 다침)·정찰(터널이 보임)을 먼저, 그다음 연구(노선 물건)·요리(체력)·희망/간호·운전, 같으면 등급·신뢰 순
+const LN_PICK=[['guard'],['scout','art'],['sci'],['cook'],['heart','medic'],['drive']];
+function lnRecommend(free){const sc=id=>gradeOf(id)*3+trustLv((S.sv[id]||{}).xp||0)+(sigWorn(id)?2:0);const pick=[],why={};
+  for(const rs of LN_PICK){if(pick.length>=2)break;if(pick.some(id=>(ROLE[id]||[]).some(r=>rs.includes(r))))continue;const c=free.filter(id=>!pick.includes(id)&&(ROLE[id]||[]).some(r=>rs.includes(r))).sort((a,b)=>sc(b)-sc(a))[0];if(c!=null){pick.push(c);why[c]={guard:'덜 다침',scout:'터널이 보임',art:'터널이 보임',sci:'노선 물건↑',cook:'체력 +3',heart:'역마다 체력',medic:'쉼터 회복↑',drive:'선로 피해↓'}[rs.find(r=>(ROLE[c]||[]).includes(r))];}}
+  for(const id of free.slice().sort((a,b)=>sc(b)-sc(a))){if(pick.length>=2)break;if(!pick.includes(id)){pick.push(id);why[id]='높은 등급';}}
+  return{pick,why};}
+function lnPrepRender(first){const free=lnFree(),t=lnPrep.team,T=LN_TOWN[lnReg()],m=lnMult(),c=lnCost(t.length),pk=lnPerks(t),R=lnRecommend(free);
   const h=`<div class="page line nox"><div class="tag">끊긴 노선 · ${T.n}</div><h3>누구와 갈까요?</h3>
-    <div class="team">${free.length?free.map(id=>{const rl=(ROLE[id]||[]).filter(r=>LN_ROLE_N[r]).map(r=>LN_ROLE_N[r].split(':')[0]);return`<button class="mem${t.includes(id)?' on':''}" data-act="lnm" data-arg="${id}" ${!t.includes(id)&&t.length>=2?'disabled':''}>${avatar(id)}<span class="mtx"><b>${SURV[id].name}</b><small>${GR[gradeOf(id)].n}${rl.length?' · '+rl.join('·'):''}</small></span></button>`;}).join(''):'<div class="d">쉬는 생존자가 없어요</div>'}</div>
+    ${free.length>2?`<div class="row mcard migrec"><div class="cb"><div class="t">추천 두 명</div><div class="d">소방·정찰을 먼저, 그다음 연구·요리 역할 · 같으면 등급 순</div></div><button class="buy" data-act="lnrec">추천으로 고르기</button></div>`:''}
+    <div class="team">${free.length?free.map(id=>{const rec=R.pick.includes(id),rl=(ROLE[id]||[]).filter(r=>LN_ROLE_N[r]).map(r=>LN_ROLE_N[r].split(':')[0]);return`<button class="mem${t.includes(id)?' on':''}${rec?' rec':''}" data-act="lnm" data-arg="${id}" ${!t.includes(id)&&t.length>=2?'disabled':''}>${avatar(id)}<span class="mtx"><b>${SURV[id].name}</b><small>${GR[gradeOf(id)].n}${rl.length?' · '+rl.join('·'):''}${rec&&R.why[id]?` · <i>${R.why[id]}</i>`:''}</small></span>${rec?'<i class="rtag">추천</i>':''}</button>`;}).join(''):'<div class="d">쉬는 생존자가 없어요</div>'}</div>
     ${pk.length?`<div class="prev">${pk.join('<br>')}</div>`:''}
     <div class="lnstops">${T.st.map((s,k)=>`<span><i>${k+1}</i>${s}</span>`).join('<b>—</b>')}</div>
     <div class="d" style="margin:2px 0 12px">체력 <b>${lnHp0(t)}</b> · 재 괴물에게 맞거나 무너진 선로를 지나면 줄어요. 0이 되면 챙긴 것의 절반만 들고 돌아와요.<br>도시락 ${lootIco(c)} · 보상 ${m<1?`<b>×${m}</b> (연달아 들어가 줄었어요 · 15분마다 회복)`:'온전'} · 최대 2명</div>
@@ -3633,6 +3640,7 @@ function ugRecommend(free){const petR=ugPrep.pet&&S.petOn&&petHere(S.petOn)?PETS
   for(const r of need){const rs=Array.isArray(r)?r:[r];if(rs.some(k=>has.has(k)))continue;const c=free.filter(id=>!pick.includes(id)&&(ROLE[id]||[]).some(k=>rs.includes(k))).sort((a,b)=>score(b)-score(a))[0];if(c!=null)take(c,UG_ROLE_N[rs.find(k=>(ROLE[c]||[]).includes(k))]);}
   for(const id of free.slice().sort((a,b)=>score(b)-score(a)))take(id,gradeOf(id)>=2?GR[gradeOf(id)].n:'');
   return{pick,why};}
+modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="lnrec"]');if(!b)return;e.stopPropagation();lnPrep.team=lnRecommend(lnFree()).pick;sfx('chime');lnPrepRender();},true);
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="ugrec"]');if(!b)return;e.stopPropagation();const free=Object.keys(S.sv).map(Number).filter(id=>!busy(id));ugPrep.team=ugRecommend(free).pick;sfx('chime');renderPrep();},true);
 function renderPrep(first){const free=Object.keys(S.sv).map(Number).filter(id=>!busy(id)),t=ugPrep.team;ugPrep.fuel=Math.min(ugPrep.fuel,ugFuelMax(t),S.m.fuel||0);const oil=ugOil0(t,ugPrep.fuel),fmax=ugFuelMax(t);
   const P={scout:'정찰: 옆 칸의 위험이 보여요',sci:'연구: 계단 위치가 보여요',medic:'간호: 층마다 한 번 부상을 막아요',guard:'소방: 위험 피해 절반',mech:'기술: 자재 +30%',cook:'요리: 기름 +6',heart:'희망: 층을 내려갈 때 기름 +4',drive:'운전: 층을 내려갈 때 기름 +3',art:'그림: 옆 칸의 위험이 보여요',farm:'텃밭: 식량 두 배'};
