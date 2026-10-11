@@ -32,7 +32,7 @@ jobs:
 
       - name: 문구·스크린샷 올리기
         run: |
-          fastlane deliver \
+          FASTLANE_SKIP_UPDATE_CHECK=1 FASTLANE_HIDE_CHANGELOG=1 fastlane deliver \
             --api_key_path "$RUNNER_TEMP/asc.json" \
             --app_identifier kr.co.itso.taptocity \
             --platform ios \
@@ -46,7 +46,7 @@ jobs:
             --run_precheck_before_submit false \
             --force true > "$RUNNER_TEMP/deliver.log" 2>&1 || {
               tail -80 "$RUNNER_TEMP/deliver.log"
-              grep -iE "error|invalid|failed|exception" "$RUNNER_TEMP/deliver.log" | sort -u | head -15 | while IFS= read -r l; do echo "::error::$l"; done
+              grep -E "\[!\]|ERROR|Error:|error:|Invalid|invalid|Unauthorized|forbidden|Could not|Couldn't" "$RUNNER_TEMP/deliver.log" | grep -v "^\* " | sed 's/\x1b\[[0-9;]*m//g' | sort -u | head -15 | while IFS= read -r l; do echo "::error::$l"; done
               exit 1; }
           tail -30 "$RUNNER_TEMP/deliver.log"
 
