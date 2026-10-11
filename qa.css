@@ -364,8 +364,8 @@ body.calm .lvchip.ready::before,body.calm .banner.mig::after,body.calm #tape .mi
 
 /* 2026-10-11 끊긴 노선 */
 .exp.lnc .lnitems{display:flex;gap:6px;margin:8px 0 6px}
-.exp.lnc .lnitems span{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:8px;background:rgba(59,42,26,.06);font:600 11px/1.25 var(--body);color:var(--sepia-2,#73634e);text-align:center}
-.exp.lnc .lnitems span.on{background:rgba(217,163,78,.16);color:var(--sepia,#30281f)}
+.exp.lnc .lnitems>span{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:8px;background:rgba(59,42,26,.06);font:600 11px/1.25 var(--body);color:var(--sepia-2,#73634e);text-align:center}
+.exp.lnc .lnitems>span.on{background:rgba(217,163,78,.16);color:var(--sepia,#30281f)}
 .exp.lnc .lnitems span>i{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:rgba(59,42,26,.12);font:700 15px var(--body);font-style:normal;color:rgba(59,42,26,.45)}
 .exp.lnc .lnitems em{font-style:normal}
 .page.line .team{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
@@ -415,3 +415,5 @@ body.calm .lvchip.ready::before,body.calm .banner.mig::after,body.calm #tape .mi
 .lncarry .lnit{padding:2px 8px 2px 2px;border-radius:99px;background:rgba(217,163,78,.2)}
 .lncarry small{color:var(--sepia-2,#73634e)}
 .lnfoot{margin-top:8px}.lnfoot button{width:100%}
+.gi.art .lnimg{display:block;width:100%;height:100%;background-image:url(assets/illustrated/line-items.webp);background-size:1200% 100%;background-repeat:no-repeat}
+.exp.lnc .lnitems .gi{width:36px!important;height:36px!important;border-radius:8px}
