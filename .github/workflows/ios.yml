@@ -73,7 +73,11 @@ jobs:
             -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
             DEVELOPMENT_TEAM="$TEAM" CODE_SIGN_STYLE=Automatic \
             CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
-            archive | tail -40
+            archive > "$RUNNER_TEMP/archive.log" 2>&1 || {
+              tail -60 "$RUNNER_TEMP/archive.log"
+              grep -E "error:|error -|No profiles|No signing|requires a provisioning|Code Signing|account" "$RUNNER_TEMP/archive.log" | sort -u | head -15 | while IFS= read -r l; do echo "::error::$l"; done
+              exit 1; }
+          tail -20 "$RUNNER_TEMP/archive.log"
 
       - name: TestFlight 업로드
         if: env.HAS_KEYS == 'true'
@@ -101,7 +105,11 @@ jobs:
             -allowProvisioningUpdates \
             -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey_${ASC_KEY_ID}.p8" \
             -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_ISSUER_ID" | tail -40
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" > "$RUNNER_TEMP/export.log" 2>&1 || {
+              tail -60 "$RUNNER_TEMP/export.log"
+              grep -E "error:|error -|No profiles|No signing|requires a provisioning|Code Signing|account|Upload|upload" "$RUNNER_TEMP/export.log" | sort -u | head -15 | while IFS= read -r l; do echo "::error::$l"; done
+              exit 1; }
+          tail -20 "$RUNNER_TEMP/export.log"
           echo "빌드 번호 ${{ github.run_number }} 를 App Store Connect로 보냈어요."
 
       - name: 키 정리
