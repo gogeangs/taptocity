@@ -6241,7 +6241,8 @@ if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.r
    // 새 버전이 깔리면, 다음에 앱으로 돌아올 때(백그라운드 → 앞) 저장하고 조용히 새로 연다. 켜 둔 채로 두는 사람도 고친 판을 받게.
    let fresh=false,had=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had)fresh=true;had=true;});
    document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(fresh){let busyNow=false;try{busyNow=!!(DEFN||UG);}catch(e){}if(!busyNow){try{save();}catch(e){}location.reload();return;}}reg.update().catch(()=>{});});}).catch(()=>{});});}
- const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+ // 이미 앱으로 실행 중이면(홈 화면 PWA, 플레이 스토어 앱, 아이폰 앱) 설치 안내를 띄우지 않는다
+ const standalone=matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches||navigator.standalone||/TaptocityiOS/.test(navigator.userAgent)||document.referrer.startsWith('android-app://');
  if(standalone)return;
  let dp=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;});
  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
