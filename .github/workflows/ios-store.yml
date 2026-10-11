@@ -1,0 +1,55 @@
+# 탭투시티 iOS 스토어 정보 — ios/store 의 문구·스크린샷을 App Store Connect에 올린다 (심사 제출은 하지 않음).
+# 필요한 시크릿은 iOS 빌드와 같다: ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8
+name: iOS store listing
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deliver:
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: API 키 준비
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          python3 - <<'EOF'
+          import json, os
+          json.dump({"key_id": os.environ["ASC_KEY_ID"], "issuer_id": os.environ["ASC_ISSUER_ID"],
+                     "key": os.environ["ASC_KEY_P8"], "in_house": False},
+                    open(os.path.join(os.environ["RUNNER_TEMP"], "asc.json"), "w"))
+          EOF
+
+      - name: fastlane 준비
+        run: |
+          which fastlane || brew install fastlane
+          fastlane --version | tail -1
+
+      - name: 문구·스크린샷 올리기
+        run: |
+          fastlane deliver \
+            --api_key_path "$RUNNER_TEMP/asc.json" \
+            --app_identifier kr.co.itso.taptocity \
+            --platform ios \
+            --app_version 1.0.0 \
+            --metadata_path ios/store/metadata \
+            --screenshots_path ios/store/screenshots \
+            --skip_binary_upload true \
+            --skip_app_version_update false \
+            --overwrite_screenshots true \
+            --submit_for_review false \
+            --run_precheck_before_submit false \
+            --force true > "$RUNNER_TEMP/deliver.log" 2>&1 || {
+              tail -80 "$RUNNER_TEMP/deliver.log"
+              grep -iE "error|invalid|failed|exception" "$RUNNER_TEMP/deliver.log" | sort -u | head -15 | while IFS= read -r l; do echo "::error::$l"; done
+              exit 1; }
+          tail -30 "$RUNNER_TEMP/deliver.log"
+
+      - name: 키 정리
+        if: always()
+        run: rm -f "$RUNNER_TEMP/asc.json"
