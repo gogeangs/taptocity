@@ -57,6 +57,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/keys"
           printf '%s\n' "$ASC_KEY_P8" > "$RUNNER_TEMP/keys/AuthKey_${ASC_KEY_ID}.p8"
 
+      # 테스트 기기가 없어도 되도록, 아카이브는 서명 없이 만들고 내보낼 때 Apple 클라우드 배포 서명으로 서명한다.
       - name: 아카이브
         if: env.HAS_KEYS == 'true'
         env:
@@ -67,11 +68,8 @@ jobs:
           xcodebuild -project Taptocity.xcodeproj -scheme Taptocity \
             -configuration Release -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/Taptocity.xcarchive" \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey_${ASC_KEY_ID}.p8" \
-            -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
             DEVELOPMENT_TEAM="$TEAM" CODE_SIGN_STYLE=Automatic \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
             CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
             archive > "$RUNNER_TEMP/archive.log" 2>&1 || {
               tail -60 "$RUNNER_TEMP/archive.log"
