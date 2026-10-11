@@ -417,3 +417,33 @@ body.calm .lvchip.ready::before,body.calm .banner.mig::after,body.calm #tape .mi
 .lnfoot{margin-top:8px}.lnfoot button{width:100%}
 .gi.art .lnimg{display:block;width:100%;height:100%;background-image:url(assets/illustrated/line-items.webp);background-size:1200% 100%;background-repeat:no-repeat}
 .exp.lnc .lnitems .gi{width:36px!important;height:36px!important;border-radius:8px}
+
+/* 2026-10-11 새 기능 안내 카드 */
+.page.featcard .fchead{display:flex;align-items:center;gap:12px;margin:4px 0 8px}
+.page.featcard .fchead h3{margin:0}
+.fcic{flex:none;width:64px;height:64px;border-radius:14px;background:#2c333b;display:grid;place-items:center;overflow:hidden}
+.fcic>svg{width:56px;height:56px}
+.fcic .mi.rimg{--rs:48px!important}
+.fcic .gi{width:56px!important;height:56px!important;background:transparent!important;box-shadow:none!important;border:0!important}
+.page.featcard .fcwhat{font:15px/1.6 var(--body);margin:2px 0 12px;color:var(--sepia,#30281f)}
+.page.featcard .fcsec{font:700 12.5px var(--body);color:var(--sepia-2,#73634e);margin:0 0 6px}
+.page.featcard .fcsteps{margin:0 0 12px;padding:0;list-style:none;counter-reset:fc}
+.page.featcard .fcsteps li{counter-increment:fc;position:relative;padding:8px 10px 8px 40px;margin:0 0 6px;border-radius:10px;background:rgba(59,42,26,.06);font:14px/1.5 var(--body);color:var(--sepia,#30281f)}
+.page.featcard .fcsteps li::before{content:counter(fc);position:absolute;left:10px;top:8px;width:21px;height:21px;border-radius:50%;background:#2c333b;color:#ffdf9e;font:700 12px/21px var(--body);text-align:center}
+.page.featcard .fctip{margin:0 0 14px;padding:9px 12px;border-radius:10px;background:rgba(217,163,78,.16);font:13.5px/1.55 var(--body);color:#5a3d12}
+.page.featcard .fctip b{margin-right:4px}
+.fclist{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.fcitem{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(59,42,26,.06)}
+.fcitem .fcic{width:44px;height:44px;border-radius:10px}.fcitem .fcic>svg{width:38px;height:38px}.fcitem .fcic .gi{width:38px!important;height:38px!important}.fcitem .fcic .mi.rimg{--rs:32px!important}
+.fcitem>span:nth-child(2){flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.fcitem b{font:700 14px var(--body);color:var(--sepia,#30281f)}
+.fcitem small{font:12px/1.4 var(--body);color:var(--sepia-2,#73634e);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fcitem>i{font-style:normal;color:var(--sepia-2,#73634e)}
+.fchl{position:relative;z-index:2;animation:fchl 1.1s ease-in-out 3;border-radius:10px}
+@keyframes fchl{0%,100%{box-shadow:0 0 0 0 rgba(243,165,58,0)}50%{box-shadow:0 0 0 4px rgba(243,165,58,.9),0 0 18px rgba(243,165,58,.6)}}
+body.calm .fchl{animation:none;box-shadow:0 0 0 3px rgba(243,165,58,.9)}
+/* 위쪽 띠가 붐빌 때(받기·모닥불·새 동네·노친네 칩): 레벨 칩은 'Lv.5'만, 목표 글자는 최소 폭 확보 */
+.tape:has(#claim:not([hidden])) .lvchip .lvn,.tape:has(.migchip:not([hidden])) .lvchip .lvn{display:none}
+.tape:has(#claim:not([hidden])) .lvchip,.tape:has(.migchip:not([hidden])) .lvchip{min-width:0;padding:4px 7px}
+.tape:has(#claim:not([hidden])):has(.migchip:not([hidden])) .lvchip{display:none}
+.tape .m{min-width:72px}

@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261011-lni">
+<link rel="stylesheet" href="qa.css?v=20261011-feat2">
 <div id="app">
   <header>
     <div class="hud">
@@ -4242,10 +4242,41 @@ const FEAT=[
  {k:'acraft',tab:'fUp',sheet:'shelter',seg:'craft',on:()=>acraftOpen(),msg:'가공 탭에서 레시피마다 자동 가공을 켤 수 있어요 (쉘터 Lv.4 · 작업대 2단계)',h:'자동 가공'},
  {k:'trade',tab:'radio',sheet:'radio',on:()=>stayList().length>0,msg:'라디오 ‘무전 거래’에서 남은 사람들과 물건을 바꿀 수 있어요',h:'무전 거래'},
  {k:'route',tab:'fDiary',sheet:'diary',seg:'towns',on:()=>(S.gen||0)>0,msg:'일지 ‘노선도’에서 지나온 동네와 남은 사람들을 볼 수 있어요',h:'만수의 노선도'},
- {k:'migrate',tab:'fUp',sheet:'shelter',seg:'build',on:()=>!!S.endSeen&&S.lv>=5&&(S.gen||S.ehEnd||!svIn(10)),msg:'쉘터 화면에서 새 동네로 떠날 수 있어요',h:'이주'}];
+ {k:'migrate',tab:'fUp',sheet:'shelter',seg:'build',on:()=>!!S.endSeen&&S.lv>=5&&(S.gen||S.ehEnd||!svIn(10)),msg:'쉘터 화면에서 새 동네로 떠날 수 있어요',h:'이주'},
+ {k:'line',tab:'fExp',sheet:'exp',on:()=>lnOpen(),msg:'복구한 지하철역 안쪽 끊긴 노선에 들어갈 수 있어요',h:'끊긴 노선'},
+ {k:'pets',tab:'fSurv',sheet:'pets',on:()=>Object.keys(pets()).length>0,msg:'식구가 된 동물을 펫 화면에서 돌볼 수 있어요',h:'펫'},
+ {k:'fire',tab:null,sheet:null,on:()=>S.region==='snow',msg:'위쪽 띠의 모닥불 온기를 지켜요',h:'모닥불 온기'}];
+// 기능 안내 카드: 무엇인지 · 어떻게 쓰는지 · 팁. '보러 가기'는 그 화면을 열고 해당 버튼을 짚어 준다(sel=CSS 선택자, txt=그 글자가 든 칸).
+const FEAT_GUIDE={
+ radio:{ic:()=>micon('batt',60),what:'건전지로 주파수를 돌려 물자와 장비를 찾고, 라디오로만 만나는 히든 생존자의 목소리를 잡아요.',steps:['아래 ‘라디오’ 탭을 눌러요.','‘1번 탐색’은 건전지 1개, ‘5번 탐색’은 5개를 써요. 5번 탐색에는 희귀 자재 이상이 하나는 꼭 들어 있어요.','화면에 ‘히든 신호까지 남은 횟수’가 나와요. 그 안에 히든 생존자가 반드시 한 번 나와요.'],tip:'건전지는 목표·원정·부탁에서 얻고 한도가 없어 모아 둘 수 있어요.',sel:'[data-act="pull"]'},
+ bag:{ic:()=>gicon('toolbox',60),what:'주운 장비를 생존자에게 입혀 생산과 두드리는 힘을 올려요.',steps:['생존자 수첩 위쪽 ‘장비’를 눌러요.','장비마다 ‘잘 맞는 사람’이 있어요. 그 사람이 입으면 효과가 1.5배예요.','‘지금 맞추기’를 누르면 가장 잘 맞게 한 번에 입혀요.','남는 장비는 ‘정리하기’로 분해해 재료로 돌려받아요.'],tip:'아끼는 장비는 자물쇠로 잠가 두면 분해되지 않아요.',sel:'[data-act="bag"]'},
+ quest:{ic:()=>ugIcon({c:'quest'}),what:'신뢰가 쌓인 생존자의 개인 이야기가 열렸어요. 끝까지 따라가면 그 사람만의 전용 장비를 받아요.',steps:['생존자 수첩에서 그 사람을 눌러요.','‘개인 이야기’의 할 일을 확인해요. 물건을 건네거나, 지하에 함께 내려가는 일이에요.','모든 단계를 마치면 전용 장비와 희망 +3을 받아요.'],tip:'전용 장비는 그 사람이 입었을 때 제 힘을 내요.'},
+ deco:{ic:()=>ugIcon({c:'rest'}),what:'쉘터 주변에 장식을 놓아 마을을 꾸며요.',steps:['쉘터 화면에서 ‘꾸미기’ 탭을 눌러요.','장식을 고르고 지도에서 놓을 칸을 눌러요.','놓은 장식은 다시 눌러 옮기거나 치울 수 있어요.']},
+ ug:{ic:()=>ugIcon({c:'stairs'}),what:'랜턴 기름이 버티는 만큼 지하로 내려가 귀한 물자와 사람들의 기록을 찾아요.',steps:['원정 탭 맨 위 ‘지하 구역’에서 ‘내려갈 준비’를 눌러요.','최대 3명과 연료를 챙겨요. 연료 1개는 기름 3이에요.','어두운 칸을 한 번 두드릴 때마다 기름 1을 써요. 계단을 찾아 더 깊이 내려가요.','기름이 떨어지기 전에 올라와요. 떨어지면 챙긴 것의 절반을 잃어요.'],tip:'5층마다 쉼터가 있어, 다음에는 거기서 시작할 수 있어요.',sel:'[data-act="ugprep"]'},
+ relic:{ic:()=>ugIcon({c:'rare'}),what:'폐허에서 찾은 유물을 일지 ‘도감’에 모아요.',steps:['일지에서 ‘도감’ 탭을 눌러요.','찾은 유물의 이야기와 효과를 볼 수 있어요.','유물은 이주할 때도 함께 가져가요.']},
+ auto:{ic:()=>ugIcon({c:'who'}),what:'버튼 한 번으로 빈 일터에 딱 맞는 사람을 앉혀요.',steps:['생존자 수첩 맨 위 ‘자동’을 눌러요.','스위치를 켜 두면 빈 일터가 생길 때 알아서 채워요.'],tip:'딱 맞는 사람이 일하면 모듈 효과가 커져요.',sel:'[data-act="svtool"][data-arg="auto"],[data-act="autoasg"]'},
+ autoexp:{ic:()=>ugIcon({c:'start'}),what:'쉬는 사람으로 가장 효율 좋은 팀을 꾸려 원정을 보내고, 돌아오면 전리품도 챙겨요.',steps:['원정 탭 맨 위 ‘자동 원정’ 스위치를 켜요.','순찰·아이 돌보기 중인 사람은 빼고 팀을 꾸려요.'],sel:'[data-act="autoexp"]'},
+ acraft:{ic:()=>gicon('welder',60),what:'레시피마다 자동 가공을 켜 두면 재료가 있을 때 알아서 만들어요.',steps:['쉘터 화면 ‘가공’ 탭을 눌러요.','레시피 옆 자동 스위치를 켜요.'],sel:'[data-act="acr"]'},
+ trade:{ic:()=>ugIcon({c:'shop'}),what:'이주할 때 남겨 둔 사람들과 무전으로 물건을 바꿔요.',steps:['라디오 탭에서 아래 ‘무전 거래’로 내려가요.','남은 사람마다 바꿔 주는 물건이 달라요.','거래한 물건은 잠시 뒤에 도착해요.'],txt:'무전 거래'},
+ route:{ic:()=>gicon('lnMap',60),what:'만수가 그려 준 노선도에서 지나온 동네와 남은 사람들을 봐요.',steps:['일지에서 ‘노선도’ 탭을 눌러요.','동네를 누르면 그곳에 남은 사람과 기록이 나와요.']},
+ migrate:{ic:()=>ugIcon({c:'door'}),what:'불빛의 도시를 완성했어요. 새 동네로 떠날 수 있어요.',steps:['쉘터 화면 건설 탭 맨 위 ‘새 동네로’를 눌러요.','함께 갈 사람과 남을 사람을 골라요. 남은 사람과는 무전 거래를 이어가요.','사람·장비·유물은 함께 가고, 등불의 기억(생산·두드리기 +10%)이 쌓여요.'],sel:'[data-act="migrate"]'},
+ line:{ic:()=>gicon('lnLamp',60),what:'복구한 지하철역 안쪽 터널을 따라 종점까지 가는 던전이에요.',steps:['원정 탭 ‘끊긴 노선’에서 ‘노선 들어가기’를 눌러요. 지도에서 지하철역을 눌러 ‘노선 탐사’로 들어가도 돼요.','동료는 2명까지, 1명당 식량 8을 도시락으로 써요.','갈림길마다 터널 셋 중 하나를 골라요. 재 괴물은 좁혀 오는 고리가 금빛 테두리에 겹칠 때 두드려요.','역에서 올라갈지 더 갈지 정해요. 종점의 우두머리를 쓰러뜨리면 이 동네 전용 물건을 얻어요.'],tip:'연달아 들어가면 보상이 줄고, 15분마다 한 단계씩 회복해요.',sel:'[data-act="lnprep"]'},
+ pets:{ic:()=>ugIcon({c:'pet'}),what:'식구가 된 동물을 돌보면 효과가 커지고 사연이 열려요.',steps:['생존자 수첩 위쪽 ‘펫’을 눌러요.','동행 펫 한 마리는 효과를 모두 내고, 쉬는 펫은 절반을 내요.','지도에서 펫을 누르면 쓰다듬고, 먹이를 주면 친밀도가 올라요.'],tip:'잘 맞는 생존자와 함께 있으면 희망이 오르고 더 빨리 친해져요.'},
+ fire:{ic:()=>micon('hope',60),what:'눈 덮인 산골에서는 모닥불 온기를 지켜야 해요.',steps:['위쪽 띠의 ‘모닥불’ 칩에서 온기를 확인해요.','밤과 한파에는 빨리 식어요. 칩을 눌러 장작을 넣으면 온기 +30이에요.','온기가 60% 이상이면 희망 +4·두드리는 힘 +15%, 꺼지면 생산이 ×0.8로 줄어요.'],sel:'#firechip',main:true}};
+function featCardHtml(k){const f=FEAT.find(x=>x.k===k),G=FEAT_GUIDE[k];if(!f||!G)return'';
+  return`<div class="page featcard"><div class="tag">새 기능 안내</div><div class="fchead"><span class="fcic">${G.ic()}</span><h3>${f.h}</h3></div><p class="fcwhat">${G.what}</p>
+    <div class="fcsec">이렇게 써요</div><ol class="fcsteps">${G.steps.map(t=>`<li>${t}</li>`).join('')}</ol>${G.tip?`<p class="fctip"><b>팁</b> ${G.tip}</p>`:''}
+    <div class="btns"><button class="alt" data-act="fclater">나중에</button>${f.sheet||G.main?`<button data-act="fcgo" data-arg="${k}">보러 가기</button>`:`<button data-act="fclater">알겠어요</button>`}</div></div>`;}
+function openFeatCard(k,force){const h=featCardHtml(k);if(!h)return false;if(!force&&(!modal.hidden||talk||DEFN||UG||LN))return false;openModal(h,!!force);sfx('chime');return true;}
+function featGo(k){const f=FEAT.find(x=>x.k===k),G=FEAT_GUIDE[k];closeModal();if(!f)return;S.feat=S.feat||{};S.feat[k]=2;
+  if(f.sheet==='shelter')goShelter(f.seg||'build');else if(f.sheet){openSheet(f.sheet);if(f.sheet==='diary'&&f.seg){diaryTab=f.seg;renderSheet();}}else if(sheetTab)closeSheet();
+  setTimeout(()=>{let el=null;if(G.sel)el=document.querySelector(G.main?G.sel:'#shBody '+G.sel.split(',').join(',#shBody '));if(!el&&G.txt)el=[...document.querySelectorAll('#shBody .sec,#shBody .exp,#shBody .row')].find(e=>e.textContent.includes(G.txt));
+    if(el){if(!G.main)el.scrollIntoView({block:'center',behavior:'smooth'});el.classList.remove('fchl');void el.offsetWidth;el.classList.add('fchl');setTimeout(()=>el.classList.remove('fchl'),4200);}},350);tickFeat();save();}
+modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="fcgo"],[data-act="fclater"]');if(!b)return;e.stopPropagation();if(b.dataset.act==='fcgo')featGo(b.dataset.arg);else closeModal();},true);
+$('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="fcopen"]');if(!b)return;e.stopImmediatePropagation();openFeatCard(b.dataset.arg,true);},true);
 function tickFeat(){if(!S.feat){S.feat={};for(const f of FEAT)if(f.on())S.feat[f.k]=2;}for(const f of FEAT){if(S.feat[f.k])continue;if(f.on()){S.feat[f.k]=1;(S.featQ=S.featQ||[]).push(f.k);}}
-  if(S.featQ&&S.featQ.length&&(S.playT||0)>=300&&Date.now()-(S.featAt||0)>120000&&modal.hidden){const k=S.featQ.shift(),f=FEAT.find(x=>x.k===k);if(f&&S.feat[k]===1){S.featAt=Date.now();note({h:`새 기능 · ${f.h}`,t:`<small>${f.msg}</small>`,ms:5000});}}
-  const tabs={};for(const f of FEAT)if(S.feat[f.k]===1)tabs[f.tab]=1;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('isnew',!!tabs[b.id]));}
+  if(S.featQ&&S.featQ.length&&(S.playT||0)>=300&&Date.now()-(S.featAt||0)>120000&&modal.hidden){const k=S.featQ.shift(),f=FEAT.find(x=>x.k===k);if(f&&S.feat[k]===1){S.featAt=Date.now();if(!openFeatCard(k))note({h:`새 기능 · ${f.h}`,t:`<small>${f.msg}</small>`,ms:5000});}}
+  const tabs={};for(const f of FEAT)if(S.feat[f.k]===1&&f.tab)tabs[f.tab]=1;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('isnew',!!tabs[b.id]));}
 // 1 = new (dot on the bottom tab), 3 = the tab was opened but the sub-tab still carries its own dot, 2 = seen
 function seeFeat(sheet,seg){S.feat=S.feat||{};for(const f of FEAT)if((S.feat[f.k]===1||S.feat[f.k]===3)&&f.sheet===sheet&&(!f.seg||f.seg===seg))S.feat[f.k]=2;tickFeat();}
 const TAB_OF={surv:'fSurv',exp:'fExp',shelter:'fUp',radio:'radio',diary:'fDiary'};
@@ -4275,6 +4306,7 @@ modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="copycode
   else applyCode($('loadCode').value);},true);
 // guidebook
 function renderGuide(){const sec=(t,b)=>`<div class="gsec"><b>${t}</b>${b}</div>`;let h='';
+  {const open=FEAT.filter(f=>FEAT_GUIDE[f.k]&&S.feat&&S.feat[f.k]);if(open.length)h+=sec('열린 기능 안내',`<div class="fclist">${open.map(f=>`<button class="fcitem" data-act="fcopen" data-arg="${f.k}"><span class="fcic">${FEAT_GUIDE[f.k].ic()}</span><span><b>${f.h}</b><small>${FEAT_GUIDE[f.k].what}</small></span><i>›</i></button>`).join('')}</div>`);}
   h+=sec('기본 조작','<p>· 빛이 새는 구름을 두드려 땅을 밝혀요. <b>꾹 누르고 있으면</b> 계속 두드려요. 화면 안에 보이는 구름까지, 한 번에 최대 30개 걷혀요. 더 걷으려면 손을 뗐다 다시 누르거나 지도를 옮겨요.<br>· 왼쪽 아래 <b>랜턴 버튼</b>은 조준한 칸(점선 원)을 두드려요.<br>· 쉬지 않고 두드리면 랜턴이 차올라 <b>피버</b>가 켜지고, 그동안 모든 수확이 두 배예요.<br>· 두 손가락으로 확대·축소, 끌어서 지도를 옮겨요.<br>· 왼쪽 위 초상화를 누르면 내 프로필이 열려요. 이름과 초상화를 바꾸고 지금까지의 기록을 볼 수 있어요.</p>');
   h+=sec('자재와 창고','<p>· 무너진 집·폐차·상점·벙커를 두드리면 자재가 나와요. 털린 곳은 시간이 지나면 다시 쌓여요.<br>· 기본 자재와 철판·밧줄은 창고 한도까지, 전선·약품은 그 1/4까지만 모여요(건전지는 한도 없음). 창고 모듈과 증축으로 늘려요.<br>· 철판·밧줄은 작업대에서 만들고, 전선·약품은 벙커·원정·지하에서 나오고, 작업대에서 조립하거나 달여 만들 수도 있어요.<br>· 남는 목재는 숯으로 구워 연료로, 남는 식량은 약초 달이기나 마을 잔치(쉘터 Lv.3)에 써요.</p>');
   h+=sec('쉘터와 모듈','<p>· 가운데 쉘터를 누르면 건설·가공·창고·꾸미기 화면이 열려요.<br>· 모듈이 일정 수 이상 있어야 증축할 수 있어요. 텃밭·고물상·창고·랜턴탑은 여러 개 지을 수 있어요.<br>· 지도의 모듈을 누르면 빠른 메뉴(강화·배치)가 떠요.</p>');
@@ -6102,7 +6134,7 @@ let last=performance.now(),acc=0,uiT=0,saveT=0;
 function renderMats(){const box=$('mats');if(!box.firstChild)box.innerHTML=BASE.map(k=>`<span class="mc ric" data-k="${k}" title="${MN[k].n} · ${MN[k].src}" aria-label="${MN[k].n}">${micon(k,18)}<span class="top"><b></b></span></span>`).join('');
   box.querySelectorAll('.mc').forEach(el=>{const k=el.dataset.k,v=S.m[k]||0;const pv=+el.dataset.v||0;el.dataset.v=v;if(v>pv&&pv>=0&&el.dataset.v0){el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');}el.dataset.v0=1;if(v>0){S.seenM=S.seenM||{};S.seenM[k]=1;}el.hidden=v<=0&&!(S.seenM&&S.seenM[k])&&!S.gen&&S.lv<3;el.classList.toggle('zero',v<=0);el.querySelector('b').textContent=fmtS(v);el.style.setProperty('--f',Math.min(1,v/Math.max(1,D.cap)).toFixed(3));el.classList.toggle('full',v>=D.cap);el.classList.toggle('low',k==='food'&&v<=5&&D.eat>0);});}
 function hud(){renderMats();renderClock();renderDefBar();tickDusk();canvasLabel();
-  $('lv').textContent=`Lv.${S.lv} ${LVNAME[S.lv-1]}`;
+  {const lh=`Lv.${S.lv}<span class="lvn"> ${LVNAME[S.lv-1]}</span>`;if($('lv').innerHTML!==lh)$('lv').innerHTML=lh;}
   $('pop').textContent=`생존자 ${bedsUsed()}/${bedsMax()} · 희망 ${D.hope}`;{const bp=$('buffP');if(bp){const on=!!(S.buff&&S.buff.t>0);bp.hidden=!on;if(on)bp.textContent=`✦ ${S.buff.label} ${Math.ceil(S.buff.t)}초`;}}
   let f=1;if(S.lv<5){const u=SHUP[S.lv-1],c=scaleCost(u.cost,costMult());const parts=Object.entries(c).map(([k,v])=>Math.min(1,(S.m[k]||0)/v));parts.push(Math.min(1,modCount()/u.need));f=parts.reduce((a,v)=>a+v,0)/parts.length;}$('bar').style.width=(f*100)+'%';{const bl=$('barL');if(bl){const t=S.lv<5?`${LVNAME[S.lv]}까지 ${Math.floor(f*100)}%`:'불빛의 도시 완성';if(bl.textContent!==t)bl.textContent=t;}{const ch=$('lvchip'),rd=S.lv<5&&f>=1;if(ch&&ch.classList.contains('ready')!==rd){ch.classList.toggle('ready',rd);ch.setAttribute('aria-label',rd?'증축할 수 있어요':'쉘터 증축');}if(ch)ch.title=$('barL').textContent;}}
   $('sLbl').innerHTML=`생존자<span class="cnt"> ${Object.keys(S.sv).length}</span>`;$('skills').classList.toggle('can',Object.keys(S.sv).length>S.party.length);if(!$('matsAll').hidden)renderMatsAll();$('exDot').hidden=!Object.values(S.exp).some(x=>Date.now()>=x.end);renderSkills();if(sheetTab==='exp')updExpBars();$('svDot').hidden=!svNew;
