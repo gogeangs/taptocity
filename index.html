@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261010-design">
+<link rel="stylesheet" href="qa.css?v=20261011-ric">
 <div id="app">
   <header>
     <div class="hud">
@@ -1295,7 +1295,9 @@ const MI={
  wire:'<rect x="7" y="4" width="10" height="16" rx="2"/><path d="M7 9h10M7 15h10M17 12h3v6"/>',
  batt:'<rect x="7" y="5" width="10" height="16" rx="2"/><path d="M10 3h4M12.8 9l-2.4 4h3.2l-2.4 4"/>',
  med:'<rect x="4" y="6" width="16" height="13" rx="2"/><path d="M12 9v7M8.5 12.5h7"/>'};
-const micon=(k,s=16)=>`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="${MN[k].c}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="mi" aria-hidden="true">${MI[k]}</svg>`;
+// 자원 그림(손그림 아틀라스 1장, 12칸). 없는 키는 예전 선 아이콘으로
+const RIC={scrap:0,wood:1,cloth:2,parts:3,fuel:4,food:5,plate:6,rope:7,wire:8,med:9,batt:10,hope:11};
+const micon=(k,s=16)=>k in RIC?`<span class="mi rimg" style="--rs:${Math.round(s*1.3)}px;background-position:${(RIC[k]/11*100).toFixed(2)}% 0" aria-hidden="true"></span>`:`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="${MN[k].c}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="mi" aria-hidden="true">${MI[k]}</svg>`;
 const lvScale=()=>1+(S.lv-1)*.6;
 const scaleCost=(o,f=1)=>{const r={};for(const k in o){const v=Math.ceil(o[k]*f);if(v>0)r[k]=v;}return r;};
 function give(o){const got={};for(const k in o){const n=Math.max(0,Math.round(o[k]));if(!n)continue;const cap=capOf(k);const room=Math.max(0,cap-(S.m[k]||0)),a=Math.min(n,room);S.m[k]=(S.m[k]||0)+a;S.got[k]=(S.got[k]||0)+a;if(a)got[k]=a;}return got;}
@@ -2476,7 +2478,7 @@ $('shClose').onclick=closeSheet;$('fUp').onclick=()=>sheetTab==='shelter'?closeS
 const btnCost=(act,arg,label,cost,dis,why)=>{const poor=!canPay(cost);return`<button class="buy${dis||poor?' off':''}" data-act="${act}" data-arg="${arg}" ${dis||poor?'disabled':''}>${label}${dis&&why?`<small>${why}</small>`:poor&&!dis?'<small>자재 부족</small>':''}</button>`;};
 const card=(key,th,t,d,costs,btn,cls='')=>`<div class="row mcard ${cls}" data-k="${key}">${th}<div class="cb"><div class="t">${t}</div>${d?`<div class="d">${d}</div>`:''}${costs?`<div class="costs">${costs}</div>`:''}</div>${btn}</div>`;
 function renderShelter(){const L=S.lv;$('shTitle').textContent=`Lv.${L} ${LVNAME[L-1]}`;let h='';
-  h+=`<div class="sumchips"><span>${micon('scrap',13)}보관 한도 <b>${fmt(D.cap)}</b></span><span>침상 <b>${bedsUsed()}/${bedsMax()}</b></span><span>희망 <b>${D.hope}</b></span><span class="${D.hungry?'bad':''}">${micon('food',13)}<b>+${fmt(D.prod.food||0)}</b> / -${fmt(D.eat)}</span>${hasMod(5)?`<span class="${S.m.fuel>0?'':'bad'}">${micon('fuel',13)}-${fmt(D.fuelUse)}${S.m.fuel>0?'':' 멈춤'}</span>`:''}</div>${D.hungry?'<div class="warnline">배고파서 생산이 절반으로 줄었어요 · 텃밭을 늘리거나 식량을 모아요</div>':''}`;
+  h+=`<div class="sumchips"><span>${micon('scrap',13)}보관 한도 <b>${fmt(D.cap)}</b></span><span>침상 <b>${bedsUsed()}/${bedsMax()}</b></span><span>${micon('hope',13)}희망 <b>${D.hope}</b></span><span class="${D.hungry?'bad':''}">${micon('food',13)}<b>+${fmt(D.prod.food||0)}</b> / -${fmt(D.eat)}</span>${hasMod(5)?`<span class="${S.m.fuel>0?'':'bad'}">${micon('fuel',13)}-${fmt(D.fuelUse)}${S.m.fuel>0?'':' 멈춤'}</span>`:''}</div>${D.hungry?'<div class="warnline">배고파서 생산이 절반으로 줄었어요 · 텃밭을 늘리거나 식량을 모아요</div>':''}`;
   const segs=[['build','건설'],['craft','가공'],['research','연구'],['store','창고'],['deco','꾸미기']];h+=`<div class="segs" role="tablist">${segs.map(([k,n])=>`<button role="tab" class="seg${shTab===k?' on':''}" data-act="seg" data-arg="${k}" aria-selected="${shTab===k}">${n}${segNew('shelter',k)?'<i class="nw">N</i>':''}</button>`).join('')}</div>`;
   if(shTab==='build'){h+=migrateHtml();h+=towerHtml();
   if(L<5){const u=SHUP[L-1],c=scaleCost(u.cost,costMult()),ok=modCount()>=u.need;
@@ -5953,7 +5955,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act="tutre
 
 // ---------- loop ----------
 let last=performance.now(),acc=0,uiT=0,saveT=0;
-function renderMats(){const box=$('mats');if(!box.firstChild)box.innerHTML=BASE.map(k=>`<span class="mc" data-k="${k}" title="${MN[k].src}"><span class="top">${micon(k,15)}<b></b></span><i>${MN[k].n}</i></span>`).join('');
+function renderMats(){const box=$('mats');if(!box.firstChild)box.innerHTML=BASE.map(k=>`<span class="mc ric" data-k="${k}" title="${MN[k].n} · ${MN[k].src}" aria-label="${MN[k].n}">${micon(k,18)}<span class="top"><b></b></span></span>`).join('');
   box.querySelectorAll('.mc').forEach(el=>{const k=el.dataset.k,v=S.m[k]||0;const pv=+el.dataset.v||0;el.dataset.v=v;if(v>pv&&pv>=0&&el.dataset.v0){el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');}el.dataset.v0=1;if(v>0){S.seenM=S.seenM||{};S.seenM[k]=1;}el.hidden=v<=0&&!(S.seenM&&S.seenM[k])&&!S.gen&&S.lv<3;el.classList.toggle('zero',v<=0);el.querySelector('b').textContent=fmtS(v);el.style.setProperty('--f',Math.min(1,v/Math.max(1,D.cap)).toFixed(3));el.classList.toggle('full',v>=D.cap);el.classList.toggle('low',k==='food'&&v<=5&&D.eat>0);});}
 function hud(){renderMats();renderClock();renderDefBar();tickDusk();canvasLabel();
   $('lv').textContent=`Lv.${S.lv} ${LVNAME[S.lv-1]}`;

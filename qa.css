@@ -338,3 +338,18 @@ body.calm .lvchip.ready{animation:none}
 #shBody .lkb.on{opacity:1}
 
 .resident-side .ready-label{font-size:11px!important;padding:3px 7px!important;border:0!important;background:rgba(217,163,78,.2)!important;color:#8a5a17!important;border-radius:99px!important}
+
+/* 2026-10-11 손그림 자원 아이콘 */
+.mi.rimg{display:inline-block;width:var(--rs,20px)!important;height:var(--rs,20px)!important;flex:none;background-color:transparent!important;background-image:url(assets/illustrated/resources.webp)!important;background-size:1200% 100%!important;background-repeat:no-repeat!important;border:0!important;border-radius:0!important;padding:0!important;box-shadow:none!important;vertical-align:middle!important;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
+.mc.ric{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:1px!important;padding:3px 2px 4px!important}
+.mc.ric>.mi.rimg{display:inline-block!important;--rs:22px}
+.mc.ric .top{justify-content:center}
+.mc.ric.zero>.mi.rimg{opacity:.45}
+.mc.ric.low>.mi.rimg{animation:ricLow 1s ease-in-out infinite}
+@keyframes ricLow{50%{transform:scale(1.15)}}
+body.calm .mc.ric.low>.mi.rimg{animation:none}
+.cost .mi.rimg,.gn .mi.rimg,.rqfx .mi.rimg,.nr .mi.rimg{margin-right:2px}
+.th.ico.mat .mi.rimg{--rs:40px}
+.cost .mi.rimg,.nr .mi.rimg,.gn .mi.rimg{--rs:20px!important;margin:-3px 2px -3px -2px}
+.mc.ric>.mi.rimg{--rs:24px!important;filter:drop-shadow(0 0 2px rgba(255,236,200,.18)) drop-shadow(0 1px 1px rgba(0,0,0,.5))}
+.sumchips .mi.rimg{--rs:15px!important}
