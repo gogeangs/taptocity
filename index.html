@@ -411,6 +411,8 @@ body.calm *{animation-duration:.001s!important;animation-iteration-count:1!impor
 .chip{font-size:12px}#matsAll .ma small{font-size:11.5px}.grh small,.qbox .sec2 small{font-size:12px}
 #sheet.peek{transform:translateY(64%)!important;transition:transform .3s ease}
 #stage.danger::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;box-shadow:inset 0 0 60px 18px rgba(226,60,40,.55);animation:dng 1s ease-in-out infinite alternate}
+#toasts .tt.fc{pointer-events:auto;cursor:pointer}.nfc{display:block;color:#e8b860;font-weight:700;margin-top:2px}
+.lic{display:inline-flex;align-items:center;gap:1px;margin:0 3px;white-space:nowrap;vertical-align:middle}.lic b{font-weight:700}.lic .mi.rimg{--rs:18px!important;margin:-3px 0!important}
 #stage.dread::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;background:radial-gradient(ellipse at 50% 46%,rgba(0,0,0,0) 26%,rgba(20,4,8,.55) 62%,rgba(4,2,6,.94) 100%);animation:drd 1.2s ease-in-out infinite alternate}
 @keyframes drd{from{opacity:.55}to{opacity:1}}
 #stage.oddhit::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:4;background:#05040a;animation:odh .9s ease-out forwards}
@@ -1312,6 +1314,13 @@ function pay(o){if(!canPay(o))return false;for(const k in o)S.m[k]-=o[k];return 
 const costHtml=o=>Object.entries(o).sort(([a,x],[b,y])=>((S.m[a]||0)>=x)-((S.m[b]||0)>=y)).map(([k,v])=>{const h=S.m[k]||0;if(h>=v)return`<span class="cost cc ok mini" title="${MN[k].n} ${fmt(v)}">${micon(k,12)}${fmt(v)}</span>`;return`<span class="cost cc no" style="--p:${Math.min(1,h/Math.max(1,v)).toFixed(3)}">${micon(k,13)}${MN[k].n} <b>${fmt(Math.min(h,v))}<i>/${fmt(v)}</i></b><u></u></span>`;}).join('');
 const needHtml=o=>{const E=Object.entries(o),okE=E.filter(([k,v])=>(S.m[k]||0)>=v),no=E.filter(([k,v])=>(S.m[k]||0)<v);return`<div class="need">${no.map(([k,v])=>`<div class="nr">${micon(k,13)}<b>${MN[k].n}</b> ${fmt(S.m[k]||0)}/${v}<small>${MN[k].s2}</small></div>`).join('')}${okE.length?`<div class="nr ok mini">${okE.map(([k,v])=>`${micon(k,13)}${MN[k].n} ${fmt(v)}`).join(' · ')} ✓</div>`:''}</div>`;};
 const lootTxt=o=>Object.entries(o).map(([k,v])=>`${MN[k].n} +${v}`).join(' · ');
+// 보상·소모 숫자는 글 대신 자원 아이콘으로: '고철 +34 · 건전지 +1' → [아이콘]+34 [아이콘]+1 (알림·토스트·던전 메시지에 적용)
+const ICO_K=Object.fromEntries([...MATS.map(m=>[m.n,m.k]),['희망','hope']]);
+const ICO_RE=new RegExp('(^|[^가-힣])('+Object.keys(ICO_K).sort((a,b)=>b.length-a.length).join('|')+') ?([+\\-−])(\\d[\\d,.]*k?)','g');
+const escH=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const licH=(k,v)=>`<span class="lic" title="${(MN[k]||{n:'희망'}).n}">${micon(k,17)}<b>${v}</b></span>`;
+const icoTxt=h=>String(h).replace(ICO_RE,(m,pre,n,sg,v)=>pre+licH(ICO_K[n],(sg==='+'?'+':'−')+v)).replace(/<\/span>( · |, | )(?=<span class="lic")/g,'</span>').replace(/ · (?=<span class="lic")/g,' ');
+const lootIco=(o,plus)=>Object.entries(o).map(([k,v])=>licH(k,(plus?'+':'')+v)).join('');
 
 // ---------- scavenging sites ----------
 const SITES={
@@ -3482,7 +3491,7 @@ function lnPrepRender(first){const free=lnFree(),t=lnPrep.team,T=LN_TOWN[lnReg()
     <div class="team">${free.length?free.map(id=>{const rl=(ROLE[id]||[]).filter(r=>LN_ROLE_N[r]).map(r=>LN_ROLE_N[r].split(':')[0]);return`<button class="mem${t.includes(id)?' on':''}" data-act="lnm" data-arg="${id}" ${!t.includes(id)&&t.length>=2?'disabled':''}>${avatar(id)}<span class="mtx"><b>${SURV[id].name}</b><small>${GR[gradeOf(id)].n}${rl.length?' · '+rl.join('·'):''}</small></span></button>`;}).join(''):'<div class="d">쉬는 생존자가 없어요</div>'}</div>
     ${pk.length?`<div class="prev">${pk.join('<br>')}</div>`:''}
     <div class="lnstops">${T.st.map((s,k)=>`<span><i>${k+1}</i>${s}</span>`).join('<b>—</b>')}</div>
-    <div class="d" style="margin:2px 0 12px">체력 <b>${lnHp0(t)}</b> · 재 괴물에게 맞거나 무너진 선로를 지나면 줄어요. 0이 되면 챙긴 것의 절반만 들고 돌아와요.<br>도시락 ${lootTxt(c).replace(/\+/g,'')} · 보상 ${m<1?`<b>×${m}</b> (연달아 들어가 줄었어요 · 15분마다 회복)`:'온전'} · 최대 2명</div>
+    <div class="d" style="margin:2px 0 12px">체력 <b>${lnHp0(t)}</b> · 재 괴물에게 맞거나 무너진 선로를 지나면 줄어요. 0이 되면 챙긴 것의 절반만 들고 돌아와요.<br>도시락 ${lootIco(c)} · 보상 ${m<1?`<b>×${m}</b> (연달아 들어가 줄었어요 · 15분마다 회복)`:'온전'} · 최대 2명</div>
     <div class="btns"><button class="alt" data-act="lnx">취소</button><button data-act="lngo" ${t.length&&canPay(c)?'':'disabled'}>들어가기</button></div>${!t.length?'<div class="ughint">함께 갈 사람을 골라 주세요</div>':!canPay(c)?'<div class="ughint">식량이 모자라요</div>':''}</div>`;
   if(first)openModal(h);else{modal.innerHTML=h;}}
 function lnStart(){const t=lnPrep.team.filter(id=>S.sv[id]&&!busy(id)).slice(0,2);if(!t.length||!pay(lnCost(t.length)))return;const hp=lnHp0(t);
@@ -3549,7 +3558,7 @@ function lnRender(){if(!LN)return;const T=LN_TOWN[LN.reg],tm=LN.team.map(id=>ava
   const carry=Object.entries(LN.carry).filter(([,v])=>v>0).map(([k,v])=>`<span>${micon(k,14)}<b>${v}</b></span>`).join('')+LN.items.map(t=>`<span class="lnit">${gicon(t,18)}${GEAR[t].n}</span>`).join('');
   const h=`<div class="page line run nox"><div class="tag">끊긴 노선 · ${T.n}</div>${lnTrack()}
     <div class="lnhead"><span class="lnteam">${tm}</span><span class="lnhp"><i style="width:${Math.max(0,LN.hp/LN.max*100)}%"></i><b>체력 ${Math.max(0,LN.hp)}/${LN.max}</b></span></div>
-    <p class="lnmsg">${LN.msg}</p>${body}
+    <p class="lnmsg">${icoTxt(LN.msg)}</p>${body}
     <div class="lncarry">${carry||'<small>아직 챙긴 게 없어요</small>'}</div>
     ${LN.phase==='pick'||LN.phase==='hazard'?`<div class="lnfoot"><button class="alt" data-act="lnout" ${LN.step===0?'':''}>지금 돌아가기 <small>${LN.step?'챙긴 건 그대로':'보상 없음'}</small></button></div>`:''}</div>`;
   if(modal.hidden)openModal(h,true);else{modal.innerHTML=h;}if(LN.phase==='fight')lnFightDraw(true);}
@@ -3694,7 +3703,7 @@ function renderUG(){if(!UG)return;const hint=ugRole(UG.team,'scout')||ugRole(UG.
     ${meter}
     ${window.TTCFinal?TTCFinal.scene(TH.k==='plant'?'control':TH.k,'ug-scene',TH.n):`<div class="udeco">${UGDECO[TH.k](f)}</div>`}
     <div class="uoil${oilP<.25?' low':''}"><span class="ulamp"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v2h4V3M8 6h8l-1 13H9z"/><path d="M12 10c1.6 1.6 1.6 3.4 0 4.6-1.6-1.2-1.6-3 0-4.6z" fill="currentColor" stroke="none"/></svg></span><div class="ubar"><i style="width:${oilP*100}%"></i></div><b>${UG.oil}</b></div>
-    <div class="umsg${foeAlive?' warn':''}">${UG.msg}</div>
+    <div class="umsg${foeAlive?' warn':''}">${icoTxt(UG.msg)}</div>
     ${UG.shop?`<div class="ugshop"><button class="alt" data-act="ugb" data-arg="0" ${canPay({food:15})?'':'disabled'}>${micon('food',14)} 15 → 기름 +8</button><button class="alt" data-act="ugb" data-arg="1" ${canPay({parts:12})?'':'disabled'}>${micon('parts',14)} 12 → 🗝 1</button></div>`:''}
     <div class="ugrid2">${grid}</div>${(()=>{const seen=[...new Set(UG.cells.filter(c=>c.rev&&UGL[c.c]&&c.c!=='start').map(c=>c.c))];return seen.length?`<div class="uglegend">${seen.map(k=>`<span class="k-${k}"><i class="ub">${ugIcon({c:k})}</i>${UGN[k]}</span>`).join('')}</div>`:'';})()}
     <div class="ucarry"><span class="ulbl">챙긴 것</span>${carry||'<small>아직 없어요</small>'}</div>
@@ -3925,7 +3934,7 @@ function drawBandTile(i,time){const B=S.band,c=BANDT[B.k].flag;if(!(window.TTCSe
   ctx.fillStyle='#3b2a1a';ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillText(B.k==='trader'?'⇄':B.k==='raider'?'!':'?',cx,cy+bob+4);
   const[gx,gy]=P(.35,.62,2);glowPts.push([gx,gy,24,'255,170,80',.4]);}
 function openBand(){const B=S.band;if(!B)return;const T0=BANDT[B.k];let body='';
-  if(B.k==='trader'){body=`<div class="sec2">교역</div>`+B.offers.map((o,k)=>`<div class="trade"><span>${lootTxt(o.give).replace(/\+/g,'')}</span><b>→</b><span>${lootTxt(o.get)}</span><button class="alt" data-act="btr" data-arg="${k}" ${o.left>0&&canPay(o.give)?'':'disabled'}>바꾸기${o.left<2?` (${o.left})`:''}</button></div>`).join('')
+  if(B.k==='trader'){body=`<div class="sec2">교역</div>`+B.offers.map((o,k)=>`<div class="trade"><span>${lootIco(o.give)}</span><b>→</b><span>${lootIco(o.get,1)}</span><button class="alt" data-act="btr" data-arg="${k}" ${o.left>0&&canPay(o.give)?'':'disabled'}>바꾸기${o.left<2?` (${o.left})`:''}</button></div>`).join('')
     +(allyOf(B.name)?`<div class="fx">이미 동맹이에요. 새벽마다 물자를 보내 줘요</div>`:`<div class="sec2">동맹 맺기</div><div class="d">선물을 건네면 동맹이 돼요. 새벽마다 물자를 보내 주고, 대형 재폭풍 때 함께 싸워요.</div>${needHtml(scaleCost({food:20,med:1},1))}<button class="alt" data-act="bal" ${canPay({food:20,med:1})&&(S.allies||[]).length<3?'':'disabled'} style="width:100%;margin-top:6px">동맹 맺기</button>`);}
   else if(B.k==='refugee'){const c=scaleCost({food:25},1);body=`<div class="d">식량을 나눠 주면 희망이 오르고, 가끔 아이를 맡기거나 동물을 두고 가요.</div>${needHtml(c)}<button class="alt" data-act="bref" ${canPay(c)?'':'disabled'} style="width:100%;margin-top:6px">식량 나눠 주기</button>`;}
   else body=`<div class="d">통행세를 내면 조용히 떠나요. 거절하면 오늘 밤 쳐들어와요. 막아내면 그들의 물자를 빼앗을 수 있어요.</div>${needHtml(B.tribute)}<div class="btns" style="margin-top:8px"><button class="alt" data-act="brf">거절하기</button><button data-act="bpay" ${canPay(B.tribute)?'':'disabled'}>통행세 내기</button></div>`;
@@ -4275,6 +4284,7 @@ function featCardHtml(k){const f=FEAT.find(x=>x.k===k),G=FEAT_GUIDE[k];if(!f||!G
   return`<div class="page featcard"><div class="tag">새 기능 안내</div><div class="fchead"><span class="fcic">${G.ic()}</span><h3>${f.h}</h3></div><p class="fcwhat">${G.what}</p>
     <div class="fcsec">이렇게 써요</div><ol class="fcsteps">${G.steps.map(t=>`<li>${t}</li>`).join('')}</ol>${G.tip?`<p class="fctip"><b>팁</b> ${G.tip}</p>`:''}
     <div class="btns"><button class="alt" data-act="fclater">나중에</button>${f.sheet||G.main?`<button data-act="fcgo" data-arg="${k}">보러 가기</button>`:`<button data-act="fclater">알겠어요</button>`}</div></div>`;}
+$('toasts').addEventListener('click',e=>{const d=e.target.closest('.tt.fc');if(!d)return;e.stopPropagation();d.classList.add('out');openFeatCard(d.dataset.fc,true);});
 function openFeatCard(k,force){const h=featCardHtml(k);if(!h)return false;if(!force&&(!modal.hidden||talk||DEFN||UG||LN))return false;openModal(h,!!force);sfx('chime');return true;}
 function featGo(k){const f=FEAT.find(x=>x.k===k),G=FEAT_GUIDE[k];closeModal();if(!f)return;S.feat=S.feat||{};S.feat[k]=2;
   if(f.sheet==='shelter')goShelter(f.seg||'build');else if(f.sheet){openSheet(f.sheet);if(f.sheet==='diary'&&f.seg){diaryTab=f.seg;renderSheet();}}else if(sheetTab)closeSheet();
@@ -4337,8 +4347,8 @@ function holdHide(){setTimeout(()=>{if(!ptrs.size&&!lampHold)hcEl.hidden=true;},
 let misNudged=0;
 function tickClaim(){const m=mission();if(!m.done||!misDoneAt){misNudged=0;return;}const t=(performance.now()-misDoneAt)/1000;
   const auto=S.mi<8&&!S.gen?6:25;
-  if(t>10&&t<auto&&!misNudged){misNudged=1;note({h:'미션 완료!',t:'<small>위쪽 미션 줄의 ‘받기’를 눌러 보상을 받아요</small>',kind:'ach',ms:4500});}
-  if(t>auto&&modal.hidden&&!sheetTab&&!DEFN&&!UG){misDoneAt=0;misNudged=0;note({h:'미션 보상을 챙겨 뒀어요',t:'<small>미션 카드가 주황으로 바뀌면 눌러서 바로 받을 수 있어요</small>',kind:'ach',ms:3500});$('claim').click();}}
+  if(t>10&&t<auto&&!misNudged){misNudged=1;S.hintClaim=(S.hintClaim||0)+1;note({h:'미션 완료!',t:S.hintClaim<=2?'<small>위쪽 미션 줄의 ‘받기’를 눌러요</small>':'',kind:'ach',ms:S.hintClaim<=2?4500:2600});}
+  if(t>auto&&modal.hidden&&!sheetTab&&!DEFN&&!UG){misDoneAt=0;misNudged=0;note({h:'미션 보상을 챙겨 뒀어요',kind:'ach',ms:2600});$('claim').click();}}
 // ---- story order v2: remap saved progress by goal text (skill moved to ch2, expedition to ch6, big storm to ch7)
 const OLD_GOALS=['구름을 두드려 땅 6칸 밝히기','폐허를 뒤져 목재 15개 모으기','작업대 만들기','텃밭 상자 만들기','구조 신호를 따라가 생존자 구하기','생존자를 모듈에 배치하기','작업대에서 철판 5개 만들기','쉘터를 판잣집으로 키우기','고물상 세우기','라디오로 주파수 탐색 한 번 하기','랜턴 피버 한 번 켜기','재폭풍 밤 한 번 버티기','방벽 세우기','생존자의 부탁 들어주기','생존자 스킬 한 번 쓰기','생존자에게 장비 하나 맞춰 주기','첫 원정 보내기','컨테이너 쉘터로 키우기','지하 구역 2층까지 내려가기','랜드마크 하나 복구하기','발전기 가동하기','대형 재폭풍 한 번 막아내기','생존자 5명 모으기','요새로 키우기','무전실 세우기','불빛의 도시 완성하기','목격자의 일기 7편 모두 찾기'];
 const V2_GOALS=["구름을 두드려 땅 6칸 밝히기", "폐허를 뒤져 목재 15개 모으기", "작업대 만들기", "텃밭 상자 만들기", "구조 신호를 따라가 생존자 구하기", "생존자를 모듈에 배치하기", "생존자 스킬 한 번 쓰기", "작업대에서 철판 5개 만들기", "쉘터를 판잣집으로 키우기", "고물상 세우기", "라디오로 주파수 탐색 한 번 하기", "랜턴 피버 한 번 켜기", "재폭풍 밤 한 번 버티기", "방벽 세우기", "생존자의 부탁 들어주기", "생존자에게 장비 하나 맞춰 주기", "컨테이너 쉘터로 키우기", "첫 원정 보내기", "지하 구역 2층까지 내려가기", "랜드마크 하나 복구하기", "발전기 가동하기", "대형 재폭풍 한 번 막아내기", "생존자 5명 모으기", "요새로 키우기", "무전실 세우기", "불빛의 도시 완성하기", "목격자의 일기 7편 모두 찾기"];
@@ -4369,7 +4379,7 @@ function tickBeats(){const m=mission();if(!m.step||m.done||!BEAT_GOALS.includes(
   if(n<th.length&&f>=th[n]){S.beats[k]=n+1;const got=give({...scaleCost({scrap:12,wood:12,food:10},lvScale()),batt:1}),[w,t]=BEAT_LINES[(BEAT_GOALS.indexOf(k)*2+n)%BEAT_LINES.length],sp=speaker(w);
     note({h:`${sp.name} · ${Math.round(th[n]*100)}% 왔어요`,t:`“${t}”<br><small>작은 보상 · ${lootTxt(got)}</small>`,kind:'story',ms:5200});sfx('chime');save();}}
 // ---- battery nudge
-let battNudged=0;function tickBatt(){const b=S.m.batt||0;const on=b>=10&&S.feat&&S.feat.radio;const rb=$('radio');if(rb)rb.classList.remove('pile');if(on&&b>=battNudged+15){battNudged=b;note({h:`건전지가 ${b}개 쌓였어요`,t:'<small>라디오에서 5번 탐색하면 희귀 이상 물자가 하나는 꼭 나와요</small>',kind:'new',ms:4500});}}
+let battNudged=0;function tickBatt(){const b=S.m.batt||0;const on=b>=10&&S.feat&&S.feat.radio;const rb=$('radio');if(rb)rb.classList.remove('pile');if(on&&b>=battNudged+15){battNudged=b;note({h:`건전지가 ${b}개 쌓였어요`,t:'<small>라디오에서 써 보세요</small>',fc:'radio',kind:'new',ms:4500});}}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="talkskip"]');if(!b||!talk)return;e.stopPropagation();talk.k=talk.lines.length-1;renderTalk();},true);
 // ---- phone back button / Esc closes the top layer instead of leaving the game
 let navOn=false,navIgnore=0;
@@ -4975,14 +4985,14 @@ const NQ=[];let NCUR=null;
 let defHold=[];
 function note(o){const nbox=$('toasts');if(DEFN&&!o.def){if(o.h&&!defHold.some(q=>q.h===o.h))defHold.push(o);return;}
   if(!o.h){const key=String(o.t).replace(/[\d,.+]+/g,'#').slice(0,7);let t=nbox.querySelector('.tt:not(.note)');if(t&&t.dataset.m===o.t&&!t.classList.contains('out'))return;
-    if(t&&t.dataset.key===key&&!t.classList.contains('out')){t.textContent=o.t;t.dataset.m=o.t;clearTimeout(t._t);t._t=setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),300);},o.ms||2000);return;}if(t)t.remove();
-    t=document.createElement('div');t.className='tt';t.textContent=o.t;t.dataset.m=o.t;t.dataset.key=key;nbox.appendChild(t);
+    if(t&&t.dataset.key===key&&!t.classList.contains('out')){t.innerHTML=icoTxt(escH(o.t));t.dataset.m=o.t;clearTimeout(t._t);t._t=setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),300);},o.ms||2000);return;}if(t)t.remove();
+    t=document.createElement('div');t.className='tt';t.innerHTML=icoTxt(escH(o.t));t.dataset.m=o.t;t.dataset.key=key;nbox.appendChild(t);
     t._t=setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),300);},o.ms||2000);return;}
   if((NCUR&&NCUR.h===o.h)||NQ.some(q=>q.h===o.h))return;
   NQ.push(o);while(NQ.length>4){const i=NQ.findIndex(q=>q.kind!=='story');NQ.splice(i>=0?i:0,1);}
   if(!NCUR)noteNext();}
 function noteNext(){if(DEFN){const keep=[];for(const q of NQ.splice(0)){if(q.def)keep.push(q);else if(!defHold.some(h=>h.h===q.h))defHold.push(q);}NQ.push(...keep);}const o=NQ.shift();if(!o){NCUR=null;return;}NCUR=o;const box=$('toasts');
-  const d=document.createElement('div');d.className='tt note '+noteKind(o);d.innerHTML=`<i class="ni"></i><div class="nb"><b>${o.h}</b>${o.t||''}</div>`;d.dataset.h=o.h;d.dataset.m=o.t||'';box.prepend(d);
+  const d=document.createElement('div');d.className='tt note '+noteKind(o);d.innerHTML=`<i class="ni"></i><div class="nb"><b>${o.h}</b>${icoTxt(o.t||'')}${o.fc&&FEAT_GUIDE[o.fc]?`<small class="nfc">안내 보기 ›</small>`:''}</div>`;d.dataset.h=o.h;d.dataset.m=o.t||'';if(o.fc){d.dataset.fc=o.fc;d.classList.add('fc');}box.prepend(d);
   const ms=NQ.length?Math.min(o.ms||3600,2600):(o.ms||3600);
   setTimeout(()=>{d.classList.add('out');setTimeout(()=>{d.remove();noteNext();},280);},ms);}
 // survivor notebook: one row of small tool buttons; auto-assign and idle duties open inline
@@ -6038,7 +6048,7 @@ function rspotHit(sx,sy){const sp=S.rspot;if(!sp||!S.rev[sp.i])return false;cons
 const warmTier=()=>S.region!=='snow'||S.warm==null?1:S.warm>=60?2:S.warm>0?1:0;
 const fireCost=()=>scaleCost({wood:10},lvScale());
 function tickFire(){const chip=$('firechip');if(S.region!=='snow'||!S.gen){if(chip)chip.hidden=true;return;}
-  if(S.warm==null){S.warm=70;note({h:'모닥불을 꺼뜨리지 마세요',t:'<small>위 띠의 모닥불을 눌러 장작을 넣어요. 따뜻하면 희망이 오르고, 꺼지면 모두 굼떠져요</small>',kind:'story',ms:6500});}
+  if(S.warm==null){S.warm=70;note({h:'모닥불을 꺼뜨리지 마세요',t:'<small>위 띠의 모닥불을 눌러 장작을 넣어요</small>',fc:'fire',kind:'story',ms:5500});}
   const t0=warmTier();if(!UG)S.warm=Math.max(0,S.warm-(isNight()?.32:.13)*(S.wx==='cold'?2:1)*(DEFN?1.4:1));const t1=warmTier();
   if(t0!==t1){recalc();if(t1===0)note({h:'모닥불이 꺼졌어요',t:'<small>추워서 모두 굼떠요 · 생산 ×0.8 · 장작을 넣어 다시 피워요</small>',ms:5000});}
   if(chip){chip.hidden=false;const w=Math.round(S.warm);chip.textContent=`모닥불 ${w}%`;chip.dataset.t=t1;}}
@@ -6131,19 +6141,18 @@ function finishTut(){lsSet(TUT_KEY,'1');const bak=lsGet(TUT_BAK);lsSet(TUT_BAK,n
   tutFresh();S.tutSeen=1;S.onb=1;save();setTimeout(openOnboard,700);}
 // ---------- 그날 밤 → 첫 동네: 지금부터 무엇을 하는지 알려 주는 안내 카드 + 화면 둘러보기 ----------
 // S.onb: 1 = 안내 중(첫 이야기 대사는 기다린다), 2 = 끝
-function onboardHtml(){const st=[['구름 두드리기','빛이 새는 구름을 두드려 땅을 밝혀요. 꾹 누르고 있으면 계속 두드려요.'],['자재 모으기','밝힌 땅의 무너진 집·폐차를 두드리면 목재·고철이 나와요.'],['쉘터 짓기','가운데 텐트를 눌러 작업대·텃밭 같은 모듈을 짓고, 모듈이 쌓이면 증축해요.'],['사람 구하기','구름 속에서 깜빡이는 구조 신호를 따라가 생존자를 데려와요.'],['밤 버티기','밤마다 가장자리에 붉은 재가 쌓여요. 두드려 걷어내요.']];
+function onboardHtml(){const st=[['구름 두드리기','빛이 새는 구름을 두드려 땅을 밝혀요.'],['자재 모으기','무너진 집·폐차를 두드려요.'],['쉘터 짓기','텐트를 눌러 모듈을 짓고 증축해요.'],['사람 구하기','깜빡이는 구조 신호를 따라가요.'],['밤 버티기','가장자리의 붉은 재를 걷어내요.']];
   return`<div class="page featcard onb nox"><div class="tag">그날 밤 이후</div><div class="fchead"><span class="fcic">${ugIcon({c:'start'})}</span><h3>마흔세 날 뒤,<br>재 속의 텐트</h3></div>
     <p class="fcwhat">그날 밤은 끝났어요. 이제 랜턴 하나로 재 덮인 동네를 밝히고, 텐트를 쉘터로 키워 살아남은 사람들을 모아요. 쉘터가 <b>불빛의 도시</b>가 되면 다음 동네로 떠날 수 있어요.</p>
     <div class="fcsec">이렇게 진행돼요</div><ol class="fcsteps">${st.map(([t,d])=>`<li><b>${t}</b> · ${d}</li>`).join('')}</ol>
-    <p class="fctip"><b>팁</b> 위쪽 띠에 지금 할 일이 나와요. 다 하면 ‘받기’로 보상을 받아요. 막히면 일지 → 안내서를 보세요.</p>
     <div class="btns"><button class="alt" data-act="onbskip">바로 시작</button><button data-act="onbtour">화면 둘러보기</button></div></div>`;}
 let onbWait=0;
 function openOnboard(){if(S.onb!==1||$('coach')||modal.querySelector('.onb'))return;if(!modal.hidden||talk){if(!onbWait){onbWait=1;setTimeout(()=>{onbWait=0;openOnboard();},800);}return;}openModal(onboardHtml(),true);}
-const ONB_TOUR=[['#mats','모은 자재','고철·목재·천·부품·연료·식량이에요. 누르면 전체 자재와 창고 한도가 보여요.'],
- ['#tape','지금 할 일','이야기를 따라 목표가 하나씩 나와요. 다 하면 여기서 ‘받기’를 눌러 보상을 받아요. 왼쪽 칩은 쉘터 레벨이에요.'],
- ['#clock','낮과 밤','밤이 되면 가장자리에 재가 내려요. 밤까지 남은 시간과 날씨가 여기 보여요.'],
- ['#lamp','랜턴 버튼','조준한 칸(점선 원)을 두드려요. 쉬지 않고 두드리면 랜턴이 차올라 피버, 수확이 두 배예요.'],
- ['nav.tabs','메뉴','생존자·원정·쉘터·라디오·일지. 기능은 차례로 열리고, 새로 열리면 점과 안내 카드가 떠요.']];
+const ONB_TOUR=[['#mats','모은 자재','누르면 전체 자재와 창고 한도가 보여요.'],
+ ['#tape','지금 할 일','목표를 다 하면 여기서 ‘받기’를 눌러요. 왼쪽 칩은 쉘터 레벨이에요.'],
+ ['#clock','낮과 밤','밤까지 남은 시간과 날씨가 보여요.'],
+ ['#lamp','랜턴 버튼','조준한 칸을 두드려요. 연달아 두드리면 피버, 수확 두 배.'],
+ ['nav.tabs','메뉴','기능은 차례로 열리고, 열릴 때 안내 카드가 떠요.']];
 function onbTour(i){let c=$('coach');if(!c){c=document.createElement('div');c.id='coach';c.innerHTML='<div class="chole"></div><div class="cbub"><b></b><p></p><div class="cbtn"><button class="cskip">건너뛰기</button><button class="cnext">다음</button></div></div>';document.body.appendChild(c);
     c.querySelector('.cskip').onclick=e=>{e.stopPropagation();onbEnd();};c.querySelector('.cnext').onclick=e=>{e.stopPropagation();onbTour(+c.dataset.i+1);};c.addEventListener('click',e=>e.stopPropagation());}
   if(i>=ONB_TOUR.length){onbEnd();return;}const[sel,t,d]=ONB_TOUR[i],el=document.querySelector(sel);if(!el||!el.getBoundingClientRect().width){onbTour(i+1);return;}
