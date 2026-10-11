@@ -25,7 +25,7 @@
 .tape .chap,.chap{font-size:11px!important}
 .ready-label{font-size:10.5px!important}
 .sk small{font-size:10.5px!important}
-.lbadge{font-size:10.5px!important}
+.lbadge{font-size:11.5px!important}
 @media (max-width:360px){.mc i{font-size:10px!important}}
 /* quest card: long goals wrap to two lines instead of being cut */
 @media (max-width:400px){.sq .sqm b{white-space:normal!important;display:-webkit-box!important;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;text-overflow:clip!important;line-height:1.25}}
@@ -334,7 +334,7 @@ body.calm .lvchip.ready{animation:none}
 #shBody .pick.gear .gmore{display:none;margin-top:6px;font-size:12.5px;line-height:1.5}
 #shBody .pick.gear.open .gmore{display:block}
 #shBody .pick.gear .gact{align-self:center}
-#shBody .lkb{width:28px!important;height:28px!important;border-color:transparent!important;opacity:.55}
+#shBody .lkb{width:36px!important;height:36px!important;border-color:transparent!important;opacity:.55}
 #shBody .lkb.on{opacity:1}
 
 .resident-side .ready-label{font-size:11px!important;padding:3px 7px!important;border:0!important;background:rgba(217,163,78,.2)!important;color:#8a5a17!important;border-radius:99px!important}
@@ -460,3 +460,10 @@ body.calm .fchl{animation:none;box-shadow:0 0 0 3px rgba(243,165,58,.9)}
 #coach .cbtn button{border:0;border-radius:99px;padding:9px 14px;font:700 13.5px var(--body)}
 #coach .cskip{background:transparent;color:#73634e}
 #coach .cnext{background:#2c333b;color:#ffdf9e}
+
+/* UX 점검: 손가락으로 누르기 쉬운 크기 */
+.bchip{min-height:34px;padding:8px 13px}
+.bchip.s{min-height:32px}
+.setrow,.row:has(>.tgl){cursor:pointer}
+.tgl::before{content:"";position:absolute;inset:-9px -6px}
+.row.mcard>.lbadge{font-size:11px!important;line-height:1.4!important}
