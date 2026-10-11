@@ -10,3 +10,10 @@
   - 시크릿이 없으면 시뮬레이터 빌드로 컴파일만 확인한다.
   - 빌드 번호 = 워크플로 실행 번호. 버전을 올릴 때는 `ios/project.yml` 의 `MARKETING_VERSION` 을 바꾼다.
 - 다시 올리기: Actions 탭 → iOS → Run workflow.
+
+## 2026-10-11 첫 TestFlight 업로드
+- 번들 ID `kr.co.itso.taptocity` 등록, App Store Connect 앱 '탭투시티'(App ID 6821579723, SKU taptocity-ios) 생성.
+- 시크릿 4개(APPLE_TEAM_ID=TGYFG9R2C7, ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8) 등록 후 Actions의 iOS 워크플로를 수동 실행(workflow_dispatch)하면 빌드 번호 = 실행 번호로 업로드된다.
+- 테스트 기기 없이 올리기: 아카이브는 서명 없이(CODE_SIGNING_ALLOWED=NO), 내보내기에서 API 키로 Apple 클라우드 배포 서명.
+- App Store는 Xcode 26(iOS 26 SDK) 이상 빌드만 받는다 → macos-26 러너, Xcode_26 선택.
+- 실패하면 원인이 Actions 실행의 주석(annotations)에 `::error::`로 남는다.
