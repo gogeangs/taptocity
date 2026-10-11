@@ -411,6 +411,11 @@ body.calm *{animation-duration:.001s!important;animation-iteration-count:1!impor
 .chip{font-size:12px}#matsAll .ma small{font-size:11.5px}.grh small,.qbox .sec2 small{font-size:12px}
 #sheet.peek{transform:translateY(64%)!important;transition:transform .3s ease}
 #stage.danger::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;box-shadow:inset 0 0 60px 18px rgba(226,60,40,.55);animation:dng 1s ease-in-out infinite alternate}
+.fbpage h3{margin:2px 0 10px}.fbcats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}#modal .fbpage .fbcats button.bchip{width:auto!important;flex:none!important;min-height:36px!important;margin:0!important;padding:8px 14px!important;border-radius:99px!important;border:1px solid rgba(59,42,26,.25)!important;background:transparent!important;color:#3b2a1a!important;font:600 13.5px/1 var(--body)!important;box-shadow:none!important}#modal .fbpage .fbcats button.bchip.on{background:#3b2a1a!important;color:#f3e7c9!important;border-color:transparent!important}
+.fbpage textarea{width:100%;box-sizing:border-box;border:1px solid rgba(59,42,26,.25);border-radius:10px;padding:10px 12px;font:15px/1.5 var(--body);background:#fbf5e6;color:#3b2a1a;resize:vertical;min-height:120px}
+.fbpage textarea:focus{outline:none;border-color:var(--amber,#e0a040);box-shadow:0 0 0 3px rgba(243,165,58,.25)}.fbmeta{text-align:right;font-size:12px;color:#8a7a64;margin:3px 2px 8px}
+.fbchk{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;line-height:1.4;color:#3b2a1a;margin-bottom:6px}.fbchk input{width:20px;height:20px;flex:none;margin:0;accent-color:#3b2a1a}.fbchk small{display:block;color:#8a7a64;font-size:12px}.fbchk span{display:block}.fbdone{text-align:center;padding:10px 4px 4px}.fbdone .big{font-size:40px;line-height:1;margin:6px 0 10px}
+#modal .fbpage .fbnote{font-size:12.5px!important;line-height:1.5!important;color:#8a7a64;margin:4px 0 12px}#modal .fbdone .fbnote{font-size:14px!important}
 #toasts .tt.fc{pointer-events:auto;cursor:pointer}.nfc{display:block;color:#e8b860;font-weight:700;margin-top:2px}
 .lic{display:inline-flex;align-items:center;gap:1px;margin:0 3px;white-space:nowrap;vertical-align:middle}.lic b{font-weight:700}.lic .mi.rimg{--rs:18px!important;margin:-3px 0!important}
 #stage.dread::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;background:radial-gradient(ellipse at 50% 46%,rgba(0,0,0,0) 26%,rgba(20,4,8,.55) 62%,rgba(4,2,6,.94) 100%);animation:drd 1.2s ease-in-out infinite alternate}
@@ -1267,10 +1272,16 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
   </div>
 </div>
 
-<script src="chapter-design.js?v=20261009-sig"></script>
-<script src="settlement.js?v=20261006-petscale"></script>
+<script>
+// 그림 아틀라스는 처음 쓰일 때 받아요(첫 실행 데이터 절약). .complete/.naturalWidth를 처음 읽는 순간 내려받기 시작하고, 받으면 'ttc-img' 이벤트.
+window.ttcLazy=function(src){const im=new Image();im.decoding='async';let go=false;const P=HTMLImageElement.prototype,dc=Object.getOwnPropertyDescriptor(P,'complete'),dn=Object.getOwnPropertyDescriptor(P,'naturalWidth');
+  const kick=()=>{if(!go){go=true;im.src=src;}};try{Object.defineProperty(im,'complete',{get(){kick();return dc.get.call(im);}});Object.defineProperty(im,'naturalWidth',{get(){kick();return dn.get.call(im);}});}catch(e){kick();}
+  im.addEventListener('load',()=>{try{dispatchEvent(new Event('ttc-img'));}catch(e){}});im.kick=kick;return im;};
+</script>
+<script src="chapter-design.js?v=20261011-lazy"></script>
+<script src="settlement.js?v=20261011-lazy"></script>
 <script src="people.js?v=20261001-people"></script>
-<script src="design.js?v=20261009-sig"></script>
+<script src="design.js?v=20261011-lazy"></script>
 <script>
 
 (function(){
@@ -2255,6 +2266,8 @@ function withFade(i,fn){const fa=bldAlpha(i);if(fa<1){ctx.save();ctx.globalAlpha
 // 땅 캐시: 평평한 것(바닥 색·테두리·풀·자갈·안개 바깥 바닥)을 화면 크기 캔버스에 한 번 그려 두고, 카메라와 땅이 그대로면 매 프레임 그 한 장만 깐다.
 // GFLAT 0 = 전부 그림(카메라가 움직이는 중) · 1 = 평평한 것만(캐시 만들기) · 2 = 평평한 것은 건너뜀(캐시를 깔았음)
 let GFLAT=0;const GC={cv:null,key:'',sig:0,last:''};
+// 늦게 받은 그림이 도착하면 땅 캐시를 다시 그리고, 열린 시트도 새로 그려 빈 썸네일을 채워요
+let imgRT=0;addEventListener('ttc-img',()=>{GC.key='';if(imgRT)return;imgRT=setTimeout(()=>{imgRT=0;try{if(sheetTab)renderSheet();}catch(e){}},250);});
 const plainTile=(i,t,core,mod)=>!core&&!mod&&!(S.band&&S.band.tile===i)&&!(S.deco&&S.deco[i])&&!(S.camp&&S.camp[i])&&t!==T.LM&&!(S.site[i]||t===T.CAR||t===T.RUIN||t===T.CRATE||t===T.SILO);
 function edgeFade(i,x,y,Nn,E,Sx,Wn){const fe=[[x>0&&!S.rev[i-1],Nn,Wn],[x<W-1&&!S.rev[i+1],E,Sx],[y>0&&!S.rev[i-W],Nn,E],[y<H-1&&!S.rev[i+W],Wn,Sx]].filter(e=>e[0]);
     if(fe.length){ctx.save();ctx.beginPath();ctx.moveTo(...Nn);ctx.lineTo(...E);ctx.lineTo(...Sx);ctx.lineTo(...Wn);ctx.closePath();ctx.clip();ctx.lineCap='round';
@@ -6318,6 +6331,34 @@ function openControls(){openModal(`<div class="page controls"><div class="tag">�
 {const original=renderSheet;renderSheet=function(){const r=original.apply(this,arguments);if(sheetTab==='settings'&&!$('shBody').querySelector('[data-act="controls"]'))$('shBody').insertAdjacentHTML('afterbegin','<div class="row"><div><div class="t">플레이 안내</div><div class="d">조작 방법과 가려진 칸 선택</div></div><button class="buy ghost" data-act="controls">보기</button></div>');if(sheetTab==='settings'&&!$('shBody').querySelector('[data-act="privacy"]')){const g=$('shBody').querySelector('[data-act="controls"]');const row=g&&g.closest('.row');if(row)row.insertAdjacentHTML('afterend','<div class="row"><div><div class="t">개인정보 처리방침</div><div class="d">진행은 기기와 클라우드에 저장돼요 · 광고·분석 없음</div></div><button class="buy ghost" data-act="privacy">보기</button></div>');}return r;};}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act="controls"],[data-act="controls-done"]');if(!b)return;if(b.dataset.act==='controls')openControls();else closeModal();});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act="privacy"]');if(!b)return;window.open('privacy.html','_blank','noopener');});
+// ================= 피드백 보내기 =================
+// 설정 → '피드백 보내기'. 클라우드(Firestore feedback 컬렉션)로 보내고, 연결이 없으면 이 기기에 모아 두었다가 다음에 보낸다.
+const FB_CAT=[['bug','버그'],['idea','제안'],['hard','어려워요'],['like','좋아요'],['etc','기타']];
+let fbCat='idea';
+{const o=renderSheet;renderSheet=function(){const r=o.apply(this,arguments);if(sheetTab==='settings'&&!$('shBody').querySelector('[data-act="fbopen"]')){const g=$('shBody').querySelector('[data-act="controls"]');const row=g&&g.closest('.row');if(row)row.insertAdjacentHTML('beforebegin','<div class="row fbrow"><div><div class="t">피드백 보내기</div><div class="d">버그·제안·소감, 무엇이든 개발자에게 바로 전해져요</div></div><button class="buy" data-act="fbopen">쓰기</button></div>');}return r;};}
+function fbHtml(){const draft=lsGet('ttc_fb_draft')||'';
+  return`<div class="page fbpage nox"><div class="tag">피드백</div><h3>개발자에게 한마디</h3>
+   <div class="fbcats" role="radiogroup">${FB_CAT.map(([k,n])=>`<button class="bchip${k===fbCat?' on':''}" role="radio" aria-checked="${k===fbCat}" data-act="fbcat" data-arg="${k}">${n}</button>`).join('')}</div>
+   <textarea id="fbText" maxlength="800" rows="6" placeholder="어떤 점이 좋았는지, 불편했는지, 어디서 막혔는지 알려 주세요.">${escH(draft)}</textarea>
+   <div class="fbmeta"><span id="fbCount">${draft.length}/800</span></div>
+   <label class="fbchk"><input type="checkbox" id="fbInfo" checked><span>진행 단계·기기 정보 함께 보내기<small>문제를 찾는 데 도움이 돼요</small></span></label>
+   <p class="fbnote">이름·연락처는 보내지 않아요. 답장이 필요하면 ceo@itso.co.kr 로 메일 주세요.</p>
+   <div class="btns"><button class="alt" data-act="fbclose">닫기</button><button data-act="fbsend">보내기</button></div></div>`;}
+function openFeedback(){openModal(fbHtml(),true);const t=$('fbText');if(t){t.addEventListener('input',()=>{$('fbCount').textContent=t.value.length+'/800';lsSet('ttc_fb_draft',t.value);});}}
+function fbInfo(){const ua=navigator.userAgent,app=/TaptocityiOS/.test(ua)?'ios':/android-app:\/\//.test(document.referrer)||matchMedia('(display-mode: standalone)').matches&&/Android/.test(ua)?'android':'web';
+  return{app,ua:ua.slice(0,220),scr:innerWidth+'x'+innerHeight+'@'+(window.devicePixelRatio||1),lv:S.lv||1,gen:S.gen||0,region:S.region||'home',mi:S.mi||0,nights:S.nightCount||0,play:Math.round((S.playT||0)/60)};}
+async function sendFeedback(){const t=$('fbText'),txt=(t&&t.value||'').trim();if(txt.length<2){toast('내용을 조금만 적어 주세요');t&&t.focus();return;}
+  const item={id:Date.now().toString(36)+Math.random().toString(36).slice(2,8),cat:fbCat,text:txt.slice(0,800),at:Date.now(),ver:'20261011'};if($('fbInfo')&&$('fbInfo').checked)item.dev=fbInfo();
+  const b=modal.querySelector('[data-act="fbsend"]');if(b){b.disabled=true;b.textContent='보내는 중…';}
+  let r='queued';try{r=window.ttcFeedback?await window.ttcFeedback(item):(fbQueue(item),'queued');}catch(e){fbQueue(item);}
+  lsSet('ttc_fb_draft',null);sfx('chime');
+  openModal(`<div class="page fbpage fbdone nox"><div class="big">✉️</div><h3>${r==='sent'?'고마워요! 잘 전했어요':'고마워요! 연결되면 보낼게요'}</h3><p class="fbnote">${r==='sent'?'보내 주신 이야기는 하나하나 읽고 게임에 반영할게요.':'지금은 인터넷에 닿지 않아요. 이 기기에 담아 두었다가 다음에 연결되면 자동으로 보내요.'}</p><div class="btns"><button data-act="fbclose">닫기</button></div></div>`,true);}
+function fbQueue(item){try{const q=JSON.parse(localStorage.getItem('ttc_fb_q')||'[]');if(!q.some(x=>x.id===item.id))q.push(item);localStorage.setItem('ttc_fb_q',JSON.stringify(q.slice(-20)));}catch(e){}}
+window.ttcFbQueue=fbQueue;
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act="fbopen"],[data-act="fbcat"],[data-act="fbsend"],[data-act="fbclose"]');if(!b)return;e.stopPropagation();const a=b.dataset.act;
+  if(a==='fbopen')openFeedback();else if(a==='fbclose')closeModal();else if(a==='fbsend')sendFeedback();
+  else{fbCat=b.dataset.arg;modal.querySelectorAll('.fbcats .bchip').forEach(x=>{const on=x.dataset.arg===fbCat;x.classList.toggle('on',on);x.setAttribute('aria-checked',on);});}},true);
+
 function cancelGestures(){if(typeof ugfStop==='function')ugfStop();for(const p of ptrs.values())clearTimeout(p.hold);ptrs.clear();drag=null;pinch=null;pinching=false;lampStop();holdHide();holdEnd();}
 window.addEventListener('blur',cancelGestures);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelGestures();});
@@ -6340,7 +6381,7 @@ if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.r
 })();
 </script>
 
-<script type="module" src="cloud.js?v=20261010-offline"></script>
+<script type="module" src="cloud.js?v=20261011-fb"></script>
 <script>
 (function(){
  if('serviceWorker' in navigator){addEventListener('load',()=>{navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(reg=>{
@@ -6361,7 +6402,7 @@ if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.r
   d.querySelector('.x').onclick=()=>d.remove();const g=d.querySelector('.go');if(g)g.onclick=async()=>{d.remove();if(dp){dp.prompt();try{await dp.userChoice;}catch(e){}dp=null;}};},25000);
 })();
 </script>
-<script src="story-art.js?v=20261005e"></script>
+<script src="story-art.js?v=20261011-lazy"></script>
 <script src="music.js?v=20261011-cool"></script>
 </body>
 </html>

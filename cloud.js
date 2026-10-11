@@ -44,6 +44,12 @@ if(CFG&&FB){
     }catch(e){st.msg='클라우드에 연결하지 못했어요';}st.busy=false;ui();up(true);}
   A.onAuthStateChanged(auth,u=>{st.user=u;ui();if(u)sync();else A.signInAnonymously(auth).catch(()=>{st.msg='클라우드에 연결하지 못했어요';ui();});});
   A.getRedirectResult(auth).catch(async e=>{if(e&&e.code==='auth/credential-already-in-use'){const cr=A.GoogleAuthProvider.credentialFromError(e);if(cr)await A.signInWithCredential(auth,cr);}});
+  // 피드백: feedback/{id} 문서로 보낸다(같은 id면 덮어써서 다시 보내도 하나만 남음). 실패하면 이 기기 대기열에 두고 다음 연결 때 보낸다.
+  const FBQ='ttc_fb_q',fbRead=()=>{try{return JSON.parse(localStorage.getItem(FBQ)||'[]');}catch(e){return[];}};
+  const fbSend=it=>Promise.race([F.setDoc(F.doc(db,'feedback',it.id),{...it,uid:st.user.uid}),new Promise((_,j)=>setTimeout(()=>j(new Error('timeout')),9000))]);
+  async function fbFlush(){if(!st.user)return;const q=fbRead();if(!q.length)return;const left=[];for(const it of q){try{await fbSend(it);}catch(e){left.push(it);}}try{localStorage.setItem(FBQ,JSON.stringify(left));}catch(e){}}
+  window.ttcFeedback=async it=>{if(!st.user||!navigator.onLine){window.ttcFbQueue&&window.ttcFbQueue(it);return'queued';}try{await fbSend(it);fbFlush();return'sent';}catch(e){window.ttcFbQueue&&window.ttcFbQueue(it);return'queued';}};
+  A.onAuthStateChanged(auth,u=>{if(u)setTimeout(fbFlush,4000);});
   setInterval(()=>up(false),45000);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')up(false);});
   document.addEventListener('click',async e=>{const b=e.target.closest('[data-cloud]');if(!b)return;e.stopPropagation();const a=b.dataset.cloud;

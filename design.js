@@ -12,16 +12,16 @@
   const portraits=[['founders',0],['neighbors',0],['founders',1],['neighbors',1],['neighbors',2],['neighbors',3],['signals',0],['founders',2],['signals',1],['founders',3],['signals',2],['signals',3],['frontier',0],['frontier',1],['frontier',2],['frontier',3],['scouts',0],['scouts',1]];
   const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   // 까마귀 대장과 아이들: 3x2 sheet, cells 686x764 — crow 0, (1 unused: 진 keeps the scouts-sheet portrait), kids 2..5 (봄이 다온 로운 하람)
-  const CK={file:'crows-kids.webp',w:2058,h:1528,cols:3,rows:2},ckImg=new Image();ckImg.decoding='async';ckImg.src=base+CK.file;
+  const CK={file:'crows-kids.webp',w:2058,h:1528,cols:3,rows:2},ckImg=ttcLazy(base+CK.file);
   const ckReady=()=>!!(ckImg.complete&&ckImg.naturalWidth);
   function ckCell(n,label){const w=CK.w/CK.cols,h=CK.h/CK.rows,x=n%CK.cols*w,y=Math.floor(n/CK.cols)*h;
     return '<svg class="illustrated-portrait" viewBox="0 0 120 140" role="img" aria-label="'+escape(label)+' 초상화"><svg width="120" height="140" viewBox="'+[x+6,y+6,w-12,h-14].join(' ')+'" preserveAspectRatio="xMidYMin slice"><image href="'+base+CK.file+'" width="'+CK.w+'" height="'+CK.h+'" preserveAspectRatio="none"/></svg></svg>';}
   const KIDC={'봄이':2,'다온':3,'로운':4,'하람':5};
   function kid(name){const n=KIDC[name];return n!=null&&ckReady()?ckCell(n,name):null;}
   // 동네 사람들 (12 residents, ids 18..29): 4x3 sheet residents.webp, cells 686x764, in RESIDENTS order
-  const RS={file:'residents.webp',w:2744,h:2292,cols:4,rows:3},rsImg=new Image();rsImg.decoding='async';rsImg.src=base+RS.file;
+  const RS={file:'residents.webp',w:2744,h:2292,cols:4,rows:3},rsImg=ttcLazy(base+RS.file);
   // 전용 도구를 든 초상: survivors-signature-1/2.webp, 3x3 each, cells 387x452, ids 0..8 and 9..17 in reading order
-  const SG=[{file:'survivors-signature-1.webp',w:1161,h:1356,cols:3,rows:3},{file:'survivors-signature-2.webp',w:1161,h:1356,cols:3,rows:3}],sgImg=SG.map(a=>{const im=new Image();im.decoding='async';im.src=base+a.file;return im;});
+  const SG=[{file:'survivors-signature-1.webp',w:1161,h:1356,cols:3,rows:3},{file:'survivors-signature-2.webp',w:1161,h:1356,cols:3,rows:3}],sgImg=SG.map(a=>ttcLazy(base+a.file));
   function sigPortrait(s){const id=s&&s.id;if(!(id>=0&&id<18))return null;const k=id<9?0:1,n=id<9?id:id-9,A=SG[k],im=sgImg[k];if(!(im.complete&&im.naturalWidth))return null;
     const w=A.w/A.cols,h=A.h/A.rows,x=n%A.cols*w,y=Math.floor(n/A.cols)*h;
     return '<svg class="illustrated-portrait sig" viewBox="0 0 120 140" role="img" aria-label="'+escape(s.name)+' 초상화"><svg width="120" height="140" viewBox="'+[x+4,y+4,w-8,h-10].join(' ')+'" preserveAspectRatio="xMidYMin slice"><image href="'+base+A.file+'" width="'+A.w+'" height="'+A.h+'" preserveAspectRatio="none"/></svg></svg>';}
@@ -41,7 +41,7 @@
     return '<svg class="illustrated-portrait sil" viewBox="0 0 120 140" role="img" aria-label="아직 만나지 못한 생존자"><rect width="120" height="140" fill="#e6d8b6"/><svg x="0" y="4" width="120" height="136" viewBox="'+[x,y,w,h].join(' ')+'" preserveAspectRatio="xMidYMin slice" opacity=".86"><image href="'+base+SIL.file+'" width="'+SIL.w+'" height="'+SIL.h+'" preserveAspectRatio="none"/></svg><circle cx="96" cy="112" r="16" fill="'+(hid?'#ffd24a':'#f3d9a0')+'" stroke="#3b2a1a" stroke-width="2.4"/><text x="96" y="'+(hid?'119':'120')+'" text-anchor="middle" font-family="Gowun Batang,serif" font-size="'+(hid?'18':'21')+'" font-weight="700" fill="#3b2a1a">'+(hid?'★':'?')+'</text></svg>';
   }
   const images={};
-  ['shelters.webp','modules.webp','radio.webp','exploration-sites.webp','landmarks.webp'].forEach(file=>{const img=new Image();img.decoding='async';img.src=base+file;images[file]=img;});
+  ['shelters.webp','modules.webp','radio.webp','exploration-sites.webp','landmarks.webp'].forEach(file=>{images[file]=ttcLazy(base+file);});
   function crop(file,index,cols,rows){const img=images[file];if(!img||!img.complete||!img.naturalWidth)return null;const w=img.naturalWidth/cols,h=img.naturalHeight/rows;return{img,x:index%cols*w,y:Math.floor(index/cols)*h,w,h};}
   function sprite(ctx,P,file,index,cols,rows,width,anchor=.9){const a=crop(file,index,cols,rows);if(!a)return false;const[x,y]=P(.5,.5,0),height=width*a.h/a.w;ctx.drawImage(a.img,a.x,a.y,a.w,a.h,x-width/2,y-height*anchor,width,height);return true;}
   function core(ctx,P,level){return sprite(ctx,P,'shelters.webp',Math.max(0,Math.min(4,level-1)),3,2,level===5?112:level===4?100:level===3?90:84,.91);}
@@ -81,7 +81,7 @@
   ['lever','hammer','welder','binoc','axe','toolbox','shovel','wrench','light','saw','medkit','steth','hoe','ladle','tape2','rope2','meter','mic','rope3','loupe','mpick'].forEach((k,i)=>GCELL[k]=['tools',i]);
   ['coverall','mask','gloves','firesuit','coat','armor','boots','raincoat','helmet','apron','parka','drvglove','herbbag','wmask','mhelm'].forEach((k,i)=>GCELL[k]=['wear',i]);
   ['photo','coin','harmonica','seeds','watch','brooch','tape','bell','compass','notebook','ring','bag','umbrella','sketch','vane','ckey','feather','mlamp'].forEach((k,i)=>GCELL[k]=['keep',i]);
-  const gsImg={};for(const k in GS){const im=new Image();im.decoding='async';im.src=base+GS[k].file;gsImg[k]=im;}
+  const gsImg={};for(const k in GS){gsImg[k]=ttcLazy(base+GS[k].file);}
   function gear(t){const c=GCELL[t];if(!c)return null;const A=GS[c[0]],im=gsImg[c[0]];if(!(im.complete&&im.naturalWidth))return null;const w=A.w/A.cols,h=A.h/A.rows,x=c[1]%A.cols*w,y=Math.floor(c[1]/A.cols)*h;
     return '<svg class="gart" viewBox="'+[x+8,y+8,w-16,h-16].join(' ')+'" aria-hidden="true"><image href="'+base+A.file+'" width="'+A.w+'" height="'+A.h+'"/></svg>';}
   window.TTCDesign={portrait,silhouette,kid,core,module,moduleHeight,site,siteHeight,landmark,landmarkHeight,thumb,radio,gear,sigPortrait,version:'landmarks-20261002',assets:[...Object.values(sheets).map(a=>base+a.file),...Object.values(GS).map(a=>base+a.file),...SG.map(a=>base+a.file),base+SIL.file,base+'shelters.webp',base+'modules.webp',base+'radio.webp',base+'exploration-sites.webp',base+'landmarks.webp']};

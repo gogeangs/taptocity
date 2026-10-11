@@ -2,7 +2,7 @@
 (function(){
 'use strict';
 const base='assets/illustrated/',images={};
-for(const f of ['settlement-props.webp','companions.webp']){const i=new Image();i.decoding='async';i.src=base+f;images[f]=i;}
+for(const f of ['settlement-props.webp','companions.webp']){images[f]=ttcLazy(base+f);}
 const ready=f=>!!(images[f].complete&&images[f].naturalWidth);
 const frames=[[14,46,337,276],[376,60,331,254],[726,114,319,203],[1081,168,263,145],[37,352,287,209],[355,335,358,243],[734,350,306,231],[1087,403,273,163],[68,598,214,241],[445,590,225,277],[728,637,282,225],[1179,586,118,279],[87,863,170,255],[380,870,309,232],[718,882,347,231],[1139,882,188,239]];
 const widths=[53,58,49,44,45,57,51,44,16,24,36,15,16,44,45,21];
