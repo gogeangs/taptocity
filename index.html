@@ -1322,6 +1322,8 @@ const LMS=[
  {key:'library',name:'시립 도서관',d:10.5,drops:[['cloth',.5],['wood',.4],['wire',.1]],cost:{wood:80,cloth:40,plate:20},desc:'사건 보상 +50%',ruin:'재에 덮인 도서관. 몇몇 책은 아직 읽을 수 있다.',done:'누군가 창가에서 책을 읽고 있다.'},
  {key:'station',name:'지하철역',d:12.5,drops:[['parts',.5],['scrap',.35],['wire',.15]],cost:{plate:50,parts:40,wire:8},desc:'정찰 드론 효과 ×2 · 끊긴 노선 탐사',ruin:'입구가 막힌 지하철역. 안쪽에서 바람 소리가 난다.',done:'역 안쪽 터널이 먼 동네로 이어져 있다.'}];
 const TRACE_ITEM=['찢어진 버스 노선표','배달 가방 고리','구겨진 간호 기록지','노란 우산 조각','이웃 이름이 적힌 씨앗 봉투','국밥집 번호표','낡은 줄자','숯이 묻은 스케치 한 장','그을린 소방 장갑','발전소 출입증'];
+// 동네에서 만나는 생존자들의 흔적 (SURV 18~29)
+Object.assign(TRACE_ITEM,{18:'기름 묻은 항만 출입 패찰',19:'향신료 냄새가 밴 앞치마 끈',20:'닳은 화물 운송장',21:'등대 일지의 찢긴 한 장',22:'빛바랜 반장 완장',23:'손글씨 식단표',24:'색색의 전선 토막 한 줌',25:'보건실 비상약 열쇠',26:'산장 숙박 장부',27:'제설차 운행 기록 카드',28:'마을회관 방송 원고',29:'산불 감시 초소 무전 수첩'});
 const lmOn=key=>S.lm&&Object.values(S.lm).some(L=>L.ok&&LMS[L.k].key===key);
 
 // ---------- shelter & modules ----------
@@ -2656,9 +2658,9 @@ function openCrate(cx,cy){const r=Math.random();
   else if(r<.75){fever=FEVER_T;S.fevers=(S.fevers||0)+1;toast('등유 한 통을 찾았어요! 랜턴 피버');}
   else{setBuff({k:'all',m:1.5,t:45,label:'통조림 잔치'});toast('통조림 상자! 45초 동안 생산 ×1.5');}
   burst(cx,cy,'#f3c56b',20);}
-function findTrace(k,cx,cy){const it=TRACE_ITEM[k],sv=SURV[k];
+function findTrace(k,cx,cy){const sv=SURV[k];if(!sv)return;const it=TRACE_ITEM[k]||(sv.name+'의 손때 묻은 물건');
   if(S.sv[k]){S.sv[k].xp+=60;toast(`${it}. ${sv.name}의 물건이에요. 돌려주니 무척 반가워해요`);}
-  else{S.hopeB=(S.hopeB||0)+2;recalc();toast(`${it}을(를) 주웠어요. 주인을 찾으면 좋겠어요 (희망 +2)`);}
+  else{S.hopeB=(S.hopeB||0)+2;recalc();toast(`${jo(it,'을','를')} 주웠어요. 주인을 찾으면 좋겠어요 (희망 +2)`);}
   burst(cx,cy,'#ffe68a',14);}
 
 // ---------- buffs & production ----------
