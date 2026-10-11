@@ -1217,7 +1217,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261011-cool2">
+<link rel="stylesheet" href="qa.css?v=20261011-line">
 <div id="app">
   <header>
     <div class="hud">
@@ -1320,7 +1320,7 @@ const LMS=[
  {key:'tower',name:'급수탑',d:6.5,drops:[['scrap',.6],['parts',.4]],cost:{scrap:60,plate:15,rope:6},desc:'식량 생산 ×1.5',ruin:'녹슨 물탱크가 기울어 있다. 밸브만 고치면 물이 나올 것 같다.',done:'밸브를 돌리자 맑은 물이 쏟아졌다.'},
  {key:'gas',name:'주유소',d:8.5,drops:[['fuel',.7],['parts',.3]],cost:{scrap:40,parts:20,fuel:10},desc:'랜턴 피버가 더 빨리 참',ruin:'캐노피가 반쯤 무너진 주유소. 지하 탱크에 등유가 남아 있다.',done:'등유 냄새가 난다. 랜턴이 더 밝게 탄다.'},
  {key:'library',name:'시립 도서관',d:10.5,drops:[['cloth',.5],['wood',.4],['wire',.1]],cost:{wood:80,cloth:40,plate:20},desc:'사건 보상 +50%',ruin:'재에 덮인 도서관. 몇몇 책은 아직 읽을 수 있다.',done:'누군가 창가에서 책을 읽고 있다.'},
- {key:'station',name:'지하철역',d:12.5,drops:[['parts',.5],['scrap',.35],['wire',.15]],cost:{plate:50,parts:40,wire:8},desc:'정찰 드론 효과 ×2',ruin:'입구가 막힌 지하철역. 안쪽에서 바람 소리가 난다.',done:'역 안쪽 터널이 먼 동네로 이어져 있다.'}];
+ {key:'station',name:'지하철역',d:12.5,drops:[['parts',.5],['scrap',.35],['wire',.15]],cost:{plate:50,parts:40,wire:8},desc:'정찰 드론 효과 ×2 · 끊긴 노선 탐사',ruin:'입구가 막힌 지하철역. 안쪽에서 바람 소리가 난다.',done:'역 안쪽 터널이 먼 동네로 이어져 있다.'}];
 const TRACE_ITEM=['찢어진 버스 노선표','배달 가방 고리','구겨진 간호 기록지','노란 우산 조각','이웃 이름이 적힌 씨앗 봉투','국밥집 번호표','낡은 줄자','숯이 묻은 스케치 한 장','그을린 소방 장갑','발전소 출입증'];
 const lmOn=key=>S.lm&&Object.values(S.lm).some(L=>L.ok&&LMS[L.k].key===key);
 
@@ -1430,7 +1430,8 @@ const DIARY=[
 const ICON={
   person:'<circle cx="14" cy="9" r="4.5"/><path d="M5 25c1-6 5-9 9-9s8 3 9 9"/>',
   up:'<path d="M14 23V6M7 12l7-7 7 7"/>',
-  x:'<path d="M5 13L14 5l9 8M7 12v11h14V12"/><path d="M12 23v-6h4v6"/>'
+  x:'<path d="M5 13L14 5l9 8M7 12v11h14V12"/><path d="M12 23v-6h4v6"/>',
+  line:'<rect x="7" y="4" width="14" height="15" rx="3"/><path d="M7 12h14M10 19l-3 5M18 19l3 5"/><circle cx="10.5" cy="15.5" r="1"/><circle cx="17.5" cy="15.5" r="1"/>'
 };
 const svg=k=>`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg>`;
 // ---------- survivors ----------
@@ -2440,7 +2441,8 @@ function angles(n){if(n===1)return[90];if(n===2)return[130,50];const span=n>=5?2
 function buildRing(){const i=ringTile;if(i<0)return;let label='',toks='';const m=modAtTile(i);
   if(S.ter[i]===T.LM&&!m){const L=S.lm[i],l=LMS[L.k],s=S.site[i];
     label=`<b>${l.name}</b><i>${L.ok?'복구 완료':'랜드마크'}</i><p>${L.ok?l.done:l.ruin}</p><div class="chips"><span class="chip g">복구하면 ${l.desc}</span>${!L.ok&&s?`<span class="chip">남은 물자 ${s.c}/${s.max}</span>`:''}</div>${!L.ok?`<div class="lmc"><div class="sec2">복구에 필요한 자재</div>${needHtml(scaleCost(l.cost,costMult()))}</div>`:''}`;
-    if(!L.ok){const c=scaleCost(l.cost,costMult()),list=[];if(s&&s.c>0)list.push(['aimlm',i,'person','뒤지기 조준','',null]);list.push(['lm',i,'up','복구하기',canPay(c)?'':'poor',null]);const an=angles(list.length);list.forEach((o,n)=>toks+=tok(an[n],...o));}}
+    if(!L.ok){const c=scaleCost(l.cost,costMult()),list=[];if(s&&s.c>0)list.push(['aimlm',i,'person','뒤지기 조준','',null]);list.push(['lm',i,'up','복구하기',canPay(c)?'':'poor',null]);const an=angles(list.length);list.forEach((o,n)=>toks+=tok(an[n],...o));}
+    else if(l.key==='station'){const an=angles(1);toks+=tok(an[0],'line',i,'line','노선 탐사','',null);}}
   else if(m){const d=MODS[m.id],k=D.modAt.get(i),wk=S.asg[i]!=null&&S.sv[S.asg[i]]?SURV[S.asg[i]]:null,chips=[`<span class="chip g">${d.fx(m.l)}</span>`];
     if(wk)chips.unshift(`<span class="chip g">${wk.name} ×${asgMult(i).toFixed(1)}</span>`);
     if(S.ash[i]&&S.ash[i].stuck)chips.unshift('<span class="chip" style="color:#b0452a;border-color:#b0452a">재에 덮여 멈춤 · 두드려 걷어내요</span>');
@@ -2467,7 +2469,7 @@ function fitRL(){const l=$('ringLabel');if(l.hidden||!ringEl.children.length)ret
   }
 ringEl.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b||b.classList.contains('lock'))return;const a=b.dataset.act,g=+b.dataset.arg;
   if((a==='up'||a==='lm')&&b.classList.contains('poor')){toast('자재가 조금 모자라요');return;}
-  if(a==='up')upMod(g);else if(a==='asg')openAssign(g);else if(a==='lm')restoreLm(g);else if(a==='aimlm'){setAim(g);closeRing();toast('랜턴 버튼으로 랜드마크를 뒤져요');}else if(a==='sheet')openSheet('shelter');});
+  if(a==='up')upMod(g);else if(a==='asg')openAssign(g);else if(a==='lm')restoreLm(g);else if(a==='aimlm'){setAim(g);closeRing();toast('랜턴 버튼으로 랜드마크를 뒤져요');}else if(a==='sheet')openSheet('shelter');else if(a==='line'){closeRing();openLnPrep();}});
 
 // ---------- sheets ----------
 const sheet=$('sheet');let sheetTab=null;
@@ -2859,7 +2861,7 @@ function expCalc(e,team,pk){const PX=pk&&PETS[pk]?PETS[pk].exp:{};const t=e.t*.6
   return{t:Math.round(t),risk,mult,perks};}
 const mmss=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
 const avatar=id=>`<span class="av">${portrait(SURV[id])}</span>`;
-function renderExp(){$('shTitle').textContent='원정';let h=autoExpHtml()+ugCard();const now=Date.now(),lockL=[];
+function renderExp(){$('shTitle').textContent='원정';let h=autoExpHtml()+ugCard()+lnCard();const now=Date.now(),lockL=[];
   for(const e of EXPS){const x=S.exp[e.key];
     if(!e.req()){lockL.push(`<span>🔒 ${e.name} · ${e.lock}</span>`);continue;}
     if(x){const left=Math.max(0,(x.end-now)/1000),done=left<=0;
@@ -3111,7 +3113,7 @@ const PED_PRAC=[{m:{fuel:12},n:'랜턴 기름 두 통',d:'뚜껑에 테이프가
 function pedState(){S.ped=S.ped||{next:0,here:null,stock:[],visits:0,bought:0};return S.ped;}
 const pedHere=()=>pedState().here!=null&&!isNight();
 function pedStock(){const P=pedState(),st=[];const rare=[];
-  const gp=Object.keys(GEAR).filter(k=>!GEAR[k].sig&&!GEAR[k].ug&&GEAR[k].g>=1&&!(S.inv||[]).some(x=>x.t===k));if(gp.length){const t=gp[(Math.random()*gp.length)|0],G=GEAR[t];rare.push({kind:'gear',t,n:G.n,d:G.d,price:{plate:4+2*G.g,rope:3+G.g},rare:1});}
+  const gp=Object.keys(GEAR).filter(k=>!GEAR[k].sig&&!GEAR[k].ug&&!GEAR[k].line&&GEAR[k].g>=1&&!(S.inv||[]).some(x=>x.t===k));if(gp.length){const t=gp[(Math.random()*gp.length)|0],G=GEAR[t];rare.push({kind:'gear',t,n:G.n,d:G.d,price:{plate:4+2*G.g,rope:3+G.g},rare:1});}
   const left=RSETS.flatMap(x=>x.items).filter(x=>!(S.relics||[]).includes(x));if(left.length){const it=left[(Math.random()*left.length)|0];rare.push({kind:'relic',it,n:it,d:'“어디서 났냐고요? 길에서요.”',price:{scrap:30,cloth:10,parts:4},rare:1});}
   rare.push({kind:'mat',m:{batt:3},n:'건전지 세 개',d:'아직 살아 있다. 아마도.',price:{parts:10,fuel:8},rare:1});
   st.push(rare[(Math.random()*rare.length)|0]);
@@ -3225,8 +3227,8 @@ modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="promo"]'
 // ---------- equipment: getting, equipping, crafting ----------
 const BAGMAX=40;
 function addGear(t,src){if(!S.inv)S.inv=[];S.iu=(S.iu||0)+1;const it={u:S.iu,t};S.inv.push(it);
-  if(S.inv.length>BAGMAX){const worn=new Set(Object.values(S.sv).flatMap(r=>Object.values(r.eq||{})));const cand=S.inv.filter(x=>x!==it&&!worn.has(x.u)&&!GEAR[x.t].sig&&!x.lk).sort((a,b)=>GEAR[a.t].g-GEAR[b.t].g)[0];if(cand){S.inv=S.inv.filter(x=>x!==cand);const G=GEAR[cand.t];give(G.cost?scaleCost(G.cost,.5):{parts:4*(G.g+1)});toast(`가방이 가득 차 ${G.n}을(를) 분해했어요`);}}if(src)toast(`${src} ${GEAR[t].n}!`);if(sheetTab==='gear')renderSheet();return it;}
-function dropGear(g){const pool=Object.keys(GEAR).filter(k=>GEAR[k].g===g&&!GEAR[k].sig&&!GEAR[k].ug);return addGear(pool[(Math.random()*pool.length)|0]);}
+  if(S.inv.length>BAGMAX){const worn=new Set(Object.values(S.sv).flatMap(r=>Object.values(r.eq||{})));const cand=S.inv.filter(x=>x!==it&&!worn.has(x.u)&&!GEAR[x.t].sig&&!GEAR[x.t].line&&!x.lk).sort((a,b)=>GEAR[a.t].g-GEAR[b.t].g)[0];if(cand){S.inv=S.inv.filter(x=>x!==cand);const G=GEAR[cand.t];give(G.cost?scaleCost(G.cost,.5):{parts:4*(G.g+1)});toast(`가방이 가득 차 ${G.n}을(를) 분해했어요`);}}if(src)toast(`${src} ${GEAR[t].n}!`);if(sheetTab==='gear')renderSheet();return it;}
+function dropGear(g){const pool=Object.keys(GEAR).filter(k=>GEAR[k].g===g&&!GEAR[k].sig&&!GEAR[k].ug&&!GEAR[k].line);return addGear(pool[(Math.random()*pool.length)|0]);}
 let gearCtx={id:null,slot:null};
 function openGear(id,slot){gearCtx={id,slot};closeModal();openSheet('gear');}
 function equip(uid){const{id,slot}=gearCtx;const it=itemAt(uid);if(id==null||!it||GEAR[it.t].slot!==slot||!canWear(id,it.t))return;const w=wearer(uid);if(w!=null)S.sv[w].eq[slot]=null;
@@ -3414,6 +3416,144 @@ function questHtml(id){const Q=QUESTS[id];if(!Q)return'';const r=S.sv[id],q=r.q;
     ${st.k==='give'?`${needHtml(st.cost)}<button class="alt" data-act="qgive" data-arg="${id}" ${canPay(st.cost)?'':'disabled'} style="margin-top:8px">건네기</button>`:''}
     <div class="d">완결 보상: 전용 장비 ‘${GEAR[Q.gear].n}’</div></div>`;}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="qgive"]');if(!b)return;e.stopPropagation();if(b.disabled)return;const id=+b.dataset.arg,st=qStep(id);if(!st||st.k!=='give'||!pay(st.cost))return;closeModal();qAdvance(id);},true);
+
+// ---------- 끊긴 노선 (복구한 지하철역의 노선 탐사) ----------
+// 지하 구역(칸 밝히기·기름)과 다른 놀이: 갈림길마다 터널 셋 중 하나를 고르고, 재 괴물은 좁혀 오는 고리에 맞춰 두드려 쓰러뜨린다.
+// 3구간 × 터널 3개 + 역. 마지막 역(종점)에는 우두머리. 동네마다 노선·역·그 노선에서만 나오는 물건 3개가 다르다.
+// 연달아 들어가면 보상이 줄고(피로 ×1 → .75 → .55 → .4 → .3), 15분마다 한 단계씩 회복한다.
+const LN_TOWN={
+ home:{n:'2호선 끊긴 구간',st:['시청역','중앙시장역','차량기지'],loot:['parts','scrap','wire','cloth'],boss:'차량기지의 재 거인',items:['lnTicket','lnLamp','lnMap'],
+  trace:['개찰구에 교통카드가 꽂힌 채 남아 있다. 잔액 4,200원.','벽에 분필로 적힌 이름들. “여기서 기다릴게.”','멈춘 전광판에 마지막 열차 시각이 남아 있다. 03:11.']},
+ desert:{n:'사막 순환선',st:['모래언덕역','급유탑역','사막 차고'],loot:['fuel','scrap','parts','cloth'],boss:'모래에 묻힌 재 거인',items:['lnCanteen','lnGoggle','lnCompass'],
+  trace:['선로 위에 모래로 그린 화살표. 바람에 반쯤 지워졌다.','빈 물병 열두 개가 가지런히 놓여 있다.','“물은 급유탑 밑에” 라고 긁어 쓴 글씨.']},
+ factory:{n:'공단 화물선',st:['제철소역','부품단지역','정비창'],loot:['parts','plate','scrap','wire'],boss:'멈추지 않는 굴착기',items:['lnWrench','lnApron','lnPiston'],
+  trace:['화물칸에 출근 카드가 한 다발. 다 같은 날짜에 찍혔다.','누군가 선로 이음매마다 기름을 쳐 두었다. 아직 마르지 않았다.','“교대 시간 지킬 것” 녹슨 표지판.']},
+ snow:{n:'산골 협궤선',st:['산골역','눈사태 터널','눈 덮인 대합실'],loot:['wood','cloth','parts','food'],boss:'얼어붙은 재 거인',items:['lnMitten','lnKettle','lnBell'],
+  trace:['난로 옆에 장작이 쌓여 있다. 누가 돌아오길 바란 것처럼.','얼어붙은 창에 손바닥 자국 두 개.','대합실 벽시계가 멈춰 있다. 바늘 위에 눈이 앉았다.']}};
+Object.assign(GEAR,{
+ lnTicket:{n:'구겨진 정기권',slot:'keep',g:1,ic:'photo',eff:{scav:.1,hope:2},fit:[],line:'home',d:'2호선 정기권. 잔액 4,200원.'},
+ lnLamp:{n:'역무원 랜턴',slot:'tool',g:2,ic:'torch',eff:{tap:.2,fever:1},fit:[],line:'home',d:'플랫폼 끝까지 비추던 불빛.'},
+ lnMap:{n:'노선도 원본',slot:'keep',g:3,ic:'photo',eff:{global:.07,hope:3},fit:[],line:'home',d:'끊긴 구간에 누군가 연필로 새 길을 그려 두었다.'},
+ lnCanteen:{n:'모래 먹은 수통',slot:'keep',g:1,ic:'coin',eff:{thrift:.1},fit:[],line:'desert',d:'흔들면 아직 물소리가 난다.'},
+ lnGoggle:{n:'터널 고글',slot:'wear',g:2,ic:'mask',eff:{scav:.15,fever:1},fit:[],line:'desert',d:'모래바람 속에서도 선로가 보인다.'},
+ lnCompass:{n:'사막 철도 나침반',slot:'keep',g:3,ic:'watch',eff:{global:.06,scav:.1},fit:[],line:'desert',d:'바늘이 늘 다음 역을 가리킨다.'},
+ lnWrench:{n:'선로 렌치',slot:'tool',g:1,ic:'lever',eff:{craft:.12},fit:[],line:'factory',d:'이음매 볼트에 딱 맞는 크기.'},
+ lnApron:{n:'정비공 앞치마',slot:'wear',g:2,ic:'jacket',eff:{cost:.06,craft:.08},fit:[],line:'factory',d:'주머니마다 다른 크기의 나사.'},
+ lnPiston:{n:'멈춘 엔진의 피스톤',slot:'keep',g:3,ic:'box',eff:{global:.08},fit:[],line:'factory',d:'손에 쥐면 아직 따뜻하다.'},
+ lnMitten:{n:'역무원 벙어리장갑',slot:'wear',g:1,ic:'glove',eff:{tap:.12,thrift:.05},fit:[],line:'snow',d:'안쪽에 이름표가 꿰매져 있다.'},
+ lnKettle:{n:'대합실 주전자',slot:'keep',g:2,ic:'box',eff:{hope:4,food:.1},fit:[],line:'snow',d:'끓이면 대합실 냄새가 난다.'},
+ lnBell:{n:'눈 덮인 발차 종',slot:'keep',g:3,ic:'flame',eff:{hope:5,fever:1.5},fit:[],line:'snow',d:'한 번 치면 눈 속까지 울린다.'}});
+const LN_FAT=[1,.75,.55,.4,.3],LN_REC=15*60000;
+const lnReg=()=>S.region&&LN_TOWN[S.region]?S.region:'home';
+const lnOpen=()=>lmOn('station');
+function lnState(){S.line=S.line||{};const r=lnReg(),L=S.line[r]=S.line[r]||{fat:0,at:0,runs:0,best:0};
+  if(L.fat>0&&L.at){const k=Math.floor((Date.now()-L.at)/LN_REC);if(k>0){L.fat=Math.max(0,L.fat-k);L.at=L.fat?L.at+k*LN_REC:0;}}return L;}
+const lnMult=()=>LN_FAT[Math.min(LN_FAT.length-1,lnState().fat)];
+const lnNextRec=()=>{const L=lnState();return L.fat>0?Math.max(0,LN_REC-(Date.now()-L.at)):0;};
+const lnOwned=t=>(S.inv||[]).some(x=>x.t===t);
+const lnSeen=t=>(S.lnGot||[]).includes(t)||lnOwned(t);
+const lnFree=()=>Object.keys(S.sv).map(Number).filter(id=>!busy(id));
+const lnRole=(team,r)=>team.some(id=>(ROLE[id]||[]).includes(r));
+const lnHp0=t=>8+4*t.length+(lnRole(t,'cook')?3:0);
+const lnCost=n=>({food:8*Math.max(1,n)});
+const LN_ROLE_N={guard:'소방: 재 괴물에게 맞아도 덜 다쳐요',scout:'정찰: 터널 안이 다 보여요',art:'그림: 터널 안이 다 보여요',medic:'간호: 쉼터에서 체력 +2 더',mech:'기술: 자재 +30%',cook:'요리: 체력 +3',heart:'희망: 역에 닿을 때마다 체력 +1',drive:'운전: 무너진 선로 피해 -1',sci:'연구: 노선 물건이 더 잘 나와요',farm:'텃밭: 식량 두 배'};
+const lnPerks=t=>[...new Set(t.flatMap(id=>ROLE[id]||[]))].map(r=>LN_ROLE_N[r]).filter(Boolean);
+let LN=null,lnPrep={team:[]},lnRAF=0;
+function lnCard(){if(!lnOpen())return'';const T=LN_TOWN[lnReg()],L=lnState(),m=lnMult(),w=Math.ceil(lnNextRec()/60000);
+  return`<div class="exp lnc"><div class="top"><b>끊긴 노선 · ${T.n}</b><span class="meta">최고 ${L.best}/12 · ${L.runs}번</span></div>
+    <div class="lnitems">${T.items.map(t=>`<span class="${lnSeen(t)?'on':''}">${lnSeen(t)?gicon(t,22):'<i>?</i>'}<em>${lnSeen(t)?GEAR[t].n:'???'}</em></span>`).join('')}</div>
+    <p>지하철역 안쪽 터널. 갈림길마다 길을 골라 ${T.st[2]}까지 가요. 이 노선에서만 나오는 물건이 있어요.<br>${m<1?`<b>지금 보상 ×${m}</b> · ${w}분 뒤 한 단계 회복`:'지금 보상 온전'}</p>
+    <div class="btns"><button class="buy" data-act="lnprep">노선 들어가기</button></div></div>`;}
+function openLnPrep(){if(!lnOpen())return;if(DEFN||UG){toast('지금은 들어갈 수 없어요');return;}lnPrep.team=lnPrep.team.filter(id=>lnFree().includes(id));if(sheetTab)closeSheet();closeRing();lnPrepRender(true);}
+function lnPrepRender(first){const free=lnFree(),t=lnPrep.team,T=LN_TOWN[lnReg()],m=lnMult(),c=lnCost(t.length),pk=lnPerks(t);
+  const h=`<div class="page line nox"><div class="tag">끊긴 노선 · ${T.n}</div><h3>누구와 갈까요?</h3>
+    <div class="team">${free.length?free.map(id=>{const rl=(ROLE[id]||[]).filter(r=>LN_ROLE_N[r]).map(r=>LN_ROLE_N[r].split(':')[0]);return`<button class="mem${t.includes(id)?' on':''}" data-act="lnm" data-arg="${id}" ${!t.includes(id)&&t.length>=2?'disabled':''}>${avatar(id)}<span class="mtx"><b>${SURV[id].name}</b><small>${GR[gradeOf(id)].n}${rl.length?' · '+rl.join('·'):''}</small></span></button>`;}).join(''):'<div class="d">쉬는 생존자가 없어요</div>'}</div>
+    ${pk.length?`<div class="prev">${pk.join('<br>')}</div>`:''}
+    <div class="lnstops">${T.st.map((s,k)=>`<span><i>${k+1}</i>${s}</span>`).join('<b>—</b>')}</div>
+    <div class="d" style="margin:2px 0 12px">체력 <b>${lnHp0(t)}</b> · 재 괴물에게 맞거나 무너진 선로를 지나면 줄어요. 0이 되면 챙긴 것의 절반만 들고 돌아와요.<br>도시락 ${lootTxt(c).replace(/\+/g,'')} · 보상 ${m<1?`<b>×${m}</b> (연달아 들어가 줄었어요 · 15분마다 회복)`:'온전'} · 최대 2명</div>
+    <div class="btns"><button class="alt" data-act="lnx">취소</button><button data-act="lngo" ${t.length&&canPay(c)?'':'disabled'}>들어가기</button></div>${!t.length?'<div class="ughint">함께 갈 사람을 골라 주세요</div>':!canPay(c)?'<div class="ughint">식량이 모자라요</div>':''}</div>`;
+  if(first)openModal(h);else{modal.innerHTML=h;}}
+function lnStart(){const t=lnPrep.team.filter(id=>S.sv[id]&&!busy(id)).slice(0,2);if(!t.length||!pay(lnCost(t.length)))return;const hp=lnHp0(t);
+  LN={team:t,hp,max:hp,step:0,carry:{},items:[],msg:'개찰구를 넘어 어두운 승강장으로 내려갔다.',phase:'pick',reg:lnReg(),log:[]};lnDeal();sfx('chime');lnRender();}
+const LN_W=[['loot',.34],['foe',.28],['hazard',.16],['trace',.12],['rest',.10]];
+function lnDeal(){const sec=Math.floor(LN.step/3),cards=[];
+  for(let k=0;k<3;k++){let c;for(let g=0;g<20;g++){let r=Math.random();c=LN_W[LN_W.length-1][0];for(const[n,w]of LN_W){if(r<w){c=n;break;}r-=w;}if(c==='rest'&&LN.hp>=LN.max)continue;if(cards.filter(x=>x.c===c).length>=2)continue;break;}cards.push({c,hid:false});}
+  const scout=lnRole(LN.team,'scout')||lnRole(LN.team,'art'),nh=Math.max(0,(sec>=2?2:1)-(scout?1:0));
+  const ks=[0,1,2].sort(()=>Math.random()-.5).slice(0,nh);for(const k of ks)cards[k].hid=true;LN.cards=cards;}
+const LN_CN={loot:['물자','버려진 짐이 보여요'],foe:['재 괴물','무언가 움직여요'],hazard:['무너진 선로','천장이 내려앉았어요'],trace:['사람의 흔적','누가 지나간 자리'],rest:['고요한 승강장','잠깐 쉴 수 있어요']};
+const LN_IC={loot:'loot',foe:'foe',hazard:'hazard',trace:'diary',rest:'rest'};
+function lnAdd(o){const m=lnRole(LN.team,'mech')?1.3:1;for(const k in o){let v=o[k];if(k!=='batt'&&k!=='wire'&&k!=='med')v=Math.round(v*m*(k==='food'&&lnRole(LN.team,'farm')?2:1));if(v>0)LN.carry[k]=(LN.carry[k]||0)+v;}return o;}
+function lnLoot(){const T=LN_TOWN[LN.reg],sec=Math.floor(LN.step/3),o={},ks=T.loot.slice().sort(()=>Math.random()-.5).slice(0,2);
+  for(const k of ks){const base=k==='wire'?1:Math.round((4+sec*3)*(.8+Math.random()*.4));o[k]=(o[k]||0)+base;}if(Math.random()<.08+sec*.05)o.batt=1;return o;}
+function lnPick(k){if(!LN||LN.phase!=='pick')return;const c=LN.cards[k];if(!c)return;const sec=Math.floor(LN.step/3);LN.last=c.c;
+  if(c.c==='loot'){const o=lnLoot();lnAdd(o);LN.msg=`버려진 짐을 뒤졌다 · ${lootTxt(o)}`;sfx('get');lnNext();}
+  else if(c.c==='foe'){lnFight(false);}
+  else if(c.c==='hazard'){LN.phase='hazard';LN.msg='천장이 내려앉아 선로가 막혔다. 틈새로 고철이 삐죽 나와 있다.';lnRender();}
+  else if(c.c==='trace'){const T=LN_TOWN[LN.reg],o={};o[Math.random()<.5?'cloth':'food']=3+sec*2;lnAdd(o);for(const id of LN.team)if(S.sv[id])S.sv[id].xp+=10;LN.msg=`${T.trace[(Math.random()*T.trace.length)|0]} · ${lootTxt(o)} · 동료 신뢰 +10`;sfx('find');lnNext();}
+  else{const g=3+(lnRole(LN.team,'medic')?2:0);LN.hp=Math.min(LN.max,LN.hp+g);LN.msg=`고요한 승강장에서 숨을 돌렸다 · 체력 +${g}`;sfx('chime');lnNext();}}
+function lnHazard(crawl){if(!LN||LN.phase!=='hazard')return;const sec=Math.floor(LN.step/3);
+  if(crawl){const d=Math.max(1,2+(sec>=2?1:0)-(lnRole(LN.team,'drive')?1:0));LN.hp-=d;const o=lnAdd({scrap:4+sec*3,plate:sec>=1?1:0});LN.msg=`기어서 틈을 지났다 · 체력 -${d} · ${lootTxt(Object.fromEntries(Object.entries(o).filter(([,v])=>v>0)))}`;buzz();}
+  else{LN.hp-=1;LN.msg='먼 길로 돌아갔다 · 체력 -1';}
+  LN.phase='pick';if(LN.hp<=0)return lnEnd(false);lnNext();}
+function lnNext(){LN.step++;LN.best=Math.max(LN.best||0,LN.step);if(LN.step%3===0){lnStation();return;}lnDeal();lnRender();}
+function lnStation(){const T=LN_TOWN[LN.reg],s=LN.step/3-1;
+  if(s>=2){lnFight(true);return;}
+  if(lnRole(LN.team,'heart'))LN.hp=Math.min(LN.max,LN.hp+1);
+  const o={};o[T.loot[0]]=5+s*4;if(s===1)o.batt=1;lnAdd(o);let extra='';
+  const ch=(s===0?.12:.3)*lnMult()*(lnRole(LN.team,'sci')?1.4:1);if(Math.random()<ch){const it=lnItemPick();if(it){LN.items.push(it);extra=` · <b>${jo(GEAR[it].n,'을','를')}</b> 찾았다!`;sfx('find');}}
+  for(const id of LN.team)if(S.sv[id])S.sv[id].xp+=15;
+  LN.phase='station';LN.msg=`${T.st[s]}에 닿았다. 플랫폼에 남은 물건을 챙겼다 · ${lootTxt(o)}${extra} · 동료 신뢰 +15`;sfx('chime');lnRender();}
+function lnItemPick(){const T=LN_TOWN[LN.reg],c=T.items.filter(t=>!lnOwned(t)&&!LN.items.includes(t)).sort((a,b)=>GEAR[a].g-GEAR[b].g);return c[0]||null;}
+function lnGoOn(){if(!LN||LN.phase!=='station')return;LN.phase='pick';lnDeal();LN.msg='다시 어두운 터널로 들어갔다.';lnRender();}
+// 재 괴물: 고리가 좁혀 오다 금빛 테두리에 겹칠 때 두드린다. 딱 맞으면 2, 근처면 1. 놓치면 괴물에게 맞는다.
+const LN_TGT=46;
+function lnFight(boss){const sec=Math.min(2,Math.floor((LN.step-(boss?1:0))/3));LN.phase='fight';const hp=boss?7:3+sec;
+  LN.fight={boss,hp,max:hp,T:boss?950:1250-sec*130,t0:performance.now()+500,lock:0,res:''};
+  LN.msg=boss?`${jo(LN_TOWN[LN.reg].boss,'이','가')} 길을 막았다!`:'재 괴물이 다가온다! 고리가 금빛 테두리에 닿을 때 두드려요.';lnRender();lnLoop();}
+function lnRing(now){const F=LN.fight;return Math.max(0,100*(1-(now-F.t0)/F.T));}
+function lnStrike(){if(!LN||LN.phase!=='fight')return;const F=LN.fight,now=performance.now();if(now<F.t0||now<F.lock)return;
+  const r=lnRing(now),d=Math.abs(r-LN_TGT);let dmg=0;if(d<=4)dmg=2;else if(d<=10)dmg=1;
+  if(dmg){F.hp-=dmg;F.res=dmg>1?'딱 맞았다!':'맞혔다';sfx('hit');buzz();}else{lnHurt();F.res=r>LN_TGT?'너무 일러요':'늦었어요';}
+  F.t0=now+420;F.lock=now+420;lnFightDraw(true);if(F.hp<=0)setTimeout(lnWin,380);else if(LN.hp<=0)setTimeout(()=>lnEnd(false),420);}
+function lnHurt(){const F=LN.fight,g=lnRole(LN.team,'guard');const d=F.boss?(g?2:3):(g?1:2);LN.hp-=d;sfx('smash');buzz();const a=modal.querySelector('.lnarena');if(a){a.classList.remove('hit');void a.offsetWidth;a.classList.add('hit');}}
+function lnWin(){if(!LN||LN.phase!=='fight')return;const F=LN.fight,sec=Math.min(2,Math.floor(LN.step/3));cancelAnimationFrame(lnRAF);(S.stat=S.stat||{}).foe=(S.stat.foe||0)+1;
+  if(F.boss){const o=lnAdd({parts:12,plate:6,batt:2});let it=null;if(Math.random()<Math.min(1,lnMult()*1.25*(lnRole(LN.team,'sci')?1.2:1)))it=lnItemPick();if(it)LN.items.push(it);
+    for(const id of LN.team)if(S.sv[id])S.sv[id].xp+=25;LN.step=12;LN.best=12;LN.msg=`${jo(LN_TOWN[LN.reg].boss,'을','를')} 쓰러뜨렸다! · ${lootTxt(o)}${it?` · <b>${GEAR[it].n}</b>`:''}`;sfx('chime');LN.phase='done';lnRender();return;}
+  const o={scrap:6+sec*3};if(Math.random()<.35)o[Math.random()<.5?'wire':'med']=1;lnAdd(o);LN.phase='pick';LN.msg=`재 괴물을 쓰러뜨렸다 · ${lootTxt(o)}`;LN.fight=null;lnNext();}
+function lnLoop(){cancelAnimationFrame(lnRAF);const tick=()=>{if(!LN||LN.phase!=='fight'||modal.hidden)return;const F=LN.fight,now=performance.now();
+    if(now>=F.t0&&lnRing(now)<=0&&now>=F.lock){lnHurt();F.res='놓쳤어요';F.t0=now+520;F.lock=now+520;if(LN.hp<=0){lnFightDraw(true);setTimeout(()=>lnEnd(false),420);return;}lnFightDraw(true);}
+    lnFightDraw(false);lnRAF=requestAnimationFrame(tick);};lnRAF=requestAnimationFrame(tick);}
+function lnFightDraw(full){const F=LN.fight;if(!F)return;const c=modal.querySelector('#lnRing');if(!c)return;const now=performance.now(),r=now<F.t0?100:lnRing(now);c.setAttribute('r',Math.max(.1,r).toFixed(1));
+  const near=Math.abs(r-LN_TGT)<=10&&now>=F.t0;c.setAttribute('stroke',near?'#ffd36b':'#efe3c4');
+  if(full){const p=modal.querySelector('.lnarena .pips');if(p)p.innerHTML=Array.from({length:F.max},(_,k)=>`<i class="${k<F.hp?'on':''}"></i>`).join('');const s=modal.querySelector('.lnres');if(s)s.textContent=F.res||'';lnHpDraw();}}
+function lnHpDraw(){const b=modal.querySelector('.lnhp i');if(b)b.style.width=Math.max(0,LN.hp/LN.max*100)+'%';const t=modal.querySelector('.lnhp b');if(t)t.textContent=`체력 ${Math.max(0,LN.hp)}/${LN.max}`;}
+function lnTrack(){const T=LN_TOWN[LN.reg];let h='<div class="lntrack">';for(let k=1;k<=12;k++){const st=k%4===0,si=k/4-1,on=LN.step>=(st?si*3+3:k-Math.floor(k/4));h+=st?`<span class="lns${LN.step>=si*3+3?' on':''}" title="${T.st[si]}"><i></i><em>${T.st[si]}</em></span>`:`<span class="lnd${LN.step>=k-Math.floor(k/4)?' on':''}"></span>`;}return h+'</div>';}
+function lnRender(){if(!LN)return;const T=LN_TOWN[LN.reg],tm=LN.team.map(id=>avatar(id)).join('');let body='';
+  if(LN.phase==='pick')body=`<div class="lncards">${LN.cards.map((c,k)=>`<button class="lncard${c.hid?' hid':''} k-${c.hid?'q':c.c}" data-act="lnpick" data-arg="${k}"><span class="ic">${c.hid?'<b>?</b>':ugIcon({c:LN_IC[c.c]})}</span><b>${c.hid?'어두운 터널':LN_CN[c.c][0]}</b><small>${c.hid?'안이 보이지 않아요':LN_CN[c.c][1]}</small></button>`).join('')}</div>`;
+  else if(LN.phase==='hazard')body=`<div class="btns col"><button data-act="lnhz" data-arg="1">기어서 지나가기 <small>체력 -${Math.max(1,2+(LN.step>=6?1:0)-(lnRole(LN.team,'drive')?1:0))} · 고철</small></button><button class="alt" data-act="lnhz" data-arg="0">먼 길로 돌아가기 <small>체력 -1</small></button></div>`;
+  else if(LN.phase==='fight'){const F=LN.fight;body=`<div class="lnarena${F.boss?' boss':''}" data-act="lnhit"><svg viewBox="0 0 240 240"><circle cx="120" cy="120" r="${LN_TGT}" fill="none" stroke="#e0b441" stroke-width="7" stroke-dasharray="4 4" opacity=".9"/><circle id="lnRing" cx="120" cy="120" r="100" fill="none" stroke="#efe3c4" stroke-width="4"/></svg><span class="lnfoe">${ugIcon({c:'foe'})}</span><span class="pips"></span><span class="lnres"></span></div><div class="d" style="text-align:center;margin-top:6px">${F.boss?LN_TOWN[LN.reg].boss:'재 괴물'} · 고리가 금빛 테두리에 겹칠 때 아무 데나 두드려요</div>`;}
+  else if(LN.phase==='station')body=`<div class="btns"><button class="alt" data-act="lnout">여기서 올라가기</button><button data-act="lnon">다음 구간으로</button></div>`;
+  else if(LN.phase==='done')body=`<div class="btns"><button data-act="lnout">가진 걸 들고 올라가기</button></div>`;
+  const carry=Object.entries(LN.carry).filter(([,v])=>v>0).map(([k,v])=>`<span>${micon(k,14)}<b>${v}</b></span>`).join('')+LN.items.map(t=>`<span class="lnit">${gicon(t,18)}${GEAR[t].n}</span>`).join('');
+  const h=`<div class="page line run nox"><div class="tag">끊긴 노선 · ${T.n}</div>${lnTrack()}
+    <div class="lnhead"><span class="lnteam">${tm}</span><span class="lnhp"><i style="width:${Math.max(0,LN.hp/LN.max*100)}%"></i><b>체력 ${Math.max(0,LN.hp)}/${LN.max}</b></span></div>
+    <p class="lnmsg">${LN.msg}</p>${body}
+    <div class="lncarry">${carry||'<small>아직 챙긴 게 없어요</small>'}</div>
+    ${LN.phase==='pick'||LN.phase==='hazard'?`<div class="lnfoot"><button class="alt" data-act="lnout" ${LN.step===0?'':''}>지금 돌아가기 <small>${LN.step?'챙긴 건 그대로':'보상 없음'}</small></button></div>`:''}</div>`;
+  if(modal.hidden)openModal(h,true);else{modal.innerHTML=h;}if(LN.phase==='fight')lnFightDraw(true);}
+function lnEnd(safe){if(!LN)return;cancelAnimationFrame(lnRAF);const u=LN;LN=null;const L=S.line[u.reg]||lnState(),m=LN_FAT[Math.min(LN_FAT.length-1,L.fat||0)];
+  if(!safe){for(const k in u.carry)u.carry[k]=Math.floor(u.carry[k]/2);}
+  const scaled={};for(const k in u.carry){const v=u.carry[k];if(v>0)scaled[k]=Math.max(1,Math.round(v*m));}
+  const got=give(scaled),items=safe?u.items:[];for(const t of items){addGear(t);S.lnGot=S.lnGot||[];if(!S.lnGot.includes(t))S.lnGot.push(t);}
+  if(u.step>0){L.runs++;if((L.fat||0)===0)L.at=Date.now();L.fat=Math.min(LN_FAT.length-1,(L.fat||0)+1);}L.best=Math.max(L.best||0,u.best||u.step);
+  recalc();closeModal();save();
+  note({h:safe?(u.step>=12?`${LN_TOWN[u.reg].st[2]}에서 돌아왔어요`:'노선에서 무사히 돌아왔어요'):'지쳐서 급히 돌아왔어요',t:`<small>${Object.keys(got).length?lootTxt(got):'챙긴 게 없어요'}${items.length?` · <b>${items.map(t=>GEAR[t].n).join(', ')}</b>`:''}${!safe&&u.items.length?' · 찾은 물건을 두고 왔어요':''}${m<1?` · 보상 ×${m}`:''}</small>`,ms:6500});}
+modal.addEventListener('click',e=>{const b=e.target.closest('[data-act^="ln"]');if(!b)return;e.stopPropagation();if(b.disabled)return;const a=b.dataset.act,g=b.dataset.arg;
+  if(a==='lnm'){const id=+g,t=lnPrep.team;const k=t.indexOf(id);if(k>=0)t.splice(k,1);else if(t.length<2)t.push(id);sfx('tap');lnPrepRender();}
+  else if(a==='lnx')closeModal();else if(a==='lngo')lnStart();else if(a==='lnpick')lnPick(+g);else if(a==='lnhz')lnHazard(g==='1');else if(a==='lnon')lnGoOn();else if(a==='lnout')lnEnd(true);},true);
+modal.addEventListener('pointerdown',e=>{if(!LN||LN.phase!=='fight')return;if(!e.target.closest('.lnarena'))return;e.preventDefault();lnStrike();},true);
+modal.addEventListener('click',e=>{if(LN&&e.target===modal)e.stopPropagation();},true);
+$('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="lnprep"]');if(!b)return;e.stopImmediatePropagation();openLnPrep();},true);
 
 // ---------- underground (지하 구역) ----------
 // A short dive: pick up to 3 survivors, bring fuel for the lantern, clear dark tiles one tap = 1 oil.
@@ -3612,7 +3752,7 @@ Object.assign(GEAR,{
  mpick:{n:'광부 곡괭이',slot:'tool',g:3,ic:'axe',eff:{tap:.35,scav:.1},fit:[6,13],ug:1,d:'끝이 닳아 반짝인다. 지하에서만 나온다.'},
  mhelm:{n:'광부 헬멧',slot:'wear',g:2,ic:'shield',eff:{hope:4,tap:.1},fit:[1,6],ug:1,d:'이마의 등이 아직 켜진다.'},
  mlamp:{n:'광부 랜턴',slot:'keep',g:2,ic:'flame',eff:{fever:1.5,scav:.08},fit:[3,9,13],ug:1,d:'기름 냄새가 배어 있다.'}});
-const ugGearPick=g=>{const pool=Object.keys(GEAR).filter(k=>GEAR[k].g===g&&!GEAR[k].sig&&!GEAR[k].ug);return pool[(Math.random()*pool.length)|0];};
+const ugGearPick=g=>{const pool=Object.keys(GEAR).filter(k=>GEAR[k].g===g&&!GEAR[k].sig&&!GEAR[k].ug&&!GEAR[k].line);return pool[(Math.random()*pool.length)|0];};
 const ugMiner=()=>['mpick','mhelm','mlamp'][(Math.random()*3)|0];
 const ugCkOk=f=>(S.ug.ck||[]).includes(f);
 
