@@ -27,18 +27,20 @@ jobs:
 
       - name: fastlane 준비
         run: |
-          which fastlane || brew install fastlane
-          fastlane --version | tail -1
+          brew upgrade fastlane >/dev/null 2>&1 || brew install fastlane >/dev/null 2>&1 || true
+          echo "FL=$(brew --prefix)/bin/fastlane" >> "$GITHUB_ENV"
+          "$(brew --prefix)/bin/fastlane" --version | tail -2
 
       - name: 문구·스크린샷 올리기
+        working-directory: ios/store
         run: |
-          FASTLANE_SKIP_UPDATE_CHECK=1 FASTLANE_HIDE_CHANGELOG=1 fastlane deliver \
+          FASTLANE_SKIP_UPDATE_CHECK=1 FASTLANE_HIDE_CHANGELOG=1 FASTLANE_OPT_OUT_USAGE=1 "$FL" deliver \
             --api_key_path "$RUNNER_TEMP/asc.json" \
             --app_identifier kr.co.itso.taptocity \
             --platform ios \
             --app_version 1.0.0 \
-            --metadata_path ios/store/metadata \
-            --screenshots_path ios/store/screenshots \
+            --metadata_path ./metadata \
+            --screenshots_path ./screenshots \
             --skip_binary_upload true \
             --skip_app_version_update false \
             --overwrite_screenshots true \

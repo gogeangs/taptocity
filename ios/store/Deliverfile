@@ -1,0 +1,3 @@
+# fastlane deliver 설정 (값은 워크플로 명령줄에서 넘긴다)
+skip_binary_upload(true)
+submit_for_review(false)
