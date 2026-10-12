@@ -417,6 +417,7 @@ class Game extends ChangeNotifier {
     for (final id in svIds) {
       if (atOf(id) < 0 || busy(id)) continue;
       effOf(id).forEach((k, v) => e[k] = (e[k] ?? 0) + v);
+      gearEff(id).forEach((k, v) => e[k] = (e[k] ?? 0) + v);
     }
     for (final b in bonds) {
       if (b.ids.every(hasSv)) b.eff.forEach((k, v) => e[k] = (e[k] ?? 0) + v);
@@ -692,6 +693,586 @@ class Game extends ChangeNotifier {
     fx.add(FxBurst(i, 0xFFCFE6FF, 24));
     fx.add(FxToast(visit ? '${jo(survivors[id].name, '이', '가')} 쉘터 앞에 찾아왔어요!' : '생존자를 찾았어요! 잔해를 치우고 구조해요'));
     _mapChanged();
+  }
+
+  // ================= 장비 (웹 1554–1591, 3283–3352, 4168) =================
+  static const bagMax = 40;
+  List<Map> get inv {
+    if (S.rest['inv'] is! List) S.rest['inv'] = <Object?>[];
+    return (S.rest['inv'] as List).whereType<Map>().toList();
+  }
+
+  Map? itemAt(Object? uid) {
+    if (uid == null) return null;
+    for (final x in inv) {
+      if (x['u'] == uid) return x;
+    }
+    return null;
+  }
+
+  Map eqOf(int id) {
+    final r = rec(id)!;
+    if (r['eq'] is! Map) r['eq'] = <String, Object?>{};
+    return r['eq'] as Map;
+  }
+
+  int? wearer(Object? uid) {
+    for (final id in svIds) {
+      final q = rec(id)?['eq'];
+      if (q is Map && q.values.contains(uid)) return id;
+    }
+    return null;
+  }
+
+  bool canWear(int id, String t) {
+    final o = gear[t]?.only;
+    return o == null || o == id;
+  }
+
+  /// 웹 gearEff (1591): 잘 맞는 사람이 쓰면 ×1.5
+  Map<String, double> gearEff(int id) {
+    final o = <String, double>{}, q = rec(id)?['eq'];
+    if (q is! Map) return o;
+    for (final sl in slotKeys) {
+      final it = itemAt(q[sl]);
+      if (it == null) continue;
+      final G = gear[it['t']];
+      if (G == null) continue;
+      final f = G.fit.contains(id) ? 1.5 : 1.0;
+      G.eff.forEach((k, v) => o[k] = (o[k] ?? 0) + v * f);
+    }
+    return o;
+  }
+
+  /// 웹 addGear (3285): 가방이 넘치면 가장 낮은 등급 하나를 분해
+  Map addGear(String t) {
+    if (S.rest['inv'] is! List) S.rest['inv'] = <Object?>[];
+    final list = S.rest['inv'] as List;
+    final u = ((S.rest['iu'] as num?) ?? 0).toInt() + 1;
+    S.rest['iu'] = u;
+    final it = <String, Object?>{'u': u, 't': t};
+    list.add(it);
+    if (list.length > bagMax) {
+      final worn = <Object?>{};
+      for (final id in svIds) {
+        final q = rec(id)?['eq'];
+        if (q is Map) worn.addAll(q.values);
+      }
+      final cand = list.whereType<Map>().where((x) => x != it && !worn.contains(x['u']) && !(gear[x['t']]?.sig ?? true) && !(gear[x['t']]?.line ?? true) && x['lk'] != 1).toList()
+        ..sort((a, b) => gear[a['t']]!.g - gear[b['t']]!.g);
+      if (cand.isNotEmpty) {
+        list.remove(cand.first);
+        final G = gear[cand.first['t']]!;
+        give(G.cost != null ? scaleCost(G.cost!, .5) : {'parts': 4 * (G.g + 1)});
+        fx.add(FxToast('가방이 가득 차 ${jo(G.n, '을', '를')} 분해했어요'));
+      }
+    }
+    dirty = true;
+    return it;
+  }
+
+  String? dropGear(int g) {
+    final pool = gear.values.where((G) => G.g == g && !G.sig && !G.ug && !G.line).map((G) => G.key).toList();
+    if (pool.isEmpty) return null;
+    final t = pool[rnd.nextInt(pool.length)];
+    addGear(t);
+    return t;
+  }
+
+  bool equip(int id, String slot, Object? uid) {
+    final it = itemAt(uid);
+    if (it == null || !hasSv(id)) return false;
+    final G = gear[it['t']]!;
+    if (G.slot != slot || !canWear(id, G.key)) return false;
+    final w = wearer(uid);
+    if (w != null) eqOf(w)[slot] = null;
+    eqOf(id)[slot] = uid;
+    recalc();
+    fx.add(FxToast('${survivors[id].name}: ${G.n} 장착'));
+    _changed();
+    return true;
+  }
+
+  void unequip(int id, String slot) {
+    eqOf(id)[slot] = null;
+    recalc();
+    _changed();
+  }
+
+  bool craftGear(String t) {
+    final G = gear[t]!;
+    if (G.cost == null || wbL < G.wb) return false;
+    if (!pay(scaleCost(G.cost!, costMult))) return false;
+    addGear(t);
+    S.rest['gearMade'] = ((S.rest['gearMade'] as num?) ?? 0) + 1;
+    fx.add(FxToast('${jo(G.n, '을', '를')} 만들었어요'));
+    _changed();
+    return true;
+  }
+
+  Cost dismBack(GearInfo G) => G.cost != null ? scaleCost(G.cost!, .5) : scaleCost({'parts': 4 * (G.g + 1), 'cloth': 3 * (G.g + 1), 'batt': G.g >= 2 ? 1 : 0});
+
+  void dismantle(Object? uid) {
+    final it = itemAt(uid);
+    if (it == null || it['lk'] == 1 || wearer(uid) != null) return;
+    final G = gear[it['t']]!;
+    (S.rest['inv'] as List).remove(it);
+    final got = give(dismBack(G));
+    fx.add(FxToast('${G.n} 분해 · ${got.entries.map((e) => '${matOf[e.key]!.n} +${e.value}').join(' · ')}'));
+    _changed();
+  }
+
+  void toggleLock(Object? uid) {
+    final it = itemAt(uid);
+    if (it == null) return;
+    it['lk'] = it['lk'] == 1 ? 0 : 1;
+    fx.add(FxToast(it['lk'] == 1 ? '${gear[it['t']]!.n} 잠금 · 분해되지 않아요' : '${gear[it['t']]!.n} 잠금 풀림'));
+    _changed();
+  }
+
+  /// 웹 bagSurplus (3310): 같은 장비 여분, 더 좋은 장비가 있는 일반 등급
+  List<(Map, String)> bagSurplus() {
+    final all = inv, out = <(Map, String)>[], kept = <String>{}, best = <String, int>{};
+    for (final x in all) {
+      final G = gear[x['t']]!;
+      best[G.slot] = math.max(best[G.slot] ?? 0, G.g);
+    }
+    final free = all.where((x) => x['lk'] != 1 && !gear[x['t']]!.sig && !gear[x['t']]!.line && wearer(x['u']) == null).toList()
+      ..sort((a, b) => (b['u'] as num).compareTo(a['u'] as num));
+    for (final x in free) {
+      final G = gear[x['t']]!;
+      if (kept.contains(G.key)) {
+        out.add((x, '같은 장비 여분'));
+        continue;
+      }
+      if (G.g == 0 && (best[G.slot] ?? 0) > 0) {
+        out.add((x, '더 좋은 ${slotName[G.slot]} 있음'));
+        continue;
+      }
+      kept.add(G.key);
+    }
+    return out;
+  }
+
+  void tidy(List<Map> items) {
+    final back = <String, num>{};
+    for (final x in items) {
+      dismBack(gear[x['t']]!).forEach((k, v) => back[k] = (back[k] ?? 0) + v);
+      (S.rest['inv'] as List).remove(x);
+    }
+    final got = give(back);
+    fx.add(FxToast('장비 ${items.length}개 분해 · ${got.entries.map((e) => '${matOf[e.key]!.n} +${e.value}').join(' · ')}'));
+    _changed();
+  }
+
+  /// 웹 autoGear (4168): 전용 → 잘 맞는 장비 → 높은 등급
+  int autoGear() {
+    final items = inv, ids = svIds.toList();
+    if (items.isEmpty || ids.isEmpty) return 0;
+    final plan = {for (final id in ids) id: <String, Object?>{}}, used = <Object?>{};
+    for (final it in items) {
+      final G = gear[it['t']]!, o = G.only;
+      if (o != null && hasSv(o) && plan[o]![G.slot] == null) {
+        plan[o]![G.slot] = it['u'];
+        used.add(it['u']);
+      }
+    }
+    final rest = items.where((it) => !used.contains(it['u']) && gear[it['t']]!.only == null).toList()..sort((a, b) => gear[b['t']]!.g - gear[a['t']]!.g);
+    for (final it in rest) {
+      final G = gear[it['t']]!;
+      final who = ids.where((id) => plan[id]![G.slot] == null && G.fit.contains(id)).firstOrNull;
+      if (who != null) {
+        plan[who]![G.slot] = it['u'];
+        used.add(it['u']);
+      }
+    }
+    for (final it in rest) {
+      if (used.contains(it['u'])) continue;
+      final G = gear[it['t']]!;
+      final who = ids.where((id) => plan[id]![G.slot] == null).firstOrNull;
+      if (who != null) {
+        plan[who]![G.slot] = it['u'];
+        used.add(it['u']);
+      }
+    }
+    var ch = 0;
+    for (final id in ids) {
+      final q = eqOf(id);
+      for (final sl in slotKeys) {
+        final want = plan[id]![sl];
+        if (q[sl] != want) ch++;
+        q[sl] = want;
+      }
+    }
+    if (ch > 0) {
+      recalc();
+      _changed();
+    }
+    return ch;
+  }
+
+  // ================= 등급·별 (웹 3261–3282) =================
+  int maxGrade(int id) => math.min(3, survivors[id].grade + 2);
+  Cost starCost(int id) {
+    final g = gradeOf(id), s = starOf(id), k = g + 1;
+    return scaleCost({'food': 8 * s * k, 'parts': 3 * s * k, 'batt': s >= 3 ? 1 : 0, 'med': g >= 2 && s >= 4 ? 1 : 0});
+  }
+
+  /// 다음 강화: (종류, 필요 신뢰도, 비용, 이름) 또는 null
+  (String, int, Cost, String)? nextStep(int id) {
+    final g = gradeOf(id), s = starOf(id);
+    if (s < 5) return ('star', s, starCost(id), '${s + 1}성으로 강화');
+    if (g < maxGrade(id)) return ('grade', 5, scaleCost(gradeUpCost[g]), '${grades[g + 1].n} 등급으로 승급');
+    return null;
+  }
+
+  ({double m, double w, double cd}) pwAt(int g, int st) {
+    final a = grades[g], b = grades[math.min(g + 1, grades.length - 1)], f = .8 * (st - 1) / 4;
+    return (m: a.m + (b.m - a.m) * f, w: a.w + (b.w - a.w) * f, cd: a.cd + (b.cd - a.cd) * f);
+  }
+
+  bool canPromote(int id) {
+    final n = nextStep(id);
+    return n != null && trustLv(xpOf(id)) >= n.$2 && canPay(n.$3);
+  }
+
+  /// 결과: 'star' 또는 'grade' (실패하면 null)
+  String? promote(int id) {
+    final n = nextStep(id);
+    if (n == null || trustLv(xpOf(id)) < n.$2 || !pay(n.$3)) return null;
+    final r = rec(id)!;
+    if (n.$1 == 'star') {
+      r['st'] = starOf(id) + 1;
+      fx.add(FxToast('${survivors[id].name} ${r['st']}성!'));
+    } else {
+      r['g'] = gradeOf(id) + 1;
+      r['st'] = 1;
+    }
+    recalc();
+    _changed();
+    return n.$1;
+  }
+
+  // ================= 스킬 (웹 2844–2897) =================
+  List<int> get party {
+    if (S.rest['party'] is! List) S.rest['party'] = <Object?>[];
+    return (S.rest['party'] as List).map((e) => (e as num?)?.toInt()).whereType<int>().toList();
+  }
+
+  set party(List<int> v) => S.rest['party'] = v;
+  double skillCd(int id) => skills[id].cd * (1 - .08 * (trustLv(xpOf(id)) - 1)) * pw(id).cd;
+  double cdLeft(int id) {
+    final cd = S.rest['cd'];
+    return cd is Map ? ((cd['$id'] as num?) ?? 0).toDouble() : 0;
+  }
+
+  double get craftBuff {
+    final b = S.buff;
+    return b != null && ((b['t'] as num?) ?? 0) > 0 && b['k'] == 'craft' ? (b['m'] as num).toDouble() - 1 : 0;
+  }
+
+  void toggleParty(int id) {
+    final p = party;
+    if (p.contains(id)) {
+      p.remove(id);
+    } else if (p.length < 3) {
+      p.add(id);
+    }
+    party = p;
+    _changed();
+  }
+
+  /// 웹 effParty (4410): 바에 있는 사람이 원정·부상이면 쉬는 사람 중 등급 높은 사람이 대신
+  List<(int, int?)> effParty() {
+    final used = party.toSet(), out = <(int, int?)>[];
+    for (final id in party) {
+      if (busy(id)) {
+        final sub = (svIds.where((j) => !used.contains(j) && !busy(j)).toList()..sort((a, b) => gradeOf(b) - gradeOf(a))).firstOrNull;
+        if (sub != null) {
+          used.add(sub);
+          out.add((sub, id));
+          continue;
+        }
+      }
+      out.add((id, null));
+    }
+    return out;
+  }
+
+  /// 웹 partyRecommend (2870): 지금 쉘터에 필요한 것에 맞춰 셋
+  List<int> partyRecommend() {
+    final w = <String, double>{'all': 2, 'scav': 1.5, 'loot': 1, 'fever': 1, 'reset': 1.6, 'craft': 1, 'find': .8, 'heal': .8, 'storm': .5, 'food': .8, 'build': .6, 'reveal': .8, 'drone': modLv(8) >= 0 ? 1 : 0};
+    if (S.ash.isNotEmpty) {
+      w['storm'] = 3;
+      w['heal'] = 2;
+    }
+    if (hungry || have('food') < 40) w['food'] = 3;
+    if (svIds.any((id) => ((rec(id)!['hurt'] as num?) ?? 0) > 0)) w['heal'] = math.max(w['heal']!, 2.2);
+    final ids = svIds.where((id) => id < skills.length).toList();
+    final sc = {for (final id in ids) id: (w[skills[id].cat] ?? .5) * (1 + .12 * gradeOf(id)) * math.sqrt(60 / math.max(30, skillCd(id)))};
+    final order = [...ids]..sort((a, b) => sc[b]!.compareTo(sc[a]!));
+    final pick = <int>[], cats = <String>{};
+    for (final id in order) {
+      if (cats.contains(skills[id].cat)) continue;
+      pick.add(id);
+      cats.add(skills[id].cat);
+      if (pick.length == 3) break;
+    }
+    for (final id in order) {
+      if (pick.length >= 3) break;
+      if (!pick.contains(id)) pick.add(id);
+    }
+    return pick;
+  }
+
+  void _skillLoot(Map<String, num> o, String label) {
+    final got = loot(scaleCost(o, lvScale * scavMult / (fever > 0 ? 2 : 1)), C0);
+    fx.add(FxToast('$label${got.isNotEmpty ? ' ${got.entries.map((e) => '${matOf[e.key]!.n} +${e.value}').join(' · ')}' : ' · 창고가 가득 찼어요'}'));
+  }
+
+  void _buff(String k, double m, int t, String label) => S.buff = <String, Object?>{'k': k, 'm': m, 't': t, 'label': label};
+
+  int _nearestFrontierFromCenter() {
+    var best = -1;
+    var bd = 1e9;
+    for (final i in frontier) {
+      final d = dist(i);
+      if (d < bd) {
+        bd = d;
+        best = i;
+      }
+    }
+    return best;
+  }
+
+  /// 웹 useSkill (2860). 스킬마다의 효과는 웹 SKILLS[].fn 그대로
+  bool useSkill(int id) {
+    if (!hasSv(id) || busy(id) || cdLeft(id) > 0 || id >= skills.length) return false;
+    final name = survivors[id].name;
+    bool ok = true;
+    switch (id) {
+      case 0: // 막차 돌진
+        if (!aimValid || S.rev[aim] == 1) {
+          final f = nearestFrontierTo(aim >= 0 ? aim : C0);
+          if (f < 0) return false;
+          setAim(f);
+        }
+        var i = aim, k = 0;
+        final dir = aimDir;
+        while (k < 5 && i >= 0) {
+          final x = i % W, y = i ~/ W;
+          if (S.rev[i] == 0) {
+            reveal(i);
+            fx.add(FxBurst(i, 0xFF3F6FA0, 10));
+          }
+          k++;
+          final nx = x + dir.$1, ny = y + dir.$2;
+          i = (nx >= 0 && ny >= 0 && nx < W && ny < H) ? ny * W + nx : -1;
+        }
+        if (!aimValid) setAim(nearestFrontierTo(C0));
+      case 1: // 퀵 배달
+        final o = <String, num>{};
+        for (var q = 0; q < 3; q++) {
+          final k = const ['scrap', 'wood', 'cloth', 'parts'][rnd.nextInt(4)];
+          o[k] = (o[k] ?? 0) + 5;
+        }
+        _skillLoot(o, '퀵 배달 도착!');
+      case 2: // 응급처치
+        var n = 0;
+        for (final k in S.ash.keys.toList()) {
+          if ((S.ash[k] as Map?)?['stuck'] == true) {
+            S.ash.remove(k);
+            n++;
+          }
+        }
+        for (final j in svIds) {
+          if (((rec(j)!['hurt'] as num?) ?? 0) > 0) {
+            rec(j)!['hurt'] = 0;
+            n++;
+          }
+        }
+        _buff('all', 1.2, 30, '응급처치');
+        recalc();
+        if (n > 0) fx.add(FxToast('응급처치로 $n곳을 살렸어요'));
+      case 3: // 희망의 노래
+        fever = feverT;
+        combo = 0;
+        S.fevers++;
+        if (S.fevers <= 3) fx.add(const FxToast('하늘이의 노래에 랜턴이 활활 타올라요!'));
+      case 4: // 씨앗 뿌리기
+        if (modLv(2) < 0) {
+          fx.add(const FxToast('텃밭 상자가 먼저 있어야 해요'));
+          return false;
+        }
+        _buff('farm', 3, 30, '씨앗 뿌리기');
+      case 5:
+        _buff('all', 1.5, 30, '국밥 한 솥');
+      case 6: // 긴급 시공
+        if (S.half) {
+          fx.add(const FxToast('이미 준비돼 있어요'));
+          return false;
+        }
+        S.half = true;
+        recalc();
+        fx.add(const FxToast('철호 반장 대기 중! 다음 공사 자재 절반'));
+      case 7:
+        S.rest['hintT'] = 60;
+        fx.add(const FxToast('유나가 지도를 그렸어요. 반짝이는 곳을 찾아봐요'));
+      case 8: // 진화 작업
+        final ks = S.ash.keys.toList();
+        if (ks.isEmpty) {
+          S.rest['shield'] = 1;
+          fx.add(const FxToast('우진이 방화포를 둘렀어요. 오늘 밤 재폭풍이 약해요'));
+        } else {
+          var st = false;
+          for (final k in ks) {
+            if ((S.ash[k] as Map?)?['stuck'] == true) st = true;
+            S.ash.remove(k);
+          }
+          if (st) recalc();
+          _skillLoot({'scrap': ks.length * 2}, '재 ${ks.length}곳을 한 번에 껐어요');
+        }
+      case 9:
+        S.rest['overT'] = 30;
+        fx.add(const FxToast('재혁이 드론 출력을 끝까지 올렸어요'));
+      case 10: // 심야 방송
+        for (final j in svIds) {
+          rec(j)!['xp'] = xpOf(j) + 30;
+        }
+        _buff('all', 1.3, 60, '심야 방송');
+        recalc();
+        fx.add(const FxToast('은호의 방송이 쉘터에 울려 퍼져요'));
+      case 11:
+        _buff('scav', 2, 60, '맑음 예보');
+        fx.add(const FxToast('설화: “앞으로 한 시간, 맑겠습니다!”'));
+      case 12: // 태엽 감기
+        final cd = S.rest['cd'];
+        final n = cd is Map ? cd.length : 0;
+        if (n == 0) {
+          fx.add(const FxToast('되감을 시간이 없어요'));
+          return false;
+        }
+        S.rest['cd'] = <String, Object?>{};
+        fx.add(FxToast('태식이 태엽을 감았어요. 스킬 $n개가 다시 준비됐어요'));
+      case 13:
+        _buff('all', 1.5, 60, '비상 발전');
+        fx.add(const FxToast('미영이 예비 발전기를 돌렸어요'));
+      case 14:
+        for (final j in svIds) {
+          rec(j)!['hurt'] = 0;
+        }
+        _buff('farm', 1.5, 60, '선인장 수액');
+        recalc();
+        fx.add(const FxToast('한별이 모두의 상처를 돌봤어요'));
+      case 15:
+        final n = jsRound(12 * lvScale);
+        give({'plate': n});
+        fx.add(FxToast('도진이 철판 $n장을 용접했어요'));
+      case 16:
+        var c = 0;
+        for (var q = 0; q < 6; q++) {
+          final b = _nearestFrontierFromCenter();
+          if (b < 0) break;
+          reveal(b);
+          c++;
+        }
+        fx.add(FxToast('설아가 로프를 타고 $c칸을 열었어요'));
+        ok = c > 0;
+      case 17:
+        _buff('scav', 1.8, 60, '지름길');
+        fx.add(const FxToast('진이 아무도 모르는 뒷길로 앞장섰어요'));
+      default: // 동네 사람들 (웹 RESIDENTS.skill)
+        final k = skills[id].res ?? const {};
+        if (k['give'] != null) {
+          final g = k['give'] as String, n = g == 'plate' ? jsRound(10 * lvScale) : jsRound(4 * lvScale);
+          give({g: n});
+          fx.add(FxToast('${jo(name, '이', '가')} ${matOf[g]!.n} $n개를 만들었어요'));
+        } else if (k['heal'] == true) {
+          for (final j in svIds) {
+            rec(j)!['hurt'] = 0;
+          }
+          recalc();
+          fx.add(FxToast('${jo(name, '이', '가')} 모두의 상처를 돌봤어요'));
+        } else if (((k['clear'] as num?) ?? 0) > 0) {
+          var c = 0;
+          for (var q = 0; q < (k['clear'] as num); q++) {
+            final b = _nearestFrontierFromCenter();
+            if (b < 0) break;
+            reveal(b);
+            c++;
+          }
+          fx.add(FxToast('${jo(name, '이', '가')} 길을 $c칸 열었어요'));
+          ok = c > 0;
+        } else {
+          final kk = (k['k'] as String?) ?? 'all';
+          final d = skills[id].d;
+          if (kk == 'all') {
+            _buff('all', d.contains('+15') ? 1.15 : 1.2, 60, skills[id].n);
+            if (k['hope'] == true) {
+              S.rest['hopeT'] = {'v': 3, 'until': DateTime.now().millisecondsSinceEpoch + 120000};
+              recalc();
+            }
+          } else {
+            _buff(kk, kk == 'craft' ? 1.3 : kk == 'farm' ? (d.contains('1.4') ? 1.4 : 1.5) : 1.6, kk == 'scav' ? 45 : 60, skills[id].n);
+          }
+          fx.add(FxToast('$name의 ${skills[id].n}!'));
+        }
+    }
+    if (!ok) return false;
+    if (S.rest['cd'] is! Map) S.rest['cd'] = <String, Object?>{};
+    (S.rest['cd'] as Map)['$id'] = skillCd(id);
+    S.rest['skillUses'] = ((S.rest['skillUses'] as num?) ?? 0) + 1;
+    fx.add(FxFloat(C0, '$name: ${skills[id].n}!', 0xFFFFE6A0, rise: 60));
+    _changed();
+    return true;
+  }
+
+  // ================= 자동 배치 (웹 4157, 쉘터 Lv.3부터) =================
+  bool get autoOpen => S.lv >= 3 || S.gen != 0;
+  double _asgScore(int id, int t) {
+    final m = modAtTile(t);
+    if (m == null) return 0;
+    final p = pw(id);
+    return (survivors[id].match.contains(m.id) ? 2 + p.w : 1.3) * p.m;
+  }
+
+  ({int n, int fit}) autoAssign(bool full) {
+    if (!autoOpen) return (n: 0, fit: 0);
+    final tiles = modAt.keys.toList(), free = svIds.where((id) => !busy(id) && !(((rec(id)!['hurt'] as num?) ?? 0) > 0)).toList();
+    if (full) {
+      for (final t in tiles) {
+        unassign(t);
+      }
+      for (final id in free) {
+        rec(id)!['at'] = -1;
+      }
+    }
+    final open = tiles.where((t) => S.asg[t] == null).toList(), idle = free.where((id) => atOf(id) < 0).toList();
+    final pairs = <(double, int, int)>[for (final id in idle) for (final t in open) (_asgScore(id, t), id, t)]..sort((a, b) => b.$1.compareTo(a.$1));
+    final ui = <int>{}, ut = <int>{};
+    var n = 0, fit = 0;
+    for (final (_, id, t) in pairs) {
+      if (ui.contains(id) || ut.contains(t)) continue;
+      ui.add(id);
+      ut.add(t);
+      S.asg[t] = id;
+      rec(id)!['at'] = t;
+      n++;
+      if (survivors[id].match.contains(modAtTile(t)!.id)) fit++;
+    }
+    if (n > 0 || full) {
+      recalc();
+      _changed();
+    }
+    return (n: n, fit: fit);
+  }
+
+  int _autoT = 0;
+  void _tickAuto() {
+    if (S.rest['autoAsg'] != true || !autoOpen) return;
+    if (++_autoT % 5 != 0) return;
+    final r = autoAssign(false);
+    if (r.n > 0) fx.add(FxToast('자동 배치 · ${r.n}명이 빈 일터로 갔어요'));
   }
 
   // ================= 생존자 (웹 1489–1545, 2639–2662, 3058–3110, 4116–4160) =================
@@ -993,7 +1574,15 @@ class Game extends ChangeNotifier {
     final got = loot({k: n}, i);
     if (!got.containsKey(k)) fx.add(FxFloat(i, '${matOf[k]!.n} 창고가 가득 찼어요', 0xFFFFB4A0));
     if ((s.k == 'bunker' || s.k == 'lm') && rnd.nextDouble() < .1) loot({'batt': 1}, i);
-    // 장비·유물 발견은 2·4단계에서
+    // 장비 발견: 폐허 1%, 벙커·랜드마크 4% (유물은 4단계)
+    final gp = s.k == 'bunker' || s.k == 'lm' ? .04 : .01;
+    if (rnd.nextDouble() < gp) {
+      final it = dropGear(s.k == 'bunker' || s.k == 'lm' ? 1 : 0);
+      if (it != null) {
+        fx.add(FxFloat(i, '${gear[it]!.n}!', 0xFFC8AAFF, rise: 40));
+        fx.add(FxToast('폐허에서 장비를 찾았어요: ${gear[it]!.n}'));
+      }
+    }
   }
 
   /// 구름 칸 하나를 두드린다 (웹 dig 2459)
@@ -1159,7 +1748,7 @@ class Game extends ChangeNotifier {
       }
       if (!pay(recipeInp(r))) break;
       n++;
-      final extra = rnd.nextDouble() < (E['craft'] ?? 0) ? 1 : 0;
+      final extra = rnd.nextDouble() < (E['craft'] ?? 0) + craftBuff ? 1 : 0;
       made += give({r.out: r.n + extra})[r.out] ?? 0;
     }
     if (n > 0) {
@@ -1243,6 +1832,19 @@ class Game extends ChangeNotifier {
       recalc();
       changed = true;
     }
+    // 스킬 대기시간
+    final cd = S.rest['cd'];
+    if (cd is Map && cd.isNotEmpty) {
+      for (final k in cd.keys.toList()) {
+        final v = ((cd[k] as num?) ?? 0) - dt;
+        if (v <= 0) {
+          cd.remove(k);
+        } else {
+          cd[k] = v;
+        }
+      }
+      changed = true;
+    }
     // 임시 효과
     final b = S.buff;
     if (b != null) {
@@ -1266,10 +1868,18 @@ class Game extends ChangeNotifier {
       if (_tickSites()) _mapChanged();
       _tickSurv();
       _tickDuty();
-      if (S.droneLv > 0) {
+      final overT = ((S.rest['overT'] as num?) ?? 0).toInt();
+      if (overT > 0) S.rest['overT'] = overT - 1;
+      final hintT = ((S.rest['hintT'] as num?) ?? 0).toInt();
+      if (hintT > 0) {
+        S.rest['hintT'] = hintT - 1;
+        _mapChanged();
+      }
+      _tickAuto();
+      if (S.droneLv > 0 || overT > 0) {
         final i = frontierNearest();
         if (i >= 0) {
-          damage(i, droneDmg());
+          damage(i, overT > 0 ? math.max(droneDmg(), tapPow) * 4 : droneDmg());
           fx.add(FxBurst(i, 0xFF9FC6D2, 4));
         }
       }

@@ -184,6 +184,74 @@ final Map<String, (String, String, String, String)> duties = {
   for (final e in web.duty.entries) e.key: (e.value['n'] as String, e.value['v'] as String, e.value['ic'] as String, e.value['d'] as String),
 };
 
+class SkillInfo {
+  const SkillInfo(this.n, this.cd, this.d, this.cat, this.res);
+  final String n, d, cat;
+  final double cd;
+
+  /// 동네 사람(18~29)의 스킬 종류: k(buff 종류)·give·heal·clear·hope·name
+  final Map<String, Object?>? res;
+}
+
+final List<SkillInfo> skills = [
+  for (var i = 0; i < web.skills.length; i++)
+    SkillInfo(web.skills[i]['n'] as String, (web.skills[i]['cd'] as num).toDouble(), web.skills[i]['d'] as String, web.skillCat[i],
+        web.skills[i]['res'] == null ? null : Map<String, Object?>.from(web.skills[i]['res'] as Map)),
+];
+
+class GearInfo {
+  const GearInfo(this.key, this.n, this.slot, this.g, this.eff, this.fit, this.cost, this.wb, this.d, this.sig, this.line, this.ug);
+  final String key, n, slot, d;
+  final int g, wb;
+  final Map<String, double> eff;
+  final List<int> fit;
+  final Cost? cost;
+  final bool sig, line, ug;
+  int? get only => sig && fit.length == 1 ? fit.first : null;
+}
+
+final Map<String, GearInfo> gear = {
+  for (final e in web.gear.entries)
+    e.key: GearInfo(
+      e.key,
+      e.value['n'] as String,
+      e.value['slot'] as String,
+      e.value['g'] as int,
+      {for (final x in (e.value['eff'] as Map).entries) x.key as String: (x.value as num).toDouble()},
+      [for (final f in e.value['fit'] as List) f as int],
+      e.value['cost'] == null ? null : _cost(e.value['cost']),
+      e.value['wb'] as int,
+      e.value['d'] as String,
+      e.value['sig'] as bool,
+      e.value['line'] as bool,
+      e.value['ug'] as bool,
+    ),
+};
+
+/// 장비 그림 칸: [시트, 번호] (웹 design.js GCELL, LNI)
+final Map<String, (String, int)> gearCell = {for (final e in web.gearCell.entries) e.key: (e.value[0] as String, e.value[1] as int)};
+const slotKeys = ['tool', 'wear', 'keep'];
+const slotName = {'tool': '도구', 'wear': '옷', 'keep': '소지품'};
+final List<Cost> gradeUpCost = [for (final c in web.gup) _cost(c)];
+
+/// 효과 이름 (웹 EFFN)
+String effName(String k, double v) {
+  String pc(double x) => '${(x * 100 + .5).floor()}';
+  return switch (k) {
+    'scav' => '뒤지기 수확 +${pc(v)}%',
+    'tap' => '두드리는 힘 +${pc(v)}%',
+    'thrift' => '식량 소비 -${pc(v)}%',
+    'hope' => '희망 +${((v * 10 + .5).floor() / 10).toString().replaceAll(RegExp(r'\.0$'), '')}',
+    'food' => '식량 생산 +${pc(v)}%',
+    'cost' => '건설 자재 -${pc(v)}%',
+    'craft' => '가공 보너스 +${pc(v)}%',
+    'fever' => '랜턴 피버 +${v.toStringAsFixed(1)}초',
+    _ => '모든 생산 +${pc(v)}%',
+  };
+}
+
+String effText(Map<String, double> o) => o.entries.map((e) => effName(e.key, e.value)).join(' · ');
+
 /// 특기 문구: '{tap:pc}' → 백분율, '{hope:r}' → 반올림, '{fever:f1}' → 소수 한 자리
 String traitText(SurvInfo s, Map<String, double> v) => s.trait.replaceAllMapped(RegExp(r'\{(\w+):(\w+)\}'), (m) {
       final x = v[m[1]] ?? 0;

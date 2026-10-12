@@ -44,6 +44,11 @@ const T = {
   grades: ev('GR.map(g=>({n:g.n||null,m:g.m,cd:g.cd,w:g.w,c:g.c||null}))'),
   beds: ev('BEDS'),
   duty: ev('Object.fromEntries(Object.entries(DUTY).map(([k,d])=>[k,{n:d.n,v:d.v,ic:d.ic,d:d.d}]))'),
+  skills: ev('SKILLS.map((k,id)=>({n:k.n,cd:k.cd,d:k.d,res:(()=>{const r=id>=RES0?RESIDENTS[id-RES0]:null,k=r&&r.skill;return k?{k:k.k||null,give:k.give||null,heal:!!k.heal,clear:k.clear||0,hope:!!k.hope,name:r.name}:null;})()}))'),
+  skillCat: ev('SURV.map(s=>{const r=s.id>=RES0?RESIDENTS[s.id-RES0]:null;if(SKILL_CAT[s.id])return SKILL_CAT[s.id];const k=r&&r.skill&&r.skill.k;return k==="farm"?"food":k||"all";})'),
+  gear: ev('Object.fromEntries(Object.entries(GEAR).map(([k,G])=>[k,{n:G.n,slot:G.slot,g:G.g,ic:G.ic||null,eff:G.eff,fit:G.fit||[],cost:G.cost||null,wb:G.wb||0,d:G.d||"",sig:!!G.sig,line:!!G.line,ug:!!G.ug}]))'),
+  gearCell: ev(`(()=>{const o={};['lever','hammer','welder','binoc','axe','toolbox','shovel','wrench','light','saw','medkit','steth','hoe','ladle','tape2','rope2','meter','mic','rope3','loupe','mpick'].forEach((k,i)=>o[k]=['tools',i]);['coverall','mask','gloves','firesuit','coat','armor','boots','raincoat','helmet','apron','parka','drvglove','herbbag','wmask','mhelm'].forEach((k,i)=>o[k]=['wear',i]);['photo','coin','harmonica','seeds','watch','brooch','tape','bell','compass','notebook','ring','bag','umbrella','sketch','vane','ckey','feather','mlamp'].forEach((k,i)=>o[k]=['keep',i]);for(const k in LNI)o[k]=['line',LNI[k]];return o;})()`),
+  gup: ev('GUP'),
 };
 
 const dartStr = s => "'" + String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\$/g, '\\$').replace(/\n/g, '\\n') + "'";
