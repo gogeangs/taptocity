@@ -132,6 +132,41 @@ void main() {
       await tester.tap(find.text('+').first);
     });
     g.party = [0, 3];
+    // 3단계: 의뢰·부탁이 떠 있는 낮
+    final now = DateTime.now().millisecondsSinceEpoch;
+    g.S.rest['sq'] = <String, Object?>{'k': 'wood', 'n': 45, 'b': (g.S.got['wood'] ?? 0) - 20, 'at': now, 'who': 1, 'say': '“장작이 모자라요.”'};
+    g.sqOpenUntil = now + 60000;
+    g.evCur = 1;
+    g.evLeft = 70;
+    g.S.rest['wx'] = 'clear';
+    await _shot(tester, g, '12-day-quests');
+    await _shot(tester, g, '14-request', act: () async {
+      await tester.tap(find.text('고장 난 트럭').first);
+    });
+    // 재폭풍 밤
+    g.evCur = -1;
+    g.S.rest['sq'] = null;
+    g.S.rest['clock'] = 170.0;
+    g.wasNight = true;
+    g.S.rest['wx'] = 'normal';
+    final edge = [for (var i = 0; i < N; i++) if (g.S.rev[i] == 1 && !g.modAt.containsKey(i) && i != C0 && nb4(i).any((j) => g.S.rev[j] == 0)) i];
+    for (final i in edge.take(3)) {
+      g.S.ash['$i'] = <String, Object?>{'hp': 5.0, 'max': 8.0, 't': 9.0};
+    }
+    g.S.ash['${g.modAt.keys.first}'] = <String, Object?>{'hp': 4.0, 'max': 6.0, 't': 0, 'stuck': true};
+    await _shot(tester, g, '13-night');
+    // 대형 재폭풍
+    g.S.ash.clear();
+    g.startDefense();
+    await _shot(tester, g, '15-defense', act: () async {
+      for (var k = 0; k < 30; k++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    });
+    g.defn = null;
+    g.S.rest['clock'] = 10.0;
+    g.wasNight = false;
+    g.takeFx();
     await _shot(tester, g, '07-ring', act: () async {
       final r = tester.getRect(find.byType(MapView));
       final z = (r.width / (TW * 4.2)).clamp(.6, 2.2).toDouble();
