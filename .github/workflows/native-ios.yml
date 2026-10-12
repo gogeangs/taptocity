@@ -12,7 +12,10 @@ on:
         default: false
   push:
     branches: [main]
-    paths: ['native/pubspec.yaml', 'native/tool/platform_setup.py', '.github/workflows/native-ios.yml']
+    paths: ['native/lib/**', 'native/integration_test/**', 'native/pubspec.yaml', 'native/tool/platform_setup.py', '.github/workflows/native-ios.yml']
+
+permissions:
+  contents: write
 
 concurrency:
   group: native-ios-${{ github.ref }}
@@ -62,6 +65,40 @@ jobs:
           set +e +o pipefail
           flutter build ios --release --no-codesign 2>&1 | tee ../out.txt; s=${PIPESTATUS[0]}
           if [ $s -ne 0 ]; then m=$(tail -60 ../out.txt | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}'); echo "::error title=ios::$m"; exit $s; fi
+
+      - name: iPhone 시뮬레이터에서 띄워 보기
+        run: |
+          set +e +o pipefail
+          UDID=$(xcrun simctl list devices available -j | python3 -c "
+          import json,sys,re
+          d=json.load(sys.stdin)['devices']
+          c=[(r,x) for r,xs in d.items() if 'iOS' in r for x in xs if re.fullmatch(r'iPhone \d+( Pro)?', x['name'])]
+          c.sort(key=lambda t:(t[0], ' Pro' in t[1]['name']))
+          print(c[-1][1]['udid'], c[-1][1]['name'], c[-1][0].split('.')[-1], file=sys.stdout)" )
+          echo "시뮬레이터: $UDID"
+          UDID=${UDID%% *}
+          xcrun simctl boot "$UDID"; xcrun simctl bootstatus "$UDID" -b > /dev/null
+          mkdir -p ios-shots
+          flutter drive --driver test_driver/integration_test.dart --target integration_test/device_smoke_test.dart -d "$UDID" 2>&1 | tee ../drive.txt; s=${PIPESTATUS[0]}
+          cp build/integration_response_data.json ios-shots/report.json 2>/dev/null
+          grep -v '^\s*$' ../drive.txt | tail -60 > ios-shots/drive-log.txt
+          xcrun simctl spawn "$UDID" log show --last 10m --predicate 'process == "Runner" AND messageType == fault' --style compact 2>/dev/null | tail -30 > ios-shots/faults.txt
+          if [ $s -ne 0 ]; then m=$(tail -60 ../drive.txt | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}'); echo "::error title=simulator::$m"; fi
+          exit $s
+
+      - name: 시뮬레이터 사진 올리기 (native-play/ios-shots)
+        if: always() && github.ref == 'refs/heads/main'
+        working-directory: .
+        run: |
+          set +e +o pipefail
+          [ -d native/ios-shots ] || exit 0
+          rm -rf native-play/ios-shots && mkdir -p native-play && cp -r native/ios-shots native-play/ios-shots
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A native-play/ios-shots
+          git diff --cached --quiet && exit 0
+          git commit -qm "iOS 시뮬레이터 사진 (${GITHUB_SHA::7})"
+          for i in 1 2 3; do git pull --rebase --autostash origin main && git push origin HEAD:main && break; sleep 5; done
 
       - name: API 키 준비
         if: env.UPLOAD == 'true'

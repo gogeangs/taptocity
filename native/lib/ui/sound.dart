@@ -68,7 +68,10 @@ class Sound {
   static final _r = math.Random();
 
   /// 앱을 켤 때 한 번 (시험에서는 부르지 않아 소리가 나지 않는다)
+  static bool _inited = false;
   static Future<void> init() async {
+    if (_inited) return;
+    _inited = true;
     try {
       AudioCache.instance = AudioCache(prefix: 'assets/audio/');
       for (var k = 0; k < 6; k++) {

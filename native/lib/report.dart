@@ -12,10 +12,12 @@ class Report {
   static const ver = '2.0.0';
   static Map<String, dynamic> Function()? dev;
   static final Set<String> _seen = {};
+  static bool off = false;
 
   static String get app => kIsWeb ? 'native' : (defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android');
 
   static Future<void> error(Object e, StackTrace? st) async {
+    if (off) return;
     try {
       final head = '$e'.split('\n').first;
       final key = head.length > 120 ? head.substring(0, 120) : head;

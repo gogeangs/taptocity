@@ -10,8 +10,12 @@ import 'ui/sound.dart';
 import 'ui/story_ui.dart';
 import 'ui/theme.dart';
 
-Future<void> main() async {
+Future<void> main() => start();
+
+/// 앱 시작. 기기 시험(integration_test)은 cloud: false 로 불러 실제 클라우드·오류 보고를 건드리지 않는다
+Future<void> start({bool cloud = true}) async {
   WidgetsFlutterBinding.ensureInitialized();
+  Report.off = !cloud;
   // 잡히지 않은 오류는 개발자에게 (하루 다섯 건까지)
   FlutterError.onError = (d) {
     FlutterError.presentError(d);
@@ -21,7 +25,7 @@ Future<void> main() async {
     Report.error(e, st);
     return true;
   };
-  GameScreen.cloudOn = true;
+  GameScreen.cloudOn = cloud;
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Colors.transparent, statusBarIconBrightness: Brightness.light));
   await Prefs.load();
