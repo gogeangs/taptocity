@@ -7,6 +7,7 @@ import 'package:taptocity/game/data.dart';
 import 'package:taptocity/game/engine.dart';
 import 'package:taptocity/ui/atlas.dart';
 import 'package:taptocity/ui/game_screen.dart';
+import 'package:taptocity/ui/lines_ui.dart';
 import 'package:taptocity/ui/map_view.dart';
 import 'package:taptocity/ui/theme.dart';
 
@@ -326,5 +327,128 @@ void main() {
       }
       await tester.tap(find.text('건설').last);
     });
+
+    // ===== 6단계: 이주와 새 동네 =====
+    final r = Game(Game.fresh(seed: 42));
+    for (var y = CY - 4; y <= CY + 4; y++) {
+      for (var x = CX - 4; x <= CX + 4; x++) {
+        if (r.S.rev[y * W + x] == 0) r.reveal(y * W + x);
+      }
+    }
+    for (final id in [0, 1, 2, 3, 4, 5, 6, 7]) {
+      r.rescue(id, 'sig');
+    }
+    r.S.lv = 5;
+    r.S.rest['endSeen'] = 1;
+    r.S.rest['mi'] = steps.length;
+    r.S.rest['storyI'] = steps.length;
+    r.S.m.addAll({'wood': 200, 'scrap': 120, 'cloth': 60, 'food': 120, 'parts': 40, 'fuel': 40, 'batt': 8, 'plate': 20});
+    r.recalc();
+    r.takeFx();
+    await _shot(tester, r, '31-migrate', act: () async {
+      await tester.tap(find.text('쉘터').last);
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.tap(find.text('건설').last);
+      for (var k = 0; k < 4; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.tap(find.textContaining('새 동네로 떠나기').first);
+    });
+    r.migrate([0, 1, 2, 3, 4]);
+    r.takeFx();
+    for (var y = CY - 3; y <= CY + 3; y++) {
+      for (var x = CX - 3; x <= CX + 3; x++) {
+        if (r.S.rev[y * W + x] == 0) r.reveal(y * W + x);
+      }
+    }
+    r.S.rest['rsI'] = 0;
+    r.S.rest['rmi'] = 3;
+    r.S.rest['rsI'] = 3;
+    r.tickRegionSec();
+    final si = (r.rq['spotI'] as num).toInt();
+    r.takeFx();
+    expect(si, greaterThanOrEqualTo(0));
+    await _shot(tester, r, '32-desert');
+    r.S.m.addAll({'wood': 100, 'scrap': 100, 'food': 100, 'cloth': 100, 'fuel': 100, 'parts': 100});
+    r.trState();
+    r.takeFx();
+    await _shot(tester, r, '33-radio-trade', act: () async {
+      await tester.tap(find.text('라디오').last);
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.drag(find.byType(ListView).last, const Offset(0, -900));
+    });
+    r.tlog('급유탑 밑에 숨겨진 저수조를 찾았다.');
+    await _shot(tester, r, '34-route', act: () async {
+      await tester.tap(find.text('일지').last);
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.tap(find.text('노선도').last);
+    });
+    r.S.rest['rmi'] = 5;
+    r.S.rest['rsI'] = 5;
+    r.fx.add(const FxTownChoice());
+    await _shot(tester, r, '35-town-choice', act: () async {
+      for (var k = 0; k < 8; k++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    });
+    r.takeFx();
+    r.rescue(8, 'sig');
+    r.rescue(9, 'sig');
+    r.rescue(5, 'sig');
+    for (var k = 0; k < 30 && r.S.rest['deathG'] == null; k++) {
+      r.deathAfterDefense(false, Defense(null));
+    }
+    final dfx = r.takeFx().whereType<FxDeath>().toList();
+    if (dfx.isNotEmpty) r.fx.add(dfx.first);
+    await _shot(tester, r, '36-death', act: () async {
+      for (var k = 0; k < 40; k++) {
+        await tester.pump(const Duration(milliseconds: 200));
+      }
+    });
+    r.takeFx();
+    // 끊긴 노선
+    r.S.m['food'] = 100;
+    r.lnStart([0, 1]);
+    await _shot(tester, r, '37-line', act: () async {
+      await tester.pump(const Duration(milliseconds: 60));
+      await showLnRunFor(tester, r);
+    });
+    final L = r.ln!;
+    L.phase = 'fight';
+    L.fight = LnFight(false, 4, 1100, DateTime.now().microsecondsSinceEpoch / 1000 - 400);
+    await _shot(tester, r, '38-line-fight', act: () async {
+      await tester.pump(const Duration(milliseconds: 60));
+      await showLnRunFor(tester, r);
+    });
+    r.ln = null;
+    // 개인 이야기
+    r.rec(2)!['xp'] = 100000;
+    r.tickStorySec();
+    r.takeFx();
+    await _shot(tester, r, '39-quest', act: () async {
+      await tester.tap(find.text('생존자').last);
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.tap(find.text(survivors[2].name).last);
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.tap(find.text('이야기').last);
+    });
   });
+}
+
+Future<void> showLnRunFor(WidgetTester tester, Game g) async {
+  final ctx = tester.element(find.byType(GameScreen));
+  showLnRun(ctx, g);
+  for (var k = 0; k < 4; k++) {
+    await tester.pump(const Duration(milliseconds: 60));
+  }
 }

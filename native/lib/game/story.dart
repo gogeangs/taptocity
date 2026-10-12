@@ -12,7 +12,7 @@ class Line {
 
   static Line? of(Object? o) {
     if (o is! List) return null;
-    return Line(o[0] as Object, o[1] as String, cond: o[2] as String?, mood: o[3] as String?, fb: of(o[4]));
+    return Line(o[0] as Object, o[1] as String, cond: o.elementAtOrNull(2) as String?, mood: o.elementAtOrNull(3) as String?, fb: of(o.elementAtOrNull(4)));
   }
 }
 

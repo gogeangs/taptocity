@@ -481,4 +481,177 @@ void main() {
     expect(g.artCount, greaterThan(4));
     expect(g.sceneSource(4), isNotNull);
   });
+
+  test('이주: 다섯 명과 떠나면 새 동네가 시작되고, 남은 사람은 무전으로 거래·교대한다', () {
+    final g = Game(Game.fresh(seed: 21));
+    for (final id in [0, 1, 2, 3, 4, 5, 6, 7]) {
+      g.rescue(id, 'sig');
+    }
+    g.S.lv = 5;
+    g.S.rest['endSeen'] = 1;
+    g.S.rest['mi'] = steps.length;
+    g.S.rest['storyI'] = steps.length;
+    g.S.m['batt'] = 10;
+    expect(g.canMigrate, isTrue);
+    final (rec, why) = g.migRecommend('desert');
+    expect(rec.length, migMax);
+    expect(why, isNotEmpty);
+    g.takeFx();
+    g.migrate([0, 1, 2, 3, 4]);
+    expect(g.S.gen, 1);
+    expect(g.S.region, 'desert');
+    expect(g.S.sv.length, 5);
+    expect(g.stayList.length, 3);
+    expect(g.inStay(5), isTrue);
+    final fx = g.takeFx();
+    expect(fx.whereType<FxMigrated>(), isNotEmpty);
+    expect(fx.whereType<FxTalk>().first.card?.$2, '메마른 사막 도시');
+    // 동네 미션
+    final m = g.mission();
+    expect(m.reg, isTrue);
+    expect(m.txt, contains('불빛'));
+    expect(townName(1), '메마른 사막 도시');
+    expect(wayLine(1), contains('지나'));
+    // 숨겨진 저수조 찾기
+    g.S.rest['rmi'] = 3;
+    g.S.rest['rsI'] = 3;
+    g.tickRegionSec();
+    final si = (g.rq['spotI'] as num).toInt();
+    g.S.rev[si] = 1;
+    g.tickRegionSec();
+    expect(g.mission().done, isTrue);
+    g.claimMission();
+    expect(g.rmi, 4);
+    // 저수조 선택
+    expect(g.pickTown('a'), isNotEmpty);
+    expect(g.rq['pick'], 'share');
+    g.recalc();
+    expect(g.E['hope']! >= 10, isTrue);
+    // 무전 거래
+    for (final k in ['wood', 'scrap', 'food', 'cloth', 'fuel', 'parts']) {
+      g.S.m[k] = 100;
+    }
+    final T = g.trState();
+    expect((T['offers'] as List), isNotEmpty);
+    expect(g.trAccept(0), isNull);
+    expect((g.trade['pend'] as List).length, 1);
+    // 교대: 건전지 2를 내고, 취소하면 돌려받는다
+    final b0 = g.have('batt');
+    expect(g.swapStart(5, 1), isTrue);
+    expect(g.have('batt'), b0 - 2);
+    g.swapCancel();
+    expect(g.have('batt'), b0);
+    // 노선도 기록
+    expect(g.tlogList.any((e) => e is Map && e['g'] == 0 && e['left'] != null), isTrue);
+  });
+
+  test('새 동네: 잃은 사람, 모닥불, 동네 사건', () {
+    final g = Game(Game.fresh(seed: 22));
+    g.S.gen = 1;
+    g.S.region = 'desert';
+    g.S.rest['rmi'] = 3;
+    g.S.rest['mi'] = steps.length;
+    for (final id in [0, 1, 2, 4, 5, 6, 7, 8]) {
+      g.rescue(id, 'sig');
+    }
+    // 큰 밤에 지면 누군가를 잃을 수 있다 (만수·하늘 등은 지킨다)
+    for (var k = 0; k < 30 && g.S.rest['deathG'] == null; k++) {
+      g.deathAfterDefense(false, Defense(null));
+    }
+    expect((g.S.rest['deathG'] as Map)['1'], 1);
+    final dead = ((g.S.rest['dead'] as List).first as Map)['id'] as int;
+    expect(g.isDead(dead), isTrue);
+    expect(g.hasSv(dead), isFalse);
+    expect(dead, isNot(0));
+    final d = g.takeFx().whereType<FxDeath>().first;
+    expect(g.deathLines(d), isNotEmpty);
+    // 동네 사건: 미션 셋째부터
+    g.S.rest['storyI'] = steps.length;
+    g.S.rest['rsI'] = 3;
+    for (var k = 0; k < 60; k++) {
+      g.tick(1);
+    }
+    expect(g.takeFx().whereType<FxCase>().map((f) => f.k), contains(6));
+    final (ls, cfx) = g.pickCase(6, 'a');
+    expect(ls, isNotEmpty);
+    expect(cfx, contains('단서를 찾았어요'));
+    expect(g.caseKeys, contains(6));
+    // 산골 모닥불
+    g.S.region = 'snow';
+    g.S.gen = 3;
+    g.S.rest['warm'] = 0;
+    g.recalc();
+    expect(g.warmTier, 0);
+    g.S.m['wood'] = 100;
+    g.feedFire();
+    g.feedFire();
+    expect(g.warmTier, 2);
+    // 마지막 동네의 미션을 다 하면 엔딩
+    expect(g.regionMis().length, 9);
+  });
+
+  test('끊긴 노선: 터널을 고르고 올라오면 챙긴 것을 받고, 연달아 들어가면 보상이 준다', () {
+    final g = Game(Game.fresh(seed: 23));
+    for (final id in [0, 6]) {
+      g.rescue(id, 'sig');
+    }
+    g.S.m['food'] = 100;
+    expect(g.lnStart([0, 6]), isTrue);
+    expect(g.ln!.hp, g.lnHp0([0, 6]));
+    for (var k = 0; k < 40 && g.ln != null && (g.ln!.step < 2 || g.ln!.carry.isEmpty) && g.ln!.phase != 'done'; k++) {
+      final L = g.ln!;
+      if (L.phase == 'pick') {
+        final i = L.cards.indexWhere((c) => c.c != 'foe' && c.c != 'hazard' && !c.hid);
+        g.lnPick(i >= 0 ? i : 0);
+      } else if (L.phase == 'hazard') {
+        g.lnHazard(false);
+      } else if (L.phase == 'fight') {
+        L.fight!.hp = 0;
+        L.phase = 'pick';
+        L.fight = null;
+        L.cards = [LnCard('loot')];
+      } else {
+        g.lnGoOn();
+      }
+    }
+    final carry = Map.of(g.ln!.carry);
+    g.lnEnd(true);
+    expect(g.ln, isNull);
+    expect(g.lnState()['fat'], 1);
+    expect(g.lnMult, .75);
+    expect(carry.isNotEmpty, isTrue);
+    // 고리 판정: 금빛 테두리에 맞으면 2
+    expect(g.lnStart([0]), isTrue);
+    final L = g.ln!;
+    L.phase = 'fight';
+    L.fight = LnFight(false, 3, 1100, DateTime.now().microsecondsSinceEpoch / 1000 - 1100 * (1 - lnTgt / 100) - 60);
+    g.lnStrike();
+    expect(L.fight!.hp, 1);
+  });
+
+  test('개인 이야기: 신뢰도 3이면 열리고, 건네기·데려오기로 나아가 끝에 전용 장비', () {
+    final g = Game(Game.fresh(seed: 24));
+    g.rescue(2, 'sig');
+    g.rec(2)!['xp'] = 100000;
+    g.tickStorySec();
+    expect(g.qOf(2), isNotNull);
+    expect(g.qStep(2)!['k'], 'give');
+    g.S.m['med'] = 5;
+    g.S.m['cloth'] = 50;
+    expect(g.qGive(2), isTrue);
+    expect(g.qStep(2)!['k'], 'find');
+    // 하늘: 순례 할머니가 오면 다음 걸음
+    g.rescue(3, 'sig');
+    g.rec(3)!['xp'] = 100000;
+    g.tickStorySec();
+    g.rescue(4, 'sig');
+    g.tickStorySec();
+    expect(g.qStep(3)!['k'], 'find');
+    // 마지막 걸음을 마치면 전용 장비
+    g.qOf(3)!['s'] = 2;
+    g.S.m['wood'] = 50;
+    expect(g.qGive(3), isTrue);
+    expect(g.qOf(3)!['done'], true);
+    expect(g.inv.any((x) => x['t'] == 'umbrella'), isTrue);
+  });
 }
