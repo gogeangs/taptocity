@@ -146,7 +146,7 @@ void main() {
     expect(g.hasSv(sig.value), isTrue);
     expect(g.bedsUsed, 1);
     // 일터에 배치하면 효과가 붙고 신뢰가 쌓인다
-    g.S.m.addAll({'wood': 999, 'scrap': 999});
+    g.S.m.addAll({'wood': 999, 'scrap': 999, 'food': 100});
     g.buildMod(1);
     final tile = g.modAt.keys.first;
     g.assign(tile, sig.value);
