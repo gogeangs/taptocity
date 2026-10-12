@@ -163,6 +163,58 @@ void main() {
     g.S.rest['clock'] = 10.0;
     g.wasNight = false;
     g.takeFx();
+    // 4단계: 원정·라디오·펫·아이·떠돌이 무리·장식·노친네
+    await _shot(tester, g, '16-exp', act: () async {
+      await tester.tap(find.text('원정').last);
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.tap(find.text('팀 꾸리기').first);
+      await tester.pump(const Duration(milliseconds: 60));
+      await tester.tap(find.text(survivors[0].name).last);
+      await tester.tap(find.text(survivors[1].name).last);
+    });
+    g.S.m['batt'] = 6;
+    await _shot(tester, g, '17-radio', act: () async {
+      await tester.tap(find.text('라디오').last);
+    });
+    g.petAdopt('dog', quiet: true);
+    g.petAdopt('cat', quiet: true);
+    g.addKid();
+    final open = [for (var i = 0; i < N; i++) if (g.decoOk(i)) i];
+    g.S.m.addAll({'wood': 140, 'food': 60});
+    if (open.length > 3) {
+      g.placeDeco('bench', open[0]);
+      g.placeDeco('pot', open[2]);
+      g.S.rest['band'] = <String, Object?>{'k': 'trader', 'name': '떠돌이 고물상', 'tile': open[open.length - 1], 't': 150,
+        'offers': [<String, Object?>{'give': {'scrap': 20}, 'get': {'plate': 3}, 'left': 2}], 'say': '“좋은 물건 있수.”', 'tribute': {}};
+    }
+    g.ped['here'] = 0;
+    g.ped['visits'] = 1;
+    g.ped['stock'] = [<String, Object?>{'kind': 'mat', 'm': {'batt': 3}, 'n': '건전지 세 개', 'd': '아직 살아 있다. 아마도.', 'price': {'parts': 10, 'fuel': 8}, 'rare': 1, 'sold': 0}];
+    g.takeFx();
+    await _shot(tester, g, '18-map-life', act: () async {
+      for (var k = 0; k < 20; k++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    });
+    await _shot(tester, g, '19-pets', act: () async {
+      await tester.tap(find.text('생존자').last);
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.tap(find.text('펫').first);
+    });
+    await _shot(tester, g, '20-deco', act: () async {
+      await tester.tap(find.text('쉘터').last);
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.tap(find.text('꾸미기').last);
+    });
+    await _shot(tester, g, '21-ped', act: () async {
+      await tester.tap(find.text('🛒 노친네'));
+    });
     await _shot(tester, g, '07-ring', act: () async {
       final r = tester.getRect(find.byType(MapView));
       final z = (r.width / (TW * 4.2)).clamp(.6, 2.2).toDouble();
