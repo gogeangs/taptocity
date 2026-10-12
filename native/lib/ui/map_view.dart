@@ -17,7 +17,9 @@ import 'theme.dart';
 
 class Camera extends ChangeNotifier {
   double x = 0, y = (CX + CY + 1) * TH / 2 - 10, z = 1.4;
+  bool userZoomed = false;
   void set(double nx, double ny, [double? nz]) {
+    if (nz != null) userZoomed = true;
     x = nx.clamp(-W * TW / 2, W * TW / 2).toDouble();
     y = ny.clamp(0, (W + H) * TH / 2).toDouble();
     if (nz != null) z = nz.clamp(.45, 3.2).toDouble();
@@ -74,7 +76,7 @@ class _MapViewState extends State<MapView> {
   Offset? dragCam;
   Offset? dragStart;
   double? pinchD, pinchZ;
-  bool _framed = false;
+  double _framedW = 0;
 
   Game get g => widget.game;
   Camera get cam => widget.camera;
@@ -252,9 +254,9 @@ class _MapViewState extends State<MapView> {
     return LayoutBuilder(builder: (context, c) {
       size = c.biggest;
       widget.fxLayer.viewSize = size;
-      if (!_framed && size.width > 0) {
-        // 처음 열 때 웹과 같은 확대: 화면 폭에 칸 4.2개
-        _framed = true;
+      if (!cam.userZoomed && size.width > 0 && (size.width - _framedW).abs() > 1) {
+        // 웹과 같은 확대: 화면 폭에 칸 4.2개 (직접 확대하기 전까지는 화면 크기를 따라감)
+        _framedW = size.width;
         cam.z = (size.width / (TW * 4.2)).clamp(.6, 2.2).toDouble();
       }
       return Listener(
@@ -344,6 +346,7 @@ class MapPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
+    canvas.clipRect(rect);
     canvas.drawRect(rect, Paint()..shader = ui.Gradient.linear(Offset.zero, Offset(0, size.height), const [bgTop, bgBottom]));
     _glows.clear();
     canvas.save();
@@ -813,6 +816,7 @@ class _FxPainter extends CustomPainter {
   final Camera cam;
   @override
   void paint(Canvas canvas, Size size) {
+    canvas.clipRect(Offset.zero & size);
     canvas.save();
     canvas.translate(size.width / 2, size.height / 2);
     canvas.scale(cam.z);
