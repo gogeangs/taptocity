@@ -217,9 +217,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       if (bak != null) {
         try {
           final s = GameState.fromJson(jsonDecode(bak) as Map<String, dynamic>);
-          s.rest['tutSeen'] = 1;
-          g.replaceState(s);
-          fxc.toast('원래 쉘터로 돌아왔어요');
+          if (s != null) {
+            s.rest['tutSeen'] = 1;
+            g.replaceState(s);
+            fxc.toast('원래 쉘터로 돌아왔어요');
+          }
         } catch (_) {}
       }
     }
