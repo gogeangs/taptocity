@@ -499,6 +499,7 @@ extension Story on Game {
   /// 0.25초마다 (게임 tick에서): 미션 띠 상태와 장면 진행
   void tickStoryFast() {
     migrateSteps();
+    if (tutPending && !uiModal) startTut(); // 처음이면 바로 '그날 밤'부터
     if (tut != null) return;
     final m = mission();
     hastenStorm(m);

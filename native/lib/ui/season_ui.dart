@@ -541,7 +541,7 @@ void showScene(BuildContext context, Game g, int n) {
       g,
       (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Container(
-              margin: const EdgeInsets.fromLTRB(-2, -2, -2, 12),
+              margin: const EdgeInsets.only(bottom: 12),
               constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * .4),
               decoration: BoxDecoration(color: const Color(0xFF35404A), borderRadius: BorderRadius.circular(10)),
               clipBehavior: Clip.antiAlias,

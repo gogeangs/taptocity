@@ -470,6 +470,9 @@ class _DiaryBodyState extends State<DiaryBody> {
       ('guide', '안내서'),
     ];
     final on = tabs.indexWhere((t) => t.$1 == DiaryBody.tab);
+    // 지금 보는 탭의 새 표시는 바로 지운다
+    if (DiaryBody.tab == 'scene') g.S.rest.remove('artNew');
+    if (DiaryBody.tab == 'case') g.S.rest.remove('caseNew');
     return ListView(padding: _bodyPad, children: [
       Segs(
         items: [for (final t in tabs) t.$2],

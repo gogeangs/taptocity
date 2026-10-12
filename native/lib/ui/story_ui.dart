@@ -424,7 +424,7 @@ class _TalkPageState extends State<_TalkPage> {
                   final r = storyRect(art) ?? rect;
                   if (r == null) return card ? Padding(padding: const EdgeInsets.only(bottom: 16), child: sceneArt(t.scene ?? 'shelter')) : const SizedBox.shrink();
                   return Container(
-                    margin: const EdgeInsets.fromLTRB(-2, -2, -2, 12),
+                    margin: const EdgeInsets.only(bottom: 12),
                     constraints: BoxConstraints(maxHeight: scr.height * (scr.height <= 640 ? .26 : .34)),
                     decoration: BoxDecoration(color: const Color(0xFF35404A), borderRadius: BorderRadius.circular(10)),
                     clipBehavior: Clip.antiAlias,
