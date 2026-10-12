@@ -101,7 +101,8 @@ void autoStep(Game g, Qa qa, math.Random r) {
   }
   // 사람처럼 두드리기 (초당 5번쯤): 구조 캠프 잔해 → 폐허 뒤지기 → 구름 걷기
   safe('tap', () {
-    final camps = [for (final e in g.S.camp.entries) if (g.S.rev[e.key] == 1) e.key];
+    // 잔해가 남은 캠프만 (다 치운 캠프는 침대·자재가 생길 때까지 기다린다)
+    final camps = [for (final e in g.S.camp.entries) if (g.S.rev[e.key] == 1 && ((e.value['hp'] as num?) ?? 0) > 0) e.key];
     int near(Iterable<int> xs) => xs.reduce((a, b) => dist(a) <= dist(b) ? a : b);
     final sites = [for (var i = 0; i < N; i++) if (g.S.rev[i] == 1 && g.siteLive(i)) i];
     for (var k = 0; k < 5; k++) {
@@ -297,7 +298,9 @@ void run(Game g, Qa qa, int minutes, int seed, {bool stopAtEnd = true}) {
       stuck = 0;
     } else if (++stuck == 15 * 60) {
       final m = g.mission();
-      qa.note('⏸ 15분째 같은 목표: ${g.S.gen}동네 · ${m.txt} (Lv.${g.S.lv}, 생존자 ${g.S.sv.length}, 밝힌 땅 ${g.revCount})');
+      final mats = [for (final e in g.S.m.entries) if (e.value >= 1) '${e.key}${e.value.floor()}'].join(' ');
+      final live = [for (var i = 0; i < N; i++) if (g.siteLive(i)) i].length;
+      qa.note('⏸ 15분째 같은 목표: ${g.S.gen}동네 · ${m.txt} / ${m.sub} (Lv.${g.S.lv}, 생존자 ${g.S.sv.length}, 밝힌 땅 ${g.revCount}, 폐허 $live, 캠프 ${g.S.camp.length}, 모듈 ${g.S.mods.length}) · $mats');
     }
     if (stopAtEnd && g.S.rest['ehEnd'] != null) break;
   }
