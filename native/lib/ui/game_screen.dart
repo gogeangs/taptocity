@@ -441,16 +441,20 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                             : SizedBox(width: math.min(300, box.maxWidth - 84), child: sideQuest(g, onTap: _sqGo)),
                   ),
                 ),
-                Every(
-                  g: g,
-                  builder: (c) => g.defn != null || matsOpen || g.evCur < 0
-                      ? const SizedBox.shrink()
-                      : Positioned(
+                // (Stack 크기가 0이 되지 않게, 위치가 바뀌는 부탁 버튼은 자기 Stack 안에 둔다)
+                Positioned.fill(
+                  child: Every(
+                    g: g,
+                    builder: (c) => Stack(children: [
+                      if (g.defn == null && !matsOpen && g.evCur >= 0)
+                        Positioned(
                           left: 12,
                           right: 72,
                           top: g.sq != null && g.sqOn ? 122 : 50,
                           child: Align(alignment: Alignment.centerLeft, child: eventButton(g, () => showRequestPage(context, g))),
                         ),
+                    ]),
+                  ),
                 ),
                 // 시트
                 Positioned(
