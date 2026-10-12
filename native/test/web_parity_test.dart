@@ -271,6 +271,18 @@ void main() {
     expect(g.takeFx().whereType<FxExpBack>(), isNotEmpty);
   });
 
+  test('주파수 탐색: 20번 안에 히든 생존자 신호가 반드시 잡힌다', () {
+    final g = Game(Game.fresh(seed: 42));
+    g.S.m['batt'] = 30;
+    final got = <String>[];
+    for (var k = 0; k < 20; k++) {
+      got.addAll(g.pull(1)!.map((x) => x.k));
+    }
+    expect(got, contains('hidden'));
+    expect(g.batt, 10);
+    expect(g.pull(99), isNull);
+  });
+
   test('구름을 두드리면 밝혀지고, 경계가 이어진다', () {
     final g = Game(Game.fresh(seed: 7));
     final before = g.S.rev.where((v) => v == 1).length;

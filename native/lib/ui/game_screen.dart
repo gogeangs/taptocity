@@ -370,7 +370,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       case 'exp':
         return SheetPanel(icon: Ico.exp, title: '원정', onClose: _close, child: ExpBody(g, toast: fxc.toast));
       default:
-        return SheetPanel(icon: Ico.radio, title: '라디오', onClose: _close, child: comingBody('라디오', '4단계'));
+        return SheetPanel(icon: Ico.radio, title: '주파수 탐색', onClose: _close, child: RadioBody(g));
     }
   }
 

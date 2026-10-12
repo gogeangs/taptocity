@@ -298,3 +298,112 @@ extension Outside on Game {
 
   bool get anyExpBack => expMap.values.any((x) => DateTime.now().millisecondsSinceEpoch >= (x['end'] as num));
 }
+
+// ================= 라디오: 주파수 탐색 (웹 3111–3155) =================
+const hiddenSv = [11, 12];
+const pity = 20;
+const gTable = [('hidden', .05, '히든 생존자'), ('gear', .10, '장비 (희귀 65% · 영웅 30% · 전설 5%)'), ('rare', .22, '희귀 자재'), ('voice', .08, '먼 곳의 목소리'), ('memo', .05, '생존자의 사연'), ('junk', .50, '잡음 속 물자')];
+const voices = ['“…여기는 남쪽 저수지… 물은 있는데 불이 없어요…”', '“…3시 14분… 모든 시계가… 멈췄…”', '“…오늘의 날씨… 재… 내일은… 맑…”', '“…누구든 이 방송을 듣는다면, 불을 켜 주세요…”', '“…발전소 제어실… 아직 전원이… 살아…”', '“…사랑해, 꼭 다시 만나…”'];
+const exchCost = {'parts': 12, 'fuel': 6, 'scrap': 10};
+
+/// 탐색 한 번의 결과
+class Pull {
+  Pull(this.k, {this.id, this.t, this.got = const {}});
+  String k; // hidden gear rare voice memo junk
+  final int? id;
+  final String? t; // 장비 키 또는 목소리
+  Map<String, int> got;
+}
+
+extension Radio on Game {
+  int get batt => have('batt').toInt();
+  int get pityLeft => math.max(1, pity - num_('gp').toInt());
+
+  Pull _rollOne() {
+    S.rest['gp'] = num_('gp') + 1;
+    S.rest['gTotal'] = num_('gTotal') + 1;
+    final left = hiddenSv.where((id) => !hasSv(id) && !isDead(id) && !inStay(id) && !S.camp.values.any((c) => c['id'] == id)).toList();
+    var r = rnd.nextDouble();
+    String k;
+    if (left.isNotEmpty && (num_('gp') >= pity || r < .05)) {
+      k = 'hidden';
+    } else {
+      r = rnd.nextDouble();
+      k = r < 10 / 95 ? 'gear' : r < 32 / 95 ? 'rare' : r < 40 / 95 ? 'voice' : r < 45 / 95 ? 'memo' : 'junk';
+    }
+    if (k == 'hidden') {
+      S.rest['gp'] = 0;
+      return Pull(k, id: left[rnd.nextInt(left.length)]);
+    }
+    if (k == 'gear') {
+      final q = rnd.nextDouble();
+      final t = dropGear(q < .05 ? 3 : q < .35 ? 2 : 1);
+      if (t != null) return Pull(k, t: t);
+      k = 'junk';
+    }
+    if (k == 'memo') {
+      final ids = svIds.toList();
+      if (ids.isNotEmpty) {
+        final id = ids[rnd.nextInt(ids.length)];
+        rec(id)!['xp'] = xpOf(id) + 60;
+        return Pull(k, id: id);
+      }
+      k = 'junk';
+    }
+    if (k == 'voice') {
+      S.hopeB += 2;
+      return Pull(k, t: voices[rnd.nextInt(voices.length)]);
+    }
+    if (k == 'rare') {
+      const opts = [
+        {'plate': 5},
+        {'rope': 5},
+        {'wire': 1},
+        {'med': 1},
+        {'plate': 3, 'rope': 3},
+      ];
+      return Pull(k, got: give(scaleCost(opts[rnd.nextInt(opts.length)], 1 + (S.lv - 1) * .3)));
+    }
+    final a = baseMats[rnd.nextInt(6)], b = baseMats[rnd.nextInt(6)];
+    return Pull('junk', got: give(scaleCost(a == b ? {a: 6} : {a: 8, b: 6}, lvScale)));
+  }
+
+  /// 건전지 n개로 n번 탐색 (웹 pull). 5번 탐색엔 희귀 이상이 하나는 꼭.
+  List<Pull>? pull(int n) {
+    if (batt < n) return null;
+    S.m['batt'] = have('batt') - n;
+    final res = [for (var q = 0; q < n; q++) _rollOne()];
+    if (n >= 5 && res.every((x) => x.k == 'junk')) {
+      res.last
+        ..k = 'rare'
+        ..got = give(scaleCost({'plate': 4, 'rope': 4}, 1 + (S.lv - 1) * .3));
+    }
+    S.rest['gUses'] = num_('gUses') + 1;
+    recalc();
+    _changed();
+    return res;
+  }
+
+  /// 히든 생존자가 신호를 따라 온다 (빈 침상이 없으면 쉘터 앞에서 기다림)
+  void hiddenArrive(int id) {
+    if (hasSv(id)) return;
+    if (bedFree > 0) {
+      rescue(id, 'visit');
+    } else {
+      final t = visitorTile();
+      if (t >= 0) {
+        makeCamp(t, id, visit: true);
+        fx.add(FxToast('${jo(survivors[id].name, '이', '가')} 쉘터 앞에서 빈 침상을 기다려요'));
+      }
+    }
+    _changed();
+  }
+
+  Cost get exchangeCost => scaleCost(exchCost, 1 + (S.lv - 1) * .2);
+  void exchange() {
+    if (!pay(exchangeCost)) return;
+    give({'batt': 1});
+    fx.add(const FxToast('건전지 1개를 만들었어요'));
+    _changed();
+  }
+}

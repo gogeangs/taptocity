@@ -268,3 +268,252 @@ void showExpBack(BuildContext context, Game g, FxExpBack f) {
         Row(children: [pageBtn('좋아요', () => Navigator.pop(ctx))]),
       ]));
 }
+
+// ======================= 라디오 (웹 renderRadio 3249) =======================
+Widget radioArt({double width = 230}) => SizedBox(
+      width: width,
+      height: width * 180 / 240,
+      child: AtlasPic(file: 'radio.webp', src: Atlas.image('radio.webp') == null ? null : Rect.fromLTWH(0, 0, 1448, 1086), width: width, height: width * 180 / 240),
+    );
+
+class RadioBody extends StatelessWidget {
+  const RadioBody(this.g, {super.key});
+  final Game g;
+  @override
+  Widget build(BuildContext context) {
+    final b = g.batt, c = g.exchangeCost;
+    Widget pullBtn(int n) => Expanded(child: BuyButton('$n번 탐색 · 건전지 $n', width: double.infinity, onTap: b < n ? null : () => showPull(context, g, n)));
+    return ListView(padding: const EdgeInsets.fromLTRB(14, 14, 14, 20), children: [
+      Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(color: Ttc.surface, borderRadius: BorderRadius.circular(10), border: Border.all(color: Ttc.line)),
+        child: Column(children: [
+          radioArt(width: math.min(230, MediaQuery.of(context).size.width * .6)),
+          const SizedBox(height: 12),
+          Text.rich(TextSpan(children: [const TextSpan(text: '건전지로 다이얼을 돌려 물자와 장비를 찾아요. 가끔 '), bold('히든 생존자'), const TextSpan(text: '의 목소리도 잡혀요.')]),
+              style: Ttc.t(14, color: Ttc.sepia2, height: 1.7)),
+          const SizedBox(height: 10),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(color: const Color(0xFFE8DFCD), borderRadius: BorderRadius.circular(7), border: Border.all(color: Ttc.line)),
+            child: Wrap(alignment: WrapAlignment.center, crossAxisAlignment: WrapCrossAlignment.center, spacing: 5, runSpacing: 4, children: [
+              ResIcon('batt', size: 18),
+              Text.rich(TextSpan(children: [const TextSpan(text: '건전지 '), bold('$b')]), style: Ttc.t(14, color: Ttc.sepia, weight: FontWeight.w600)),
+              const SizedBox(width: 8),
+              Text.rich(TextSpan(children: [const TextSpan(text: '히든 신호까지 최대 '), bold('${g.pityLeft}'), const TextSpan(text: '번')]), style: Ttc.t(11, color: Ttc.sepia2)),
+            ]),
+          ),
+          const SizedBox(height: 10),
+          Row(children: [pullBtn(1), const SizedBox(width: 8), pullBtn(5)]),
+          const SizedBox(height: 6),
+          Text('5번 탐색에는 희귀 자재 이상이 하나는 꼭 들어 있어요', textAlign: TextAlign.center, style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5)),
+        ]),
+      ),
+      MCard(
+        thumb: const SizedBox(width: 0),
+        title: '건전지 만들기',
+        costs: costWrap(g, c),
+        button: BuyButton('만들기', onTap: g.canPay(c) ? g.exchange : null, why: g.canPay(c) ? null : '자재 부족'),
+      ),
+      descText('건전지는 목표·밤·원정·부탁에서 얻어요.'),
+      sec('히든 생존자'),
+      Row(children: [
+        for (final id in hiddenSv) ...[
+          if (id != hiddenSv.first) const SizedBox(width: 10),
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: g.hasSv(id) ? const Color(0xFFFBECC4) : const Color(0xFFDED8CB),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: g.hasSv(id) ? const Color(0xFFE0B441) : Ttc.line),
+              ),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                faceBox(g, id, w: double.infinity, h: 150, locked: !g.hasSv(id), hid: true),
+                const SizedBox(height: 4),
+                Text(g.hasSv(id) ? survivors[id].name : '???', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
+                Text(g.hasSv(id) ? survivors[id].job : (survivors[id].alias ?? ''), style: Ttc.t(11, color: Ttc.sepia2, height: 1.4)),
+              ]),
+            ),
+          ),
+        ],
+      ]),
+      sec('확률'),
+      for (final (_, p, n) in gTable)
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 1),
+          child: Row(children: [Expanded(child: Text(n, style: Ttc.t(13, color: Ttc.sepia))), Text('${(p * 100).round()}%', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700))]),
+        ),
+      const SizedBox(height: 4),
+      descText('히든 생존자를 모두 만나면 그 몫은 희귀 자재가 돼요. $pity번 안에 한 번은 반드시 히든 신호가 잡혀요.'),
+    ]);
+  }
+}
+
+/// 탐색: 지지직 → 결과 (웹 pull·showPull)
+void showPull(BuildContext context, Game g, int n) {
+  final res = g.pull(n);
+  if (res == null) return;
+  showPageOf(context, g, (ctx) => _PullPage(g, res, n));
+}
+
+class _PullPage extends StatefulWidget {
+  const _PullPage(this.g, this.res, this.n);
+  final Game g;
+  final List<Pull> res;
+  final int n;
+  @override
+  State<_PullPage> createState() => _PullPageState();
+}
+
+class _PullPageState extends State<_PullPage> {
+  int phase = 0; // 0 지지직, 1 잡힘, 2 결과
+  late List<Pull> res = widget.res;
+  bool get hid => res.any((x) => x.k == 'hidden');
+  @override
+  void initState() {
+    super.initState();
+    _run();
+  }
+
+  void _run() {
+    phase = 0;
+    Future.delayed(const Duration(milliseconds: 900), () {
+      if (mounted) setState(() => phase = 1);
+    });
+    Future.delayed(Duration(milliseconds: hid ? 1900 : 1500), () {
+      if (!mounted) return;
+      setState(() => phase = 2);
+      for (final x in res.where((x) => x.k == 'hidden')) {
+        widget.g.hiddenArrive(x.id!);
+      }
+    });
+  }
+
+  Widget _card(Pull x) {
+    final g = widget.g;
+    Color bg = const Color(0xFFF7EED6), bd = const Color(0x403B2A1A);
+    final kids = <Widget>[];
+    switch (x.k) {
+      case 'hidden':
+        bg = const Color(0xFFF8E3A8);
+        bd = const Color(0xFFE0B441);
+        kids.addAll([
+          faceBox(g, x.id!, w: double.infinity, h: 120),
+          Text(survivors[x.id!].name, style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
+          Text(survivors[x.id!].job, style: Ttc.t(12, color: Ttc.sepia2)),
+        ]);
+      case 'memo':
+        kids.addAll([
+          Center(child: faceBox(g, x.id!, w: 56, h: 65)),
+          Text('${survivors[x.id!].name}의 사연', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
+          Text('신뢰 +60', style: Ttc.t(12, color: Ttc.sepia2)),
+        ]);
+      case 'gear':
+        final G = gear[x.t]!;
+        bg = [const Color(0xFFF7EED6), const Color(0xFFE6EFF6), const Color(0xFFEFE4F6), const Color(0xFFF8E3A8)][G.g];
+        bd = Color(grades[G.g].color);
+        kids.addAll([
+          Center(child: GearIcon(x.t, size: 46)),
+          Text(G.n, textAlign: TextAlign.center, style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
+          Center(child: gradeChip(G.g)),
+          Text('${slotName[G.slot]}\n${effText(G.eff)}', textAlign: TextAlign.center, style: Ttc.t(12, color: Ttc.sepia2, height: 1.45)),
+        ]);
+      case 'voice':
+        bg = const Color(0xFFECE2F2);
+        bd = const Color(0xFF8A6AA0);
+        kids.addAll([
+          Text('먼 곳의 목소리', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
+          Text(x.t!, style: Ttc.t(12, color: Ttc.sepia2, height: 1.45)),
+          Text('희망 +2', style: Ttc.t(12, color: Ttc.sepia2)),
+        ]);
+      default:
+        if (x.k == 'rare') {
+          bg = const Color(0xFFE3EEEE);
+          bd = const Color(0xFF5D8FA0);
+        }
+        kids.addAll([
+          Text(x.k == 'rare' ? '희귀 자재' : '잡음 속 물자', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
+          if (x.got.isEmpty) Text('창고가 가득 찼어요', style: Ttc.t(12, color: Ttc.sepia2)),
+          for (final e in x.got.entries)
+            Row(children: [ResIcon(e.key, size: 13), const SizedBox(width: 3), Text('${matOf[e.key]!.n} ${e.value}', style: Ttc.t(12, color: Ttc.sepia2, height: 1.45))]),
+        ]);
+    }
+    return Stack(clipBehavior: Clip.none, children: [
+      Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: bd, width: x.k == 'hidden' ? 2 : 1.5),
+          boxShadow: x.k == 'hidden' ? const [BoxShadow(color: Color(0xBFE0B441), blurRadius: 18)] : null,
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [for (final k in kids) Padding(padding: const EdgeInsets.only(bottom: 3), child: k)]),
+      ),
+      if (x.k == 'hidden')
+        Positioned(
+          top: -9,
+          left: 0,
+          right: 0,
+          child: Center(
+            child: Transform.rotate(
+              angle: -.05,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(color: Ttc.no, borderRadius: BorderRadius.circular(3)),
+                child: Text('HIDDEN · 전설', style: Ttc.t(11, color: const Color(0xFFFFF4E0), weight: FontWeight.w700)),
+              ),
+            ),
+          ),
+        ),
+    ]);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final g = widget.g;
+    if (phase < 2) {
+      return Column(children: [
+        Align(alignment: Alignment.centerLeft, child: Text('주파수 탐색', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600))),
+        const SizedBox(height: 8),
+        radioArt(width: 220),
+        const SizedBox(height: 6),
+        Text(phase == 0 ? '지지직… 지지…' : (hid ? '…!! 선명한 목소리가 잡혔어요!' : '…신호가 잡혔어요'), textAlign: TextAlign.center, style: Ttc.t(20, color: Ttc.sepia, weight: FontWeight.w700, height: 1.3)),
+        const SizedBox(height: 12),
+      ]);
+    }
+    final hs = res.where((x) => x.k == 'hidden').toList();
+    final n = widget.n;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Text('탐색 결과', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+      const SizedBox(height: 10),
+      if (res.length == 1)
+        Center(child: SizedBox(width: 180, child: _card(res.first)))
+      else
+        LayoutBuilder(builder: (c, box) {
+          final cols = math.max(1, (box.maxWidth + 8) ~/ 100), w = (box.maxWidth - (cols - 1) * 8) / cols;
+          return Wrap(spacing: 8, runSpacing: 10, children: [for (final x in res) SizedBox(width: w, child: _card(x))]);
+        }),
+      const SizedBox(height: 12),
+      Text(
+          hs.isNotEmpty ? hs.map((x) => '${jo(survivors[x.id!].name, '이', '가')} 신호를 따라 쉘터로 오고 있어요!').join('\n') : '히든 신호까지 최대 ${g.pityLeft}번',
+          style: Ttc.t(13, color: hs.isNotEmpty ? Ttc.ok : const Color(0xFF6E5638), height: 1.6)),
+      const SizedBox(height: 12),
+      Row(children: [
+        pageBtn('한 번 더 (건전지 $n)', g.batt < n
+            ? null
+            : () {
+                final r = g.pull(n);
+                if (r == null) return;
+                setState(() {
+                  res = r;
+                  _run();
+                });
+              }, alt: true),
+        const SizedBox(width: 8),
+        pageBtn('확인', () => Navigator.pop(context)),
+      ]),
+    ]);
+  }
+}
