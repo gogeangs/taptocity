@@ -953,6 +953,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     }
   }
 
+  /// 열린 시트. 닫힐 때 사라지는 동안(AnimatedSwitcher)에도 다시 그려지므로 그때의 시트 이름을 붙잡아 둔다
+  Widget _sheetBox(SheetSpec s) => KeyedSubtree(key: ValueKey(s), child: AnimatedBuilder(animation: g, builder: (c, _) => _sheetFor(s)));
+
   @override
   Widget build(BuildContext context) {
     final pad = MediaQuery.of(context).padding;
@@ -1106,7 +1109,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                     transitionBuilder: (child, a) => SlideTransition(position: Tween(begin: const Offset(0, .08), end: Offset.zero).animate(a), child: FadeTransition(opacity: a, child: child)),
                     child: sheet == null
                         ? const SizedBox.shrink()
-                        : KeyedSubtree(key: ValueKey(sheet), child: AnimatedBuilder(animation: g, builder: (c, _) => _sheetFor(sheet!))),
+                        : _sheetBox(sheet!),
                   ),
                 ),
                 // 스킬 바 (시트가 열리면 숨김)
