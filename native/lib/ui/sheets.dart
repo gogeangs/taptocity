@@ -9,6 +9,7 @@ import '../game/engine.dart';
 import 'atlas.dart';
 import 'icons.dart';
 import 'life_ui.dart';
+import 'story_ui.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -77,6 +78,8 @@ class ShelterBody extends StatefulWidget {
   const ShelterBody(this.g, {super.key, this.onDeco});
   final Game g;
   final void Function(String k)? onDeco;
+  static int get tab => _ShelterBodyState.tab;
+  static set tab(int v) => _ShelterBodyState.tab = v;
   @override
   State<ShelterBody> createState() => _ShelterBodyState();
 }
@@ -98,14 +101,14 @@ class _ShelterBodyState extends State<ShelterBody> {
     return ListView(padding: _bodyPad, children: [
       Wrap(spacing: 5, runSpacing: 4, children: [
         sumChip([const TextSpan(text: '보관 한도 '), bold(fmt(g.cap))], icon: 'scrap'),
-        sumChip([const TextSpan(text: '침상 '), bold('${S.sv.length}/${const [1, 3, 5, 8, 12][S.lv - 1]}')]),
+        sumChip([const TextSpan(text: '침상 '), bold('${S.sv.length}/${g.bedsMax}')]),
         sumChip([const TextSpan(text: '희망 '), bold('${g.hope}')], icon: 'hope'),
         sumChip([bold('+${fmt(g.prod['food'] ?? 0)}'), TextSpan(text: ' / -${fmt(g.eat)}')], icon: 'food', bad: g.hungry),
         if (g.modLv(5) >= 0) sumChip([TextSpan(text: '-${fmt(g.fuelUse)}${g.have('fuel') > 0 ? '' : ' 멈춤'}')], icon: 'fuel', bad: g.have('fuel') <= 0),
       ]),
       if (g.hungry) Padding(padding: const EdgeInsets.only(top: 6), child: Text('배고파서 생산이 절반으로 줄었어요 · 텃밭을 늘리거나 식량을 모아요', style: Ttc.t(12, color: Ttc.no, weight: FontWeight.w600))),
       const SizedBox(height: 12),
-      Segs(items: const ['건설', '가공', '연구', '창고', '꾸미기'], on: tab, onTap: (k) => setState(() => tab = k)),
+      Segs(items: const ['건설', '가공', '연구', '창고', '꾸미기'], on: tab, onTap: (k) => setState(() => tab = k), hlKeys: const ['seg:0', 'seg:1']),
       ...switch (tab) {
         0 => _build(),
         1 => [..._craft(), ...feastCard(g)],
@@ -117,10 +120,10 @@ class _ShelterBodyState extends State<ShelterBody> {
   }
 
   List<Widget> _build() {
-    final S = g.S, L = S.lv, out = <Widget>[];
+    final S = g.S, L = S.lv, out = <Widget>[...towerCard(g)];
     if (L < 5) {
       final c = g.shelterUpCost!, need = shupNeed[L - 1], ok = S.mods.length >= need;
-      out.add(MCard(
+      out.add(hl('shup', MCard(
         kind: CardKind.hero,
         thumb: coreThumb(L + 1),
         title: '${jo(shelterName[L], '으로', '로')} 증축',
@@ -128,7 +131,7 @@ class _ShelterBodyState extends State<ShelterBody> {
         desc: descText('빈 자리 +${slotsByLv[L] - slotsByLv[L - 1]} · 침상 +${const [1, 3, 5, 8, 12][L] - const [1, 3, 5, 8, 12][L - 1]} · 랜턴 빛이 더 멀리 닿아요'),
         costs: costWrap(g, c, lead: [CostChip(label: '모듈', have: S.mods.length, need: need)]),
         button: BuyButton('증축', hero: true, why: !ok ? '모듈 부족' : (!g.canPay(c) ? '자재 부족' : null), onTap: ok && g.canPay(c) ? () => g.upShelter() : null),
-      ));
+      ), radius: 12));
     }
     final fs = g.freeSlot();
     out.add(sec('모듈', '빈 자리 ${fs < 0 ? 0 : slotsByLv[L - 1] - S.mods.length}'));
@@ -168,14 +171,14 @@ class _ShelterBodyState extends State<ShelterBody> {
         out.add(MCard(kind: CardKind.locked, thumb: moduleThumb(id, 0, gray: true), title: d.n, desc: descText(d.fx[0]), button: lockBadge('Lv.${d.req}')));
       } else {
         final c = g.modCost(id, 0);
-        out.add(MCard(
+        out.add(hl('mbuild:$id', MCard(
           thumb: moduleThumb(id, 0),
           title: d.n,
           tags: [newTag()],
           desc: descText(d.fx[0]),
           costs: costWrap(g, c),
           button: _btn('짓기', c, () => g.buildMod(id), dis: fs < 0, why: '빈 자리 없음'),
-        ));
+        ), radius: 12));
       }
     }
     out.add(sec('방벽'));
@@ -183,7 +186,7 @@ class _ShelterBodyState extends State<ShelterBody> {
       out.add(MCard(thumb: icoThumb(Ico.wall), title: wallsInfo[2].$1, tags: [pips(2)], desc: descText('밤에 쉘터를 덮치는 재를 거의 다 막아요'), button: doneBadge()));
     } else {
       final c = g.wallCost(S.walls);
-      out.add(MCard(
+      out.add(hl('wall', MCard(
         kind: S.lv < 2 ? CardKind.locked : CardKind.normal,
         thumb: icoThumb(Ico.wall),
         title: wallsInfo[S.walls].$1,
@@ -191,7 +194,7 @@ class _ShelterBodyState extends State<ShelterBody> {
         desc: descText(S.lv < 2 ? '쉘터 Lv.2에 열려요' : '밤마다 쉘터 모듈을 덮치는 재를 줄여요'),
         costs: S.lv < 2 ? null : costWrap(g, c),
         button: S.lv < 2 ? lockBadge('Lv.2') : _btn('세우기', c, () => g.upWalls()),
-      ));
+      ), radius: 12));
     }
     return out;
   }
@@ -220,7 +223,7 @@ class _ShelterBodyState extends State<ShelterBody> {
       if (lk.isNotEmpty && r.lv > 0 && g.S.lv < r.lv - 1) continue;
       final m = matOf[r.out]!;
       final full = g.have(r.out) >= g.capOf(r.out), ok = craftMax(k) >= 1 && !full;
-      out.add(MCard(
+      out.add(hl('craft:$k', MCard(
         kind: lk.isNotEmpty ? CardKind.locked : CardKind.normal,
         thumb: Container(
           width: 56,
@@ -253,7 +256,7 @@ class _ShelterBodyState extends State<ShelterBody> {
                 onLongPressEnd: (_) => _hold?.cancel(),
                 child: BuyButton('만들기', why: ok ? null : (full ? '창고 가득' : '재료 부족'), onTap: ok ? () => g.craft(k, 1) : null),
               ),
-      ));
+      ), radius: 12));
     }
     return out;
   }
@@ -443,32 +446,36 @@ Widget campBody(Game g, int tile) {
   ]);
 }
 
-// ======================= 일지 =======================
-Widget diaryBody(BuildContext context, Game g) {
-  final found = [...g.S.found]..sort();
-  return ListView(padding: _bodyPad, children: [
-    sec('목격자의 일기', '${found.length}/7'),
-    if (found.isEmpty) emptyBox(SvgIcon(Ico.diary, size: 28, color: Ttc.sepia2), '아직 찾은 일기가 없어요', '구름 속 어딘가에 누군가의 일기가 흩어져 있어요. 지도를 밝히다 보면 찾을 수 있어요.'),
-    for (final k in found)
-      GestureDetector(
-        onTap: () => showDiary(context, k),
-        child: MCard(
-          thumb: Container(
-            width: 56,
-            height: 56,
-            margin: const EdgeInsets.symmetric(horizontal: 11),
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), gradient: const RadialGradient(center: Alignment(0, -.2), colors: [Color(0xFFF3E6C6), Color(0xFFDCC9A0)])),
-            alignment: Alignment.center,
-            child: Text('${k + 1}', style: Ttc.t(22, color: Ttc.rust, weight: FontWeight.w700)),
-          ),
-          title: diaries[k].$1,
-          desc: descText('목격자의 일기 · ${k + 1}/7'),
-        ),
+// ======================= 일지 (웹 diary: 이야기 · 도감 · 업적 · 안내서) =======================
+class DiaryBody extends StatefulWidget {
+  const DiaryBody(this.g, {super.key});
+  final Game g;
+  static String tab = 'story';
+  @override
+  State<DiaryBody> createState() => _DiaryBodyState();
+}
+
+class _DiaryBodyState extends State<DiaryBody> {
+  Game get g => widget.g;
+  @override
+  Widget build(BuildContext context) {
+    const tabs = [('story', '이야기'), ('relic', '도감'), ('ach', '업적'), ('guide', '안내서')];
+    final on = tabs.indexWhere((t) => t.$1 == DiaryBody.tab);
+    return ListView(padding: _bodyPad, children: [
+      Segs(
+        items: [for (final t in tabs) t.$2],
+        on: on < 0 ? 0 : on,
+        dots: [for (final t in tabs) t.$1 == 'ach' && g.achReady],
+        onTap: (k) => setState(() => DiaryBody.tab = tabs[k].$1),
       ),
-    ...relicsSection(g),
-    const SizedBox(height: 6),
-    Text('이야기·사건 수첩·회상은 5단계에서 옮겨요', textAlign: TextAlign.center, style: Ttc.t(12, color: Ttc.sepia2)),
-  ]);
+      ...switch (DiaryBody.tab) {
+        'relic' => relicsSection(g),
+        'ach' => achTab(g),
+        'guide' => guideTab(g),
+        _ => [...storyLog(g), ...diaryLog(g, (k) => showDiary(context, k))],
+      },
+    ]);
+  }
 }
 
 /// 웹 .page 모달

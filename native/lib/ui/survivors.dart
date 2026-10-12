@@ -361,6 +361,8 @@ String _pct(({double m, double w, double cd}) p) => '특기 효과 ×${p.m.toStr
 
 void showSurvPage(BuildContext context, Game g, int id0, {void Function(int id, String slot)? onGear}) {
   var id = id0;
+  // 장비 맞추기 걸음에서는 장비 탭부터 (웹 4607)
+  if (g.S.gen == 0 && g.mi == stepI('생존자에게 장비 하나 맞춰 주기') && survTab == 'info') survTab = 'gear';
   showPageOf(context, g, (ctx) => StatefulBuilder(builder: (ctx, set) {
         if (!g.hasSv(id)) return const SizedBox();
         final s = survivors[id], r = g.rec(id)!;
@@ -691,7 +693,7 @@ Widget _gearTab(Game g, int id, void Function(String slot)? onSlot) {
 void showCampPage(BuildContext context, Game g, int tile) => showPageOf(context, g, (ctx) {
       final c = g.S.camp[tile];
       if (c == null) return const SizedBox();
-      final id = (c['id'] as num).toInt(), need = g.campNeed(id), bf = g.bedFree, hp = (c['hp'] as num?) ?? 0, mx = (c['max'] as num?) ?? 1;
+      final id = (c['id'] as num).toInt(), need = g.campNeed(id), bf = g.bedFree(id), hp = (c['hp'] as num?) ?? 0, mx = (c['max'] as num?) ?? 1;
       final ok = g.canPay(need) && bf > 0 && hp <= 0;
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         _head(g, id, base: true, tag: c['visit'] == true ? '쉘터 앞의 손님' : '구조 대기'),

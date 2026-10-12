@@ -512,6 +512,7 @@ class MapPainter extends CustomPainter {
         }
       }
     }
+    _tower(canvas);
     if (g.sel >= 0) {
       final c = tileC(g.sel);
       _line
@@ -527,6 +528,52 @@ class MapPainter extends CustomPainter {
     }
     if (g.aimValid) _aim(canvas);
     canvas.restore();
+  }
+
+  /// 등불 탑 (웹 towerDraw 5124): 쉘터 왼쪽의 철골 탑, 4단계부터 렌즈, 불이 켜지면 하늘로 빛줄기
+  void _tower(Canvas canvas) {
+    final n0 = g.towerN;
+    if (n0 <= 0) return;
+    final n = math.min(n0, 12), c = tileC(C0), x = c.dx - 30, y = c.dy - 4, h = 26 + n * 20.0, lit = n0 >= 5;
+    final st = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6
+      ..color = const Color(0xFF4A4A52);
+    final p = Path()
+      ..moveTo(x - 7, y)
+      ..lineTo(x - 2, y - h)
+      ..moveTo(x + 7, y)
+      ..lineTo(x + 2, y - h);
+    for (var q = 1; q < n * 3; q++) {
+      final f = q / (n * 3), a = y - h * f, w = 7 - 5 * f, f2 = (q + 1) / (n * 3), b2 = y - h * f2, w2 = 7 - 5 * f2;
+      p
+        ..moveTo(x - w, a)
+        ..lineTo(x + w2, b2)
+        ..moveTo(x + w, a)
+        ..lineTo(x - w2, b2);
+    }
+    canvas.drawPath(p, st);
+    canvas.drawRect(Rect.fromLTWH(x - 9, y - 3, 18, 4), Paint()..color = const Color(0xFF6A6A72));
+    if (n >= 4) {
+      canvas.drawCircle(Offset(x, y - h - 4), 5, Paint()..color = lit ? const Color(0xFFFFF4C8) : const Color(0xFF9AB4C8));
+      canvas.drawCircle(
+          Offset(x, y - h - 4),
+          5,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1
+            ..color = const Color(0xFF3B2A1A));
+    }
+    if (lit) {
+      final beam = Path()
+        ..moveTo(x - 4, y - h - 4)
+        ..lineTo(x - 26, y - h - 420)
+        ..lineTo(x + 26, y - h - 420)
+        ..lineTo(x + 4, y - h - 4)
+        ..close();
+      canvas.drawPath(beam, Paint()..shader = ui.Gradient.linear(Offset(x, y - h), Offset(x, y - h - 420), const [Color(0x8CFFECAA), Color(0x00FFECAA)]));
+      _glows.add((Offset(x, y - h - 4), 90.0, const Color(0xFFFFE6A0), .9));
+    }
   }
 
   /// 붉은 재 (웹 drawAsh 2826)

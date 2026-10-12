@@ -198,6 +198,8 @@ void main() {
     }
     g.rescue(0, 'sig');
     g.S.lv = 2;
+    g.S.rest['mi'] = stepI('방벽 세우기');
+    g.S.rest['storyI'] = g.mi;
     g.recalc();
     expect(g.isNight, isFalse);
     // 해 질 녘까지
@@ -330,5 +332,61 @@ void main() {
     for (final i in g.frontier) {
       expect(g.isFrontier(i), isTrue);
     }
+  });
+
+  test('이야기: 미션을 하고 받으면 다음 걸음, 세는 목표는 그때부터 센다', () {
+    final g = Game(Game.fresh(seed: 42));
+    expect(steps.length, 38);
+    expect(g.mission().txt, '구름을 두드려 땅 6칸 밝히기');
+    expect(g.mission().done, isFalse);
+    // 화면이 비어 있으면 첫 장면(프롤로그)이 열린다
+    g.tick(.25);
+    expect(g.takeFx().whereType<FxTalk>().first.card?.$1, '프롤로그');
+    for (var k = 0; k < 200 && g.revCount < 15; k++) {
+      g.digAim();
+    }
+    expect(g.mission().done, isTrue);
+    final b0 = g.have('batt');
+    g.claimMission();
+    expect(g.mi, 1);
+    expect(g.have('batt'), b0 + 1, reason: '미션마다 건전지 하나');
+    // 세는 목표: 걸음이 열린 뒤에 한 번 해야 끝난다
+    g.S.rest['mi'] = stepI('생존자 스킬 한 번 쓰기');
+    g.S.rest['skillUses'] = 5;
+    expect(g.mission().done, isFalse);
+    g.S.rest['skillUses'] = 6;
+    expect(g.mission().done, isTrue);
+    // 옛 저장(걸음 순서가 달랐던 때)은 목표 글로 다시 맞춘다
+    final o = Game(Game.fresh(seed: 1));
+    o.S.rest['mi'] = 9; // 옛 순서 9번 = 라디오 탐색
+    o.S.rest['storyI'] = 9;
+    o.S.rest.remove('stepV');
+    o.migrateSteps();
+    expect(o.mi, stepI('라디오로 주파수 탐색 한 번 하기'));
+    expect(o.S.rest['stepV'], 4);
+  });
+
+  test('등불 탑·업적', () {
+    final g = Game(Game.fresh(seed: 42));
+    g.S.rest['mi'] = stepI('등불 탑 토대 놓기');
+    g.S.rest['storyI'] = g.mi;
+    expect(g.towerOpen, isTrue);
+    for (final id in [0, 1, 2, 3, 4, 5, 6]) {
+      g.rescue(id, 'sig');
+    }
+    g.S.m.addAll({'plate': 9999, 'wood': 9999});
+    expect(g.towerOk, isTrue);
+    expect(g.buildTower(), isTrue);
+    expect(g.towerN, 1);
+    expect(g.mission().done, isTrue);
+    // 업적: 땅 100칸 → 받을 수 있음 → 받으면 칭호
+    for (var k = 0; k < 600 && g.revCount < 100; k++) {
+      g.digAim();
+    }
+    g.tickStorySec();
+    expect(g.achState('rev100'), 1);
+    g.achGet('rev100');
+    expect(g.achState('rev100'), 2);
+    expect(g.title, '어둠을 걷는 사람');
   });
 }

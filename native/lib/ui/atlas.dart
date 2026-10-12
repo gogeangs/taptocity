@@ -2,6 +2,7 @@
 // 자르기 좌표는 웹의 design.js · settlement.js 값을 그대로 옮겼다.
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 class Atlas {
@@ -30,6 +31,25 @@ class Atlas {
       }();
 
   static ui.Image? image(String f) => _img[f];
+
+  /// 처음 필요할 때 불러오는 그림 (이야기 장면·표정처럼 크고 가끔 쓰는 것). 다 불러오면 version이 오른다.
+  static final ValueNotifier<int> version = ValueNotifier(0);
+  static final Set<String> _want = {};
+  static ui.Image? lazy(String f) {
+    final im = _img[f];
+    if (im != null) return im;
+    if (_want.add(f)) {
+      () async {
+        try {
+          final data = await rootBundle.load('assets/illustrated/$f');
+          final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+          _img[f] = (await codec.getNextFrame()).image;
+          version.value++;
+        } catch (_) {}
+      }();
+    }
+    return null;
+  }
 
   /// cols × rows 격자의 index번째 칸
   static Rect? cell(String f, int index, int cols, int rows) {

@@ -7,6 +7,7 @@ import '../game/data.dart';
 import '../game/engine.dart';
 import 'icons.dart';
 import 'map_view.dart';
+import 'story_ui.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -26,8 +27,9 @@ List<double> _angles(int n) {
 }
 
 class _Tok {
-  const _Tok(this.icon, this.cap, this.onTap, {this.poor = false, this.lock = false});
+  const _Tok(this.icon, this.cap, this.onTap, {this.poor = false, this.lock = false, this.hl});
   final String icon, cap;
+  final String? hl; // 길잡이 강조 키
   final VoidCallback onTap;
   final bool poor, lock;
 }
@@ -74,7 +76,7 @@ class RingMenu extends StatelessWidget {
               toast('랜턴 버튼으로 랜드마크를 뒤져요');
             }));
           }
-          toks.add(_Tok('up', '복구하기', () {
+          toks.add(_Tok('up', '복구하기', hl: 'ring:lm', () {
             if (!g.canPay(c)) {
               toast('자재가 조금 모자라요');
               return;
@@ -119,7 +121,7 @@ class RingMenu extends StatelessWidget {
           }, poor: !g.canPay(up)));
         }
         final n = S.sv.length;
-        toks.add(_Tok('person', id != null && wk != null ? '${wk.name} 교체' : (n > 0 ? '생존자 배치' : '생존자 없음'), n > 0 ? onAssign : () {}, lock: n == 0));
+        toks.add(_Tok('person', id != null && wk != null ? '${wk.name} 교체' : (n > 0 ? '생존자 배치' : '생존자 없음'), n > 0 ? onAssign : () {}, lock: n == 0, hl: 'ring:asg'));
         toks.add(_Tok('x', '쉘터 화면', onShelter));
       } else {
         return const SizedBox.shrink();
@@ -158,7 +160,7 @@ class RingMenu extends StatelessWidget {
             left: sx + math.cos(an[k] * math.pi / 180) * R - 40,
             top: sy + math.sin(an[k] * math.pi / 180) * R - 24,
             width: 80,
-            child: _TokBtn(toks[k]),
+            child: toks[k].hl == null ? _TokBtn(toks[k]) : hl(toks[k].hl!, _TokBtn(toks[k]), radius: 99),
           ),
       ]);
     });

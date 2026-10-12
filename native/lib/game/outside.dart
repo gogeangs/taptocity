@@ -399,7 +399,7 @@ extension Radio on Game {
   /// 히든 생존자가 신호를 따라 온다 (빈 침상이 없으면 쉘터 앞에서 기다림)
   void hiddenArrive(int id) {
     if (hasSv(id)) return;
-    if (bedFree > 0) {
+    if (bedFree(id) > 0) {
       rescue(id, 'visit');
     } else {
       final t = visitorTile();

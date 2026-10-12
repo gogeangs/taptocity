@@ -11,6 +11,7 @@ import 'gear.dart';
 import 'people.dart';
 import 'portrait.dart';
 import 'survivors.dart';
+import 'story_ui.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -303,7 +304,7 @@ class RadioBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final b = g.batt, c = g.exchangeCost;
-    Widget pullBtn(int n) => Expanded(child: BuyButton('$n번 탐색 · 건전지 $n', width: double.infinity, onTap: b < n ? null : () => showPull(context, g, n)));
+    Widget pullBtn(int n) => Expanded(child: hl('pull:$n', BuyButton('$n번 탐색 · 건전지 $n', width: double.infinity, onTap: b < n ? null : () => showPull(context, g, n)), radius: 7));
     return ListView(padding: const EdgeInsets.fromLTRB(14, 14, 14, 20), children: [
       Container(
         padding: const EdgeInsets.all(16),

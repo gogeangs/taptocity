@@ -481,6 +481,7 @@ extension Living on Game {
     }
     _kidEff(e);
     _petEff(e);
+    _towerEff(e);
     if (num_('feastEnd') > DateTime.now().millisecondsSinceEpoch) e['hope'] = (e['hope'] ?? 0) + 8;
     e['hope'] = (e['hope'] ?? 0) + decoHope;
     for (final q in decoSets().keys) {

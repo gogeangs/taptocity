@@ -16,6 +16,7 @@ import 'life_ui.dart';
 import 'map_view.dart';
 import 'outside_ui.dart';
 import 'sheets.dart';
+import 'story_ui.dart';
 import 'theme.dart';
 import 'ring.dart';
 import 'survivors.dart';
@@ -56,7 +57,10 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     _clock?.cancel();
     // 게임 시간은 0.25초마다 한 번. 화면은 바뀐 게 있을 때만 다시 그린다.
     _clock = Timer.periodic(const Duration(milliseconds: 250), (_) {
+      g.uiModal = pageWatch.n > 0 || _pageQ.isNotEmpty;
+      g.uiSheet = sheet != null;
       final changed = g.tick(.25);
+      _storyUi();
       if (g.fx.isNotEmpty) fxc.pull(g);
       if (changed) g.poke();
       if (++_saveAcc >= 40) {
@@ -133,6 +137,14 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         Future.delayed(const Duration(milliseconds: 200), () {
           if (mounted) showRequestDone(context, g, ev, k, sum);
         });
+      case FxTalk():
+        _pageQ.add(() => showTalk(context, g, f, onDone: () {
+              if (f.goal != null) g.panGuide = DateTime.now().millisecondsSinceEpoch;
+            }));
+        _pumpPages();
+      case FxConf():
+        _pageQ.add(() => showConf(context, g));
+        _pumpPages();
       case FxLevelUp(:final lv):
         HapticFeedback.mediumImpact();
         _stamp(lv);
@@ -149,6 +161,166 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       default:
         break;
     }
+  }
+
+  // ---------- 이야기 창 줄 세우기 (웹 mq: 창은 한 번에 하나) ----------
+  final List<Future<void> Function()> _pageQ = [];
+  bool _paging = false;
+  void _pumpPages() {
+    if (_paging || _pageQ.isEmpty || pageWatch.n > 0 || !mounted) return;
+    _paging = true;
+    final open = _pageQ.removeAt(0);
+    Future.delayed(const Duration(milliseconds: 150), () async {
+      if (!mounted) return;
+      await open();
+      _paging = false;
+      fxc.pull(g);
+      _pumpPages();
+    });
+  }
+
+  /// 매 0.25초: 길잡이 강조 키·화살표, 창 줄
+  int _claimPing = 0;
+  GuideTarget? _guide;
+  void _storyUi() {
+    _pumpPages();
+    final m = g.mission(), st = m.step;
+    String? k;
+    if (m.done) {
+      k = 'claim';
+    } else if (st != null && st.hl != null) {
+      k = hlOf(st.hl);
+      if (sheet?.kind == 'shelter' && k != null && (k.startsWith('mbuild') || k == 'shup' || k == 'wall' || k == 'tower' || k == 'craft:0')) {
+        final want = k == 'craft:0' ? 1 : 0;
+        if (ShelterBody.tab != want) k = 'seg:$want';
+      }
+    }
+    if (hlKey.value != k) hlKey.value = k;
+    final tg = sheet != null || ringTile >= 0 || pageWatch.n > 0 || g.defn != null ? null : guideTarget(g);
+    if ((tg == null) != (_guide == null) || tg?.el != _guide?.el || tg?.tile != _guide?.tile || tg?.label != _guide?.label) setState(() => _guide = tg);
+    // 새 목표를 알린 직후 3초 동안은 카메라를 그쪽으로 천천히 끌어 온다 (웹 updateGuide panGuide)
+    if (tg != null && tg.tile >= 0 && g.panGuide > 0 && _stageSize != Size.zero) {
+      if (DateTime.now().millisecondsSinceEpoch - g.panGuide < 3000) {
+        final w = tileC(tg.tile, tg.z);
+        final sx = (w.dx - cam.x) * cam.z, sy = (w.dy - cam.y) * cam.z;
+        if (sx.abs() > _stageSize.width * .18 || sy.abs() > _stageSize.height * .15) {
+          cam.set(cam.x + (w.dx - cam.x) * .3, cam.y + (w.dy + 20 - cam.y) * .3);
+        } else {
+          g.panGuide = 0;
+        }
+      } else {
+        g.panGuide = 0;
+      }
+    }
+  }
+
+  /// 미션 띠를 누르면 할 일 쪽으로 데려간다 (웹 goMission 4449)
+  void _goMission() {
+    if (pageWatch.n > 0 || g.defn != null) return;
+    final m = g.mission();
+    if (m.done) {
+      setState(() => _claimPing++);
+      return;
+    }
+    final st = m.step, f = st?.focus, hlS = st?.hl ?? '';
+    void hint() {
+      if (m.sub.isNotEmpty) fxc.toast(m.sub);
+    }
+
+    void toShelter(int tab) {
+      ShelterBody.tab = tab;
+      setState(() {
+        sheet = const SheetSpec('shelter');
+        matsOpen = false;
+        _closeRing();
+      });
+    }
+
+    if (st == null) {
+      switch (g.egGo) {
+        case 'build':
+          toShelter(0);
+        case 'craft':
+          toShelter(1);
+        case 'exp':
+          _open(const SheetSpec('exp'));
+        case 'surv':
+          _open(const SheetSpec('surv'));
+        case 'clock':
+          fxc.toast('대형 재폭풍은 세 번째 밤마다 와요');
+        default:
+          _close();
+          if (g.aim >= 0) _flyTo(g.aim);
+      }
+      return;
+    }
+    switch (f) {
+      case 'center':
+        toShelter(hlS.contains('craft') || hlS.contains('data-cb') ? 1 : 0);
+        return;
+      case 'fExp':
+        _open(const SheetSpec('exp'));
+        return;
+      case 'conf':
+        showConf(context, g);
+        return;
+      case 'radio':
+        _open(const SheetSpec('radio'));
+        return;
+      case 'fSurv':
+        _open(const SheetSpec('surv'));
+        return;
+    }
+    _close();
+    switch (f) {
+      case 'ev':
+        if (g.evCur >= 0) {
+          showRequestPage(context, g);
+        } else {
+          fxc.toast('부탁이 생기면 왼쪽 위에 말풍선이 떠요');
+        }
+        return;
+      case 'clock':
+        fxc.toast(g.isNight ? '지금이 밤이에요. 붉은 재를 두드려요' : '밤이 오면 시작돼요. 시계를 봐 두세요');
+        return;
+      case 'skills':
+      case 'lamp':
+        if (f == 'lamp' && g.aim >= 0) _flyTo(g.aim);
+        hint();
+        return;
+    }
+    final tg = guideTarget(g);
+    if (tg != null && tg.tile >= 0) {
+      _flyTo(tg.tile);
+      if (f == 'module' && g.modAtTile(tg.tile) != null || f == 'lm' && g.S.rev[tg.tile] == 1) {
+        Future.delayed(const Duration(milliseconds: 560), () {
+          if (mounted) _openRing(tg.tile);
+        });
+      }
+    }
+    hint();
+  }
+
+  /// 길잡이 화살표가 가리킬 화면 위치 (무대 좌표)
+  Offset? _guidePos(GuideTarget tg, double bottom) {
+    final W0 = _stageSize.width, H0 = _stageSize.height;
+    switch (tg.el) {
+      case 'lamp':
+        return Offset(8 + 38, H0 - bottom - 82 - 2);
+      case 'fExp':
+      case 'radio':
+      case 'fSurv':
+        final k = const {'fSurv': 0, 'fExp': 1, 'radio': 3}[tg.el]!;
+        return Offset(94 + (W0 - 102) * (k + .5) / 5, H0 - bottom - 78 - 2);
+      case 'clock':
+        return const Offset(60, 10);
+      case 'ev':
+        return Offset(34, (g.sq != null && g.sqOn ? 122 : 50) - 2.0);
+      case 'skills':
+        return Offset(94 + 28, H0 - bottom - 84 - 60);
+    }
+    final w = tileC(tg.tile, tg.z);
+    return Offset((w.dx - cam.x) * cam.z + W0 / 2, (w.dy - cam.y) * cam.z + H0 / 2 - 10);
   }
 
   String? _stampText;
@@ -323,17 +495,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     fxc.toast('새 땅에서 다시 시작해요');
   }
 
-  /// 아직 이야기(5단계)를 옮기기 전이라, 띠에는 쉘터를 키우는 다음 할 일을 보여 준다
-  (String, String, double) _goal() {
-    final S = g.S;
-    if (S.lv >= 5) return ('끝없는 성장', '지도를 더 밝히고 랜드마크를 복구해요', 1);
-    final need = shupNeed[S.lv - 1], n = S.mods.length;
-    final p = (n / need).clamp(0, 1).toDouble();
-    if (g.wbL == 0) return ('Lv.${S.lv + 1}까지', '작업대 짓기', p);
-    if (n < need) return ('Lv.${S.lv + 1}까지', '모듈 짓기 $n/$need', p);
-    return ('Lv.${S.lv + 1}까지', '${jo(shelterName[S.lv], '으로', '로')} 증축하기', p);
-  }
-
   Widget _sheetFor(SheetSpec s) {
     switch (s.kind) {
       case 'shelter':
@@ -359,7 +520,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       case 'camp':
         return SheetPanel(icon: Ico.surv, title: '구조 캠프', onClose: _close, child: campBody(g, s.tile));
       case 'diary':
-        return SheetPanel(icon: Ico.diary, title: '일지', onClose: _close, child: Builder(builder: (c) => diaryBody(c, g)));
+        return SheetPanel(icon: Ico.diary, title: '일지', onClose: _close, child: DiaryBody(g));
       case 'settings':
         return SheetPanel(icon: Ico.gear, title: '설정', onClose: _close, child: SettingsBody(g, onReset: _reset));
       case 'assign':
@@ -425,7 +586,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           builder: (c, _) => _Header(
             g,
             top: pad.top,
-            goal: _goal(),
+            ping: _claimPing,
+            onGo: _goMission,
             onSettings: () => _open(const SheetSpec('settings')),
             onMats: () => setState(() => matsOpen = !matsOpen),
             onShelter: () => _open(const SheetSpec('shelter')),
@@ -595,7 +757,10 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                   left: 94,
                   right: 8,
                   bottom: bottom,
-                  child: _Tabs(
+                  child: AnimatedBuilder(
+                    animation: g,
+                    builder: (c, _) => _Tabs(
+                    dot: g.achReady ? 4 : -1,
                     on: switch (sheet?.kind) {
                       'surv' => 0,
                       'exp' => 1,
@@ -606,7 +771,30 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                     },
                     onTap: (k) => _open(SheetSpec(const ['surv', 'exp', 'shelter', 'radio', 'diary'][k])),
                   ),
+                  ),
                 ),
+                if (_guide != null)
+                  Positioned.fill(
+                    child: AnimatedBuilder(
+                      animation: cam,
+                      builder: (c, _) {
+                        final tg = _guide!, p0 = _guidePos(tg, bottom);
+                        if (p0 == null) return const SizedBox.shrink();
+                        var label = tg.label;
+                        if (tg.tile >= 0) {
+                          final off = p0.dx < 50 || p0.dx > box.maxWidth - 50 || p0.dy < 110 || p0.dy > box.maxHeight - 190;
+                          if (off) {
+                            final dx = p0.dx - box.maxWidth / 2, dy = p0.dy - box.maxHeight / 2;
+                            label += ' ${dx.abs() > dy.abs() * 1.3 ? (dx > 0 ? '→' : '←') : (dy > 0 ? '↓' : '↑')}';
+                          }
+                        }
+                        final x = p0.dx.clamp(40.0, math.max(40.0, box.maxWidth - 40)), y = p0.dy.clamp(40.0, math.max(40.0, box.maxHeight - 8));
+                        return Stack(children: [
+                          Positioned(left: x, top: y, child: FractionalTranslation(translation: const Offset(-.5, -1), child: GuideArrow(label))),
+                        ]);
+                      },
+                    ),
+                  ),
                 if (ringTile >= 0)
                   Positioned.fill(
                     child: AnimatedBuilder(
@@ -639,15 +827,14 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
 // ======================= 머리 (자원·설정·할 일 띠) =======================
 class _Header extends StatelessWidget {
-  const _Header(this.g, {required this.top, required this.goal, required this.onSettings, required this.onMats, required this.onShelter, required this.onPed});
+  const _Header(this.g, {required this.top, required this.ping, required this.onGo, required this.onSettings, required this.onMats, required this.onShelter, required this.onPed});
   final Game g;
   final double top;
-  final (String, String, double) goal;
-  final VoidCallback onSettings, onMats, onShelter, onPed;
+  final int ping;
+  final VoidCallback onSettings, onMats, onShelter, onPed, onGo;
 
   @override
   Widget build(BuildContext context) {
-    final S = g.S;
     return Container(
       padding: EdgeInsets.fromLTRB(8, top + 8, 8, 0),
       decoration: const BoxDecoration(color: Ttc.header, border: Border(bottom: BorderSide(color: Ttc.line12))),
@@ -672,64 +859,8 @@ class _Header extends StatelessWidget {
             _HudBtn(child: SvgIcon(Ico.gear, size: 18, color: Ttc.hudText), onTap: onSettings),
           ]),
         ),
-        const SizedBox(height: 10),
-        GestureDetector(
-          onTap: onShelter,
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 9),
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
-            decoration: BoxDecoration(color: Ttc.tape, borderRadius: BorderRadius.circular(8), border: Border.all(color: Ttc.line17, width: .8)),
-            child: Row(children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: Ttc.lvchip, borderRadius: BorderRadius.circular(7)),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                  Text('Lv.${S.lv} ${shelterName[S.lv - 1]}', style: Ttc.t(11.5, color: Ttc.lvText, weight: FontWeight.w700, height: 1)),
-                  const SizedBox(height: 3),
-                  Container(
-                    width: 54,
-                    height: 4,
-                    decoration: BoxDecoration(color: const Color(0x2EF5EAD0), borderRadius: BorderRadius.circular(99)),
-                    alignment: Alignment.centerLeft,
-                    child: FractionallySizedBox(
-                      widthFactor: goal.$3.clamp(.05, 1).toDouble(),
-                      child: Container(decoration: BoxDecoration(borderRadius: BorderRadius.circular(99), gradient: const LinearGradient(colors: [Color(0xFFC9A24A), Color(0xFFF3A53A)]))),
-                    ),
-                  ),
-                ]),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text.rich(
-                  TextSpan(children: [
-                    TextSpan(text: '${goal.$1}  ', style: Ttc.t(11, color: Ttc.glow, weight: FontWeight.w700)),
-                    TextSpan(text: goal.$2, style: Ttc.t(13, color: const Color(0xFFF0E7D6), weight: FontWeight.w600)),
-                  ]),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (g.pedHere)
-                GestureDetector(
-                  onTap: onPed,
-                  child: Container(
-                    margin: const EdgeInsets.only(left: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(99),
-                      gradient: const LinearGradient(colors: [Color(0xFF4A3A2A), Color(0xFF7A5A33)]),
-                      boxShadow: const [BoxShadow(color: Color(0x66B0452A), blurRadius: 8, offset: Offset(0, 2))],
-                    ),
-                    child: Text('🛒 노친네', style: Ttc.t(12.5, color: const Color(0xFFF3E2B8), weight: FontWeight.w700, height: 1)),
-                  ),
-                )
-              else ...[
-                Text('▾', style: Ttc.t(12, color: const Color(0xFFC7CEC9))),
-                const SizedBox(width: 4),
-              ],
-            ]),
-          ),
-        ),
+        const SizedBox(height: 6),
+        MissionTape(g, onLv: onShelter, onGo: onGo, onPed: onPed, ping: ping),
       ]),
     );
   }
@@ -873,8 +1004,8 @@ class _Lamp extends StatelessWidget {
 }
 
 class _Tabs extends StatelessWidget {
-  const _Tabs({required this.on, required this.onTap});
-  final int on;
+  const _Tabs({required this.on, required this.onTap, this.dot = -1});
+  final int on, dot;
   final void Function(int) onTap;
   static const items = [(Ico.surv, '생존자'), (Ico.exp, '원정'), (Ico.shelter, '쉘터'), (Ico.radio, '라디오'), (Ico.diary, '일지')];
   @override
@@ -896,7 +1027,15 @@ class _Tabs extends StatelessWidget {
                     border: k == on ? const Border(bottom: BorderSide(color: Ttc.tabOnLine, width: 2)) : null,
                   ),
                   child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    SvgIcon(items[k].$1, size: 22, color: k == on ? Ttc.tabOnText : Ttc.tabText),
+                    Stack(clipBehavior: Clip.none, children: [
+                      SvgIcon(items[k].$1, size: 22, color: k == on ? Ttc.tabOnText : Ttc.tabText),
+                      if (k == dot)
+                        Positioned(
+                            right: -5,
+                            top: -3,
+                            child: Container(
+                                width: 9, height: 9, decoration: BoxDecoration(shape: BoxShape.circle, color: Ttc.amber, border: Border.all(color: Ttc.header, width: 1.5)))),
+                    ]),
                     const SizedBox(height: 5),
                     Text(items[k].$2, style: Ttc.t(10, color: k == on ? Ttc.tabOnText : Ttc.tabText, weight: FontWeight.w500, height: 1)),
                   ]),

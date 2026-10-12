@@ -62,6 +62,27 @@ const T = {
   deco: ev('DECO'),
   fav: ev('FAV'), favSay: ev('FAV_SAY'), decoTalk: ev('DECO_TALK'),
   dsets: ev('DSETS'),
+  // ---------- 5단계: 이야기 ----------
+  // 대사 한 줄 = [말하는 사람(번호·'me'·'g'·'npc:x'), 문구, 조건 키, 표정, 대체 줄]
+  story: ev(`(()=>{const CK=f=>{if(!f)return null;const s=f.toString();const k=({"()=>!!(S.crow&&S.crow.raid)":'crowRaid',"()=>!!S.sv[10]":'sv10',"()=>!!S.sv[11]":'sv11',"()=>S.conf==='a'&&!!S.sv[9]":'confA',"()=>S.conf==='b'&&!!S.sv[9]":'confB',"()=>!!S.sv[12]":'sv12'})[s];if(!k)throw Error('모르는 조건 '+s);return k;};
+    const L=l=>l?[l[0],l[1],CK(l[2]),l[3]||null,L(l[4])]:null;
+    return STORY.map(c=>({ch:c.ch,title:c.title,steps:c.steps.map(s=>({goal:s.goal,rw:s.rw,focus:s.focus||null,hint:s.hint||'',hl:s.hl||null,intro:(s.intro||[]).map(L),outro:(s.outro||[]).map(L)}))}));})()`),
+  quickSteps: ev('QUICK_STEPS'),
+  stepGoals: ev('({old:OLD_GOALS,v2:V2_GOALS,v3:V3_GOALS})'),
+  dialogueMood: ev('DIALOGUE_MOOD'),
+  ach: ev('ACH.map(a=>[a[0],a[1],a[2],a[4],a[5]])'),
+  tower: ev('TOWER.map((t,i)=>({n:t.n,d:t.d,cost:TOWER_BASE[i],req:t.req.map(r=>r[0])}))'),
+  endLines: ev('END_LINES.map(function L(l){return l?[l[0],l[1],null,l[3]||null,L(l[4])]:null;})'),
+  storyArt: (() => {
+    const vm = require('node:vm');
+    const ctx = { window: { TTC_SDATA: web.window.TTC_SDATA }, ttcLazy: () => ({}), document: { querySelector: () => null } };
+    vm.createContext(ctx);
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '../../story-art.js'), 'utf8').replace('const LINE={},TALK={}', 'const LINE=window.__L={},TALK=window.__T={}'), ctx);
+    const S = ctx.window.TTCStory;
+    // 장면 번호 찾기 표(대사 → 그림)를 미리 채운다
+    S.after({ lines: [['me', '']], k: 0 }, web.ev('STEPS'), web.ev('TUT'));
+    return { cap: S.CAP, stepArt: S.STEPART, order: S.ORDER, regBase: S.REGBASE, line: ctx.window.__L, talk: ctx.window.__T };
+  })(),
   pets: ev('Object.fromEntries(Object.entries(PETS).map(([k,p])=>[k,{n:p.n,def:p.def,snd:p.snd,eff:p.eff,v:p.v,ed:[1,1.25,1.5,1.75,2].map(m=>p.ed(m)),edHalf:[1,1.25,1.5,1.75,2].map(m=>p.ed(m*.5)),act:p.act,ug:p.ug,ugd:p.ugd,exp:p.exp,expd:p.expd,pair:p.pair,pairN:p.pairN,story:p.story,hidden:!!p.hidden,region:p.region||null,how:p.how||null}]))'),
 };
 

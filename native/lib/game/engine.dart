@@ -12,6 +12,7 @@ import 'state.dart';
 part 'crisis.dart';
 part 'outside.dart';
 part 'life.dart';
+part 'story.dart';
 
 /// 화면 연출(떠오르는 글자·알림·창 열기)을 그림 쪽에 알려 주는 신호.
 sealed class Fx {
@@ -153,6 +154,11 @@ class Game extends ChangeNotifier {
   (String, Map<String, num>, String)? petTrick;
   String? placingDeco; // 장식 놓는 중 (화면 상태, 저장하지 않음) // 동행 펫이 물어 온 것 (화면이 펫 위에 띄우고 지운다)
   int _autoExpT = 0;
+
+  // ---------- 이야기 (story.dart) ----------
+  bool uiModal = false, uiSheet = false; // 화면에 창·시트가 열려 있음 (화면 쪽이 매번 알려 준다)
+  int panGuide = 0, misDoneAt = 0, miyT = 0, scIdle = 0;
+  bool misNudged = false, confShown = false;
 
   GameState S;
   final math.Random rnd;
@@ -1342,15 +1348,20 @@ class Game extends ChangeNotifier {
     return ((m != null && survivors[id].match.contains(m.id)) ? 2 + pw(id).w : 1.3) * (1 + .1 * (trustLv(xpOf(id)) - 1));
   }
 
-  int get bedsMax => bedsByLv[S.lv - 1] + ((S.rest['carry'] as num?) ?? 0).toInt();
+  /// 재혁 자리는 그를 구하러 갈 때부터 비워 둔다 (웹 jaeRes 3061)
+  int get bedsMax => bedsByLv[S.lv - 1] + ((S.rest['carry'] as num?) ?? 0).toInt() + (jaeRes ? 1 : 0);
+  bool get jaeRes => !hasSv(9) && mi >= stepI('오재혁 구하기');
   int get bedsUsed => S.sv.length;
-  int get bedFree => bedsMax - bedsUsed;
+  int bedFree([int id = -1]) {
+    final f = bedsMax - bedsUsed;
+    return id == 9 && jaeRes ? math.max(1, f) : f - (jaeRes ? 1 : 0);
+  }
   Cost campNeed(int id) => scaleCost(rescueNeed[id]!.$1, 1);
   bool campReady(int i) {
     final c = S.camp[i];
     if (c == null) return false;
     final id = (c['id'] as num).toInt();
-    return ((c['hp'] as num?) ?? 0) <= 0 && canPay(campNeed(id)) && bedFree > 0;
+    return ((c['hp'] as num?) ?? 0) <= 0 && canPay(campNeed(id)) && bedFree(id) > 0;
   }
 
   /// 웹 hitCamp (3085): 잔해를 두드려 치우고, 다 치우면 구조
@@ -1385,7 +1396,7 @@ class Game extends ChangeNotifier {
 
   void doRescue(int i) {
     final c = S.camp[i];
-    if (c == null || ((c['hp'] as num?) ?? 0) > 0 || bedFree <= 0) return;
+    if (c == null || ((c['hp'] as num?) ?? 0) > 0 || bedFree((c['id'] as num).toInt()) <= 0) return;
     final id = (c['id'] as num).toInt();
     if (!pay(campNeed(id))) return;
     S.camp.remove(i);
@@ -1944,6 +1955,7 @@ class Game extends ChangeNotifier {
       _tickBand();
       _tickKids();
       _tickPets();
+      tickStorySec();
       if (S.droneLv > 0 || overT > 0) {
         final i = frontierNearest();
         if (i >= 0) {
@@ -1952,6 +1964,7 @@ class Game extends ChangeNotifier {
         }
       }
     }
+    tickStoryFast();
     if (changed) dirty = true;
     return changed;
   }

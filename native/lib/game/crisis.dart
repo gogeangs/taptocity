@@ -114,8 +114,6 @@ extension Crisis on Game {
   int get revCount => S.rev.fold(0, (a, v) => a + v);
   bool hasMod(int id) => modLv(id) >= 0;
 
-  /// 이야기(5단계) 전까지는 미션 번호 대신 진행 상태로 어림한다: 쉘터 Lv.2 = 재폭풍 배움(9), 생존자 있음 = 구조 단계(4)
-  int get miEff => math.max(num_('mi').toInt(), S.lv >= 2 ? 9 : (S.sv.isNotEmpty ? 4 : 0));
 
   // ================= 낮밤 (웹 2799) =================
   double get clock => num_('clock').toDouble();
@@ -129,8 +127,8 @@ extension Crisis on Game {
     return (cycleLen - p) / 10;
   }
 
-  bool get ashLearned => S.gen != 0 || miEff >= 9;
-  bool get stormOn => isNight && revCount >= 16 && (S.gen != 0 || miEff >= 4);
+  bool get ashLearned => S.gen != 0 || mi >= stepI('재폭풍 밤 한 번 버티기');
+  bool get stormOn => isNight && revCount >= 16 && (S.gen != 0 || mi >= stepI('구조 신호를 따라가 생존자 구하기'));
   bool get bigNightNext => S.lv >= 2 && ashLearned && num_('nightCount').toInt() % 3 == 2;
   bool get shield => num_('shield') != 0;
 
@@ -369,7 +367,7 @@ extension Crisis on Game {
       }
       return;
     }
-    if (revCount < 14 || (S.gen == 0 && miEff < 4)) return;
+    if (revCount < 14 || (S.gen == 0 && mi < stepI('구조 신호를 따라가 생존자 구하기'))) return;
     evT -= dt;
     if (evT > 0) return;
     final all = [for (var k = 0; k < web.events.length; k++) if (_evFit(k)) k];

@@ -5,6 +5,7 @@ import 'game/engine.dart';
 import 'game/storage.dart';
 import 'ui/atlas.dart';
 import 'ui/game_screen.dart';
+import 'ui/story_ui.dart';
 import 'ui/theme.dart';
 
 Future<void> main() async {
@@ -37,6 +38,7 @@ class TaptocityApp extends StatelessWidget {
         title: '탭투시티',
         debugShowCheckedModeBanner: false,
         theme: Ttc.theme(),
+        navigatorObservers: [pageWatch],
         home: GameScreen(game: game),
       );
 }

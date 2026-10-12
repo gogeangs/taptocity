@@ -7,6 +7,7 @@ import '../game/data.dart';
 import '../game/engine.dart';
 import 'atlas.dart';
 import 'icons.dart';
+import 'story_ui.dart';
 import 'theme.dart';
 
 /// 자원 그림 (resources.webp 12칸)
@@ -305,14 +306,15 @@ Widget sec(String t, [String? small]) => Padding(
 
 /// 웹 .segs
 class Segs extends StatelessWidget {
-  const Segs({super.key, required this.items, required this.on, required this.onTap, this.dots = const []});
+  const Segs({super.key, required this.items, required this.on, required this.onTap, this.dots = const [], this.hlKeys = const []});
   final List<String> items;
+  final List<String> hlKeys; // 칸마다 길잡이 강조 키 (story_ui hl)
   final List<bool> dots;
   final int on;
   final void Function(int) onTap;
   @override
   Widget build(BuildContext context) {
-    Widget seg(int k) => GestureDetector(
+    Widget seg0(int k) => GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () => onTap(k),
           child: Container(
@@ -326,6 +328,7 @@ class Segs extends StatelessWidget {
             ]),
           ),
         );
+    Widget seg(int k) => k < hlKeys.length ? hl(hlKeys[k], seg0(k), radius: 6) : seg0(k);
     // 웹 .segs: 5칸이면 3칸씩 두 줄
     final cols = items.length >= 5 ? 3 : items.length;
     final rows = <Widget>[];
