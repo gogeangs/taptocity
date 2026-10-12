@@ -139,7 +139,7 @@ void autoStep(Game g, Qa qa, math.Random r) {
         if (!saving && r.nextDouble() < .2) g.upMod(k);
       }
       g.upShelter();
-      if (!saving) g.upWalls();
+      g.upWalls();
       for (var k = 0; k < recipes.length; k++) {
         if ((!saving || k < 2) && r.nextDouble() < .3) g.craft(k, 3);
       }
@@ -169,6 +169,7 @@ void autoStep(Game g, Qa qa, math.Random r) {
     });
     safe('gear', () => g.autoGear());
     safe('promote', () {
+      if (g.S.mods.values.every((m) => m.id != 5) && g.S.lv >= 3) return; // 발전기 지을 부품을 아낀다
       for (final id in g.svIds) {
         if (g.canPromote(id)) g.promote(id);
       }
