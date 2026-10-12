@@ -5,18 +5,30 @@
 (function(){
 // Turn on once story-1..3.webp are in assets/illustrated (until then no requests are made, so no 404s).
 const ENABLED=true;
-const base='assets/illustrated/',files=['story-1.webp','story-2.webp','story-3.webp'],img={};
+const base='assets/illustrated/',files=['story-1.webp','story-2.webp','story-3.webp','story-4.webp','story-5.webp'],img={};
 let pending=null;
 if(ENABLED)for(const f of files){const i=ttcLazy(base+f+'?v=1');i.onload=()=>{const p=pending;if(p&&document.querySelector('#modal .page.talk')===p.page)after(p.talk,p.STEPS,p.TUT);};img[f]=i;}
 const ok=f=>{const i=img[f];return!!(i&&i.complete&&i.naturalWidth>0);};
 // panel numbers: 0-8 in story-1, 9-17 in story-2, 18-26 in story-3 (reading order, 3 columns)
 const CAP=['그날 밤 03:02, 정전된 거리','무너진 집','03:11, 텐트 안의 라디오','03:14, 발전소의 섬광','재가 내린 지 마흔세 날','랜턴 빛에 녹는 재','구름 속의 손전등 신호','붉게 물든 하늘','새벽의 잡음',
  '랜턴 피버','셋이 된 식탁','컨테이너 쉘터','창고 구석의 라디오','은호가 찾아오다','다시 불이 켜진 건물','맨홀 아래로','젖은 작업 일지','가장 먼 불빛',
- '재혁의 고백','망루에서 본 굴뚝','대형 재폭풍','수첩의 마지막 장','무전실의 방송','답하는 불빛','미영이 오다','랜턴의 일련번호','등불 탑 점화'];
+ '재혁의 고백','망루에서 본 굴뚝','대형 재폭풍','수첩의 마지막 장','무전실의 방송','답하는 불빛','미영이 오다','랜턴의 일련번호','등불 탑 점화',
+ '사막의 급유탑 마을','모래 밑 저수조','사막의 등불 탑','굴뚝 숲의 공단','아직 도는 부품 라인','공단에 켜진 빛','눈 덮인 분교','난로 하나의 교실','별이 보이는 산골',
+ '사라지는 통조림','돌아가 있는 다이얼','반쯤 끊긴 밧줄','잘린 안테나','뜯겨 나간 한 장','기둥에 꽂힌 쪽지','빠진 진공관','끊긴 확성기','사라진 녹음테이프'];
+// panels 27-35 (story-4): three per new town — arrival, its secret/trial/choice, its tower. 36-44 (story-5): one per casebook incident.
+const REGBASE={desert:27,factory:30,snow:33},CASEART={desert:42,factory:43,snow:44};
+const caseArt=k=>CASEART[k]!=null?CASEART[k]:(+k>=0&&+k<6?36+(+k):null);
+const regBeat=k=>k<3?0:k<6?1:2;
 // step index → [intro panel, outro panel]
 const STEPART=[[4,5],[1,1],[4,4],[4,4],[6,6],[6,6],[6,6],[7,7],[7,7],[7,8],[7,7],[9,9],[10,10],[10,10],[10,10],[10,10],[11,11],[12,12],[12,13],[13,13],
  [14,14],[14,14],[15,15],[15,15],[15,16],[17,17],[18,18],[19,19],[20,20],[20,20],[22,22],[23,23],[23,24],[23,23],[23,23],[23,23],[25,25],[26,26]];
-const LINE={},TALK={};let doneS=0,doneT=0;
+const LINE={},TALK={};let doneS=0,doneT=0,doneR=0;
+const putL=(l,n)=>{if(!Array.isArray(l))return;if(typeof l[1]==='string')TALK[l[1]]=TALK[l[1]]??n;if(Array.isArray(l[4])&&typeof l[4][1]==='string')TALK[l[4][1]]=TALK[l[4][1]]??n;};
+function indexTowns(){if(doneR||typeof window.TTC_SDATA!=='function')return;let D;try{D=window.TTC_SDATA();}catch(e){return;}if(!D)return;doneR=1;
+  for(const r in REGBASE){const b=REGBASE[r],arc=D.REG_STORY&&D.REG_STORY[r];
+    if(arc)arc.forEach((s,k)=>{for(const l of s.i||[])putL(l,b+regBeat(k));for(const l of s.o||[])putL(l,b+regBeat(k));});
+    for(const l of (D.NEXT_CALL&&D.NEXT_CALL[r])||[])putL(l,b);
+    const C=D.TOWN_CHOICE&&D.TOWN_CHOICE[r];if(C)for(const x of ['a','b'])for(const l of (C[x]&&C[x].r)||[])putL(l,b+1);}}
 function index(STEPS,TUT){
   if(STEPS&&!doneS){doneS=1;STEPS.forEach((s,i)=>{const a=STEPART[i];if(!a)return;for(const l of s.intro||[])TALK[l[1]]=TALK[l[1]]??a[0];for(const l of s.outro||[])TALK[l[1]]=TALK[l[1]]??a[1];});}
   if(TUT&&!doneT){doneT=1;TUT.forEach((T,i)=>{for(const l of T.say||[])TALK[l[1]]=[0,1,2,3][i];});}
@@ -32,13 +44,16 @@ function panelSvg(n){const f=files[Math.floor(n/9)];if(!ok(f))return'';const i=i
 function artFor(talk){if(!talk||!talk.lines)return null;const t=talk.lines[talk.k]&&talk.lines[talk.k][1];if(t!=null&&LINE[t]!=null)return LINE[t];
   if(talk.art==null){talk.art=-1;for(const l of talk.lines){if(TALK[l[1]]!=null){talk.art=TALK[l[1]];break;}}}return talk.art>=0?talk.art:null;}
 // called by the game's renderTalk right after the talk page is on screen
-function after(talk,STEPS,TUT){try{pending=null;if(!doneS||(TUT&&!doneT))index(STEPS,TUT);const n=artFor(talk);if(n==null)return null;
+function after(talk,STEPS,TUT){try{pending=null;if(!doneS||(TUT&&!doneT))index(STEPS,TUT);indexTowns();const n=artFor(talk);if(n==null)return null;
   const pg=document.querySelector('#modal .page.talk');if(!pg||pg.querySelector('.story-art'))return n;const art=panelSvg(n);if(!art){pending={talk,STEPS,TUT,page:pg};return n;}const old=pg.querySelector('.story-scene');if(old)old.remove();pg.classList.add('has-story-art');pg.insertAdjacentHTML('afterbegin',art);return n;}catch(e){return null;}}
 // gallery thumbnails: the bare svg crop (empty string until the atlas has loaded)
 function thumb(n){const f=files[Math.floor(n/9)];if(!ok(f))return'';const i=img[f],c=n%9,w=i.naturalWidth/3,h=i.naturalHeight/3,x=(c%3)*w,y=Math.floor(c/3)*h,e=2;
   return`<svg viewBox="${x+e} ${y+e} ${w-2*e} ${h-2*e}" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><image href="${base}${f}?v=1" width="${i.naturalWidth}" height="${i.naturalHeight}"/></svg>`;}
 const whenReady=cb=>{let left=0;for(const f of files){const i=img[f];if(i&&!ok(f)){left++;i.addEventListener('load',()=>{if(--left===0)cb();},{once:true});}}return left===0;};
 // story order (the casebook page belongs to the ending)
-const ORDER=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,22,23,24,25,26,21];
-window.TTCStory={after,panelSvg,thumb,whenReady,CAP,STEPART,ORDER};
+const ORDER=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,22,23,24,25,26,21,36,37,38,39,40,41,27,28,29,42,30,31,32,43,33,34,35,44];
+// put panel n at the top of an open page (the casebook card); waits for the atlas if it is still loading
+function into(sel,n){try{if(n==null)return;const put=()=>{const pg=document.querySelector(sel);if(!pg||pg.querySelector('.story-art'))return;const a=panelSvg(n);if(a)pg.insertAdjacentHTML('afterbegin',a);};
+  const f=files[Math.floor(n/9)];if(ok(f))put();else if(img[f])img[f].addEventListener('load',put,{once:true});}catch(e){}}
+window.TTCStory={after,panelSvg,thumb,whenReady,CAP,STEPART,ORDER,caseArt,into,REGBASE,regBeat};
 })();

@@ -1231,7 +1231,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261011-lnrec">
+<link rel="stylesheet" href="qa.css?v=20261012-towns">
 <div id="app">
   <header>
     <div class="hud">
@@ -5398,6 +5398,7 @@ const TOWN_CHOICE={
   b:{k:'fix',n:'고쳐서 쓴다',get d(){return'부품·전선 수확 ×1.3'+(S&&S.sv&&S.sv[9]?' · 재혁 신뢰도가 크게 올라요':'');},r:[[9,'고마워요. 이번엔 사람을 살리는 걸 만들게요.'],[F_,'두고 보겠다. 하지만… 기대는 하지.']]}},
  snow:{t:'산 너머 대피소로 구조대를 보낼까요?',a:{k:'rescue',n:'구조대를 보낸다',d:'누군가 다칠 수 있지만 약품·연료를 넉넉히 가져와요',r:[[16,'길은 제가 알아요. 다녀올게요.'],[ME,'구조대가 돌아왔다. 썰매 가득 약과 장작을 싣고.']]},
   b:{k:'stay',n:'마을에서 버틴다',d:'안전하게 봄을 기다려요 · 희망 +5 · 아이 한 명이 쉘터 식구가 돼요',r:[[W_,'봄까지 같이 버텨요. 아이 하나가 쉘터에 남고 싶대요.']]}}};
+window.TTC_SDATA=()=>({REG_STORY,NEXT_CALL,TOWN_CHOICE});
 const PICK_LOG={share:'저수조의 물을 모두에게 나누기로 했다.',keep:'저수조는 쉘터가 관리하기로 했다.',smash:'3공장 라인을 완전히 부쉈다.',fix:'3공장 라인을 고쳐 사람을 위한 걸 만들기로 했다.',rescue:'설아와 함께 산 너머 대피소로 구조대를 보냈다.',stay:'아이들과 함께 마을에서 봄을 기다리기로 했다.'};
 function openTownChoice(){const C=TOWN_CHOICE[S.region];if(!C||(S.rq||{}).pick)return;townChoiceShown=S.gen;const sp=npcSpeaker(S.region);
   openModal(`<div class="page talk conf"><div class="tag">${REG().n} · 선택</div><div class="who"><span class="av">${sp.av}</span><div><b>${sp.name}</b><small>${sp.sub}</small></div></div><p>${C.t}</p>
@@ -5755,11 +5756,12 @@ const cOf=k=>TCASES[k]||CASES[k];
 const cNo=k=>TCASES[k]?CASES.length+1+RORDER.indexOf(k):+k+1;
 const cKeys=()=>CASES.map((c,k)=>k).concat(RORDER.filter(r=>S.cases&&S.cases[r]&&S.cases[r].p));
 let caseCur=null;
+function caseArtPut(k){const T=window.TTCStory;if(!T||!T.caseArt)return;const n=T.caseArt(k);if(n==null)return;T.into('#modal .page.case',n);S.art=S.art||{};if(!S.art[n]){S.art[n]=1;S.artNew=1;save();}}
 function openCase(k){const c=cOf(k);caseCur=k;S.cases=S.cases||{};S.cases[k]=S.cases[k]||{at:Date.now()};save();sfx('mystery');
   const sus=c.sus!=null&&svIn(c.sus)?svName(c.sus):c.susN;
   openModal(`<div class="page case nox"><div class="tag">사건 ${cNo(k)} · ${c.ch}</div><h3>${c.t}</h3><div class="cswhen">${c.when} · 의심받는 사람: <b>${sus}</b></div>
     <div class="csb">${caseLines(c.x())}</div><div class="csq">어떻게 할까요?</div>
-    <div class="cso">${['a','b','c'].map(p=>`<button class="copt${p==='a'?' hi':''}" data-act="case" data-arg="${p}"><b>${optL(c[p])}</b><small>${p==='a'?(c.tut?'범인을 찾아봐요':'진실에 다가가요 · 그 사람은 서운해해요'):p==='b'?'믿음이 깊어져요 · 단서를 놓칠 수 있어요':'조용히 넘어가요'}</small></button>`).join('')}</div></div>`,true);}
+    <div class="cso">${['a','b','c'].map(p=>`<button class="copt${p==='a'?' hi':''}" data-act="case" data-arg="${p}"><b>${optL(c[p])}</b><small>${p==='a'?(c.tut?'범인을 찾아봐요':'진실에 다가가요 · 그 사람은 서운해해요'):p==='b'?'믿음이 깊어져요 · 단서를 놓칠 수 있어요':'조용히 넘어가요'}</small></button>`).join('')}</div></div>`,true);caseArtPut(k);}
 function pickCase(p){const k=caseCur,c=cOf(k);if(!c)return;const o=c[p],R=S.cases[k];if(R.p)return;R.p=p;
   const sid=c.sus!=null&&svIn(c.sus)?c.sus:null,fx=[];
   if(!c.tut){if(p==='a'){if(c.all){for(const id in S.sv)S.sv[id].xp=Math.max(0,S.sv[id].xp-20);fx.push('모두 신뢰 -20');}else if(sid!=null){S.sv[sid].xp=Math.max(0,S.sv[sid].xp-60);fx.push(`${svName(sid)} 신뢰 -60`);}}
@@ -5770,7 +5772,7 @@ function pickCase(p){const k=caseCur,c=cOf(k);if(!c)return;const o=c[p],R=S.case
   recalc();save();caseCur=null;
   openModal(`<div class="page case done"><div class="tag">사건 ${cNo(k)} · ${c.ch}</div><h3>${c.t}</h3><div class="csb">${caseLines(ls)}</div>
     ${fx.length?`<div class="rqget big">${fx.map(t=>`<span class="rqfx${/-\d/.test(t)?' bad':''}">${t}</span>`).join('')}</div>`:''}
-    <div class="csnote">${c.solved?'<em class="stamp ok">해결</em>':'<em class="stamp">미해결</em>'} 사건 수첩에 적었어요</div><button class="rqok">닫기</button></div>`,true);
+    <div class="csnote">${c.solved?'<em class="stamp ok">해결</em>':'<em class="stamp">미해결</em>'} 사건 수첩에 적었어요</div><button class="rqok">닫기</button></div>`,true);caseArtPut(k);
   S.caseNew=1;save();$('fDiary')&&pingEl($('fDiary'));}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="case"]');if(!b)return;e.stopPropagation();pickCase(b.dataset.arg);},true);
 function tickCases(){S.cases=S.cases||{};
@@ -5886,11 +5888,15 @@ function endCard(){S.ehEnd=1;save();endingOn=false;const d=document.createElemen
 // ================= 회상 갤러리: every story scene the player has seen, with its lines, from the diary =================
 // Unlocks as scenes are shown; older saves are credited from their story progress. Replays never change progress.
 function artBackfill(){S.art=S.art||{};const T=window.TTCStory;if(!T)return;let tu=false;try{tu=!!(S.tutSeen||localStorage.getItem('ttc_tut')==='1');}catch(e){tu=!!S.tutSeen;}
-  if(tu)for(const n of [0,1,2,3])S.art[n]=1;const d=Math.min(S.mi||0,STEPS.length);for(let i=0;i<d;i++){const a=T.STEPART[i];if(a){S.art[a[0]]=1;S.art[a[1]]=1;}}if(S.ehEnd){S.art[22]=1;S.art[21]=1;}}
+  if(tu)for(const n of [0,1,2,3])S.art[n]=1;const d=Math.min(S.mi||0,STEPS.length);for(let i=0;i<d;i++){const a=T.STEPART[i];if(a){S.art[a[0]]=1;S.art[a[1]]=1;}}if(S.ehEnd){S.art[22]=1;S.art[21]=1;}
+  if(T.caseArt&&S.cases)for(const k in S.cases){if(S.cases[k]&&S.cases[k].p){const n=T.caseArt(k);if(n!=null)S.art[n]=1;}}
+  if(T.REGBASE){const g0=S.gen||0;for(let g=1;g<=Math.min(g0,3);g++){const r=regionOfGen(g),b=T.REGBASE[r];if(b==null)continue;const d=g<g0?99:(S.rmi||0);for(let k=0;k<Math.min(d,9);k++)S.art[b+T.regBeat(k)]=1;}}}
 // the first talk in story order that shows each panel
 function sceneSource(n){const T=window.TTCStory;if(!T)return null;let tu=null;try{tu=TUT;}catch(e){}
   if(n<=3&&tu&&tu[n])return{lines:tu[n].say,tag:'그날 밤 · '+tu[n].t};
   if(n===21||n===22)return{lines:END_LINES,tag:'그날 밤'};
+  if(T.REGBASE&&n>=27&&n<=35){const r=Object.keys(T.REGBASE).find(x=>n>=T.REGBASE[x]&&n<T.REGBASE[x]+3),j=n-T.REGBASE[r],a=REG_STORY[r]&&REG_STORY[r][[0,3,8][j]];if(a&&a.o)return{lines:j===2?a.i.concat(a.o):a.o,tag:REGIONS[r]?REGIONS[r].n:'새 동네'};}
+  if(n>=36&&n<=44){const k=n<42?n-36:['desert','factory','snow'][n-42],c=cOf(k);if(c)return{lines:c.x(),tag:`사건 수첩 · ${c.t}`};}
   for(let i=0;i<STEPS.length;i++){const a=T.STEPART[i],st=STEPS[i],c=STORY[st.ci];if(!a)continue;
     if(a[0]===n&&st.intro&&st.intro.length)return{lines:st.intro,tag:`${c.ch} · ${c.title}`};
     if(a[1]===n&&st.outro&&st.outro.length)return{lines:st.outro,tag:`${c.ch} · ${c.title}`};}
@@ -6441,7 +6447,7 @@ if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.r
   d.querySelector('.x').onclick=()=>d.remove();const g=d.querySelector('.go');if(g)g.onclick=async()=>{d.remove();if(dp){dp.prompt();try{await dp.userChoice;}catch(e){}dp=null;}};},25000);
 })();
 </script>
-<script src="story-art.js?v=20261011-lazy"></script>
+<script src="story-art.js?v=20261012-towns"></script>
 <script src="music.js?v=20261011-cool"></script>
 </body>
 </html>

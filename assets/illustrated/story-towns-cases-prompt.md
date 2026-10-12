@@ -28,5 +28,4 @@ Row3: (42) a desert fuel tower's old radio set opened, an empty vacuum tube sock
 
 ## After adding the files
 
-`story-art.js` needs the two files in its `files` list, `CAP` entries 27–44, and the mapping for town arcs,
-the next-town radio calls, town choices and casebook pages. Then list both files in the `CORE` image list in `sw.js` and bump `CACHE`.
+Added 2026-10-12: `story-art.js` maps town arcs (3 beats each), next-town radio calls and town choices to 27–35, and casebook pages to 36–44 (`TTCStory.caseArt`, `into`). The gallery order and backfill include them.
