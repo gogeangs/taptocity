@@ -3,8 +3,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:app_links/app_links.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../data/web_data.g.dart' as web;
 import '../game/data.dart';
@@ -12,6 +15,8 @@ import '../game/engine.dart';
 import '../game/state.dart';
 import '../game/storage.dart';
 import '../game/cloud.dart';
+import '../legacy/legacy.dart';
+import '../legacy/legacy_peek.dart';
 import '../report.dart';
 import 'atlas.dart';
 import 'cloud_ui.dart';
@@ -38,6 +43,9 @@ class GameScreen extends StatefulWidget {
 
   /// 클라우드 저장 켜기 (앱에서만. 시험에서는 끈다)
   static bool cloudOn = false;
+
+  /// 이 기기에 저장이 없던 첫 실행 (예전 버전 진행을 찾아본다)
+  static bool firstRun = false;
   @override
   State<GameScreen> createState() => _GameScreenState();
 }
@@ -190,6 +198,80 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     unawaited(Cloud.flush());
     _cloudT?.cancel();
     _cloudT = Timer.periodic(const Duration(seconds: 45), (_) => _cloudUp());
+    await _legacyStart();
+  }
+
+  // ---------- 예전 버전에서 진행 옮기기 ----------
+  bool _peek = false;
+  StreamSubscription<Uri>? _linkSub;
+
+  Future<void> _legacyStart() async {
+    if (!kIsWeb) {
+      final links = AppLinks();
+      _linkSub = links.uriLinkStream.listen(_onLink);
+      final first = await links.getInitialLink();
+      if (first != null) _onLink(first);
+    }
+    if (!GameScreen.firstRun || await Storage.getRaw('ttc_legacy_asked') != null) return;
+    if (kIsWeb) {
+      final raw = await readWebSave();
+      if (raw != null) await _offerLegacy(raw, '이 브라우저의 웹 게임');
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+      if (mounted) setState(() => _peek = true);
+    }
+  }
+
+  void _onLink(Uri u) {
+    if (u.scheme != 'taptocity' || u.host != 'import') return;
+    final c = u.queryParameters['c'];
+    if (c == null || c.isEmpty) return;
+    final s = Game.parseCode(c);
+    if (s == null) {
+      fxc.toast('진행을 읽지 못했어요');
+      return;
+    }
+    _offerLegacy(jsonEncode(s.toJson()), '예전 앱');
+  }
+
+  Future<void> _offerLegacy(String raw, String from) async {
+    await Storage.setRaw('ttc_legacy_asked', '1');
+    GameState? s;
+    try {
+      s = GameState.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    } catch (_) {}
+    if (s == null || !mounted) return;
+    final ls = Cloud.summary(raw);
+    final ok = await cloudAsk(
+        context,
+        '$from의 진행을 찾았어요',
+        'Lv.${ls.$2}${ls.$3 > 0 ? ' · ${ls.$3 + 1}번째 동네' : ''}${ls.$1 > 0 ? ' · ${cloudWhen(ls.$1)} 저장' : ''}\n\n이 진행으로 이어서 할까요? 지금 이 앱의 진행은 따로 보관해 둬요.',
+        '이어서 하기',
+        '지금 진행 유지');
+    if (!ok || !mounted) return;
+    await Storage.backup();
+    g.replaceState(s);
+    cam.set(0, (CX + CY + 1) * TH / 2 - 10);
+    g.dirty = true;
+    _save();
+    fxc.toast('예전 진행을 불러왔어요');
+    if (GameScreen.cloudOn) unawaited(_cloudUp(force: true));
+  }
+
+  /// 설정의 '예전 버전에서 진행 가져오기'
+  Future<void> _legacyManual() async {
+    if (kIsWeb) {
+      final raw = await readWebSave();
+      if (raw == null) {
+        fxc.toast('이 브라우저에는 웹 게임 진행이 없어요');
+      } else {
+        await _offerLegacy(raw, '이 브라우저의 웹 게임');
+      }
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+      setState(() => _peek = true);
+    } else {
+      // 예전 안드로이드 앱은 크롬에 저장했다 → 크롬으로 옮기기 페이지를 열면 taptocity://import 로 돌아온다
+      await launchUrl(Uri.parse('https://gogeangs.github.io/taptocity/transfer.html'), mode: LaunchMode.externalApplication);
+    }
   }
 
   @override
@@ -217,6 +299,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _clock?.cancel();
     _cloudT?.cancel();
+    _linkSub?.cancel();
     _lampHold?.cancel();
     super.dispose();
   }
@@ -799,7 +882,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       case 'profile':
         return SheetPanel(icon: Ico.surv, title: '내 프로필', onClose: _close, child: ProfileBody(g));
       case 'settings':
-        return SheetPanel(icon: Ico.gear, title: '설정', onClose: _close, child: SettingsBody(g, onReset: _reset, onTut: _tutReplay, onSaveNow: () => _cloudUp(force: true)));
+        return SheetPanel(icon: Ico.gear, title: '설정', onClose: _close, child: SettingsBody(g, onReset: _reset, onTut: _tutReplay, onSaveNow: () => _cloudUp(force: true), onLegacy: _legacyManual));
       case 'assign':
         return SheetPanel(
             icon: Ico.surv,
@@ -1144,6 +1227,18 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             g.dirty = true;
             setState(() => _endCard = false);
           })),
+        if (_peek)
+          Positioned(
+              left: 0,
+              top: 0,
+              child: LegacyPeek(onResult: (raw) {
+                setState(() => _peek = false);
+                if (raw != null) {
+                  _offerLegacy(raw, '예전 탭투시티 앱');
+                } else {
+                  Storage.setRaw('ttc_legacy_asked', '1');
+                }
+              })),
         if (_mig != null) Positioned.fill(child: MigStamp(_mig!.$1, _mig!.$2, key: ValueKey(_mig), onDone: () => setState(() => _mig = null))),
         if (coachR != null) Positioned.fill(child: CoachOverlay(i: _coach, hole: coachR, onNext: _coachNext, onSkip: () => setState(_coachEnd))),
       ]),

@@ -539,11 +539,12 @@ Widget comingBody(String title, String stage) => ListView(padding: _bodyPad, chi
 
 // ======================= 설정 =======================
 class SettingsBody extends StatefulWidget {
-  const SettingsBody(this.g, {super.key, required this.onReset, this.onTut, this.onSaveNow});
+  const SettingsBody(this.g, {super.key, required this.onReset, this.onTut, this.onSaveNow, this.onLegacy});
   final Game g;
   final VoidCallback onReset;
   final VoidCallback? onTut;
   final Future<void> Function()? onSaveNow;
+  final Future<void> Function()? onLegacy;
   @override
   State<SettingsBody> createState() => _SettingsBodyState();
 }
@@ -645,6 +646,7 @@ class _SettingsBodyState extends State<SettingsBody> {
     return ListView(padding: _bodyPad, children: [
       Text('네이티브 미리보기 · 8단계', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
       if (widget.onSaveNow != null) CloudSection(onSaveNow: widget.onSaveNow!),
+      if (widget.onLegacy != null) _row('예전 버전에서 진행 가져오기', '웹 게임이나 예전 탭투시티 앱에서 하던 진행을 이 앱으로 옮겨요', _ghost('가져오기', () => widget.onLegacy!())),
       _row('피드백 보내기', '버그·제안·소감, 무엇이든 개발자에게 바로 전해져요', _ghost('쓰기', () => showFeedback(context, g))),
       for (final (k, n, d) in const [
         ('mus', '음악', '낮과 밤, 재폭풍, 심야 방송에 맞춰 흐르는 배경 음악'),

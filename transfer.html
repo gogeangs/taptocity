@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>탭투시티 · 진행 옮기기</title>
+<style>
+html,body{margin:0;background:#141a21;color:#e7e4dc;font:15px/1.6 system-ui,-apple-system,"Noto Sans KR",sans-serif}
+main{max-width:420px;margin:0 auto;padding:28px 18px 40px}
+h1{font-size:21px;margin:0 0 6px}
+.card{background:#efe3c4;color:#3b2a1a;border-radius:14px;padding:16px;margin:16px 0}
+.card b{font-size:17px}
+.d{color:#a9a294;font-size:13.5px}
+.card .d{color:#6b5e52}
+button,a.btn{display:block;width:100%;box-sizing:border-box;margin-top:10px;border:0;border-radius:99px;padding:13px 10px;font:700 15px system-ui,sans-serif;text-align:center;text-decoration:none}
+.go{background:#dfa54b;color:#243039}
+.alt{background:transparent;color:#e7e4dc;border:1.5px solid rgba(231,228,220,.35)!important}
+textarea{width:100%;box-sizing:border-box;height:90px;margin-top:10px;border-radius:8px;border:1px solid #8a7a64;font:12px monospace;padding:8px}
+</style>
+</head>
+<body>
+<main>
+<h1>진행 옮기기</h1>
+<div class="d">이 브라우저(또는 예전 탭투시티 앱)에 저장된 진행을 새 탭투시티 앱으로 보내요. 이 브라우저의 진행은 그대로 남아요.</div>
+<div id="box"></div>
+</main>
+<script>
+// 새 앱(Flutter)으로 진행을 넘기는 페이지. 예전 안드로이드 앱(TWA)은 크롬 저장소를 쓰므로, 같은 크롬에서 이 페이지를 열면 그 진행이 보인다.
+// 앱 링크: taptocity://import?c=TTC1.<base64(utf8(JSON))>  — 웹 exportSave와 같은 코드
+const KEY='taptocity-shelter-v1',box=document.getElementById('box');
+let raw=null;try{raw=localStorage.getItem(KEY);}catch(e){}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+if(!raw){box.innerHTML='<div class="card"><b>여기에는 진행이 없어요</b><div class="d">예전에 하던 브라우저나 앱에서 이 페이지를 열어 주세요. 새 앱에서 처음부터 시작해도 돼요.</div></div><a class="btn alt" href="taptocity://import">앱으로 돌아가기</a>';}
+else{let s={};try{s=JSON.parse(raw);}catch(e){}
+  const REG={desert:'메마른 사막 도시',factory:'녹슨 공단 지대',snow:'눈 덮인 산골 마을'};
+  const t=s.t?new Date(s.t):null,when=t?`${t.getMonth()+1}/${t.getDate()} ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`:'';
+  let code='';try{code='TTC1.'+btoa(unescape(encodeURIComponent(raw)));}catch(e){}
+  const name=s.pf&&s.pf.name?esc(s.pf.name)+' · ':'';
+  box.innerHTML=`<div class="card"><b>${name}Lv.${s.lv||1}${s.gen?` · ${REG[s.region]||(s.gen+1)+'번째 동네'}`:''}</b><div class="d">생존자 ${Object.keys(s.sv||{}).length}명${when?` · 마지막 저장 ${when}`:''}</div></div>
+    <a class="btn go" id="go" href="taptocity://import?c=${encodeURIComponent(code)}">새 앱으로 보내기</a>
+    <button class="alt" id="cp">저장 코드 복사 (직접 붙여 넣기)</button><textarea id="tx" readonly hidden></textarea>`;
+  document.getElementById('cp').onclick=async()=>{const tx=document.getElementById('tx');tx.hidden=false;tx.value=code;tx.select();try{await navigator.clipboard.writeText(code);document.getElementById('cp').textContent='복사했어요 · 앱 설정 → 저장 코드 불러오기';}catch(e){}};}
+</script>
+</body>
+</html>

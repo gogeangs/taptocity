@@ -21,6 +21,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    env:
+      HAS_KEY: ${{ secrets.TTC_KEYSTORE_B64 != '' }}
     defaults:
       run:
         shell: bash
@@ -44,7 +46,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install fonttools brotli
+      - run: pip install fonttools brotli pillow
 
       - uses: actions/setup-java@v5
         with:
@@ -59,14 +61,24 @@ jobs:
       - name: 그림·글꼴 복사
         run: tool/prepare_assets.sh
 
+      # 플레이 스토어 업로드 키 (저장소 시크릿 TTC_KEYSTORE_B64·TTC_KEYSTORE_PASS·TTC_KEY_ALIAS·TTC_KEY_PASS). 없으면 미리보기용 디버그 서명
+      - name: 업로드 키 준비
+        if: env.HAS_KEY == 'true'
+        env:
+          B64: ${{ secrets.TTC_KEYSTORE_B64 }}
+        run: |
+          echo "$B64" | base64 -d > "$RUNNER_TEMP/upload.keystore"
+          echo "TTC_KEYSTORE=$RUNNER_TEMP/upload.keystore" >> "$GITHUB_ENV"
+          echo "TTC_KEYSTORE_PASS=${{ secrets.TTC_KEYSTORE_PASS }}" >> "$GITHUB_ENV"
+          echo "TTC_KEY_ALIAS=${{ secrets.TTC_KEY_ALIAS }}" >> "$GITHUB_ENV"
+          echo "TTC_KEY_PASS=${{ secrets.TTC_KEY_PASS }}" >> "$GITHUB_ENV"
+
       - name: 플랫폼 폴더 만들기 (android·web)
         run: |
           flutter --version
           flutter create --org kr.co.itso --project-name taptocity --platforms android,web .
           rm -f test/widget_test.dart
-          # 앱 이름
-          sed -i 's/android:label="[^"]*"/android:label="탭투시티"/' android/app/src/main/AndroidManifest.xml
-          sed -i 's#<title>[^<]*</title>#<title>탭투시티 · 네이티브 미리보기</title>#' web/index.html
+          python3 tool/platform_setup.py
 
       # 실패하면 마지막 출력을 주석(annotation)으로 남겨, 로그를 못 여는 곳에서도 원인을 볼 수 있게 한다
       - name: 검사
@@ -101,6 +113,21 @@ jobs:
         with:
           name: taptocity-apk
           path: native/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+
+      # 스토어 제출용 번들(.aab) — 업로드 키가 있을 때만. 스토어에 올리는 일은 하지 않는다 (사람이 확인 후 Play Console에서)
+      - name: 안드로이드 번들 (스토어용)
+        if: env.HAS_KEY == 'true'
+        run: |
+          set +e +o pipefail
+          flutter build appbundle --release 2>&1 | tee ../out.txt; s=${PIPESTATUS[0]}
+          if [ $s -ne 0 ]; then m=$(tail -60 ../out.txt | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}'); echo "::error title=aab::$m"; exit $s; fi
+
+      - uses: actions/upload-artifact@v4
+        if: env.HAS_KEY == 'true'
+        with:
+          name: taptocity-aab
+          path: native/build/app/outputs/bundle/release/app-release.aab
           retention-days: 30
 
       - name: 웹 미리보기

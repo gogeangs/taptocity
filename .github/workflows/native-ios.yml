@@ -1,0 +1,106 @@
+# 탭투시티 네이티브(Flutter) iOS — 클라우드 Mac에서 컴파일을 확인한다.
+# TestFlight 업로드는 '수동 실행'에서 upload 를 켰을 때만 한다 (스토어 제출은 사람이 확인한 뒤).
+# 시크릿은 기존 iOS 앱과 같다: APPLE_TEAM_ID, ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8
+name: Native iOS
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: 'TestFlight로 올리기 (App Store Connect)'
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+    paths: ['native/pubspec.yaml', 'native/tool/platform_setup.py', '.github/workflows/native-ios.yml']
+
+concurrency:
+  group: native-ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 60
+    env:
+      UPLOAD: ${{ github.event_name == 'workflow_dispatch' && inputs.upload && secrets.ASC_KEY_P8 != '' && secrets.APPLE_TEAM_ID != '' }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: native
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode 버전 선택
+        run: |
+          X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | grep -v -i beta | sort -V | tail -1)
+          [ -n "$X" ] || X=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          sudo xcode-select -s "$X"
+          xcodebuild -version
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: 그림·글꼴 복사
+        run: |
+          pip3 install --quiet --break-system-packages fonttools brotli pillow || pip3 install --quiet fonttools brotli pillow
+          tool/prepare_assets.sh
+
+      - name: iOS 폴더 만들기
+        run: |
+          flutter create --org kr.co.itso --project-name taptocity --platforms ios .
+          rm -f test/widget_test.dart
+          python3 tool/platform_setup.py
+          # 번들 ID는 기존 앱과 같게 (kr.co.itso.taptocity)
+          grep -m1 PRODUCT_BUNDLE_IDENTIFIER ios/Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*;/IPHONEOS_DEPLOYMENT_TARGET = 16.0;/g' ios/Runner.xcodeproj/project.pbxproj
+
+      - name: 컴파일 확인 (서명 없이)
+        run: |
+          set +e +o pipefail
+          flutter build ios --release --no-codesign 2>&1 | tee ../out.txt; s=${PIPESTATUS[0]}
+          if [ $s -ne 0 ]; then m=$(tail -60 ../out.txt | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}'); echo "::error title=ios::$m"; exit $s; fi
+
+      - name: API 키 준비
+        if: env.UPLOAD == 'true'
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/keys"
+          printf '%s\n' "$ASC_KEY_P8" > "$RUNNER_TEMP/keys/AuthKey_${ASC_KEY_ID}.p8"
+
+      - name: 아카이브·TestFlight 업로드
+        if: env.UPLOAD == 'true'
+        env:
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          cd ios
+          xcodebuild -workspace Runner.xcworkspace -scheme Runner -configuration Release -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/Runner.xcarchive" DEVELOPMENT_TEAM="$TEAM" CODE_SIGN_STYLE=Automatic \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" archive > "$RUNNER_TEMP/archive.log" 2>&1 || { tail -60 "$RUNNER_TEMP/archive.log"; exit 1; }
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>${TEAM}</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+            <key>uploadSymbols</key><true/>
+          </dict></plist>
+          EOF
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/Runner.xcarchive" -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export" -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey_${ASC_KEY_ID}.p8" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            > "$RUNNER_TEMP/export.log" 2>&1 || { tail -60 "$RUNNER_TEMP/export.log"; exit 1; }
+          tail -20 "$RUNNER_TEMP/export.log"
+
+      - name: 키 정리
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/keys"

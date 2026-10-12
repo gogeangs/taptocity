@@ -14,6 +14,7 @@ const fs = require('fs');
   const url = 'http://localhost:8080/taptocity/native-play/';
   let bytes = 0;
   page.on('response', async (r) => {
+    if (r.status() >= 400) log.push(`[http ${r.status()}] ${r.url().replace(/key=[^&]+/, 'key=…').slice(0, 160)}`);
     try {
       const b = await r.buffer();
       bytes += b.length;

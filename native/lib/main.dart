@@ -27,6 +27,7 @@ Future<void> main() async {
   await Prefs.load();
   await Atlas.load();
   final saved = await Storage.load();
+  GameScreen.firstRun = saved == null;
   Game.tutFlag = await Storage.getRaw('ttc_tut') == '1';
   Game game;
   try {
