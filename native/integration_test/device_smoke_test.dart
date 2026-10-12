@@ -162,6 +162,8 @@ void main() {
       await wait(1);
     });
     await snap('map-taps');
+    // 지도 가운데(쉘터)를 두드리면 쉘터 시트가 열린다 → 닫고 시작
+    if (find.text('건설').evaluate().isNotEmpty) await step('쉘터 시트 닫기', () async => await tapText('쉘터'));
     for (final (tab, subs) in const [
       ('쉘터', ['건설', '가공', '연구']),
       ('일지', ['이야기', '도감']),
@@ -216,7 +218,8 @@ void main() {
     await step('진동 채널', () => SystemChannels.platform.invokeMethod<void>('HapticFeedback.vibrate'));
 
     log.add('끝까지 진행 (${at()})');
-    binding.reportData = {'errors': errors, 'log': log};
+    // 사진은 reportData['screenshots']에 쌓이므로 덮어쓰지 않고 더한다
+    binding.reportData = {...?binding.reportData, 'errors': errors, 'log': log};
     FlutterError.onError = origErr;
     WidgetsBinding.instance.platformDispatcher.onError = origPd;
     // 소리를 멈추고(재생 위치를 매 프레임 읽는 콜백이 남지 않게) 화면을 비운다
