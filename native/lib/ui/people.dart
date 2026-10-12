@@ -251,7 +251,7 @@ class _PeoplePainter extends CustomPainter {
     final sx = (w.x - cam.x) * cam.z + size.width / 2, sy = (w.y - 26 - cam.y) * cam.z + size.height / 2;
     final t = txt0.length > 18 ? '${txt0.substring(0, 17)}…' : txt0;
     final tp = TextPainter(text: TextSpan(text: t, style: Ttc.t(12, color: const Color(0xFF3B2A1A), weight: FontWeight.w600, height: 1)), textDirection: TextDirection.ltr)..layout();
-    final tw = tp.width + (c.solo ? 16 : 30), bx = (sx - tw / 2).clamp(8.0, math.max(8.0, size.width - tw - 8)), by = sy - 26;
+    final tw = tp.width + (c.solo ? 16 : 30), bx = (sx - tw / 2).clamp(8.0, math.max(8.0, size.width - tw - 8)).toDouble(), by = sy - 26;
     final rr = RRect.fromRectAndRadius(Rect.fromLTWH(bx, by, tw, 22), const Radius.circular(9));
     final fill = Paint()..color = const Color(0xF5EFE3C4);
     canvas.drawRRect(rr, fill);
