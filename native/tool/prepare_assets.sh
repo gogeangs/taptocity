@@ -3,7 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p assets/illustrated assets/fonts
-for f in shelters modules exploration-sites landmarks settlement-props resources; do
+for f in shelters modules module-upgrades exploration-sites landmarks settlement-props resources; do
   cp "../assets/illustrated/$f.webp" assets/illustrated/
 done
 # 웹 글꼴(woff2)을 앱용(ttf)으로

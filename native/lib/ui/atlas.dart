@@ -10,7 +10,7 @@ class Atlas {
   static Future<void>? _loading;
 
   static const files = [
-    'shelters.webp', 'modules.webp', 'exploration-sites.webp', 'landmarks.webp', 'settlement-props.webp', 'resources.webp',
+    'shelters.webp', 'modules.webp', 'module-upgrades.webp', 'exploration-sites.webp', 'landmarks.webp', 'settlement-props.webp', 'resources.webp',
   ];
 
   static Future<void> load() => _loading ??= () async {
@@ -48,6 +48,13 @@ class Atlas {
     [22, 437, 471, 328], [501, 424, 235, 335], [758, 524, 406, 246], [1164, 435, 449, 338], [1618, 525, 353, 256],
   ];
   static const landmarkWidth = [76.0, 44.0, 72.0, 76.0, 66.0];
+
+  // chapter-design.js mf: 모듈마다 [2단계, 3단계] (MOD_ORDER 순서)
+  static const moduleUpFrames = [
+    [12, 85, 272, 239], [301, 32, 286, 287], [606, 79, 277, 242], [895, 40, 278, 284], [1193, 75, 265, 236], [1476, 35, 285, 283],
+    [30, 330, 253, 252], [305, 324, 284, 258], [606, 347, 257, 235], [887, 337, 334, 260], [1273, 339, 145, 231], [1546, 322, 163, 248],
+    [14, 597, 271, 259], [297, 597, 293, 268], [596, 604, 282, 246], [886, 597, 329, 266], [1218, 590, 242, 267], [1474, 590, 293, 272],
+  ];
 
   // settlement.js props
   static const propFrames = [

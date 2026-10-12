@@ -1,246 +1,337 @@
-// 아래에서 올라오는 시트: 쉘터(짓기·작업대·연구), 모듈·랜드마크 빠른 메뉴, 일지, 설정.
+// 지도 위로 올라오는 시트 (웹 #sheet). 머리(아이콘·제목·닫기)는 짙은 색, 몸은 종이색.
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../game/data.dart';
 import '../game/engine.dart';
+import 'atlas.dart';
+import 'icons.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
-Future<void> showTtcSheet(BuildContext context, Game g, Widget Function(BuildContext) body, {double height = .72}) {
-  return showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: const Color(0x66000000),
-    builder: (ctx) => FractionallySizedBox(
-      heightFactor: height,
-      child: Container(
-        decoration: const BoxDecoration(
-          color: Ttc.leather,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-          boxShadow: [BoxShadow(color: Color(0x88000000), blurRadius: 18)],
-        ),
-        child: SafeArea(
-          top: false,
-          child: Column(children: [
-            Container(width: 44, height: 5, margin: const EdgeInsets.symmetric(vertical: 8), decoration: BoxDecoration(color: Ttc.paper.withValues(alpha: .3), borderRadius: BorderRadius.circular(3))),
-            Expanded(child: AnimatedBuilder(animation: g, builder: (c, _) => body(c))),
-          ]),
-        ),
-      ),
-    ),
-  );
+/// 열린 시트의 종류
+class SheetSpec {
+  const SheetSpec(this.kind, {this.tile = -1});
+  final String kind; // shelter, module, landmark, camp, diary, settings, surv, exp, radio
+  final int tile;
+  @override
+  bool operator ==(Object o) => o is SheetSpec && o.kind == kind && o.tile == tile;
+  @override
+  int get hashCode => Object.hash(kind, tile);
 }
 
-Widget _head(String title, String sub) => Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-        Text(title, style: Ttc.title(22)),
-        const SizedBox(width: 8),
-        Expanded(child: Text(sub, style: Ttc.body(12.5, color: Ttc.muted))),
-      ]),
-    );
+class SheetPanel extends StatelessWidget {
+  const SheetPanel({super.key, required this.icon, required this.title, required this.onClose, required this.child});
+  final String icon;
+  final String title;
+  final VoidCallback onClose;
+  final Widget child;
+  @override
+  Widget build(BuildContext context) => Container(
+        decoration: BoxDecoration(
+          color: Ttc.paper,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(14), bottom: Radius.circular(10)),
+          border: Border.all(color: const Color(0x40EEE5D3), width: .8),
+          boxShadow: const [BoxShadow(color: Color(0x470A1016), blurRadius: 28, offset: Offset(0, -8))],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(children: [
+          Container(
+            color: Ttc.btn,
+            padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+            child: Row(children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(color: Ttc.tabOn, borderRadius: BorderRadius.circular(7), boxShadow: const [BoxShadow(color: Color(0x40000000), offset: Offset(0, -2), blurRadius: 0, spreadRadius: -1)]),
+                alignment: Alignment.center,
+                child: SvgIcon(icon, size: 20, color: Ttc.hudText),
+              ),
+              const SizedBox(width: 10),
+              Expanded(child: Text(title, style: Ttc.t(17, weight: FontWeight.w700))),
+              GestureDetector(
+                onTap: onClose,
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0x173C2B1A)),
+                  child: Text('✕', style: Ttc.t(18, weight: FontWeight.w600, height: 1)),
+                ),
+              ),
+            ]),
+          ),
+          Expanded(child: child),
+        ]),
+      );
+}
+
+EdgeInsets get _bodyPad => const EdgeInsets.fromLTRB(14, 14, 14, 20);
 
 // ======================= 쉘터 =======================
-class ShelterSheet extends StatefulWidget {
-  const ShelterSheet(this.g, {super.key});
+class ShelterBody extends StatefulWidget {
+  const ShelterBody(this.g, {super.key});
   final Game g;
   @override
-  State<ShelterSheet> createState() => _ShelterSheetState();
+  State<ShelterBody> createState() => _ShelterBodyState();
 }
 
-class _ShelterSheetState extends State<ShelterSheet> {
-  int tab = 0;
+class _ShelterBodyState extends State<ShelterBody> {
+  static int tab = 0; // 웹처럼 마지막으로 본 탭을 기억
   Game get g => widget.g;
+  Timer? _hold;
+
+  @override
+  void dispose() {
+    _hold?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final S = g.S;
-    return Column(children: [
-      _head('Lv.${S.lv} ${shelterName[S.lv - 1]}', '보관 한도 ${fmt(g.cap)} · 희망 ${g.hope} · 식량 +${fmt(g.prod['food'] ?? 0)} / -${fmt(g.eat)} 매분'),
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Row(children: [
-          for (final (k, n) in const [(0, '짓기'), (1, '작업대'), (2, '연구')])
-            Expanded(
-              child: GestureDetector(
-                onTap: () => setState(() => tab = k),
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  decoration: BoxDecoration(
-                    color: tab == k ? Ttc.paper : Colors.transparent,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Ttc.paper.withValues(alpha: .3)),
-                  ),
-                  child: Text(n, textAlign: TextAlign.center, style: Ttc.body(14.5, color: tab == k ? Ttc.sepia : Ttc.paper, weight: FontWeight.w700)),
-                ),
-              ),
-            ),
-        ]),
-      ),
-      const SizedBox(height: 10),
-      Expanded(
-        child: ListView(padding: const EdgeInsets.fromLTRB(12, 0, 12, 20), children: switch (tab) {
-          0 => _build(),
-          1 => _craft(),
-          _ => _research(),
-        }),
-      ),
+    return ListView(padding: _bodyPad, children: [
+      Wrap(spacing: 5, runSpacing: 4, children: [
+        sumChip([const TextSpan(text: '보관 한도 '), bold(fmt(g.cap))], icon: 'scrap'),
+        sumChip([const TextSpan(text: '침상 '), bold('${S.sv.length}/${const [1, 3, 5, 8, 12][S.lv - 1]}')]),
+        sumChip([const TextSpan(text: '희망 '), bold('${g.hope}')], icon: 'hope'),
+        sumChip([bold('+${fmt(g.prod['food'] ?? 0)}'), TextSpan(text: ' / -${fmt(g.eat)}')], icon: 'food', bad: g.hungry),
+        if (g.modLv(5) >= 0) sumChip([TextSpan(text: '-${fmt(g.fuelUse)}${g.have('fuel') > 0 ? '' : ' 멈춤'}')], icon: 'fuel', bad: g.have('fuel') <= 0),
+      ]),
+      if (g.hungry) Padding(padding: const EdgeInsets.only(top: 6), child: Text('배고파서 생산이 절반으로 줄었어요 · 텃밭을 늘리거나 식량을 모아요', style: Ttc.t(12, color: Ttc.no, weight: FontWeight.w600))),
+      const SizedBox(height: 12),
+      Segs(items: const ['건설', '가공', '연구', '창고'], on: tab, onTap: (k) => setState(() => tab = k)),
+      ...switch (tab) {
+        0 => _build(),
+        1 => _craft(),
+        2 => _research(),
+        _ => _store(),
+      },
     ]);
   }
 
   List<Widget> _build() {
-    final S = g.S;
-    final out = <Widget>[];
-    // 쉘터 키우기
-    final up = g.shelterUpCost;
-    if (up != null) {
-      final need = shupNeed[S.lv - 1];
-      out.add(PaperCard(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            Expanded(child: Text('쉘터 키우기 → ${shelterName[S.lv]}', style: Ttc.title(17, color: Ttc.sepia))),
-            TtcButton('키우기', onTap: S.mods.length >= need && g.canPay(up) ? () => g.upShelter() : null),
-          ]),
-          const SizedBox(height: 4),
-          Text('모듈 ${S.mods.length}/$need개 · 자리 ${slotsByLv[S.lv - 1]} → ${slotsByLv[S.lv]}칸 · 창고 ${fmt(capByLv[S.lv - 1])} → ${fmt(capByLv[S.lv])}',
-              style: Ttc.body(12.5, color: Ttc.sepia2)),
-          const SizedBox(height: 6),
-          CostRow(g, up),
-        ]),
+    final S = g.S, L = S.lv, out = <Widget>[];
+    if (L < 5) {
+      final c = g.shelterUpCost!, need = shupNeed[L - 1], ok = S.mods.length >= need;
+      out.add(MCard(
+        kind: CardKind.hero,
+        thumb: coreThumb(L + 1),
+        title: '${jo(shelterName[L], '으로', '로')} 증축',
+        tags: [smallTag('Lv.${L + 1}')],
+        desc: descText('빈 자리 +${slotsByLv[L] - slotsByLv[L - 1]} · 침상 +${const [1, 3, 5, 8, 12][L] - const [1, 3, 5, 8, 12][L - 1]} · 랜턴 빛이 더 멀리 닿아요'),
+        costs: costWrap(g, c, lead: [CostChip(label: '모듈', have: S.mods.length, need: need)]),
+        button: BuyButton('증축', hero: true, why: !ok ? '모듈 부족' : (!g.canPay(c) ? '자재 부족' : null), onTap: ok && g.canPay(c) ? () => g.upShelter() : null),
       ));
     }
-    // 모듈 짓기
-    final free = g.freeSlot();
+    final fs = g.freeSlot();
+    out.add(sec('모듈', '빈 자리 ${fs < 0 ? 0 : slotsByLv[L - 1] - S.mods.length}'));
     for (final id in modOrder) {
-      final m = mods[id]!;
-      final n = g.modN(id);
-      final locked = S.lv < m.req;
-      final once = n > 0 && !repeatable.contains(id);
-      final c = g.modBuildCost(id);
-      out.add(PaperCard(
-        dim: locked,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            AtlasThumb('modules.webp', modOrder.indexOf(id), 3, 3, size: 46),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(n > 0 ? '${m.n} · $n개' : m.n, style: Ttc.title(16, color: Ttc.sepia)),
-                Text(m.fx[0], style: Ttc.body(12.5, color: Ttc.sepia2)),
-              ]),
-            ),
-            if (locked)
-              Text('쉘터 Lv.${m.req}', style: Ttc.body(12.5, color: Ttc.sepia2, weight: FontWeight.w700))
-            else if (once)
-              Text('지었어요', style: Ttc.body(12.5, color: Ttc.good, weight: FontWeight.w700))
-            else
-              TtcButton(n > 0 ? '하나 더' : '짓기', onTap: free >= 0 && g.canPay(c) ? () => g.buildMod(id) : null),
-          ]),
-          if (!locked && !once) ...[const SizedBox(height: 6), CostRow(g, c)],
-          if (!locked && !once && free < 0) Text('빈 자리가 없어요. 쉘터를 키우면 자리가 늘어요', style: Ttc.body(12, color: Ttc.rust)),
-        ]),
-      ));
-    }
-    // 지은 모듈 강화
-    if (S.mods.isNotEmpty) {
-      out.add(Padding(padding: const EdgeInsets.fromLTRB(4, 8, 4, 8), child: Text('지은 모듈', style: Ttc.title(16))));
-      final keys = S.mods.keys.toList()..sort();
-      for (final k in keys) {
-        out.add(ModuleCard(g, k));
+      final d = mods[id]!;
+      final ks = (S.mods.keys.where((k) => S.mods[k]!.id == id).toList()..sort());
+      if (ks.isNotEmpty) {
+        for (final k in ks) {
+          out.add(ModuleCard(g, k));
+        }
+        if (repeatable.contains(id)) {
+          final c = g.modBuildCost(id);
+          out.add(MCard(
+            kind: CardKind.more,
+            thumb: Stack(children: [
+              moduleThumb(id, 0),
+              Positioned(
+                right: 4,
+                bottom: 6,
+                child: Container(
+                  width: 18,
+                  height: 18,
+                  decoration: const BoxDecoration(shape: BoxShape.circle, color: Ttc.amber, boxShadow: [BoxShadow(color: Color(0x4D000000), blurRadius: 3, offset: Offset(0, 1))]),
+                  alignment: Alignment.center,
+                  child: Text('+', style: Ttc.t(15, color: Ttc.sepia, weight: FontWeight.w700, height: 1)),
+                ),
+              ),
+            ]),
+            title: '${d.n} 하나 더',
+            tags: [smallTag('${ks.length}개 있음')],
+            desc: descText('같은 모듈을 여러 개 지으면 효과가 더해져요'),
+            costs: costWrap(g, c),
+            button: _btn('짓기', c, () => g.buildMod(id), dis: fs < 0, why: '빈 자리 없음'),
+          ));
+        }
+      } else if (S.lv < d.req) {
+        out.add(MCard(kind: CardKind.locked, thumb: moduleThumb(id, 0, gray: true), title: d.n, desc: descText(d.fx[0]), button: lockBadge('Lv.${d.req}')));
+      } else {
+        final c = g.modCost(id, 0);
+        out.add(MCard(
+          thumb: moduleThumb(id, 0),
+          title: d.n,
+          tags: [newTag()],
+          desc: descText(d.fx[0]),
+          costs: costWrap(g, c),
+          button: _btn('짓기', c, () => g.buildMod(id), dis: fs < 0, why: '빈 자리 없음'),
+        ));
       }
     }
-    // 방벽
-    if (S.lv >= 2 && S.walls < 3) {
+    out.add(sec('방벽'));
+    if (S.walls >= 3) {
+      out.add(MCard(thumb: icoThumb(Ico.wall), title: wallsInfo[2].$1, tags: [pips(2)], desc: descText('밤에 쉘터를 덮치는 재를 거의 다 막아요'), button: doneBadge()));
+    } else {
       final c = g.wallCost(S.walls);
-      out.add(PaperCard(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            Expanded(child: Text('방벽 · ${wallsInfo[S.walls].$1}', style: Ttc.title(16, color: Ttc.sepia))),
-            TtcButton('두르기', onTap: g.canPay(c) ? () => g.upWalls() : null),
-          ]),
-          const SizedBox(height: 6),
-          CostRow(g, c),
-        ]),
+      out.add(MCard(
+        kind: S.lv < 2 ? CardKind.locked : CardKind.normal,
+        thumb: icoThumb(Ico.wall),
+        title: wallsInfo[S.walls].$1,
+        tags: [if (S.walls > 0) pips(S.walls - 1)],
+        desc: descText(S.lv < 2 ? '쉘터 Lv.2에 열려요' : '밤마다 쉘터 모듈을 덮치는 재를 줄여요'),
+        costs: S.lv < 2 ? null : costWrap(g, c),
+        button: S.lv < 2 ? lockBadge('Lv.2') : _btn('세우기', c, () => g.upWalls()),
       ));
     }
     return out;
   }
 
+  Widget _btn(String label, Cost c, VoidCallback act, {bool dis = false, String? why}) {
+    final poor = !g.canPay(c);
+    return BuyButton(label, why: dis ? why : (poor ? '자재 부족' : null), onTap: dis || poor ? null : act);
+  }
+
+  int craftMax(int k) {
+    final r = recipes[k], inp = g.recipeInp(r);
+    var n = 1 << 30;
+    inp.forEach((m, v) => n = n < (g.have(m) / v).floor() ? n : (g.have(m) / v).floor());
+    return n;
+  }
+
   List<Widget> _craft() {
+    final out = <Widget>[sec('작업대 가공')];
     if (g.wbL == 0) {
-      return [PaperCard(child: Text('작업대를 지으면 고철로 철판을, 천으로 밧줄을 만들 수 있어요.', style: Ttc.body(14, color: Ttc.sepia)))];
+      out.add(emptyBox(moduleThumb(1, 0, w: 52, h: 52, gray: true), '작업대가 아직 없어요', '작업대를 세우면 고철로 철판을, 천으로 밧줄을 만들 수 있어요'));
+      return out;
     }
-    return [
-      for (var k = 0; k < recipes.length; k++)
-        () {
-          final r = recipes[k], lock = g.recipeLock(r), inp = g.recipeInp(r), name = r.nm ?? '${matOf[r.out]!.n} 만들기';
-          return PaperCard(
-            dim: lock.isNotEmpty,
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                ResIcon(r.out, size: 26),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('$name  → ${matOf[r.out]!.n} ${r.n}', style: Ttc.title(15.5, color: Ttc.sepia)),
-                    Text(r.d ?? '가진 ${matOf[r.out]!.n} ${fmt(g.have(r.out))}/${fmt(g.capOf(r.out))}', style: Ttc.body(12.5, color: Ttc.sepia2)),
-                  ]),
-                ),
-                if (lock.isNotEmpty) Text(lock, style: Ttc.body(12.5, color: Ttc.sepia2, weight: FontWeight.w700)),
+    out.add(Padding(padding: const EdgeInsets.only(bottom: 8), child: Text('탭하면 1개 · 꾹 누르면 계속 만들어요', style: Ttc.t(12, color: Ttc.sepia2))));
+    for (var k = 0; k < recipes.length; k++) {
+      final r = recipes[k], lk = g.recipeLock(r), inp = g.recipeInp(r);
+      if (lk.isNotEmpty && r.lv > 0 && g.S.lv < r.lv - 1) continue;
+      final m = matOf[r.out]!;
+      final full = g.have(r.out) >= g.capOf(r.out), ok = craftMax(k) >= 1 && !full;
+      out.add(MCard(
+        kind: lk.isNotEmpty ? CardKind.locked : CardKind.normal,
+        thumb: Container(
+          width: 56,
+          height: 56,
+          margin: const EdgeInsets.symmetric(horizontal: 11, vertical: 16),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), gradient: const RadialGradient(center: Alignment(0, -.2), colors: [Color(0xFFF3E6C6), Color(0xFFDCC9A0)])),
+          alignment: Alignment.center,
+          child: ResIcon(r.out, size: 30),
+        ),
+        title: r.nm ?? m.n,
+        tags: [smallTag('${r.nm != null ? '${m.n} ' : ''}보유 ${fmt(g.have(r.out))}')],
+        desc: r.d == null ? null : descText(r.d!),
+        costs: lk.isNotEmpty
+            ? null
+            : Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 5, runSpacing: 4, children: [
+                costWrap(g, inp),
+                Text('→ ${r.n}개', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
               ]),
-              if (lock.isEmpty) ...[
-                const SizedBox(height: 6),
-                Row(children: [
-                  Expanded(child: CostRow(g, inp)),
-                  TtcButton('×1', small: true, onTap: g.canPay(inp) ? () => g.craft(k, 1) : null),
-                  const SizedBox(width: 6),
-                  TtcButton('×5', small: true, primary: false, onTap: g.canPay(inp) ? () => g.craft(k, 5) : null),
-                ]),
-              ],
-            ]),
-          );
-        }(),
-    ];
+        button: lk.isNotEmpty
+            ? lockBadge(lk)
+            : GestureDetector(
+                onLongPressStart: ok
+                    ? (_) {
+                        _hold?.cancel();
+                        _hold = Timer.periodic(const Duration(milliseconds: 140), (_) {
+                          if (craftMax(k) < 1 || g.have(r.out) >= g.capOf(r.out) || g.craft(k, 1) == 0) _hold?.cancel();
+                        });
+                      }
+                    : null,
+                onLongPressEnd: (_) => _hold?.cancel(),
+                child: BuyButton('만들기', why: ok ? null : (full ? '창고 가득' : '재료 부족'), onTap: ok ? () => g.craft(k, 1) : null),
+              ),
+      ));
+    }
+    return out;
   }
 
   List<Widget> _research() {
-    String desc(String k) => switch (k) {
-          'tap' => '한 번에 걷어내는 힘 ${fmt(g.tapPow)}',
-          'splash' => '옆 칸까지 번지는 빛 ${g.S.splashLv} → ${g.S.splashLv + 1}',
-          _ => '스스로 초당 ${fmt(g.droneDmg())} → ${fmt(g.droneDmg(1))} 탐사',
-        };
-    const names = {'tap': '곡괭이', 'splash': '랜턴 불씨', 'drone': '정찰 드론'};
-    return [
-      for (final k in const ['tap', 'splash', 'drone'])
-        () {
-          final lv = g.upgLv(k), max = Game.upgMax[k]!, wb = g.upgWb(k), c = g.upgCost(k);
-          final lockTxt = g.wbL < wb ? '작업대 $wb단계' : '';
-          return PaperCard(
-            dim: lockTxt.isNotEmpty,
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('${names[k]} $lv/$max', style: Ttc.title(16, color: Ttc.sepia)),
-                    Text(desc(k), style: Ttc.body(12.5, color: Ttc.sepia2)),
-                  ]),
-                ),
-                if (lv >= max)
-                  Text('최고 단계', style: Ttc.body(12.5, color: Ttc.good, weight: FontWeight.w700))
-                else if (lockTxt.isNotEmpty)
-                  Text(lockTxt, style: Ttc.body(12.5, color: Ttc.sepia2, weight: FontWeight.w700))
-                else
-                  TtcButton('연구', onTap: g.canPay(c) ? () => g.buyUp(k) : null),
-              ]),
-              if (lv < max && lockTxt.isEmpty) ...[const SizedBox(height: 6), CostRow(g, c)],
-            ]),
-          );
-        }(),
+    final out = <Widget>[
+      sec('연구 · 탐사 장비'),
+      Padding(padding: const EdgeInsets.only(bottom: 10), child: Text('한 번 연구하면 영구히 남아요. 작업대 단계가 오를수록 더 깊이 연구할 수 있어요.', style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5))),
     ];
+    if (g.wbL == 0) out.add(emptyBox(moduleThumb(1, 0, w: 52, h: 52, gray: true), '작업대가 아직 없어요', '작업대를 세우면 곡괭이·랜턴·드론을 연구할 수 있어요'));
+    const names = {'tap': '곡괭이', 'splash': '랜턴 불씨', 'drone': '정찰 드론'};
+    final icons = {'tap': Ico.tap, 'splash': Ico.splash, 'drone': Ico.drone};
+    for (final k in const ['tap', 'splash', 'drone']) {
+      final lv = g.upgLv(k), mx = lv >= Game.upgMax[k]!, c = g.upgCost(k), need = g.upgWb(k);
+      final d = switch (k) {
+        'tap' => '한 번에 걷어내는 힘 ${fmt(g.tapPow)}',
+        'splash' => '옆 칸까지 번지는 빛 ${g.S.splashLv} → ${g.S.splashLv + 1}',
+        _ => '스스로 초당 ${fmt(g.droneDmg())} → ${fmt(g.droneDmg(1))} 탐사',
+      };
+      out.add(MCard(
+        thumb: icoThumb(icons[k]!),
+        title: names[k]!,
+        tags: [smallTag('Lv.$lv${mx ? '' : ' / ${Game.upgMax[k]}'}')],
+        desc: descText(mx ? '최대 단계예요' : d),
+        costs: mx || g.wbL < need ? null : costWrap(g, c),
+        button: mx ? doneBadge('최대') : g.wbL < need ? lockBadge('작업대 $need단계') : _btn('연구', c, () => g.buyUp(k)),
+      ));
+    }
+    return out;
   }
+
+  List<Widget> _store() => [
+        sec('창고'),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 8,
+          crossAxisSpacing: 8,
+          childAspectRatio: 2.9,
+          children: [
+            for (final m in mats)
+              () {
+                final v = g.have(m.k), cap = m.tier >= 3 ? 0 : g.capOf(m.k);
+                return Container(
+                  decoration: BoxDecoration(color: Ttc.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: Ttc.line)),
+                  clipBehavior: Clip.antiAlias,
+                  child: Stack(children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      child: Row(children: [
+                        ResIcon(m.k, size: 23),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Text(fmt(v), style: Ttc.t(16, color: Ttc.sepia, weight: FontWeight.w700, height: 1.1)),
+                            Text('${m.n}${cap > 0 ? ' · ${fmt(cap)}' : ''}', style: Ttc.t(11, color: Ttc.sepia2)),
+                          ]),
+                        ),
+                      ]),
+                    ),
+                    if (cap > 0)
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        height: 3,
+                        child: Container(
+                          color: const Color(0x143B2A1A),
+                          alignment: Alignment.centerLeft,
+                          child: FractionallySizedBox(widthFactor: (v / cap).clamp(0, 1).toDouble(), child: Container(color: v >= cap ? const Color(0xFFE2644F) : Ttc.amber)),
+                        ),
+                      ),
+                  ]),
+                );
+              }(),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text('기본 자재와 철판·밧줄은 창고 한도 ${fmt(g.cap)}, 전선·약품은 그 1/4까지 모여요. 창고 모듈과 쉘터 증축으로 늘려요. 건전지는 한도가 없어요.',
+            style: Ttc.t(11.5, color: Ttc.sepia2, height: 1.5)),
+      ];
 }
 
 class ModuleCard extends StatelessWidget {
@@ -251,164 +342,178 @@ class ModuleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final m = g.S.mods[slot];
     if (m == null) return const SizedBox();
-    final info = mods[m.id]!;
-    final up = m.l < 2 ? g.modCost(m.id, m.l + 1) : null;
-    final stopped = m.id == 5 && g.have('fuel') <= 0;
-    return PaperCard(
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          AtlasThumb('modules.webp', modOrder.indexOf(m.id), 3, 3, size: 40),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('${info.n} ${m.l + 1}/3단계', style: Ttc.title(15.5, color: Ttc.sepia)),
-              Text(info.fx[m.l], style: Ttc.body(12.5, color: Ttc.sepia2)),
-              if (stopped) Text('연료가 없어 멈춤', style: Ttc.body(12.5, color: Ttc.rust, weight: FontWeight.w700)),
-            ]),
-          ),
-          if (up != null) TtcButton('강화', small: true, onTap: g.canPay(up) ? () => g.upMod(slot) : null),
-        ]),
-        if (up != null) ...[
-          const SizedBox(height: 6),
-          Text('다음: ${info.fx[m.l + 1]}', style: Ttc.body(12.5, color: Ttc.sepia2)),
-          const SizedBox(height: 4),
-          CostRow(g, up),
-        ],
-      ]),
+    final d = mods[m.id]!, up = m.l < 2 ? g.modCost(m.id, m.l + 1) : null;
+    return MCard(
+      thumb: moduleThumb(m.id, m.l),
+      title: d.n,
+      tags: [pips(m.l)],
+      desc: up == null
+          ? descText(d.fx[m.l])
+          : Text.rich(
+              TextSpan(children: [
+                TextSpan(text: '${d.fx[m.l]} '),
+                const TextSpan(text: '→', style: TextStyle(color: Ttc.amber, fontWeight: FontWeight.w700)),
+                TextSpan(text: ' ${d.fx[m.l + 1]}', style: const TextStyle(color: Ttc.ok, fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)])),
+              ]),
+              style: Ttc.t(12, color: Ttc.sepia2, height: 1.5),
+            ),
+      costs: up == null ? null : costWrap(g, up),
+      button: up == null ? doneBadge() : BuyButton('강화', why: g.canPay(up) ? null : '자재 부족', onTap: g.canPay(up) ? () => g.upMod(slot) : null),
     );
   }
 }
 
-// ======================= 모듈·랜드마크·캠프 빠른 메뉴 =======================
-Widget moduleSheet(BuildContext context, Game g, int tile) {
+// ======================= 모듈·랜드마크·캠프 =======================
+Widget moduleBody(Game g, int tile) {
   final slot = g.modAt[tile];
   final m = slot == null ? null : g.S.mods[slot];
   if (m == null) return const SizedBox();
   final say = modSay[m.id];
-  return ListView(padding: const EdgeInsets.fromLTRB(12, 0, 12, 20), children: [
-    if (say != null && say.isNotEmpty) Padding(padding: const EdgeInsets.fromLTRB(4, 0, 4, 10), child: Text('“${say[tile % say.length]}”', style: Ttc.body(14, color: Ttc.muted))),
+  return ListView(padding: _bodyPad, children: [
+    if (say != null && say.isNotEmpty) Padding(padding: const EdgeInsets.only(bottom: 10), child: Text('“${say[tile % say.length]}”', style: Ttc.t(14, color: Ttc.sepia2, height: 1.5))),
     ModuleCard(g, slot!),
-    Text('자세한 건 쉘터 화면에서', textAlign: TextAlign.center, style: Ttc.body(12, color: Ttc.muted)),
+    if (m.id == 5 && g.have('fuel') <= 0) Text('연료가 없어 멈췄어요', style: Ttc.t(12.5, color: Ttc.no, weight: FontWeight.w700)),
   ]);
 }
 
-Widget landmarkSheet(BuildContext context, Game g, int tile) {
+Widget landmarkBody(Game g, int tile) {
   final l = g.S.lm[tile];
   if (l == null) return const SizedBox();
   final t = lmText(l.k, g.S.region), info = landmarks[l.k], s = g.S.site[tile], c = g.lmCost(l.k);
-  return ListView(padding: const EdgeInsets.fromLTRB(12, 0, 12, 20), children: [
-    PaperCard(
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(t[0], style: Ttc.title(19, color: Ttc.sepia)),
-        Text(l.ok ? '복구 완료' : '랜드마크', style: Ttc.body(12.5, color: Ttc.sepia2, weight: FontWeight.w700)),
-        const SizedBox(height: 6),
-        Text(l.ok ? t[2] : t[1], style: Ttc.body(14, color: Ttc.sepia)),
-        const SizedBox(height: 8),
-        Text('복구하면 ${info.desc}', style: Ttc.body(13, color: Ttc.good, weight: FontWeight.w700)),
-        if (!l.ok && s != null) Text('남은 물자 ${s.c}/${s.max}', style: Ttc.body(12.5, color: Ttc.sepia2)),
-        if (!l.ok) ...[
-          const SizedBox(height: 10),
-          Text('복구에 필요한 자재', style: Ttc.body(12.5, color: Ttc.sepia2, weight: FontWeight.w700)),
-          const SizedBox(height: 4),
-          CostRow(g, c),
-          const SizedBox(height: 10),
-          Row(children: [
-            if (s != null && s.c > 0)
-              TtcButton('뒤지기', primary: false, onTap: () {
+  return ListView(padding: _bodyPad, children: [
+    Center(child: AtlasPic(file: 'landmarks.webp', src: Atlas.fr(Atlas.landmarkFrames[l.k + (l.ok ? 5 : 0)]), width: 180, height: 120)),
+    const SizedBox(height: 10),
+    Text(l.ok ? t[2] : t[1], style: Ttc.t(14.5, color: Ttc.sepia, height: 1.6)),
+    const SizedBox(height: 10),
+    Wrap(spacing: 6, runSpacing: 6, children: [
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+        decoration: BoxDecoration(color: const Color(0x1F4F6E2F), borderRadius: BorderRadius.circular(99)),
+        child: Text('복구하면 ${info.desc}', style: Ttc.t(12, color: Ttc.ok, weight: FontWeight.w700)),
+      ),
+      if (!l.ok && s != null)
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+          decoration: BoxDecoration(color: const Color(0x0D26333B), borderRadius: BorderRadius.circular(99), border: Border.all(color: Ttc.line)),
+          child: Text('남은 물자 ${s.c}/${s.max}', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
+        ),
+    ]),
+    if (!l.ok) ...[
+      sec('복구에 필요한 자재'),
+      costWrap(g, c),
+      const SizedBox(height: 14),
+      Row(children: [
+        if (s != null && s.c > 0) ...[
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                g.setAim(tile);
                 g.hitSite(tile, g.tapPow * (g.fever > 0 ? 2 : 1));
                 g.poke();
-              }),
-            const Spacer(),
-            TtcButton('복구하기', onTap: g.canPay(c) ? () => g.restoreLm(tile) : null),
-          ]),
+              },
+              child: Container(
+                height: 46,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(7), border: Border.all(color: const Color(0x4726333B))),
+                child: Text('뒤지기', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
         ],
-        if (l.ok && info.key == 'station') ...[const SizedBox(height: 8), Text('끊긴 노선 탐사는 6단계에서 옮겨요', style: Ttc.body(12.5, color: Ttc.sepia2))],
+        Expanded(child: BuyButton('복구하기', width: double.infinity, why: g.canPay(c) ? null : '자재 부족', onTap: g.canPay(c) ? () => g.restoreLm(tile) : null)),
       ]),
-    ),
+    ],
+    if (l.ok && info.key == 'station') ...[const SizedBox(height: 12), Text('끊긴 노선 탐사는 6단계에서 옮겨요', style: Ttc.t(12.5, color: Ttc.sepia2))],
   ]);
 }
 
-Widget campSheet(BuildContext context, Game g, int tile) {
+Widget campBody(Game g, int tile) {
   final c = g.S.camp[tile];
   final id = (c?['id'] as num?)?.toInt();
   final sv = id != null && id < survivors.length ? survivors[id] : null;
-  return ListView(padding: const EdgeInsets.fromLTRB(12, 0, 12, 20), children: [
-    PaperCard(
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(sv == null ? '생존자 캠프' : '${sv.name} · ${sv.job}', style: Ttc.title(18, color: Ttc.sepia)),
-        const SizedBox(height: 6),
-        Text('잔해 아래에서 누군가 기다리고 있어요. 구조와 생존자 이야기는 다음 단계(생존자)에서 옮겨요.', style: Ttc.body(14, color: Ttc.sepia)),
-      ]),
-    ),
+  return ListView(padding: _bodyPad, children: [
+    Text(sv == null ? '잔해 아래에서 누군가 기다리고 있어요.' : '${sv.name} · ${sv.job}', style: Ttc.t(16, color: Ttc.sepia, weight: FontWeight.w700)),
+    const SizedBox(height: 8),
+    Text('구조와 생존자 이야기는 다음 단계(생존자)에서 옮겨요.', style: Ttc.t(13.5, color: Ttc.sepia2, height: 1.6)),
   ]);
 }
 
 // ======================= 일지 =======================
-Widget diarySheet(BuildContext context, Game g) {
+Widget diaryBody(BuildContext context, Game g) {
   final found = [...g.S.found]..sort();
-  return Column(children: [
-    _head('일지', '목격자의 일기 ${found.length}/7'),
-    Expanded(
-      child: ListView(padding: const EdgeInsets.fromLTRB(12, 0, 12, 20), children: [
-        if (found.isEmpty) PaperCard(child: Text('구름 속 어딘가에 누군가의 일기가 흩어져 있어요. 지도를 밝히다 보면 찾을 수 있어요.', style: Ttc.body(14, color: Ttc.sepia))),
-        for (final k in found)
-          GestureDetector(
-            onTap: () => showDiary(context, k),
-            child: PaperCard(
-              child: Row(children: [
-                Text('${k + 1}', style: Ttc.title(22, color: Ttc.rust)),
-                const SizedBox(width: 12),
-                Expanded(child: Text(diaries[k].$1, style: Ttc.title(16, color: Ttc.sepia))),
-              ]),
-            ),
+  return ListView(padding: _bodyPad, children: [
+    sec('목격자의 일기', '${found.length}/7'),
+    if (found.isEmpty) emptyBox(SvgIcon(Ico.diary, size: 28, color: Ttc.sepia2), '아직 찾은 일기가 없어요', '구름 속 어딘가에 누군가의 일기가 흩어져 있어요. 지도를 밝히다 보면 찾을 수 있어요.'),
+    for (final k in found)
+      GestureDetector(
+        onTap: () => showDiary(context, k),
+        child: MCard(
+          thumb: Container(
+            width: 56,
+            height: 56,
+            margin: const EdgeInsets.symmetric(horizontal: 11),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), gradient: const RadialGradient(center: Alignment(0, -.2), colors: [Color(0xFFF3E6C6), Color(0xFFDCC9A0)])),
+            alignment: Alignment.center,
+            child: Text('${k + 1}', style: Ttc.t(22, color: Ttc.rust, weight: FontWeight.w700)),
           ),
-        const SizedBox(height: 6),
-        Text('이야기·사건 수첩·회상은 5단계에서 옮겨요', textAlign: TextAlign.center, style: Ttc.body(12, color: Ttc.muted)),
-      ]),
-    ),
+          title: diaries[k].$1,
+          desc: descText('목격자의 일기 · ${k + 1}/7'),
+        ),
+      ),
+    const SizedBox(height: 6),
+    Text('이야기·사건 수첩·회상은 5단계에서 옮겨요', textAlign: TextAlign.center, style: Ttc.t(12, color: Ttc.sepia2)),
   ]);
 }
 
-Future<void> showDiary(BuildContext context, int k) => showDialog(
+/// 웹 .page 모달
+Future<void> showPage(BuildContext context, {required String tag, required String title, required String body, String button = '덮기'}) => showDialog(
       context: context,
-      barrierColor: const Color(0xAA000000),
+      barrierColor: const Color(0xC70F161D),
       builder: (ctx) => Dialog(
         backgroundColor: Ttc.paper,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        insetPadding: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Color(0x66EEE5D3))),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(22, 22, 22, 14),
+          padding: const EdgeInsets.all(20),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('목격자의 일기 · ${k + 1}/7', style: Ttc.body(12.5, color: Ttc.rust, weight: FontWeight.w700)),
-            const SizedBox(height: 6),
-            Text(diaries[k].$1, style: Ttc.title(20, color: Ttc.sepia)),
+            Text(tag, style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            Text(title, style: Ttc.t(23, color: Ttc.sepia, weight: FontWeight.w700)),
             const SizedBox(height: 10),
-            Flexible(child: SingleChildScrollView(child: Text(diaries[k].$2, style: TextStyle(fontFamily: Ttc.serif, fontSize: 15.5, height: 1.7, color: Ttc.sepia)))),
-            const SizedBox(height: 12),
-            Align(alignment: Alignment.centerRight, child: TtcButton('덮기', onTap: () => Navigator.pop(ctx))),
+            Flexible(child: SingleChildScrollView(child: Text(body, style: Ttc.t(16, color: Ttc.sepia, height: 1.7)))),
+            const SizedBox(height: 14),
+            GestureDetector(
+              onTap: () => Navigator.pop(ctx),
+              child: Container(
+                width: double.infinity,
+                height: 46,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: Ttc.amber, borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0x73252E36))),
+                child: Text(button, style: Ttc.t(13.5, color: const Color(0xFF252E36), weight: FontWeight.w700)),
+              ),
+            ),
           ]),
         ),
       ),
     );
 
-// ======================= 아직 옮기지 않은 탭 =======================
-Widget comingSheet(BuildContext context, String title, String stage) => Column(children: [
-      _head(title, ''),
-      Padding(
-        padding: const EdgeInsets.all(12),
-        child: PaperCard(child: Text('$title 화면은 $stage에서 옮겨요. 지금 미리보기는 지도 밝히기·뒤지기·쉘터 짓기까지예요.', style: Ttc.body(14, color: Ttc.sepia))),
-      ),
+Future<void> showDiary(BuildContext context, int k) => showPage(context, tag: '목격자의 일기 · ${k + 1}/7', title: diaries[k].$1, body: diaries[k].$2);
+
+Widget comingBody(String title, String stage) => ListView(padding: _bodyPad, children: [
+      emptyBox(SvgIcon(Ico.lock, size: 26, color: Ttc.sepia2), '$title 화면은 $stage에서 옮겨요', '지금 미리보기는 지도 밝히기·뒤지기·쉘터 짓기까지예요.'),
     ]);
 
 // ======================= 설정 =======================
-class SettingsSheet extends StatefulWidget {
-  const SettingsSheet(this.g, {super.key, required this.onReset});
+class SettingsBody extends StatefulWidget {
+  const SettingsBody(this.g, {super.key, required this.onReset});
   final Game g;
   final VoidCallback onReset;
   @override
-  State<SettingsSheet> createState() => _SettingsSheetState();
+  State<SettingsBody> createState() => _SettingsBodyState();
 }
 
-class _SettingsSheetState extends State<SettingsSheet> {
+class _SettingsBodyState extends State<SettingsBody> {
   final ctrl = TextEditingController();
   String msg = '';
   bool confirmReset = false;
@@ -419,64 +524,82 @@ class _SettingsSheetState extends State<SettingsSheet> {
     super.dispose();
   }
 
+  Widget _row(String t, String d, Widget btn) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Ttc.line))),
+        child: Row(children: [
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(t, style: Ttc.t(14, color: Ttc.sepia, weight: FontWeight.w700)),
+              Text(d, style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5)),
+            ]),
+          ),
+          const SizedBox(width: 10),
+          btn,
+        ]),
+      );
+
+  Widget _ghost(String t, VoidCallback onTap, {bool warn = false}) => GestureDetector(
+        onTap: onTap,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 44),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(color: warn ? Ttc.rust : Colors.transparent, borderRadius: BorderRadius.circular(8), border: Border.all(color: warn ? Ttc.rust : const Color(0x47252E36))),
+          alignment: Alignment.center,
+          child: Text(t, style: Ttc.t(13, color: warn ? const Color(0xFFFFF1E6) : Ttc.sepia, weight: FontWeight.w700)),
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
     final g = widget.g;
-    return ListView(padding: const EdgeInsets.fromLTRB(12, 0, 12, 24), children: [
-      _head('설정', '네이티브 미리보기 · 1단계'),
-      PaperCard(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('저장 코드', style: Ttc.title(16, color: Ttc.sepia)),
-          const SizedBox(height: 4),
-          Text('웹 버전의 설정 → 저장 코드와 같은 형식이에요. 웹에서 복사한 코드를 붙여 넣으면 그 진행으로 이어서 해요.', style: Ttc.body(13, color: Ttc.sepia2)),
-          const SizedBox(height: 8),
-          Row(children: [
-            TtcButton('내 코드 복사', primary: false, small: true, onTap: () async {
-              await Clipboard.setData(ClipboardData(text: g.exportCode()));
-              setState(() => msg = '복사했어요');
-            }),
-          ]),
-          const SizedBox(height: 10),
-          TextField(
-            controller: ctrl,
-            maxLines: 3,
-            style: Ttc.body(12, color: Ttc.sepia),
-            decoration: InputDecoration(
-              hintText: 'TTC1. 로 시작하는 코드를 붙여 넣어요',
-              hintStyle: Ttc.body(12, color: Ttc.sepia2),
-              filled: true,
-              fillColor: const Color(0x11000000),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: BorderSide.none),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(children: [
-            Expanded(child: Text(msg, style: Ttc.body(12.5, color: Ttc.rust, weight: FontWeight.w700))),
-            TtcButton('불러오기', small: true, onTap: () {
-              final s = Game.parseCode(ctrl.text);
-              if (s == null) {
-                setState(() => msg = '코드를 읽지 못했어요');
-                return;
-              }
-              g.replaceState(s);
-              setState(() => msg = '불러왔어요');
-            }),
-          ]),
-        ]),
+    return ListView(padding: _bodyPad, children: [
+      Text('네이티브 미리보기 · 1단계', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
+      _row('저장 코드 복사', '웹 버전의 저장 코드와 같은 형식이에요', _ghost('복사', () async {
+        await Clipboard.setData(ClipboardData(text: g.exportCode()));
+        if (mounted) setState(() => msg = '내 저장 코드를 복사했어요');
+      })),
+      Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: Text('저장 코드 불러오기', style: Ttc.t(14, color: Ttc.sepia, weight: FontWeight.w700)),
       ),
-      PaperCard(
-        child: Row(children: [
-          Expanded(child: Text(confirmReset ? '정말 처음부터 할까요? 지금 진행은 사라져요' : '새 땅에서 다시 시작', style: Ttc.body(14, color: Ttc.sepia))),
-          TtcButton(confirmReset ? '처음부터' : '다시 시작', primary: confirmReset, small: true, onTap: () {
-            if (!confirmReset) {
-              setState(() => confirmReset = true);
-              return;
-            }
-            widget.onReset();
-            Navigator.pop(context);
-          }),
-        ]),
+      Text('웹에서 복사한 TTC1. 코드를 붙여 넣으면 그 진행으로 이어서 해요', style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5)),
+      const SizedBox(height: 8),
+      TextField(
+        controller: ctrl,
+        maxLines: 3,
+        style: Ttc.t(12, color: Ttc.sepia),
+        decoration: InputDecoration(
+          hintText: 'TTC1. 로 시작하는 코드',
+          hintStyle: Ttc.t(12, color: Ttc.sepia2),
+          filled: true,
+          fillColor: Ttc.surface,
+          contentPadding: const EdgeInsets.all(10),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Ttc.line)),
+          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Ttc.line)),
+        ),
       ),
+      const SizedBox(height: 8),
+      Row(children: [
+        Expanded(child: Text(msg, style: Ttc.t(12.5, color: Ttc.ok, weight: FontWeight.w700))),
+        BuyButton('불러오기', width: 84, onTap: () {
+          final s = Game.parseCode(ctrl.text);
+          if (s == null) {
+            setState(() => msg = '코드를 읽지 못했어요');
+            return;
+          }
+          g.replaceState(s);
+          setState(() => msg = '불러왔어요');
+        }),
+      ]),
+      const SizedBox(height: 6),
+      _row(confirmReset ? '정말 처음부터 할까요?' : '새 땅에서 다시 시작', confirmReset ? '지금 진행은 사라져요' : '지도와 쉘터를 처음부터', _ghost(confirmReset ? '처음부터' : '다시 시작', () {
+        if (!confirmReset) {
+          setState(() => confirmReset = true);
+          return;
+        }
+        widget.onReset();
+      }, warn: confirmReset)),
     ]);
   }
 }

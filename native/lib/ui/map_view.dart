@@ -11,6 +11,7 @@ import 'package:flutter/widgets.dart';
 
 import '../game/data.dart';
 import '../game/engine.dart';
+import '../game/rng.dart';
 import 'atlas.dart';
 import 'theme.dart';
 
@@ -42,11 +43,12 @@ final List<double> groundNoise = List<double>.generate(N, (i) {
 });
 
 class MapView extends StatefulWidget {
-  const MapView({super.key, required this.game, required this.camera, required this.onSelect, required this.fxLayer});
+  const MapView({super.key, required this.game, required this.camera, required this.onSelect, required this.fxLayer, this.onTouch});
   final Game game;
   final Camera camera;
   final void Function(String kind, int tile) onSelect;
   final FxLayerController fxLayer;
+  final VoidCallback? onTouch;
 
   @override
   State<MapView> createState() => _MapViewState();
@@ -116,6 +118,7 @@ class _MapViewState extends State<MapView> {
   int get revCount => g.S.rev.fold(0, (a, v) => a + v);
 
   void _down(PointerDownEvent e) {
+    widget.onTouch?.call();
     final p = _Ptr(e.localPosition);
     ptrs[e.pointer] = p;
     if (ptrs.length == 1) {
@@ -273,6 +276,21 @@ class _MapViewState extends State<MapView> {
 }
 
 // ======================= 지도 그리기 =======================
+/// 구름 덩이 하나의 타원들 (웹 mkFog 재정의, index.html 6372): 132×104 그림 기준, 칸 중심에서의 위치
+class _FogShape {
+  _FogShape(int seed) {
+    final r = mulberry(seed);
+    for (var k = 0; k < 4; k++) {
+      final y = 56 - r() * 10, rx = 27 + r() * 5, ry = 23 + r() * 6;
+      ovals.add(Rect.fromCenter(center: Offset(34.0 + k * 21 - 66, y - 62), width: rx * 2, height: ry * 2));
+    }
+  }
+  final List<Rect> ovals = [];
+  static final top = Rect.fromCenter(center: const Offset(62.0 - 66, 39.0 - 62), width: 82, height: 42);
+}
+
+final List<_FogShape> _fogShapes = [for (var v = 0; v < 8; v++) _FogShape(101 + v * 17)];
+
 class MapPainter extends CustomPainter {
   MapPainter(this.g, this.cam, Listenable repaint) : super(repaint: repaint);
   final Game g;
@@ -286,37 +304,54 @@ class MapPainter extends CustomPainter {
 
   // 첫 동네 풍경 (웹 LANDSCAPES.home)
   static const bgTop = Color(0xFF25323F), bgBottom = Color(0xFF1B2631), voidCol = Color(0xFF1C2733);
-  static const fogA = Color(0xFF283643), fogB = Color(0xFF354351);
-  static const cD = [0x63, 0x55, 0x3F], cR = [0x5B, 0x50, 0x47], cGD = [0x5B, 0x8A, 0x3D], cGL = [0x8F, 0xB3, 0x58], cM = [0x76, 0x67, 0x4F], cM2 = [0x8A, 0x78, 0x58];
+  static const fog0 = Color(0xFF283643), fog1 = Color(0xFF354351);
+  static const fogTop0 = Color(0x0D718391), fogTop1 = Color(0x14C4AD81);
+  static const soil = [0x8A, 0x8C, 0x80], ruin = [0x76, 0x7B, 0x78], green = [0x71, 0x82, 0x72], paving = [0x9E, 0x9C, 0x8A];
   static const w1 = [0x2A, 0x66, 0x82], w2 = [0x35, 0x7D, 0x98];
 
   static List<double> _lerp(List<num> a, List<num> b, double t) => [for (var k = 0; k < 3; k++) (a[k] + (b[k] - a[k]) * t).toDouble()];
-  static Color _rgb(List<double> a, [double k = 1]) => Color.fromARGB(255, math.min(255, a[0] * k).floor(), math.min(255, a[1] * k).floor(), math.min(255, a[2] * k).floor());
+  static Color _rgb(List<num> a, [double k = 1]) => Color.fromARGB(255, math.min(255, a[0] * k).floor(), math.min(255, a[1] * k).floor(), math.min(255, a[2] * k).floor());
 
+  /// 웹 groundCol (6327 재정의)
   Color groundCol(int i, int t, double gr, bool paved) {
     final n = groundNoise[i];
-    List<double> c;
-    if (paved) {
-      c = _lerp(cM, cM2, .25 + speck[i] * .5);
-    } else {
-      final grass = _lerp(cGD, cGL, (.5 + n * .8).clamp(0, 1).toDouble());
-      c = _lerp(t == T.ruin ? cR : cD, grass, math.min(1.0, gr * .95));
-    }
-    return _rgb(c, 1 + n * .08);
+    return _rgb(paved ? paving : _lerp(t == T.ruin ? ruin : soil, green, math.min(.6, gr * .65)), 1 + n * .045);
   }
 
   Color waterCol(int i) => _rgb(_lerp(w1, w2, (.5 + groundNoise[i] * .6).clamp(0, 1).toDouble()));
+
+  final List<(Offset, double, Color, double)> _glows = [];
+
+  bool _nearRev(int i) {
+    final x = i % W, y = i ~/ W;
+    for (var dy = -2; dy <= 2; dy++) {
+      final yy = y + dy;
+      if (yy < 0 || yy >= H) continue;
+      for (var dx = -2; dx <= 2; dx++) {
+        final xx = x + dx;
+        if (xx >= 0 && xx < W && g.S.rev[yy * W + xx] == 1) return true;
+      }
+    }
+    return false;
+  }
+
+  /// 칸 안의 상대 위치 (웹 P(u,v,z))
+  static Offset P(int i, double u, double v, [double z = 0]) {
+    final x = i % W, y = i ~/ W;
+    return Offset((x + u - y - v) * TW / 2, (x + u + y + v) * TH / 2 - z);
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
     canvas.drawRect(rect, Paint()..shader = ui.Gradient.linear(Offset.zero, Offset(0, size.height), const [bgTop, bgBottom]));
+    _glows.clear();
     canvas.save();
     canvas.translate(size.width / 2, size.height / 2);
     canvas.scale(cam.z);
     canvas.translate(-cam.x, -cam.y);
-    final tl = Offset(cam.x - size.width / 2 / cam.z, cam.y - size.height / 2 / cam.z);
-    final br = Offset(cam.x + size.width / 2 / cam.z, cam.y + size.height / 2 / cam.z + 140);
+    final tl = Offset(cam.x - (size.width / 2 + 80) / cam.z, cam.y - (size.height / 2 + 40) / cam.z);
+    final br = Offset(cam.x + (size.width / 2 + 80) / cam.z, cam.y + (size.height / 2 + 260) / cam.z);
     final S = g.S;
     for (var s = 0; s <= W + H - 2; s++) {
       final wy = (s + 1) * TH / 2;
@@ -332,15 +367,23 @@ class MapPainter extends CustomPainter {
         }
       }
     }
-    // 조준 표시
-    if (g.aim >= 0 && g.aimValid) {
-      final c = tileC(g.aim);
-      _line
-        ..color = const Color(0xCCFFCF7A)
-        ..strokeWidth = 2;
-      canvas.drawPath(_diamond(c, .92), _line);
+    if (g.aimValid) _aim(canvas);
+    // 불빛 (웹 glowPts, 더하기 합성)
+    for (final (c, r, col, a) in _glows) {
+      canvas.drawCircle(
+          c,
+          r,
+          Paint()
+            ..blendMode = BlendMode.plus
+            ..shader = ui.Gradient.radial(c, r, [col.withValues(alpha: math.min(.85, a * .75)), col.withValues(alpha: 0)]));
     }
     canvas.restore();
+    // 가장자리 어둡게 (웹 비네트)
+    final c = size.center(Offset.zero), mn = math.min(size.width, size.height), mx = math.max(size.width, size.height);
+    canvas.drawRect(
+        rect,
+        Paint()
+          ..shader = ui.Gradient.radial(c, mx * .75, const [Color(0x00000000), Color(0x00000000), Color(0x80000000)], [0, (mn * .35) / (mx * .75), 1]));
   }
 
   Path _diamond(Offset c, [double k = 1]) => Path()
@@ -350,11 +393,13 @@ class MapPainter extends CustomPainter {
     ..lineTo(c.dx - TW / 2 * k, c.dy)
     ..close();
 
-  void _sprite(Canvas canvas, ui.Image? img, Rect? src, Offset base, double width, double anchorY, {double dy = 0, double alpha = 1}) {
-    if (img == null || src == null) return;
+  /// 그림을 칸 중심 기준으로: 가로 width, 바닥에서 dy만큼 내려 놓고 높이의 anchor만큼 올림
+  double _sprite(Canvas canvas, ui.Image? img, Rect? src, Offset base, double width, double anchorY, {double dy = 0, double alpha = 1}) {
+    if (img == null || src == null) return 0;
     final h = width * src.height / src.width;
     _img.color = Color.fromRGBO(255, 255, 255, alpha);
     canvas.drawImageRect(img, src, Rect.fromLTWH(base.dx - width / 2, base.dy + dy - h * anchorY, width, h), _img);
+    return h;
   }
 
   void _landTile(Canvas canvas, int i, int x, int y) {
@@ -362,39 +407,71 @@ class MapPainter extends CustomPainter {
     final mod = g.modAtTile(i), core = i == C0;
     _fill.color = t == T.water ? waterCol(i) : groundCol(i, t, g.green[i], core || mod != null);
     canvas.drawPath(_diamond(c, 1.02), _fill);
-    // 구름과 맞닿은 가장자리는 어둡게
-    final dark = Paint()
-      ..color = const Color(0x40140C06)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 6;
+    // 구름과 맞닿은 가장자리는 그늘 (웹 edgeFade)
     final n = Offset(c.dx, c.dy - TH / 2), e = Offset(c.dx + TW / 2, c.dy), s = Offset(c.dx, c.dy + TH / 2), w = Offset(c.dx - TW / 2, c.dy);
-    if (x > 0 && S.rev[i - 1] == 0) canvas.drawLine(n, w, dark);
-    if (x < W - 1 && S.rev[i + 1] == 0) canvas.drawLine(e, s, dark);
-    if (y > 0 && S.rev[i - W] == 0) canvas.drawLine(n, e, dark);
-    if (y < H - 1 && S.rev[i + W] == 0) canvas.drawLine(w, s, dark);
+    final edges = [
+      if (x > 0 && S.rev[i - 1] == 0) (n, w),
+      if (x < W - 1 && S.rev[i + 1] == 0) (e, s),
+      if (y > 0 && S.rev[i - W] == 0) (n, e),
+      if (y < H - 1 && S.rev[i + W] == 0) (w, s),
+    ];
+    if (edges.isNotEmpty) {
+      canvas.save();
+      canvas.clipPath(_diamond(c));
+      for (final (a, b) in edges) {
+        _line
+          ..color = const Color(0x2E140C06)
+          ..strokeWidth = 18;
+        canvas.drawLine(a, b, _line);
+        _line
+          ..color = const Color(0x4D140C06)
+          ..strokeWidth = 8;
+        canvas.drawLine(a, b, _line);
+      }
+      canvas.restore();
+    }
     if (t == T.water) return;
 
     if (core) {
       final lv = S.lv;
       _sprite(canvas, Atlas.image('shelters.webp'), Atlas.cell('shelters.webp', lv - 1, 3, 2), c, const [84.0, 84.0, 90.0, 100.0, 112.0][lv - 1], .91);
+      _glows.add((P(i, .5, .5, 16), 42.0 + lv * 3, const Color(0xFFF0C071), .38));
       return;
     }
     if (mod != null) {
       final idx = modOrder.indexOf(mod.id);
-      _sprite(canvas, Atlas.image('modules.webp'), Atlas.cell('modules.webp', idx, 3, 3), c, (mod.id == 8 || mod.id == 7 ? 94.0 : 78.0) + mod.l * 3, .9);
+      if (mod.l >= 1 && Atlas.image('module-upgrades.webp') != null) {
+        final w = mod.id == 8 ? 40.0 + mod.l * 4 : mod.id == 7 ? 78.0 + mod.l * 3 : 76.0 + mod.l * 3;
+        _sprite(canvas, Atlas.image('module-upgrades.webp'), Atlas.fr(Atlas.moduleUpFrames[idx * 2 + math.min(1, mod.l - 1)]), c, w, 1, dy: 8);
+      } else {
+        _sprite(canvas, Atlas.image('modules.webp'), Atlas.cell('modules.webp', idx, 3, 3), c, (mod.id == 8 || mod.id == 7 ? 94.0 : 78.0) + mod.l * 3, .9);
+      }
+      if (mod.l > 0) {
+        final p = P(i, .5, .8, 1);
+        _fill.color = const Color(0xFFEFC77F);
+        for (var k = 0; k < mod.l; k++) {
+          canvas.drawRect(Rect.fromLTWH(p.dx - 3 + k * 4, p.dy, 2, 2), _fill);
+        }
+      }
+      if (mod.id == 8) _glows.add((P(i, .5, .5, 34), 34.0, const Color(0xFFF0C071), .42));
+      if (mod.id == 5 && g.have('fuel') > 0) _glows.add((P(i, .5, .5, 12), 22.0, const Color(0xFFF0C071), .42));
       return;
     }
     final camp = S.camp[i];
     if (camp != null) {
-      final live = ((camp['hp'] as num?) ?? 0) > 0;
-      _prop(canvas, live ? 1 : 0, c);
+      _prop(canvas, ((camp['hp'] as num?) ?? 0) > 0 ? 1 : 0, c);
       return;
     }
     if (t == T.lm) {
       final l = S.lm[i];
       if (l != null) {
         final f = Atlas.fr(Atlas.landmarkFrames[l.k + (l.ok ? 5 : 0)]);
-        _sprite(canvas, Atlas.image('landmarks.webp'), f, c, Atlas.landmarkWidth[l.k], 1, dy: 8);
+        final h = _sprite(canvas, Atlas.image('landmarks.webp'), f, c, Atlas.landmarkWidth[l.k], 1, dy: 8);
+        if (l.ok) {
+          _glows.add((c.translate(0, -12), 28.0, const Color(0xFFF0C071), .28));
+        } else {
+          _lmMarker(canvas, c.dx, c.dy - (math.max(10, h - 16) + 14));
+        }
       }
       return;
     }
@@ -410,22 +487,53 @@ class MapPainter extends CustomPainter {
     if (t == T.silo) {
       final v = (((speck[i] * 7.31 + speck2[i] * 3.17) % 1) * 3).floor();
       _prop(canvas, 4 + v, c, alpha: live ? 1 : .55);
+      if (live) _glows.add((c, 18.0, const Color(0xFFFFC86E), .3));
       return;
     }
     if (site != null && site.k == 'rubble') {
       _prop(canvas, live ? 2 : 3, c);
       return;
     }
-    // 빈 땅: 쉘터 가까이는 풀
+    // 빈 땅: 쉘터 가까이 나무, 군데군데 풀·자갈 (웹 tree / groundDecor)
     final gr = g.green[i];
-    if (gr > .3 && speck2[i] > .45) {
-      _fill.color = const Color(0xFF6E9A48);
-      for (var k = 0; k < (gr * 2.5).floor(); k++) {
-        final u = .2 + ((speck[i] * 97 + k * .37) % 1) * .6, v = .2 + ((speck2[i] * 53 + k * .61) % 1) * .6;
-        final p = Offset(c.dx + (u - v) * TW / 2, c.dy - TH / 2 + (u + v) * TH / 2);
-        canvas.drawOval(Rect.fromCenter(center: p.translate(0, -3), width: 7, height: 9), _fill);
-      }
+    final trees = speck2[i] > .45 ? (gr * 2.5).floor() : 0;
+    for (var k = 0; k < trees; k++) {
+      _tree(canvas, P(i, .2 + ((speck[i] * 97 + k * .37) % 1) * .6, .2 + ((speck2[i] * 53 + k * .61) % 1) * .6), (k + i) % 3 == 0);
     }
+    if ((trees == 0 || gr > .3) && speck[i] > .75) {
+      final p = P(i, .3 + speck2[i] * .4, .35 + speck[i] * .3);
+      _fill.color = gr > .2 ? const Color(0xFF6E8466) : const Color(0xFF7A7C72);
+      canvas.drawOval(Rect.fromCenter(center: p, width: 6, height: 3), _fill);
+      canvas.drawOval(Rect.fromCenter(center: p.translate(5, 2), width: 4, height: 2), _fill);
+    }
+  }
+
+  void _tree(Canvas canvas, Offset p, bool dark) {
+    _fill.color = const Color(0x40192019);
+    canvas.drawOval(Rect.fromCenter(center: p.translate(2, 1), width: 13, height: 5), _fill);
+    _fill.color = const Color(0xFF5A4433);
+    canvas.drawRect(Rect.fromLTWH(p.dx - 1, p.dy - 6, 2, 6), _fill);
+    _fill.color = dark ? const Color(0xFF4F6B4A) : const Color(0xFF5F7D55);
+    canvas.drawOval(Rect.fromCenter(center: p.translate(0, -10), width: 13, height: 12), _fill);
+    _fill.color = dark ? const Color(0xFF5F7D55) : const Color(0xFF738F62);
+    canvas.drawOval(Rect.fromCenter(center: p.translate(-1.5, -12), width: 7, height: 6), _fill);
+  }
+
+  void _lmMarker(Canvas canvas, double x, double top) {
+    canvas.drawRect(
+        Rect.fromLTWH(x - 2, top - 90, 4, 90),
+        Paint()
+          ..blendMode = BlendMode.plus
+          ..shader = ui.Gradient.linear(Offset(x, top), Offset(x, top - 90), const [Color(0x8CFFD26E), Color(0x00FFD26E)]));
+    final y = top - 10;
+    _fill.color = const Color(0xFFFFD24A);
+    canvas.drawCircle(Offset(x, y), 9, _fill);
+    _line
+      ..color = const Color(0xFF3B2A1A)
+      ..strokeWidth = 1.5;
+    canvas.drawCircle(Offset(x, y), 9, _line);
+    final tp = TextPainter(text: const TextSpan(text: '★', style: TextStyle(fontSize: 11, color: Color(0xFF3B2A1A), fontWeight: FontWeight.bold)), textDirection: TextDirection.ltr)..layout();
+    tp.paint(canvas, Offset(x - tp.width / 2, y - tp.height / 2 + .5));
   }
 
   void _prop(Canvas canvas, int id, Offset c, {double alpha = 1}) {
@@ -438,27 +546,33 @@ class MapPainter extends CustomPainter {
     final fr = g.frontier.contains(i);
     _fill.color = voidCol;
     canvas.drawPath(_diamond(c, 1.02), _fill);
-    // 구름 덩이: 경계는 밝게, 안쪽은 한 칸 건너 하나씩
-    if (fr || (x + y) % 2 == 0) {
-      final cc = Offset(c.dx, c.dy - 11);
-      final k = fr ? 1.0 : .82;
-      _fill.color = Color.lerp(fogA, fogB, speck[i])!.withValues(alpha: k);
-      canvas.drawOval(Rect.fromCenter(center: cc.translate(-10, 3), width: 46, height: 26), _fill);
-      canvas.drawOval(Rect.fromCenter(center: cc.translate(12, 2), width: 42, height: 24), _fill);
-      _fill.color = Color.lerp(fogB, const Color(0xFF4A596A), fr ? .55 : .15)!.withValues(alpha: k);
-      canvas.drawOval(Rect.fromCenter(center: cc.translate(1 + speck2[i] * 6 - 3, -5), width: 40, height: 24), _fill);
+    // 구름 덩이: 경계와 밝힌 땅 가까이는 칸마다, 먼 곳은 한 칸 건너 하나씩
+    if (fr || (x + y) % 2 == 0 || _nearRev(i)) {
+      final o = Offset(c.dx, c.dy - 11);
+      final shape = _fogShapes[(speck[i] * 8).floor()];
+      _fill.color = fr ? fog1 : fog0;
+      for (final r in shape.ovals) {
+        canvas.drawOval(r.shift(o), _fill);
+      }
+      _fill.color = fr ? fogTop1 : fogTop0;
+      canvas.drawOval(_FogShape.top.shift(o), _fill);
     }
     // 구조 신호: 하늘로 솟는 빛줄기
     if (S.sig.containsKey(i)) {
-      final p = Offset(c.dx, c.dy - 18);
-      canvas.drawRect(Rect.fromLTWH(p.dx - 3, p.dy - 110, 6, 110),
-          Paint()..shader = ui.Gradient.linear(p, p.translate(0, -110), const [Color(0xBFC8E6FF), Color(0x00C8E6FF)]));
+      final p = P(i, .5, .5, 18);
+      final add = Paint()..blendMode = BlendMode.plus;
+      add.shader = ui.Gradient.linear(p, p.translate(0, -110), const [Color(0xBFC8E6FF), Color(0x00C8E6FF)]);
+      canvas.drawRect(Rect.fromLTWH(p.dx - 3, p.dy - 110, 6, 110), add);
+      add.shader = null;
+      add.color = const Color(0x2EC8E6FF);
+      canvas.drawRect(Rect.fromLTWH(p.dx - 9, p.dy - 80, 18, 80), add);
+      _glows.add((p, 34.0, const Color(0xFFBEDCFF), .9));
       _fill.color = const Color(0xFFE8F4FF);
       canvas.drawCircle(p, 2.5, _fill);
     }
     if (fr) {
       // 밝힌 땅과 맞닿은 변을 등불색으로
-      final a = i == g.aim ? .65 : .22;
+      final a = i == g.aim ? .65 : .18;
       _line
         ..color = Color.fromRGBO(235, 189, 112, a)
         ..strokeWidth = 2;
@@ -473,11 +587,13 @@ class MapPainter extends CustomPainter {
         final mh = g.maxHp(i), dmg = (1 - hp / mh).clamp(0.0, 1.0).toDouble();
         if (dmg > 0) {
           final p = Offset(c.dx, c.dy - 14);
+          final r = 10 + dmg * 26;
           canvas.drawCircle(
               p,
-              10 + dmg * 26,
+              r,
               Paint()
-                ..shader = ui.Gradient.radial(p, 10 + dmg * 26, [Color.fromRGBO(255, 200, 110, .4 + dmg * .35), const Color(0x00FF9632)]));
+                ..blendMode = BlendMode.plus
+                ..shader = ui.Gradient.radial(p, r, [Color.fromRGBO(255, 200, 110, .4 + dmg * .35), const Color(0x00FF9632)]));
           _line
             ..color = const Color(0xD9FFDC96)
             ..strokeWidth = 1.4;
@@ -490,6 +606,62 @@ class MapPainter extends CustomPainter {
             canvas.drawPath(path, _line);
           }
         }
+      }
+    }
+  }
+
+  /// 조준 표시 (웹 draw의 aimValid 부분): 점선 타원 + 네 방향 눈금 + 남은 체력 막대
+  void _aim(Canvas canvas) {
+    final S = g.S, aim = g.aim;
+    final site = S.rev[aim] == 1 ? S.site[aim] : null;
+    final c = tileC(aim, site != null ? 8 : 14);
+    const r = 20.0;
+    final col = site != null ? const Color(0xF2BEE696) : const Color(0xF2FFDC96);
+    _line
+      ..color = col
+      ..strokeWidth = 2.2;
+    const rx = r * 1.4, ry = r * .8;
+    // 점선: 둘레를 따라 7 그리고 5 비우기
+    var ang = 0.0;
+    var on = true;
+    while (ang < math.pi * 2) {
+      final step = (on ? 7.0 : 5.0) / math.sqrt(math.pow(rx * math.sin(ang), 2) + math.pow(ry * math.cos(ang), 2) + 1e-6);
+      if (on) {
+        final path = Path();
+        for (var a = ang; a <= ang + step + 1e-9; a += step / 4) {
+          final p = c + Offset(math.cos(a) * rx, math.sin(a) * ry);
+          if (a == ang) {
+            path.moveTo(p.dx, p.dy);
+          } else {
+            path.lineTo(p.dx, p.dy);
+          }
+        }
+        canvas.drawPath(path, _line);
+      }
+      ang += step;
+      on = !on;
+    }
+    _line.strokeWidth = 2.6;
+    for (final (a, b) in const [(1.0, 0.0), (-1.0, 0.0), (0.0, 1.0), (0.0, -1.0)]) {
+      canvas.drawLine(c + Offset(a * (rx + 3), b * (ry + 3)), c + Offset(a * (rx + 10), b * (ry + 8)), _line);
+    }
+    const bw = 46.0;
+    double f;
+    if (site != null) {
+      f = site.hp / g.siteHp(site);
+    } else {
+      final mh = g.maxHp(aim), cur = S.hp[aim] < 0 ? mh.toDouble() : S.hp[aim];
+      f = cur / mh;
+    }
+    _fill.color = const Color(0xBF0D0B08);
+    canvas.drawRect(Rect.fromLTWH(c.dx - bw / 2 - 2, c.dy - r - 22, bw + 4, 8), _fill);
+    _fill.color = site != null ? const Color(0xFF9FCF6A) : const Color(0xFFF3A53A);
+    canvas.drawRect(Rect.fromLTWH(c.dx - bw / 2, c.dy - r - 20, bw * f.clamp(0.0, 1.0).toDouble(), 4), _fill);
+    if (site != null) {
+      final mx = site.max;
+      for (var q = 0; q < mx; q++) {
+        _fill.color = q < site.c ? const Color(0xFFFFD98A) : const Color(0x33FFFFFF);
+        canvas.drawRect(Rect.fromLTWH(c.dx - bw / 2 + q * (bw / mx), c.dy - r - 12, bw / mx - 1.5, 3), _fill);
       }
     }
   }
@@ -609,18 +781,23 @@ class _FxLayerState extends State<FxLayer> with SingleTickerProviderStateMixin {
       child: Stack(fit: StackFit.expand, children: [
         CustomPaint(painter: _FxPainter(c, widget.camera)),
         Positioned(
-          left: 0,
-          right: 0,
+          left: 55,
+          right: 55,
           top: 96,
           child: Column(children: [
             for (final (t, life) in c.toasts)
               Opacity(
                 opacity: life.clamp(0, .3) / .3,
                 child: Container(
-                  margin: const EdgeInsets.only(bottom: 6),
+                  margin: const EdgeInsets.only(bottom: 5),
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                  decoration: BoxDecoration(color: Ttc.paper, boxShadow: const [BoxShadow(color: Color(0x66000000), blurRadius: 10, offset: Offset(0, 4))]),
-                  child: Text(t, textAlign: TextAlign.center, style: Ttc.body(15, color: Ttc.sepia, weight: FontWeight.w600)),
+                  decoration: BoxDecoration(
+                    color: const Color(0xE620160E),
+                    borderRadius: BorderRadius.circular(99),
+                    border: Border.all(color: const Color(0x29EFE3C4)),
+                    boxShadow: const [BoxShadow(color: Color(0x59000000), blurRadius: 12, offset: Offset(0, 5))],
+                  ),
+                  child: Text(t, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: Ttc.t(13, color: const Color(0xFFF1E5C6), height: 1.4)),
                 ),
               ),
           ]),
@@ -645,7 +822,7 @@ class _FxPainter extends CustomPainter {
       final a = (p.life / p.max).clamp(0.0, 1.0).toDouble();
       if (p.text != null) {
         final tp = TextPainter(
-          text: TextSpan(text: p.text, style: Ttc.body(14 / math.max(.8, cam.z) * 1.2, color: Color(p.color).withValues(alpha: a), weight: FontWeight.w700, shadow: true)),
+          text: TextSpan(text: p.text, style: Ttc.t(17 / math.max(.8, cam.z), color: Color(p.color).withValues(alpha: a), weight: FontWeight.w700).copyWith(shadows: [Shadow(color: Color.fromRGBO(13, 11, 8, a * .8), blurRadius: 2)])),
           textDirection: TextDirection.ltr,
         )..layout();
         tp.paint(canvas, p.p - Offset(tp.width / 2, tp.height / 2));
