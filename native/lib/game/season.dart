@@ -355,7 +355,7 @@ extension Season on Game {
       final k = cases.length + regionOrder.indexOf(S.region!), R = caseRec(k);
       if (R != null && R['p'] != null) return false;
       if (R != null || townCases[k - cases.length].gate(this)) {
-        casesMap[caseKeyOf(k)] ??= <String, Object?>{'at': DateTime.now().millisecondsSinceEpoch};
+        casesMap[caseKeyOf(k)] ??= <String, Object?>{'at': Game.nowMs()};
         dirty = true;
         fx.add(FxCase(k));
         return true;
@@ -379,7 +379,7 @@ extension Season on Game {
         if (!(P != null && (P['p'] != null || P['skip'] != null))) return false;
       }
       if (cases[k].gate(this)) {
-        casesMap['$k'] = <String, Object?>{'at': DateTime.now().millisecondsSinceEpoch};
+        casesMap['$k'] = <String, Object?>{'at': Game.nowMs()};
         dirty = true;
         fx.add(FxCase(k));
         return true;
@@ -397,7 +397,7 @@ extension Season on Game {
   /// 사건에서 고르기 (웹 pickCase). 돌려주는 것: 이어지는 대사, 효과 글
   (List<Line>, List<String>) pickCase(int k, String p) {
     final c = caseOf(k), o = c.opt(p);
-    casesMap[caseKeyOf(k)] ??= <String, Object?>{'at': DateTime.now().millisecondsSinceEpoch};
+    casesMap[caseKeyOf(k)] ??= <String, Object?>{'at': Game.nowMs()};
     final R = casesMap[caseKeyOf(k)] as Map;
     if (R['p'] != null) return (const [], const []);
     R['p'] = p;
@@ -656,9 +656,9 @@ extension Season on Game {
   void _runOdd(String k) {
     sfx('click');
     fx.add(const FxBlackout(2.6));
-    oddUntil = DateTime.now().millisecondsSinceEpoch + 9000;
+    oddUntil = Game.nowMs() + 9000;
     dread = false;
-    oddHit = DateTime.now().millisecondsSinceEpoch;
+    oddHit = Game.nowMs();
     poke();
     final nc = num_('nightCount').toInt();
     switch (k) {
@@ -780,8 +780,8 @@ extension Season on Game {
       if (e.isNotEmpty) shadow ??= OddShadow.light(e[rnd.nextInt(e.length)], 4.5, far: true);
     }
     sfx(k == 'steps' ? 'steps' : 'mystery');
-    if (k == 'lamp') lampFlick = DateTime.now().millisecondsSinceEpoch;
-    oddHit = DateTime.now().millisecondsSinceEpoch;
+    if (k == 'lamp') lampFlick = Game.nowMs();
+    oddHit = Game.nowMs();
     poke();
     fx.add(FxToast(t));
   }
@@ -792,7 +792,7 @@ extension Season on Game {
       final left = math.max(0, (oddAt - phase).ceil());
       return '새벽 2:5${math.min(9, 9 - left + 1)}';
     }
-    if (isNight && DateTime.now().millisecondsSinceEpoch < oddUntil) return '새벽 3시';
+    if (isNight && Game.nowMs() < oddUntil) return '새벽 3시';
     return null;
   }
 

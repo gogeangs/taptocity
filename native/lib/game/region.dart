@@ -169,7 +169,7 @@ extension Region on Game {
     final m = RM[k], Q = rq;
     var txt = m.goal;
     if (m.k == 'op' && Q['opEnd'] != null && Q['op'] == null) {
-      txt += ' · 진행 중 ${math.max(0, (((Q['opEnd'] as num) - DateTime.now().millisecondsSinceEpoch) / 1000).ceil())}초';
+      txt += ' · 진행 중 ${math.max(0, (((Q['opEnd'] as num) - Game.nowMs()) / 1000).ceil())}초';
     } else if (m.k == 'cold' && Q['coldBase'] != null && Q['cold'] == null) {
       txt += ' (${math.min(3, num_('nights') - (Q['coldBase'] as num))}/3밤)';
     }
@@ -452,7 +452,7 @@ extension Region on Game {
           S.rest['raid'] = '물 도둑';
         }
       case 'op':
-        if (Q['opEnd'] != null && Q['op'] == null && DateTime.now().millisecondsSinceEpoch >= (Q['opEnd'] as num)) {
+        if (Q['opEnd'] != null && Q['op'] == null && Game.nowMs() >= (Q['opEnd'] as num)) {
           Q['op'] = 1;
           tlog('공장을 멈췄다. 공단이 처음으로 조용해졌다.');
           sfx('chime');
@@ -564,7 +564,7 @@ extension Region on Game {
     final Q = rq;
     if (Q['opEnd'] != null || !pay(opCost)) return false;
     Q['opDur'] = (opFast ? 50 : 100) * 1000;
-    Q['opEnd'] = DateTime.now().millisecondsSinceEpoch + (Q['opDur'] as int);
+    Q['opEnd'] = Game.nowMs() + (Q['opDur'] as int);
     _changed();
     return true;
   }
@@ -804,7 +804,7 @@ extension Region on Game {
     party = party.where((x) => x != id).toList();
     (S.rest['cd'] as Map?)?.remove('$id');
     if (S.rest['dead'] is! List) S.rest['dead'] = <Object?>[];
-    (S.rest['dead'] as List).add(<String, Object?>{'id': id, 'g': S.gen, 'town': reg?.n ?? '', 'at': DateTime.now().millisecondsSinceEpoch});
+    (S.rest['dead'] as List).add(<String, Object?>{'id': id, 'g': S.gen, 'town': reg?.n ?? '', 'at': Game.nowMs()});
     recalc();
   }
 
@@ -871,7 +871,7 @@ extension Region on Game {
   void _tickRegionSpot() {
     final r = S.region;
     if (S.gen == 0 || (r != 'desert' && r != 'factory') || defn != null || ug != null || tut != null) return;
-    final now = DateTime.now().millisecondsSinceEpoch, sp = rspot;
+    final now = Game.nowMs(), sp = rspot;
     if (sp != null && now > (sp['end'] as num)) {
       if (sp['k'] == 'machine' && ((sp['n'] as num?) ?? 0) > 0) fx.add(const FxToast('기계가 다시 쿵쿵 돌기 시작했어요'));
       S.rest['rspot'] = null;
@@ -927,7 +927,7 @@ extension Region on Game {
       _changed();
       return true;
     }
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final now = Game.nowMs();
     if (((sp['t0'] as num?) ?? 0) == 0 || now - (sp['t0'] as num) > 7000) {
       if (((sp['t0'] as num?) ?? 0) != 0 && ((sp['n'] as num?) ?? 0) < 8) fx.add(const FxToast('놓쳤어요! 다시 처음부터 두드려요'));
       sp['t0'] = now;

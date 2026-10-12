@@ -84,7 +84,7 @@ extension Lines on Game {
     final L = (all[r] ??= <String, Object?>{'fat': 0, 'at': 0, 'runs': 0, 'best': 0}) as Map;
     final fat = ((L['fat'] as num?) ?? 0).toInt(), at = ((L['at'] as num?) ?? 0).toInt();
     if (fat > 0 && at > 0) {
-      final k = (DateTime.now().millisecondsSinceEpoch - at) ~/ lnRec;
+      final k = (Game.nowMs() - at) ~/ lnRec;
       if (k > 0) {
         final f = math.max(0, fat - k);
         L['fat'] = f;
@@ -97,7 +97,7 @@ extension Lines on Game {
   double get lnMult => lnFat[math.min(lnFat.length - 1, ((lnState()['fat'] as num?) ?? 0).toInt())];
   int get lnNextRec {
     final L = lnState();
-    return ((L['fat'] as num?) ?? 0) > 0 ? math.max(0, lnRec - (DateTime.now().millisecondsSinceEpoch - ((L['at'] as num?) ?? 0).toInt())) : 0;
+    return ((L['fat'] as num?) ?? 0) > 0 ? math.max(0, lnRec - (Game.nowMs() - ((L['at'] as num?) ?? 0).toInt())) : 0;
   }
 
   bool lnOwned(String t) => inv.any((x) => x['t'] == t);
@@ -240,7 +240,7 @@ extension Lines on Game {
       L.hp -= d;
       final o = _lnAdd({'scrap': 4 + sec * 3, 'plate': sec >= 1 ? 1 : 0});
       L.msg = '기어서 틈을 지났다 · 체력 -$d · ${_lnTxt(o)}';
-      L.hurtAt = DateTime.now().millisecondsSinceEpoch;
+      L.hurtAt = Game.nowMs();
     } else {
       L.hp -= 1;
       L.msg = '먼 길로 돌아갔다 · 체력 -1';
@@ -376,7 +376,7 @@ extension Lines on Game {
     L.hp -= F.boss ? (g ? 2 : 3) : (g ? 1 : 2);
     sfx('hit', buzz: true);
     L.miss++;
-    L.hurtAt = DateTime.now().millisecondsSinceEpoch;
+    L.hurtAt = Game.nowMs();
   }
 
   /// 매 프레임: 고리가 다 좁혀지면 맞는다
@@ -447,7 +447,7 @@ extension Lines on Game {
     }
     if (u.step > 0) {
       L['runs'] = ((L['runs'] as num?) ?? 0) + 1;
-      if (fat == 0) L['at'] = DateTime.now().millisecondsSinceEpoch;
+      if (fat == 0) L['at'] = Game.nowMs();
       L['fat'] = math.min(lnFat.length - 1, fat + 1);
     }
     L['best'] = math.max(((L['best'] as num?) ?? 0).toInt(), math.max(u.best, u.step));

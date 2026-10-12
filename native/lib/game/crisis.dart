@@ -525,11 +525,11 @@ extension Crisis on Game {
       'k': k,
       'n': T0.n(this),
       'b': T0.v(this),
-      'at': DateTime.now().millisecondsSinceEpoch,
+      'at': Game.nowMs(),
       'who': who[rnd.nextInt(who.length)],
       'say': T0.say[rnd.nextInt(T0.say.length)],
     };
-    sqOpenUntil = DateTime.now().millisecondsSinceEpoch + 7000;
+    sqOpenUntil = Game.nowMs() + 7000;
     _changed();
   }
 
@@ -577,13 +577,13 @@ extension Crisis on Game {
     final nm = hasSv(who) ? survivors[who].name : '';
     fx.add(FxNote('${nm.isNotEmpty ? '$nm의 ' : ''}의뢰 완료', '${lootText(got)}${nm.isNotEmpty ? ' · $nm 신뢰 +40' : ''}$extra'));
     S.rest['sq'] = null;
-    S.rest['sqAt'] = DateTime.now().millisecondsSinceEpoch + 60000;
+    S.rest['sqAt'] = Game.nowMs() + 60000;
     _changed();
   }
 
   void _tickSide() {
     if (!sqOn) return;
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final now = Game.nowMs();
     final q = sq;
     if (q == null && now > num_('sqAt')) {
       _sqNew();

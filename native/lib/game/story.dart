@@ -408,7 +408,7 @@ extension Story on Game {
       final l = L.isEmpty ? const Line('me', '') : L.last;
       final id = speakerId(l.who);
       fx.add(FxNote('새 목표 · ${st.goal}', '${id == null ? '' : '${survivors[id].name}: '}“${l.t}”', ms: 5200));
-      panGuide = DateTime.now().millisecondsSinceEpoch;
+      panGuide = Game.nowMs();
       return;
     }
     talk(st.intro, scene: _sceneOf[st.ci], card: st.first ? (c.ch, c.title) : null, tag: st.first ? null : '${c.ch} · ${c.title}', goal: st.goal);
@@ -481,7 +481,7 @@ extension Story on Game {
 
   /// 다 했는데 안 받으면 알려 주고, 한참 뒤엔 챙겨 둔다 (웹 tickClaim 4394)
   void _tickClaim(Mission m) {
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final now = Game.nowMs();
     if (!m.done) {
       misDoneAt = 0;
       misNudged = false;

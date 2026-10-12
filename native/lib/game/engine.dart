@@ -231,7 +231,7 @@ class Game extends ChangeNotifier {
       rest: {'mi': 0, 'stepV': 4, 'endT': 0, 'clock': 0, 'nights': 0, 'evDone': 0, 'shield': 0, 'party': [], 'cd': {}, 'exp': {}, 'inv': [], 'iu': 0,
         'ug': {'best': 0, 'runs': 0, 'bestWith': {}}},
     );
-    s.t = DateTime.now().millisecondsSinceEpoch;
+    s.t = Game.nowMs();
     for (var y = CY - 2; y <= CY + 2; y++) {
       for (var x = CX - 2; x <= CX + 2; x++) {
         final i = y * W + x;
@@ -548,7 +548,7 @@ class Game extends ChangeNotifier {
     prod = p;
     cap = (capByLv[S.lv - 1] + capAdd).floor();
     final hopeT = S.rest['hopeT'];
-    final ht = hopeT is Map && (hopeT['until'] as num? ?? 0) > DateTime.now().millisecondsSinceEpoch ? (hopeT['v'] as num? ?? 0) : 0;
+    final ht = hopeT is Map && (hopeT['until'] as num? ?? 0) > Game.nowMs() ? (hopeT['v'] as num? ?? 0) : 0;
     final h = S.sv.length * 3 + e['hope']! + S.hopeB + ht + hopeM + (S.lv - 1) * 4 + S.lm.values.where((l) => l.ok).length * 5;
     hope = jsRound(h);
     _regionAfterRecalc();
@@ -1261,7 +1261,7 @@ class Game extends ChangeNotifier {
           if (kk == 'all') {
             _buff('all', d.contains('+15') ? 1.15 : 1.2, 60, skills[id].n);
             if (k['hope'] == true) {
-              S.rest['hopeT'] = {'v': 3, 'until': DateTime.now().millisecondsSinceEpoch + 120000};
+              S.rest['hopeT'] = {'v': 3, 'until': Game.nowMs() + 120000};
               recalc();
             }
           } else {
@@ -2036,7 +2036,7 @@ class Game extends ChangeNotifier {
 
   // ================= 저장 =================
   String toJsonString() {
-    S.t = DateTime.now().millisecondsSinceEpoch;
+    S.t = Game.nowMs();
     return jsonEncode(S.toJson());
   }
 
@@ -2092,6 +2092,9 @@ class Game extends ChangeNotifier {
   }
 
   void poke() => notifyListeners();
+
+  /// 게임 안의 '지금' (ms). 시험·빨리 감기에서는 바꿔 끼운다
+  static int Function() nowMs = () => DateTime.now().millisecondsSinceEpoch;
 
   /// 효과음 (웹 sfx). 화면 쪽이 Game.onSfx를 달아 두면 바로 울린다. buzz면 짧게 떨기도
   static void Function(String k, bool buzz)? onSfx;

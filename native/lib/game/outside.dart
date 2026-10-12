@@ -110,7 +110,7 @@ extension Outside on Game {
     if (team.length < e.min) return null;
     final pk = pet != null && petHere(pet) ? pet : null;
     final c = expCalc(e, team, pk);
-    (S.rest['exp'] as Map)[key] = <String, Object?>{'team': team, 'end': DateTime.now().millisecondsSinceEpoch + c.t * 1000, 'dur': c.t, 'pet': pk};
+    (S.rest['exp'] as Map)[key] = <String, Object?>{'team': team, 'end': Game.nowMs() + c.t * 1000, 'dur': c.t, 'pet': pk};
     if (pk != null) (S.rest['pets'] as Map)[pk]['away'] = key;
     for (final id in team) {
       rec(id)!['away'] = key; // 일터 자리는 그대로, 돌아오면 다시 일한다
@@ -179,7 +179,7 @@ extension Outside on Game {
   void claimExp(String key, {bool quiet = false}) {
     repairExpeditions();
     final x = expMap[key];
-    if (x == null || DateTime.now().millisecondsSinceEpoch < (x['end'] as num)) return;
+    if (x == null || Game.nowMs() < (x['end'] as num)) return;
     final pk = x['pet'] as String?;
     final e = expOf(key)!, team = [for (final v in x['team'] as List) (v as num).toInt()], c = expCalc(e, team, pk), sum = <String>[];
     (S.rest['exp'] as Map).remove(key);
@@ -284,7 +284,7 @@ extension Outside on Game {
 
   /// 1초마다: 돌아온 원정대 알림 · 자동 원정 (웹 tickExp, tickAutoExp)
   void _tickExp() {
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final now = Game.nowMs();
     expMap.forEach((k, x) {
       if (now >= (x['end'] as num) && !_expNotified.contains(k)) {
         _expNotified.add(k);
@@ -311,7 +311,7 @@ extension Outside on Game {
     }
   }
 
-  bool get anyExpBack => expMap.values.any((x) => DateTime.now().millisecondsSinceEpoch >= (x['end'] as num));
+  bool get anyExpBack => expMap.values.any((x) => Game.nowMs() >= (x['end'] as num));
 }
 
 // ================= 라디오: 주파수 탐색 (웹 3111–3155) =================

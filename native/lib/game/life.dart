@@ -144,11 +144,11 @@ extension Living on Game {
   // ================= 마을 잔치 =================
   bool get feastOpen => S.lv >= 3 || S.gen != 0;
   Cost get feastCost => scaleCost({'food': 120, 'wood': 80}, lvScale);
-  int get feastLeftMs => math.max(0, num_('feastAt').toInt() + feastCd - DateTime.now().millisecondsSinceEpoch);
+  int get feastLeftMs => math.max(0, num_('feastAt').toInt() + feastCd - Game.nowMs());
   bool holdFeast() {
     if (!feastOpen || feastLeftMs > 0 || !pay(feastCost)) return false;
     sfx('win');
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final now = Game.nowMs();
     S.rest['feastAt'] = now;
     S.rest['feasts'] = num_('feasts') + 1;
     S.rest['feastEnd'] = now + feastT * 1000;
@@ -216,7 +216,7 @@ extension Living on Game {
 
   void petAdopt(String k, {bool quiet = false}) {
     if (pets.containsKey(k)) return;
-    _petsRaw[k] = <String, Object?>{'n': petInfo(k)['def'], 'xp': 0, 'c': petKeys.indexOf(k) % collarColors.length, 'at': DateTime.now().millisecondsSinceEpoch};
+    _petsRaw[k] = <String, Object?>{'n': petInfo(k)['def'], 'xp': 0, 'c': petKeys.indexOf(k) % collarColors.length, 'at': Game.nowMs()};
     S.rest['petOn'] ??= k;
     if (k == 'dog') S.rest['dog'] = 1;
     recalc();
@@ -239,11 +239,11 @@ extension Living on Game {
   }
 
   Cost petFeedCost(String k) => scaleCost(k == 'bot' ? {'fuel': 5} : {'food': 8}, math.max(1, lvScale * .8));
-  int petFedLeft(String k) => math.max(0, (((pets[k]?['fedT'] as num?) ?? 0) + 120000 - DateTime.now().millisecondsSinceEpoch) ~/ 1000);
+  int petFedLeft(String k) => math.max(0, (((pets[k]?['fedT'] as num?) ?? 0) + 120000 - Game.nowMs()) ~/ 1000);
   bool petFeed(String k) {
     final p = _petsRaw[k];
     if (p is! Map || petFedLeft(k) > 0 || !pay(petFeedCost(k))) return false;
-    p['fedT'] = DateTime.now().millisecondsSinceEpoch;
+    p['fedT'] = Game.nowMs();
     petGain(k, 12);
     _changed();
     return true;
@@ -253,7 +253,7 @@ extension Living on Game {
   bool petPat(String k) {
     final p = _petsRaw[k];
     if (p is! Map) return false;
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final now = Game.nowMs();
     if (p['patT'] is num && now - (p['patT'] as num) <= 8000) return false;
     p['patT'] = now;
     petGain(k, 2);
@@ -324,7 +324,7 @@ extension Living on Game {
   }
 
   Cost strayCost(String k) => scaleCost(k == 'bot' ? {'fuel': 4} : {'food': 6}, math.max(1, lvScale * .8));
-  int get strayWait => math.max(0, ((((stray?['t'] as num?) ?? 0) - DateTime.now().millisecondsSinceEpoch) / 1000).ceil());
+  int get strayWait => math.max(0, ((((stray?['t'] as num?) ?? 0) - Game.nowMs()) / 1000).ceil());
 
   /// 먹이 두고 오기. 마지막이면 식구가 된다
   bool strayFeed() {
@@ -332,7 +332,7 @@ extension Living on Game {
     if (s == null || strayWait > 0 || !pay(strayCost(s['k'] as String))) return false;
     s['n'] = ((s['n'] as num?) ?? 0) + 1;
     sfx('get');
-    s['t'] = DateTime.now().millisecondsSinceEpoch + 20000;
+    s['t'] = Game.nowMs() + 20000;
     final k = s['k'] as String;
     if ((s['n'] as num) >= ((s['need'] as num?) ?? 3)) {
       S.rest['stray'] = null;
@@ -492,7 +492,7 @@ extension Living on Game {
     _kidEff(e);
     _petEff(e);
     _towerEff(e);
-    if (num_('feastEnd') > DateTime.now().millisecondsSinceEpoch) e['hope'] = (e['hope'] ?? 0) + 8;
+    if (num_('feastEnd') > Game.nowMs()) e['hope'] = (e['hope'] ?? 0) + 8;
     e['hope'] = (e['hope'] ?? 0) + decoHope;
     for (final q in decoSets().keys) {
       e['hope'] = (e['hope'] ?? 0) + (setHope[q] ?? 0);
