@@ -431,7 +431,8 @@ void main() {
     });
     r.ln = null;
     // 개인 이야기
-    r.rec(2)!['xp'] = 100000;
+    final qid = r.svIds.firstWhere((id) => quests[id] != null && id != 0);
+    r.rec(qid)!['xp'] = 100000;
     r.tickStorySec();
     r.takeFx();
     await _shot(tester, r, '39-quest', act: () async {
@@ -439,7 +440,7 @@ void main() {
       for (var k = 0; k < 6; k++) {
         await tester.pump(const Duration(milliseconds: 60));
       }
-      await tester.tap(find.text(survivors[2].name).last);
+      await tester.tap(find.text(survivors[qid].name).last);
       for (var k = 0; k < 6; k++) {
         await tester.pump(const Duration(milliseconds: 60));
       }
