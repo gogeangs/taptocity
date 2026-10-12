@@ -1,60 +1,60 @@
-══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞═════════════════
-The following TestFailure was thrown running a test:
-Expected: empty
-  Actual: [
-            'Null check operator used on a null value @
-_GameScreenState.build.<anonymous closure>.<anonymous closure>
-(package:taptocity/ui/game_screen.dart:1109:133) (building
-AnimatedBuilder(listenable: Instance of \'Game\', dirty, state:
-_AnimatedState#3f867))',
-            'Null check operator used on a null value @
-_GameScreenState.build.<anonymous closure>.<anonymous closure>
-(package:taptocity/ui/game_screen.dart:1109:133) (building
-AnimatedBuilder(listenable: Instance of \'Game\', dirty, state:
-_AnimatedState#32f4e))',
-            'Null check operator used on a null value @
-_GameScreenState.build.<anonymous closure>.<anonymous closure>
-(package:taptocity/ui/game_screen.dart:1109:133) (building
-AnimatedBuilder(listenable: Instance of \'Game\', dirty, state:
-_AnimatedState#8ed79))',
-            'Null check operator used on a null value @
-_GameScreenState.build.<anonymous closure>.<anonymous closure>
-(package:taptocity/ui/game_screen.dart:1109:133) (building
-AnimatedBuilder(listenable: Instance of \'Game\', dirty, state:
-_AnimatedState#ff19d))'
-          ]
-Null check operator used on a null value @
-_GameScreenState.build.<anonymous closure>.<anonymous closure>
-(package:taptocity/ui/game_screen.dart:1109:133) (building
-AnimatedBuilder(listenable: Instance of 'Game', dirty, state:
-_AnimatedState#3f867))
-Null check operator used on a null value @
-_GameScreenState.build.<anonymous closure>.<anonymous closure>
-(package:taptocity/ui/game_screen.dart:1109:133) (building
-AnimatedBuilder(listenable: Instance of 'Game', dirty, state:
-_AnimatedState#32f4e))
-Null check operator used on a null value @
-_GameScreenState.build.<anonymous closure>.<anonymous closure>
-(package:taptocity/ui/game_screen.dart:1109:133) (building
-AnimatedBuilder(listenable: Instance of 'Game', dirty, state:
-_AnimatedState#8ed79))
-Null check operator used on a null value @
-_GameScreenState.build.<anonymous closure>.<anonymous closure>
-(package:taptocity/ui/game_screen.dart:1109:133) (building
-AnimatedBuilder(listenable: Instance of 'Game', dirty, state:
-_AnimatedState#ff19d))
-When the exception was thrown, this was the stack:
-#4      main.<anonymous closure> (file:///Users/runner/work/taptocity/taptocity/native/integration_test/device_smoke_test.dart:222:5)
-<asynchronous suspension>
-#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
-<asynchronous suspension>
-#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
-<asynchronous suspension>
-#7      TestWidgetsFlutterBinding._createTestCompletionHandler.<anonymous closure> (package:flutter_test/src/binding.dart:1707:12)
-<asynchronous suspension>
-This was caught by the test expectation on the following line:
-  file:///Users/runner/work/taptocity/taptocity/native/integration_test/device_smoke_test.dart line 222
-The test description was:
-  iPhone에서 앱 띄워 보기
+flutter: #2      SchedulerBinding.scheduleFrameCallback (package:flutter/src/scheduler/binding.dart:617:49)
+flutter: #3      FramePositionUpdater._tick (package:audioplayers/src/position_updater.dart:75:52)
+flutter: #4      SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1430:15)
+flutter: #5      SchedulerBinding.handleBeginFrame.<anonymous closure> (package:flutter/src/scheduler/binding.dart:1263:11)
+flutter: #6      _LinkedHashMapMixin.forEach (dart:_compact_hash:721:13)
+flutter: #7      SchedulerBinding.handleBeginFrame (package:flutter/src/scheduler/binding.dart:1261:17)
+flutter: #8      LiveTestWidgetsFlutterBinding.handleBeginFrame (package:flutter_test/src/binding.dart:2800:13)
+flutter: #9      SchedulerBinding.scheduleWarmUpFrame.<anonymous closure> (package:flutter/src/scheduler/binding.dart:1051:9)
+flutter: #20     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:192:12)
+flutter: (elided 12 frames from class _FrameCallbackEntry, class _Timer, dart:async, and dart:async-patch)
+flutter: ── callback 2041 ──
+flutter: #2      SchedulerBinding.scheduleFrameCallback (package:flutter/src/scheduler/binding.dart:617:49)
+flutter: #3      FramePositionUpdater._tick (package:audioplayers/src/position_updater.dart:75:52)
+flutter: #4      SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1430:15)
+flutter: #5      SchedulerBinding.handleBeginFrame.<anonymous closure> (package:flutter/src/scheduler/binding.dart:1263:11)
+flutter: #6      _LinkedHashMapMixin.forEach (dart:_compact_hash:721:13)
+flutter: #7      SchedulerBinding.handleBeginFrame (package:flutter/src/scheduler/binding.dart:1261:17)
+flutter: #8      LiveTestWidgetsFlutterBinding.handleBeginFrame (package:flutter_test/src/binding.dart:2800:13)
+flutter: #9      SchedulerBinding.scheduleWarmUpFrame.<anonymous closure> (package:flutter/src/scheduler/binding.dart:1051:9)
+flutter: #20     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:192:12)
+flutter: (elided 12 frames from class _FrameCallbackEntry, class _Timer, dart:async, and dart:async-patch)
+flutter: ════════════════════════════════════════════════════════════════════════════════════════════════════
+flutter: 01:03 +0: iPhone에서 앱 띄워 보기 [E]
+flutter:   Test failed. See exception logs above.
+  The test description was: iPhone에서 앱 띄워 보기
+flutter:
+flutter: 01:03 +0 -1: (tearDownAll)
+flutter: 01:03 +1 -1: Some tests failed.
+Failure Details:
+Failure in method: iPhone에서 앱 띄워 보기
+══╡ EXCEPTION CAUGHT BY SCHEDULER LIBRARY ╞══════════════════════
+The following message was thrown:
+An animation is still running even after the widget tree was
+disposed.
+There were 2 transient callbacks left. The stack traces for when
+they were registered are as follows:
+── callback 2040 ──
+#2      SchedulerBinding.scheduleFrameCallback (package:flutter/src/scheduler/binding.dart:617:49)
+#3      FramePositionUpdater._tick (package:audioplayers/src/position_updater.dart:75:52)
+#4      SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1430:15)
+#5      SchedulerBinding.handleBeginFrame.<anonymous closure> (package:flutter/src/scheduler/binding.dart:1263:11)
+#6      _LinkedHashMapMixin.forEach (dart:_compact_hash:721:13)
+#7      SchedulerBinding.handleBeginFrame (package:flutter/src/scheduler/binding.dart:1261:17)
+#8      LiveTestWidgetsFlutterBinding.handleBeginFrame (package:flutter_test/src/binding.dart:2800:13)
+#9      SchedulerBinding.scheduleWarmUpFrame.<anonymous closure> (package:flutter/src/scheduler/binding.dart:1051:9)
+#20     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:192:12)
+(elided 12 frames from class _FrameCallbackEntry, class _Timer, dart:async, and dart:async-patch)
+── callback 2041 ──
+#2      SchedulerBinding.scheduleFrameCallback (package:flutter/src/scheduler/binding.dart:617:49)
+#3      FramePositionUpdater._tick (package:audioplayers/src/position_updater.dart:75:52)
+#4      SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1430:15)
+#5      SchedulerBinding.handleBeginFrame.<anonymous closure> (package:flutter/src/scheduler/binding.dart:1263:11)
+#6      _LinkedHashMapMixin.forEach (dart:_compact_hash:721:13)
+#7      SchedulerBinding.handleBeginFrame (package:flutter/src/scheduler/binding.dart:1261:17)
+#8      LiveTestWidgetsFlutterBinding.handleBeginFrame (package:flutter_test/src/binding.dart:2800:13)
+#9      SchedulerBinding.scheduleWarmUpFrame.<anonymous closure> (package:flutter/src/scheduler/binding.dart:1051:9)
+#20     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:192:12)
+(elided 12 frames from class _FrameCallbackEntry, class _Timer, dart:async, and dart:async-patch)
 ═════════════════════════════════════════════════════════════════
 end of failure 1
