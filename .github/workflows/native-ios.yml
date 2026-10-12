@@ -82,6 +82,7 @@ jobs:
           flutter drive --driver test_driver/integration_test.dart --target integration_test/device_smoke_test.dart -d "$UDID" 2>&1 | tee ../drive.txt; s=${PIPESTATUS[0]}
           cp build/integration_response_data.json ios-shots/report.json 2>/dev/null
           grep -v '^\s*$' ../drive.txt | tail -60 > ios-shots/drive-log.txt
+          grep -E '▶|✓|✗' ../drive.txt > ios-shots/steps.txt
           xcrun simctl spawn "$UDID" log show --last 10m --predicate 'process == "Runner" AND messageType == fault' --style compact 2>/dev/null | tail -30 > ios-shots/faults.txt
           grep -q "Some tests failed" ../drive.txt && s=1
           if [ $s -ne 0 ]; then m=$(tail -60 ../drive.txt | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}'); echo "::error title=simulator::$m"; fi
@@ -94,6 +95,7 @@ jobs:
           echo "::notice title=ios-shots::$(ls ios-shots 2>&1 | tr '\n' ' ')"
           [ -f ios-shots/report.json ] && echo "::notice title=report::$(head -c 3000 ios-shots/report.json | sed 's/%/%25/g')"
           [ -s ios-shots/faults.txt ] && echo "::warning title=faults::$(head -c 3000 ios-shots/faults.txt | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}')"
+          echo "::notice title=steps::$(tail -40 ios-shots/steps.txt 2>/dev/null | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}')"
           echo "::notice title=drive::$(tail -15 ios-shots/drive-log.txt 2>/dev/null | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}')"
           exit 0
 

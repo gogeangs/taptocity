@@ -2,6 +2,7 @@
 // 1) 처음 설치한 것처럼 켜기: 예전 앱 진행 찾기(숨은 웹뷰)·튜토리얼·소리 재생이 오류 없이 도는지
 // 2) 진행 중인 저장으로 다시 켜기: 탭·시트·설정·프로필을 열고, 지도를 두드려 소리를 내 본다
 // 화면마다 사진을 찍고(ios-shots/), 오류는 모아서 마지막에 실패로 알린다.
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -47,6 +48,9 @@ void main() {
   final log = <String>[];
 
   testWidgets('iPhone에서 앱 띄워 보기', (tester) async {
+    final t0 = DateTime.now();
+    String at() => '${DateTime.now().difference(t0).inSeconds}s';
+
     Future<void> wait(double sec) async {
       final n = (sec * 10).round();
       for (var k = 0; k < n; k++) {
@@ -66,10 +70,28 @@ void main() {
       };
     }
 
+    /// 한 단계: 90초 안에 끝나야 하고, 멈추거나 오류가 나도 기록하고 다음으로 간다
+    Future<void> step(String name, Future<void> Function() f) async {
+      // ignore: avoid_print
+      print('▶ $name (${at()})');
+      try {
+        await f().timeout(const Duration(seconds: 90));
+        log.add('✓ $name (${at()})');
+      } on TimeoutException {
+        errors.add('멈춤: $name');
+        log.add('✗ $name 90초 넘게 멈춤');
+      } catch (e) {
+        errors.add('$name: ${'$e'.split('\n').first}');
+        log.add('✗ $name: $e');
+      }
+      final ex = tester.takeException();
+      if (ex != null) errors.add('$name: ${'$ex'.split('\n').first}');
+    }
+
     var shot = 0;
     Future<void> snap(String name) async {
       try {
-        await binding.takeScreenshot('${(++shot).toString().padLeft(2, '0')}-$name');
+        await binding.takeScreenshot('${(++shot).toString().padLeft(2, '0')}-$name').timeout(const Duration(seconds: 20));
       } catch (e) {
         log.add('사진 실패 $name: $e');
       }
@@ -94,33 +116,44 @@ void main() {
       }
     }
 
+    Future<void> closeDialogs() async {
+      for (var k = 0; k < 4 && find.byType(Dialog).evaluate().isNotEmpty; k++) {
+        Navigator.of(tester.element(find.byType(Dialog).last)).pop();
+        await wait(1);
+      }
+    }
+
     // ---------- 1) 처음 설치한 것처럼 ----------
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-    await app.start(cloud: false);
-    hook();
-    await wait(8); // 숨은 웹뷰가 예전 앱 저장소를 확인할 시간
+    await step('처음 켜기', () async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      await app.start(cloud: false);
+      hook();
+      await wait(8); // 숨은 웹뷰가 예전 앱 저장소를 확인할 시간
+      log.add('첫 실행 화면 글자 ${find.byType(Text).evaluate().length}개');
+    });
     await snap('first-launch');
-    log.add('첫 실행 화면 글자 ${find.byType(Text).evaluate().length}개');
-    await tapMap(12);
-    await wait(2);
+    await step('첫 화면 두드리기', () async {
+      await tapMap(12);
+      await wait(2);
+    });
     await snap('first-taps');
-    if (tester.takeException() case final e?) errors.add('$e'.split('\n').first);
 
     // ---------- 2) 진행 중인 저장으로 ----------
-    await Storage.save(_midGame().toJsonString());
-    await Storage.setRaw('ttc_tut', '1');
-    await Storage.setRaw('ttc_legacy_asked', '1');
-    await app.start(cloud: false);
-    hook();
-    await wait(4);
-    for (var k = 0; k < 4 && find.byType(Dialog).evaluate().isNotEmpty; k++) {
-      Navigator.of(tester.element(find.byType(Dialog).last)).pop();
-      await wait(1);
-    }
+    await step('진행 중인 저장으로 켜기', () async {
+      await Storage.save(_midGame().toJsonString());
+      await Storage.setRaw('ttc_tut', '1');
+      await Storage.setRaw('ttc_legacy_asked', '1');
+      await app.start(cloud: false);
+      hook();
+      await wait(4);
+      await closeDialogs();
+    });
     await snap('map');
-    await tapMap(20);
-    await wait(1);
+    await step('지도 두드리기 (소리)', () async {
+      await tapMap(20);
+      await wait(1);
+    });
     await snap('map-taps');
     for (final (tab, subs) in const [
       ('쉘터', ['건설', '가공', '연구']),
@@ -129,43 +162,54 @@ void main() {
       ('라디오', <String>[]),
       ('생존자', <String>[]),
     ]) {
-      if (!await tapText(tab)) continue;
+      var opened = false;
+      await step('탭 $tab', () async => opened = await tapText(tab));
+      if (!opened) continue;
       await snap(tab);
-      for (final s in subs) {
-        if (await tapText(s)) await snap('$tab-$s');
+      for (final sub in subs) {
+        var ok = false;
+        await step('$tab · $sub', () async => ok = await tapText(sub));
+        if (ok) await snap('$tab-$sub');
       }
-      await tapText(tab); // 다시 누르면 닫힘
+      await step('$tab 닫기', () async => await tapText(tab));
     }
-    await tester.tap(find.byKey(const ValueKey('setBtn')));
-    await wait(1.5);
+    await step('설정', () async {
+      await tester.tap(find.byKey(const ValueKey('setBtn')));
+      await wait(1.5);
+    });
     await snap('settings');
-    await tester.tapAt(const Offset(10, 10));
-    await wait(1);
-    for (var k = 0; k < 3 && find.byType(Dialog).evaluate().isNotEmpty; k++) {
-      Navigator.of(tester.element(find.byType(Dialog).last)).pop();
+    await step('설정 닫기', () async {
+      await tester.tapAt(const Offset(10, 10));
       await wait(1);
-    }
-    await tester.tap(find.byKey(const ValueKey('pfBtn')));
-    await wait(1.5);
+      await closeDialogs();
+    });
+    await step('프로필', () async {
+      await tester.tap(find.byKey(const ValueKey('pfBtn')));
+      await wait(1.5);
+    });
     await snap('profile');
+    await step('프로필 닫기', closeDialogs);
     // 앱이 뒤로 갔다 돌아오기 (저장·소리 멈춤·다시 켜기)
-    // (뒤로 간 동안은 화면을 그리지 않으므로 pump 대신 실제 시간만 흘려보낸다)
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
-    await tester.runAsync(() => Future<void>.delayed(const Duration(seconds: 2)));
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-    await wait(2);
+    await step('뒤로 갔다 돌아오기', () async {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      // 뒤로 간 동안은 화면을 그리지 않으므로 pump 없이 실제 시간만
+      await Future<void>.delayed(const Duration(seconds: 2));
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await wait(2);
+    });
     await snap('resumed');
-    final saved = await Storage.getRaw(Storage.key);
-    if (saved == null || (jsonDecode(saved) as Map)['lv'] != 3) errors.add('저장 확인 실패');
-    if (tester.takeException() case final e?) errors.add('$e'.split('\n').first);
+    await step('저장 확인', () async {
+      final saved = await Storage.getRaw(Storage.key);
+      if (saved == null || (jsonDecode(saved) as Map)['lv'] != 3) errors.add('저장 확인 실패');
+    });
+    await step('진동 채널', () => SystemChannels.platform.invokeMethod<void>('HapticFeedback.vibrate'));
 
-    log.add('끝까지 진행');
+    log.add('끝까지 진행 (${at()})');
     binding.reportData = {'errors': errors, 'log': log};
-    await SystemChannels.platform.invokeMethod<void>('HapticFeedback.vibrate'); // 진동 채널이 살아 있는지
     expect(errors, isEmpty, reason: errors.join('\n'));
-  }, timeout: const Timeout(Duration(minutes: 12)));
+  }, timeout: const Timeout(Duration(minutes: 20)));
 }
