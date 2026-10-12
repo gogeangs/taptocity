@@ -939,7 +939,8 @@ class Game extends ChangeNotifier {
       }
     }
     if (_dutyT % 25 == 0) {
-      for (final id in ids.where((id) => dutyOf(id) == 'gather')) {
+      final n = ids.where((id) => dutyOf(id) == 'gather').length;
+      for (var q = 0; q < n; q++) {
         final k = baseMats[rnd.nextInt(baseMats.length)];
         loot({k: math.max(1, jsRound(2.4 * lvScale))}, C0);
       }
