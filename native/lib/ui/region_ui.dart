@@ -140,7 +140,7 @@ Future<void> showMigrate(BuildContext context, Game g) {
               thumb: const SizedBox(width: 0),
               title: '추천 다섯 명',
               desc: descText('${need['why'] ?? ''} · 필요한 역할 한 명씩 + 등급·신뢰 순'),
-              button: BuyButton('추천으로 고르기', width: 92, onTap: () {
+              button: BuyButton('추천으로 고르기', width: 112, onTap: () {
                 HapticFeedback.selectionClick();
                 set(() => _migPick = [...recPick]);
               }),

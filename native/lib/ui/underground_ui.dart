@@ -48,6 +48,10 @@ Widget ugCard(BuildContext context, Game g) {
         ]),
       ),
       Text('기름이 버티는 만큼 깊이. ${last > 1 ? '다음엔 지난번 멈춘 $last층부터 시작해요.' : '다음엔 멈춘 층부터 다시 시작해요.'}', style: Ttc.t(13, color: Ttc.sepia2, height: 1.6)),
+      ...() {
+        final qs = [for (final id in g.svIds) if (g.qStep(id) != null && (g.qStep(id)!['k'] == 'find' || g.qStep(id)!['k'] == 'ug')) survivors[id].name];
+        return [if (qs.isNotEmpty) Text('${qs.join(', ')}의 이야기가 지하에 있어요', style: Ttc.t(13, color: const Color(0xFF7A4A1C), weight: FontWeight.w700, height: 1.6))];
+      }(),
       const SizedBox(height: 8),
       Row(children: [
         hl('ugprep', BuyButton('내려갈 준비', width: 96, onTap: g.S.sv.isEmpty ? null : () => showUgPrep(context, g)), radius: 7),
@@ -133,6 +137,13 @@ void showUgPrep(BuildContext context, Game g) {
               ),
             ),
           if (perks.isNotEmpty) Padding(padding: const EdgeInsets.fromLTRB(0, 8, 0, 4), child: Text(perks.join('\n'), style: Ttc.t(13, color: Ttc.sepia2, height: 1.6))),
+          ...() {
+            final qs = [
+              for (final id in t)
+                if (g.qStep(id) != null && (g.qStep(id)!['k'] == 'find' || g.qStep(id)!['k'] == 'ug')) '${survivors[id].name}: ${g.qStepTxt(g.qStep(id)!)}'
+            ];
+            return [if (qs.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 6), child: Text(qs.join('\n'), style: Ttc.t(12.5, color: const Color(0xFF7A4A1C), weight: FontWeight.w600, height: 1.55)))];
+          }(),
           if (last > 1)
             Padding(
               padding: const EdgeInsets.only(top: 8, bottom: 6),

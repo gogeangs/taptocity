@@ -102,7 +102,7 @@ Future<void> showLnPrep(BuildContext context, Game g) async {
                   thumb: const SizedBox(width: 0),
                   title: '추천 두 명',
                   desc: descText('소방·정찰을 먼저, 그다음 연구·요리 역할 · 같으면 등급 순'),
-                  button: BuyButton('추천으로 고르기', width: 92, onTap: () => set(() => _lnTeam = [...rp])),
+                  button: BuyButton('추천으로 고르기', width: 112, onTap: () => set(() => _lnTeam = [...rp])),
                 ),
               if (free.isEmpty)
                 descText('쉬는 생존자가 없어요')
