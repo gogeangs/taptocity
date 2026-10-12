@@ -1,4 +1,5 @@
 
-✅ 화면 사진
+✅ /home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart: 화면 사진
+✅ /home/runner/work/taptocity/taptocity/native/test_screens/qa_ui_test.dart: 모든 화면 훑기
 
-🎉 1 test passed.
+🎉 2 tests passed.
