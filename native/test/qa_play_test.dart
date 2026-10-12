@@ -133,16 +133,18 @@ void autoStep(Game g, Qa qa, math.Random r) {
           break;
         }
       }
+      // 아직 안 지은 모듈이 있으면 자재를 아낀다 (철판·밧줄만 가공)
+      final saving = [for (final id in const [1, 2, 9, 3, 4, 8, 5, 6, 7]) if (mods[id] != null && g.modN(id) == 0 && g.S.lv >= mods[id]!.req) id].isNotEmpty;
       for (final k in g.S.mods.keys.toList()) {
-        if (r.nextDouble() < .2) g.upMod(k);
+        if (!saving && r.nextDouble() < .2) g.upMod(k);
       }
       g.upShelter();
-      g.upWalls();
+      if (!saving) g.upWalls();
       for (var k = 0; k < recipes.length; k++) {
-        if (r.nextDouble() < .3) g.craft(k, 3);
+        if ((!saving || k < 2) && r.nextDouble() < .3) g.craft(k, 3);
       }
       for (final k in const ['tap', 'splash', 'drone']) {
-        if (r.nextDouble() < .2) g.buyUp(k);
+        if (!saving && r.nextDouble() < .2) g.buyUp(k);
       }
       if (g.towerOk) g.buildTower();
       for (final e in g.S.lm.entries.toList()) {
