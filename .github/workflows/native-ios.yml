@@ -110,10 +110,11 @@ jobs:
         run: |
           set +e +o pipefail
           [ -d native/ios-shots ] || { echo "::warning title=push::사진 폴더 없음"; exit 0; }
-          cp -r native/ios-shots "$RUNNER_TEMP/ios-shots"
-          git reset -q --hard && git clean -fdqx -e native-play
-          git fetch -q origin main && git checkout -q -B up origin/main
-          rm -rf native-play/ios-shots && mkdir -p native-play && cp -r "$RUNNER_TEMP/ios-shots" native-play/ios-shots
+          # 빌드 폴더(ios 등)는 업로드 단계가 써야 하므로 건드리지 않고, 따로 꺼낸 작업 폴더에서 올린다
+          WT="$RUNNER_TEMP/wt"
+          git fetch -q origin main && git worktree add -q -f "$WT" origin/main
+          cd "$WT"
+          rm -rf native-play/ios-shots && mkdir -p native-play && cp -r "$GITHUB_WORKSPACE/native/ios-shots" native-play/ios-shots
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -f -A native-play/ios-shots
