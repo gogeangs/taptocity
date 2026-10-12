@@ -11,3 +11,6 @@ assets/fonts/
 android/
 ios/
 web/
+.metadata
+*.iml
+.idea/

@@ -103,7 +103,7 @@ jobs:
           git commit -qm "네이티브 미리보기 갱신 (${GITHUB_SHA::7})"
           ok=0
           for i in 1 2 3; do
-            out=$( { git pull --rebase origin main && git push origin HEAD:main; } 2>&1 ); r=$?
+            out=$( { git pull --rebase --autostash origin main && git push origin HEAD:main; } 2>&1 ); r=$?
             if [ $r -eq 0 ]; then ok=1; break; fi
             sleep 5
           done
