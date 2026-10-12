@@ -1,60 +1,60 @@
-flutter: ▶ 진동 채널 (65s)
-flutter: 01:06 +0: iPhone에서 앱 띄워 보기 [E]
-flutter:   'package:flutter_test/src/binding.dart': Failed assertion: line 1912 pos 9: '_pendingExceptionDetails != null': A test overrode FlutterError.onError but either failed to return it to its original state, or had unexpected additional errors that it could not handle. Typically, this is caused by using expect() before restoring FlutterError.onError.
-flutter:   dart:core-patch/errors_patch.dart 67:4         _AssertionError._doThrowNew
-  dart:core-patch/errors_patch.dart 49:5         _AssertionError._throwNew
-  package:flutter_test/src/binding.dart 1912:9   TestWidgetsFlutterBinding._runTest.handleUncaughtError
-  package:flutter_test/src/binding.dart 1921:13  TestWidgetsFlutterBinding._runTest.<fn>
-  dart:async/zone.dart 563:30                    _Zone._processUncaughtError
-  dart:async/zone.dart 789:5                     _CustomZone.handleUncaughtError
-  dart:async/future_impl.dart 886:24             Future._propagateToListeners
-  dart:async/future_impl.dart 738:5              Future._completeErrorObject
-  dart:async/future_impl.dart 742:5              Future._completeError
-Failed to index action parameter: <WFPhotoItemCollectionParameter: 0x10c2564c0> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFPhotoItemCollectionParameter)
-Failed to index action parameter: <WFEvernoteTagsTagFieldParameter: 0x10c3f3600> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFEvernoteTagsTagFieldParameter)
-Failed to index action parameter: <WFMediaPickerParameter: 0x10c3ff780> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFMediaPickerParameter)
-Failed to index action parameter: <WFHomeAccessoryPickerParameter: 0x10c8ab240> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFHomeAccessoryPickerParameter)
-Failed to index action parameter: <WFSystemShortcutPickerParameter: 0x10c8ab840> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFSystemShortcutPickerParameter)
-Failed to index action parameter: <WFMailSenderPickerParameter: 0x10c8da700> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.missingIntentDescription
-Failed to check availability in Spotlight for action is.workflow.actions.sendemail: Error Domain=NSOSStatusErrorDomain Code=-10814 "(null)" UserInfo={_LSLine=156, _LSFunction=+[LSBundleRecord bundleRecordWithBundleIdentifier:allowPlaceholder:error:], _LSFile=LSBundleRecord.mm, NSUnderlyingError=0x10e78c3f0 {Error Domain=NSOSStatusErrorDomain Code=-10814 "Unable to find this application extension record in the Launch Services database." UserInfo={_LSLine=652, _LSFunction=_LSPluginFindWithPlatformInfo, _LSFile=LSPluginBundle.mm, NSDebugDescription=Unable to find this application extension record in the Launch Services database., SK=com.apple.mobilemail, IS=false}}}
-Failed to index action parameter: <WFPosterPickerParameter: 0x10c934cc0> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFPosterPickerParameter)
-Failed to index action parameter: <WFInputTypeParameter: 0x10c8db180> due to ActionKit.(unknown context at $105cbe880).WFParameterStateToolKitConversionError.unknownParameterState(WFMultipleValueParameterState)
-Failed to index action parameter: <WFInputSurfaceParameter: 0x10c935980> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFInputSurfaceParameter)
-Failed to index action parameter: <WFContentArrayParameter: 0x10c923800> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFContentArrayParameter)
-is.workflow.actions.repeat.each WFForEachRepeatAction: Skipped because: [control flow]
-Failed to check availability in Spotlight for action is.workflow.actions.workout.start: Error Domain=NSOSStatusErrorDomain Code=-10814 "(null)" UserInfo={_LSLine=156, _LSFunction=+[LSBundleRecord bundleRecordWithBundleIdentifier:allowPlaceholder:error:], _LSFile=LSBundleRecord.mm, NSUnderlyingError=0x10e78d440 {Error Domain=NSOSStatusErrorDomain Code=-10814 "Unable to find this application extension record in the Launch Services database." UserInfo={_LSLine=652, _LSFunction=_LSPluginFindWithPlatformInfo, _LSFile=LSPluginBundle.mm, NSDebugDescription=Unable to find this application extension record in the Launch Services database., SK=com.apple.SessionTrackerApp, IS=false}}}
-is.workflow.actions.choosefrommenu WFChooseFromMenuAction: Skipped because: [control flow]
-Failed to index action parameter: <WFHomeServicePickerParameter: 0x10cbba280> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFHomeServicePickerParameter)
-Failed to index action parameter: <WFLightroomPresetPickerParameter: 0x10b772940> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.missingIntentDescription
-Failed to check availability in Spotlight for action is.workflow.actions.lightroom.import: Error Domain=NSOSStatusErrorDomain Code=-10814 "(null)" UserInfo={_LSLine=156, _LSFunction=+[LSBundleRecord bundleRecordWithBundleIdentifier:allowPlaceholder:error:], _LSFile=LSBundleRecord.mm, NSUnderlyingError=0x10e78e430 {Error Domain=NSOSStatusErrorDomain Code=-10814 "Unable to find this application extension record in the Launch Services database." UserInfo={_LSLine=652, _LSFunction=_LSPluginFindWithPlatformInfo, _LSFile=LSPluginBundle.mm, NSDebugDescription=Unable to find this application extension record in the Launch Services database., SK=com.adobe.lrmobile, IS=false}}}
-is.workflow.actions.repeat.count WFFiniteRepeatAction: Skipped because: [control flow]
-Failed to index action parameter: <WFSystemShortcutPickerParameter: 0x10d8caf40> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFSystemShortcutPickerParameter)
-Failed to index action parameter: <WFFontPickerParameter: 0x10d9540c0> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFFontPickerParameter)
-is.workflow.actions.conditional WFConditionalAction: Skipped because: [control flow]
-Failed to index action parameter: <WFSpotlightSearchResultTypePickerParameter: 0x10d9e2b80> due to ActionKit.(unknown context at $105cbe880).WFParameterStateToolKitConversionError.unknownParameterState(WFMultipleValueParameterState)
-Failed to index action parameter: <WFSystemShortcutPickerParameter: 0x10dad9380> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFSystemShortcutPickerParameter)
-Failed to index action parameter: <WFTagFieldParameter: 0x10db0cfc0> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFTagFieldParameter)
-Failed to index action parameter: <WFEvernoteTagsTagFieldParameter: 0x10dbf4000> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFEvernoteTagsTagFieldParameter)
-Indexed: 1097
-Errored: 0
-Skipped: [control flow: 4, donation-based action: 2]
-   control flow: 4
-   donation-based action: 2
-Finished in 404.836111s
--[WFIsolatedShortcutRunner unaliveProcess] Releasing sandbox extensions
-flutter:   TimeoutException after 0:20:00.000000: Test timed out after 20 minutes.
-flutter:   package:test_api/src/backend/invoker.dart 398:28  Invoker._handleError.<fn>
-  dart:async/zone_root.dart 27:47                   _rootRun
-  dart:async/zone.dart 810:35                       _CustomZone.run
-  package:test_api/src/backend/invoker.dart 396:10  Invoker._handleError
-  package:test_api/src/backend/invoker.dart 351:9   Invoker.heartbeat.<fn>.<fn>
-  dart:async/zone_root.dart 35:13                   _rootRun
-  dart:async/zone.dart 810:35                       _CustomZone.run
-  package:test_api/src/backend/invoker.dart 350:38  Invoker.heartbeat.<fn>
-  dart:async-patch/timer_patch.dart 18:15           Timer._createTimer.<fn>
-  dart:isolate-patch/timer_impl.dart 423:19         _Timer._runTimers
-  dart:isolate-patch/timer_impl.dart 454:5          _Timer._handleMessage
-  dart:isolate-patch/isolate_patch.dart 192:12      _RawReceivePort._handleMessage
-flutter: 20:00 +0 -1: (tearDownAll)
-flutter: 20:00 +1 -1: Some tests failed.
-All tests passed.
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞═════════════════
+The following TestFailure was thrown running a test:
+Expected: empty
+  Actual: [
+            'Null check operator used on a null value @
+_GameScreenState.build.<anonymous closure>.<anonymous closure>
+(package:taptocity/ui/game_screen.dart:1109:133) (building
+AnimatedBuilder(listenable: Instance of \'Game\', dirty, state:
+_AnimatedState#3f867))',
+            'Null check operator used on a null value @
+_GameScreenState.build.<anonymous closure>.<anonymous closure>
+(package:taptocity/ui/game_screen.dart:1109:133) (building
+AnimatedBuilder(listenable: Instance of \'Game\', dirty, state:
+_AnimatedState#32f4e))',
+            'Null check operator used on a null value @
+_GameScreenState.build.<anonymous closure>.<anonymous closure>
+(package:taptocity/ui/game_screen.dart:1109:133) (building
+AnimatedBuilder(listenable: Instance of \'Game\', dirty, state:
+_AnimatedState#8ed79))',
+            'Null check operator used on a null value @
+_GameScreenState.build.<anonymous closure>.<anonymous closure>
+(package:taptocity/ui/game_screen.dart:1109:133) (building
+AnimatedBuilder(listenable: Instance of \'Game\', dirty, state:
+_AnimatedState#ff19d))'
+          ]
+Null check operator used on a null value @
+_GameScreenState.build.<anonymous closure>.<anonymous closure>
+(package:taptocity/ui/game_screen.dart:1109:133) (building
+AnimatedBuilder(listenable: Instance of 'Game', dirty, state:
+_AnimatedState#3f867))
+Null check operator used on a null value @
+_GameScreenState.build.<anonymous closure>.<anonymous closure>
+(package:taptocity/ui/game_screen.dart:1109:133) (building
+AnimatedBuilder(listenable: Instance of 'Game', dirty, state:
+_AnimatedState#32f4e))
+Null check operator used on a null value @
+_GameScreenState.build.<anonymous closure>.<anonymous closure>
+(package:taptocity/ui/game_screen.dart:1109:133) (building
+AnimatedBuilder(listenable: Instance of 'Game', dirty, state:
+_AnimatedState#8ed79))
+Null check operator used on a null value @
+_GameScreenState.build.<anonymous closure>.<anonymous closure>
+(package:taptocity/ui/game_screen.dart:1109:133) (building
+AnimatedBuilder(listenable: Instance of 'Game', dirty, state:
+_AnimatedState#ff19d))
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/runner/work/taptocity/taptocity/native/integration_test/device_smoke_test.dart:222:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._createTestCompletionHandler.<anonymous closure> (package:flutter_test/src/binding.dart:1707:12)
+<asynchronous suspension>
+This was caught by the test expectation on the following line:
+  file:///Users/runner/work/taptocity/taptocity/native/integration_test/device_smoke_test.dart line 222
+The test description was:
+  iPhone에서 앱 띄워 보기
+═════════════════════════════════════════════════════════════════
+end of failure 1
