@@ -264,7 +264,7 @@ void main() {
     ((g.S.rest['exp'] as Map)['mall'] as Map)['end'] = 0;
     final xp0 = g.xpOf(0), b0 = g.have('batt');
     g.claimExp('mall');
-    expect(g.busy(0), isFalse);
+    expect(g.rec(0)!['away'], isFalse); // 부상(위험 10%)일 수는 있어도 원정에서는 돌아왔다
     expect(g.xpOf(0), greaterThan(xp0));
     expect(g.have('batt'), b0 + 2);
     expect(g.num_('expDone'), 1);
