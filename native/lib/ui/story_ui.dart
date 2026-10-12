@@ -676,13 +676,21 @@ GuideTarget? guideTarget(Game g) {
 
 /// 화살표 (웹 #guide: 호박색 말풍선 + 아래 삼각형, 위아래로 까딱)
 class GuideArrow extends StatefulWidget {
-  const GuideArrow(this.label, {super.key});
+  const GuideArrow(this.label, {super.key, this.x = 0, this.screenW = 0});
   final String label;
+  final double x, screenW; // 말풍선이 화면 밖으로 나가지 않게 옆으로 민다 (꼬리는 그대로)
   @override
   State<GuideArrow> createState() => _GuideArrowState();
 }
 
 class _GuideArrowState extends State<GuideArrow> with SingleTickerProviderStateMixin {
+  double _shift() {
+    if (widget.screenW <= 0) return 0;
+    final tp = TextPainter(text: TextSpan(text: widget.label, style: Ttc.t(13, weight: FontWeight.w700, height: 1)), textDirection: TextDirection.ltr)..layout();
+    final w = tp.width + 24, left = widget.x - w / 2;
+    final want = left.clamp(8.0, math.max(8.0, widget.screenW - 8 - w)).toDouble();
+    return want - left;
+  }
   late final AnimationController a = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..repeat();
   @override
   void dispose() {
@@ -697,7 +705,9 @@ class _GuideArrowState extends State<GuideArrow> with SingleTickerProviderStateM
           builder: (c, child) => Transform.translate(offset: Offset(0, -8 * math.sin(a.value * math.pi)), child: child),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             if (widget.label.isNotEmpty)
-              Container(
+              Transform.translate(
+                offset: Offset(_shift(), 0),
+                child: Container(
                 padding: const EdgeInsets.fromLTRB(10, 6, 10, 5),
                 decoration: BoxDecoration(
                   color: Ttc.amber,
@@ -707,6 +717,7 @@ class _GuideArrowState extends State<GuideArrow> with SingleTickerProviderStateM
                 ),
                 // 글자는 그림으로 그린다 (화면의 다른 글자와 헷갈리지 않게)
                 child: _PaintedText(widget.label, Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700, height: 1)),
+              ),
               ),
             CustomPaint(size: const Size(20, 13), painter: _Tri()),
           ]),

@@ -229,14 +229,14 @@ void main() {
       await tester.tap(find.text('일지').last);
     });
     // 5단계: 이야기
-    g.S.rest['storyI'] = g.mi - 1; // 지금 걸음의 장면을 아직 안 본 것으로 → 대화 창
+    g.S.rest['mi'] = stepI('생존자 3명 모으기'); // 3장 첫 걸음의 장면을 아직 안 본 것으로 → 장 첫머리 대화 창
+    g.S.rest['storyI'] = g.mi - 1;
     await _shot(tester, g, '22-talk', act: () async {
       for (var k = 0; k < 8; k++) {
         await tester.pump(const Duration(milliseconds: 100));
       }
     });
-    g.S.walls = 1; // 방벽을 세워 미션 완료 → 띠가 '받기'로
-    g.takeFx();
+    g.takeFx(); // 생존자 셋이 이미 있어 미션 완료 → 띠가 '받기'로
     await _shot(tester, g, '23-mission-done');
     await _shot(tester, g, '24-diary-ach', act: () async {
       await tester.tap(find.text('일지').last);
@@ -245,7 +245,6 @@ void main() {
       }
       await tester.tap(find.text('업적').last);
     });
-    g.S.walls = 0;
     g.S.rest['mi'] = stepI('등불 탑 토대 놓기');
     g.S.rest['storyI'] = g.mi;
     g.S.m.addAll({'plate': 200, 'wood': 300});

@@ -199,7 +199,7 @@ class Game extends ChangeNotifier {
       hp: List.filled(N, -1.0),
       m: {'wood': 12, 'scrap': 6, 'food': 20},
       lv: 1,
-      rest: {'mi': 0, 'endT': 0, 'clock': 0, 'nights': 0, 'evDone': 0, 'shield': 0, 'party': [], 'cd': {}, 'exp': {}, 'inv': [], 'iu': 0,
+      rest: {'mi': 0, 'stepV': 4, 'endT': 0, 'clock': 0, 'nights': 0, 'evDone': 0, 'shield': 0, 'party': [], 'cd': {}, 'exp': {}, 'inv': [], 'iu': 0,
         'ug': {'best': 0, 'runs': 0, 'bestWith': {}}},
     );
     s.t = DateTime.now().millisecondsSinceEpoch;
