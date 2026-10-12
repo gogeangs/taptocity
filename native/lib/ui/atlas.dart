@@ -1,5 +1,6 @@
 // 손그림 아틀라스(assets/illustrated/*.webp)를 불러와 칸별로 잘라 쓰는 곳.
 // 자르기 좌표는 웹의 design.js · settlement.js 값을 그대로 옮겼다.
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -62,17 +63,30 @@ class Atlas {
     try {
       final bd = await base.toByteData(format: ui.ImageByteFormat.rawStraightRgba);
       if (bd == null) return;
-      final px = await compute(_tint, (bd.buffer.asUint8List(), base.width, base.height, r));
-      ui.decodeImageFromPixels(px, base.width, base.height, ui.PixelFormat.rgba8888, (im) {
-        if (_tintRegion != r) {
-          im.dispose();
-          return;
-        }
-        _tinted[f] = im;
-        version.value++;
-        onTint?.call();
-      });
+      final px = await compute(tintPixels, (bd.buffer.asUint8List(), base.width, base.height, r));
+      final done = Completer<ui.Image>();
+      ui.decodeImageFromPixels(px, base.width, base.height, ui.PixelFormat.rgba8888, done.complete);
+      final im = await done.future;
+      if (_tintRegion != r) {
+        im.dispose();
+        return;
+      }
+      _tinted[f] = im;
+      version.value++;
+      onTint?.call();
     } catch (_) {}
+  }
+
+  /// 시험용: 그 동네 색 그림을 다 만들 때까지 기다린다
+  static Future<void> tintAll(String r) async {
+    region = r;
+    for (final f in tintFiles) {
+      mapImage(f);
+    }
+    for (final f in tintFiles) {
+      final base = _img[f];
+      if (base != null && _tinted[f] == null) await _makeTint(f, r, base);
+    }
   }
 
   /// 처음 필요할 때 불러오는 그림 (이야기 장면·표정처럼 크고 가끔 쓰는 것). 다 불러오면 version이 오른다.
@@ -145,7 +159,7 @@ const _tints = {
 };
 
 /// 웹 makeSnowy를 그대로: 위를 향한 면(어두운 윤곽 바로 아래 몇 줄)에 눈·모래·재를 얹고, 나머지는 살짝 물들인다
-Uint8List _tint((Uint8List, int, int, String) a) {
+Uint8List tintPixels((Uint8List, int, int, String) a) {
   final (o, w, h, r) = a;
   final t = _tints[r]!;
   final cap = t.$1, sh = t.$2, k = t.$3, depth = t.$4, tint = t.$5, tk = t.$6, sat = t.$7;

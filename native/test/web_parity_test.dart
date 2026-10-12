@@ -654,4 +654,23 @@ void main() {
     expect(g.qOf(3)!['done'], true);
     expect(g.inv.any((x) => x['t'] == 'umbrella'), isTrue);
   });
+
+  test('프로필: 프롤로그 뒤 한 번 이름을 묻고, 이름은 열 글자까지', () {
+    final g = Game(Game.fresh(seed: 25));
+    g.S.rest['mi'] = 2;
+    g.S.rest['storyI'] = 2;
+    g.S.rest['onb'] = 2;
+    g.tickStory();
+    expect(g.takeFx().whereType<FxPfName>(), isNotEmpty);
+    expect(g.S.rest['pfAsk'], 1);
+    expect(g.speakerName('me'), '나');
+    g.setPfName('  <하람>"의 등불지기입니다  ');
+    expect(g.pfName, '하람의 등불지기입니');
+    expect(g.pfSet, isTrue);
+    expect(g.speakerName('me'), g.pfName);
+    final i = g.pfIndex();
+    expect(g.pfRandom(i), isNot(i));
+    g.tickStorySec();
+    expect(g.num_('playT'), 1);
+  });
 }

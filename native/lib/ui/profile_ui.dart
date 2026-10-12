@@ -90,7 +90,7 @@ class _ProfileBodyState extends State<ProfileBody> {
               decoration: BoxDecoration(color: Ttc.sepia, borderRadius: BorderRadius.circular(10)),
               clipBehavior: Clip.antiAlias,
               alignment: Alignment.center,
-              child: g.pfSet ? pfPortrait(g.pfIndex()) : SvgPicture.string(Ico.profileLamp, width: 56, height: 56),
+              child: g.pfSet ? SizedBox.expand(child: pfPortrait(g.pfIndex())) : SvgPicture.string(Ico.profileLamp, width: 56, height: 56),
             ),
             const SizedBox(width: 14),
             Expanded(

@@ -479,12 +479,7 @@ void main() {
     w.takeFx();
     Atlas.region = 'snow';
     await _shot(tester, w, '42-snow', act: () async {
-      await tester.runAsync(() async {
-        for (final f in ['shelters.webp', 'modules.webp', 'exploration-sites.webp', 'settlement-props.webp', 'landmarks.webp']) {
-          Atlas.mapImage(f);
-        }
-        await Future<void>.delayed(const Duration(seconds: 6));
-      });
+      await tester.runAsync(() => Atlas.tintAll('snow'));
       w.mapVersion.value++;
       for (var k = 0; k < 10; k++) {
         await tester.pump(const Duration(milliseconds: 100));

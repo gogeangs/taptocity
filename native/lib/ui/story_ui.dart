@@ -305,7 +305,7 @@ class _CoverPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final img = Atlas.lazy(file) ?? Atlas.image(file);
-    if (img == null) return;
+    if (img == null || size.isEmpty) return;
     final k = math.max(size.width / src.width, size.height / src.height);
     final w = size.width / k, h = size.height / k;
     final s = Rect.fromLTWH(src.left + (src.width - w) / 2, src.top + (src.height - h) * alignY, w, h);
