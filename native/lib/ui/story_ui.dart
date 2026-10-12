@@ -10,6 +10,7 @@ import '../game/data.dart';
 import '../game/engine.dart';
 import 'atlas.dart';
 import 'portrait.dart';
+import 'season_ui.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -89,9 +90,9 @@ class _PulseState extends State<_Pulse> with SingleTickerProviderStateMixin {
 
 // ======================= 미션 띠 (웹 #tape, design.css 16–18) =======================
 class MissionTape extends StatefulWidget {
-  const MissionTape(this.g, {super.key, required this.onLv, required this.onGo, required this.onPed, required this.ping});
+  const MissionTape(this.g, {super.key, required this.onLv, required this.onGo, required this.onPed, required this.onMig, required this.ping});
   final Game g;
-  final VoidCallback onLv, onGo, onPed;
+  final VoidCallback onLv, onGo, onPed, onMig;
   final int ping; // 받기 버튼을 잠깐 흔든다 (웹 pingEl)
   @override
   State<MissionTape> createState() => _MissionTapeState();
@@ -121,6 +122,8 @@ class _MissionTapeState extends State<MissionTape> {
         ? [TextSpan(text: '그날 밤 ', style: Ttc.t(11, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${((tu['i'] as num?) ?? 0) + 1}/${tutSteps.length}  ', style: Ttc.t(11, color: chapC))]
         : c != null
         ? [TextSpan(text: '${c.ch} ', style: Ttc.t(11, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${st!.si + 1}/${c.steps.length}  ', style: Ttc.t(11, color: chapC))]
+        : m.reg
+        ? [TextSpan(text: '${g.reg?.n ?? ''} ', style: Ttc.t(11, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${g.rmi + 1}/${g.regionMis().length}  ', style: Ttc.t(11, color: chapC))]
         : [TextSpan(text: '끝없는 불빛 ', style: Ttc.t(11, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${(((S.rest['eg'] as Map?)?['i'] as num?) ?? 0) + 1}  ', style: Ttc.t(11, color: chapC))];
     final lvchip = GestureDetector(
       onTap: widget.onLv,
@@ -194,20 +197,11 @@ class _MissionTapeState extends State<MissionTape> {
                 ),
             ]),
           ),
-          if (g.pedHere)
-            GestureDetector(
-              onTap: widget.onPed,
-              child: Container(
-                margin: const EdgeInsets.only(left: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(99),
-                  gradient: const LinearGradient(colors: [Color(0xFF4A3A2A), Color(0xFF7A5A33)]),
-                  boxShadow: const [BoxShadow(color: Color(0x66B0452A), blurRadius: 8, offset: Offset(0, 2))],
-                ),
-                child: Text('🛒 노친네', style: Ttc.t(12.5, color: const Color(0xFFF3E2B8), weight: FontWeight.w700, height: 1)),
-              ),
-            ),
+          if (g.pedHere) _chip('🛒 노친네', widget.onPed, const [Color(0xFF4A3A2A), Color(0xFF7A5A33)], const Color(0xFFF3E2B8)),
+          if (g.fireOn && g.warm != null)
+            _chip('모닥불 ${g.warm!.round()}%', () => g.feedFire(), g.warmTier == 0 ? const [Color(0xFF2D3A45), Color(0xFF4B5D6B)] : const [Color(0xFF6B2F17), Color(0xFFC4652A)],
+                g.warmTier == 0 ? const Color(0xFFDFE8EF) : const Color(0xFFFFE9C7)),
+          if (m.eg && !done && g.canMigrate) _chip('🔥 새 동네로', widget.onMig, const [Color(0xFF6B3A1A), Color(0xFFB0452A)], const Color(0xFFFFE2A0)),
           if (done)
             Padding(
               padding: const EdgeInsets.only(left: 8),
@@ -242,6 +236,20 @@ class _MissionTapeState extends State<MissionTape> {
     );
   }
 }
+
+Widget _chip(String t, VoidCallback onTap, List<Color> bg, Color fg) => GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(left: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(99),
+          gradient: LinearGradient(colors: bg),
+          boxShadow: const [BoxShadow(color: Color(0x66B0452A), blurRadius: 8, offset: Offset(0, 2))],
+        ),
+        child: Text(t, style: Ttc.t(12.5, color: fg, weight: FontWeight.w700, height: 1)),
+      ),
+    );
 
 class _Shake extends StatefulWidget {
   const _Shake({required this.ping, required this.child});
@@ -349,6 +357,14 @@ const _meSvg =
 
 /// 대화 속 얼굴 (웹 speaker): 만수·유진·하늘·재혁은 표정 그림, 다른 사람은 초상화, 나는 랜턴
 Widget talkFace(Game g, Object who, String t, String? mood, {double w = 84, double h = 98}) {
+  if (who is String && who.startsWith('npc:')) {
+    return Container(
+        width: w,
+        height: h,
+        decoration: BoxDecoration(color: const Color(0xFFE6D8B6), borderRadius: BorderRadius.circular(8), border: Border.all(color: Ttc.line)),
+        clipBehavior: Clip.antiAlias,
+        child: npcFace(who));
+  }
   final id = g.speakerId(who);
   final box = BoxDecoration(color: id == null ? const Color(0xFF3A2618) : const Color(0xFFE6D8B6), borderRadius: BorderRadius.circular(8), border: Border.all(color: Ttc.line));
   if (id == null) {
@@ -370,6 +386,7 @@ Widget talkFace(Game g, Object who, String t, String? mood, {double w = 84, doub
 }
 
 String _speakerSub(Game g, Object who) {
+  if (who is String && who.startsWith('npc:')) return npcName[who.substring(4)]?.$2 ?? '';
   final id = g.speakerId(who);
   if (id == null) return g.title != '등불지기' ? '등불지기 · ${g.title}' : '등불지기';
   return survivors[id].job;
@@ -539,6 +556,9 @@ class _TalkPageState extends State<_TalkPage> {
 const Map<String, (String, String)> npcName = {
   'crow': ('독수리', '까마귀 무리의 우두머리'),
   'jin': ('진', '까마귀 막내'),
+  'desert': ('두식', '사막 급유탑지기'),
+  'factory': ('마석', '녹슨 공단 반장'),
+  'snow': ('은솔', '산골 분교 선생님'),
 };
 
 // ======================= 6장: 재혁의 고백 (웹 openConf 5075) =======================

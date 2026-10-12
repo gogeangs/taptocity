@@ -59,9 +59,10 @@ final List<Line> endLines = [for (final l in web.endLines) Line.of(l)!];
 
 /// 지금 띠에 걸린 목표 (웹 mission())
 class Mission {
-  const Mission(this.txt, this.done, this.rw, this.sub, {this.step, this.eg = false});
+  const Mission(this.txt, this.done, this.rw, this.sub, {this.step, this.eg = false, this.reg = false, this.rk});
   final String txt, sub;
-  final bool done, eg;
+  final String? rk;
+  final bool done, eg, reg;
   final Cost rw;
   final StepInfo? step;
 }
@@ -94,6 +95,7 @@ class _Eg {
 
 final Map<String, _Eg> _egt = {
   'tower': _Eg((g) => g.towerN >= 5, (g) => g.towerN, (v) => v + 1, (t, v) => '등불 탑 $t층까지 올리기', {'batt': 3, 'plate': 20}, 'build'),
+  'signal': _Eg((g) => g.signalOk, (g) => g.num_('gUses'), (v) => v + 1, (t, v) => '라디오로 먼 곳의 신호 잡기', {'batt': 3}, 'radio'),
   'land': _Eg((g) => true, (g) => g.revCount, (v) => ((v + 30) / 10).ceil() * 10, (t, v) => '땅 $t칸까지 밝히기', {'scrap': 40, 'wood': 40}, 'map'),
   'exp': _Eg((g) => g.S.sv.isNotEmpty, (g) => g.num_('expDone'), (v) => v + 2, (t, v) => '원정 2번 다녀오기', {'parts': 30, 'batt': 2}, 'exp'),
   'feast': _Eg((g) => g.feastOpen, (g) => g.num_('feasts'), (v) => v + 1, (t, v) => '마을 잔치 열기', {'batt': 2, 'med': 1}, 'craft'),
@@ -249,10 +251,16 @@ extension Story on Game {
       final m = steps[mi];
       return Mission(m.goal, stepDone(m), {...m.rw, 'batt': (m.rw['batt'] ?? 0) + 1}, m.hint, step: m);
     }
+    final rm = regionMission;
+    if (rm != null) return rm;
     return _egMission();
   }
 
   Map<String, Object?> _egMake(int i) {
+    if (signalOk) {
+      final v = num_('gUses');
+      return {'i': i, 'k': 'signal', 'tg': v + 1, 'v0': v};
+    }
     for (var s = 0; s < _egOrder.length; s++) {
       final k = _egOrder[(i + s) % _egOrder.length], T = _egt[k]!;
       if (T.ok(this)) {
@@ -278,7 +286,10 @@ extension Story on Game {
 
   String get egGo => _egt[(S.rest['eg'] as Map?)?['k']]?.go ?? 'map';
 
-  void _egNext() => S.rest['eg'] = _egMake((((S.rest['eg'] as Map?)?['i'] as num?) ?? 0).toInt() + 1);
+  void _egNext() {
+    if ((S.rest['eg'] as Map?)?['k'] == 'signal') hearNextCall();
+    S.rest['eg'] = _egMake((((S.rest['eg'] as Map?)?['i'] as num?) ?? 0).toInt() + 1);
+  }
 
   /// 첫 동네: 폭풍 미션이 열리면 다음 밤에 바로 온다 (웹 hastenStorm 2014)
   void hastenStorm(Mission m) {
@@ -395,6 +406,8 @@ extension Story on Game {
     final st = m.step;
     if (mi < steps.length) {
       S.rest['mi'] = mi + 1;
+    } else if (m.reg) {
+      claimRegion();
     } else {
       _egNext();
     }
@@ -511,6 +524,7 @@ extension Story on Game {
     _tickAch();
     if (tickTut()) return;
     _tickSeasonSec();
+    tickRegionSec();
     _tickStorySec(mission());
   }
 
@@ -627,6 +641,7 @@ extension Story on Game {
       'kid1' => kids.where((k) => ((k['g'] as num?) ?? 0) >= 1).length,
       'lv5' => S.lv,
       'pull30' => num_('gTotal').toInt(),
+      'svreg' => [14, 15, 16].where(hasSv).length,
       _ => 0,
     };
   }

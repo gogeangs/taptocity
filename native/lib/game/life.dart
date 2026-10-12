@@ -491,6 +491,7 @@ extension Living on Game {
     for (final q in decoSets().keys) {
       e['hope'] = (e['hope'] ?? 0) + (setHope[q] ?? 0);
     }
+    _townEff(e);
     if (S.gen > 0) {
       e['global'] = (e['global'] ?? 0) + .1 * S.gen;
       e['tap'] = (e['tap'] ?? 0) + .1 * S.gen;

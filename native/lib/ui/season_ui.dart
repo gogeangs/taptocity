@@ -37,15 +37,17 @@ Widget _csAv(Game g, Object who) {
     height: 38,
     decoration: BoxDecoration(shape: BoxShape.circle, color: me ? const Color(0xFF3B2A1A) : const Color(0xFFE6D8B6), border: Border.all(color: const Color(0x403B2A1A), width: 1.5)),
     clipBehavior: Clip.antiAlias,
-    child: id != null ? Portrait(id, width: 38, height: 44) : me ? const Center(child: Text('🏮', style: TextStyle(fontSize: 16))) : _npcFace(who as String),
+    child: id != null ? Portrait(id, width: 38, height: 44) : me ? const Center(child: Text('🏮', style: TextStyle(fontSize: 16))) : npcFace(who as String),
   );
 }
 
 /// 이름 있는 바깥사람 얼굴 (웹 chapter-design.js npc): 독수리는 crows-kids, 진은 survivors-scouts
-Widget _npcFace(String who) {
+Widget npcFace(String who) {
   final k = who.substring(4);
   if (k == 'jin') return CoverPic('survivors-scouts.webp', const Rect.fromLTWH(826, 6, 808, 946), alignY: 0);
   if (k == 'crow') return CoverPic('crows-kids.webp', const Rect.fromLTWH(6, 6, 674, 750), alignY: 0);
+  final n = const {'desert': 0, 'factory': 1, 'snow': 2}[k];
+  if (n != null) return CoverPic('regional-npcs.webp', Rect.fromLTWH(n * 686.0 + 6, 6, 674, 750), alignY: 0);
   return const SizedBox.shrink();
 }
 

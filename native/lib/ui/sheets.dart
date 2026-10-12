@@ -11,6 +11,7 @@ import 'icons.dart';
 import 'life_ui.dart';
 import 'season_ui.dart';
 import 'story_ui.dart';
+import 'region_ui.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -121,7 +122,7 @@ class _ShelterBodyState extends State<ShelterBody> {
   }
 
   List<Widget> _build() {
-    final S = g.S, L = S.lv, out = <Widget>[...towerCard(g)];
+    final S = g.S, L = S.lv, mb = migrateBanner(g, () => showMigrate(context, g)), out = <Widget>[if (mb != null) mb, ...towerCard(g)];
     if (L < 5) {
       final c = g.shelterUpCost!, need = shupNeed[L - 1], ok = S.mods.length >= need;
       out.add(hl('shup', MCard(
@@ -465,6 +466,7 @@ class _DiaryBodyState extends State<DiaryBody> {
       ('story', '이야기'),
       if (g.artCount > 0) ('scene', '회상'),
       if (g.caseSeen) ('case', '사건'),
+      if (g.S.gen > 0 || g.tlogList.isNotEmpty) ('towns', '노선도'),
       ('relic', '도감'),
       ('ach', '업적'),
       ('guide', '안내서'),
@@ -484,6 +486,7 @@ class _DiaryBodyState extends State<DiaryBody> {
         'relic' => relicsSection(g),
         'scene' => scenesTab(context, g),
         'case' => casesTab(context, g),
+        'towns' => routeTab(context, g),
         'ach' => achTab(g),
         'guide' => guideTab(g),
         _ => [...storyLog(g), ...diaryLog(g, (k) => showDiary(context, k))],

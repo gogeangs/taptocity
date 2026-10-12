@@ -7,6 +7,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../data/web_data.g.dart' as web;
 import '../game/data.dart';
 import '../game/engine.dart';
 import 'map_view.dart';
@@ -43,7 +44,7 @@ class _LiveLayerState extends State<LiveLayer> with SingleTickerProviderStateMix
 
   bool get _wants {
     final w = g.wxK;
-    return g.S.sv.isNotEmpty || g.kids.isNotEmpty || g.pets.isNotEmpty || g.stray != null || g.defn != null || (g.nightness > 0 && g.stormOn) || w == 'acid' || w == 'cold' || w == 'wind' || g.duskWarn || g.shadow != null || g.S.rest['oddSteps'] != null;
+    return g.S.sv.isNotEmpty || g.kids.isNotEmpty || g.pets.isNotEmpty || g.stray != null || g.defn != null || (g.nightness > 0 && g.stormOn) || w == 'acid' || w == 'cold' || w == 'wind' || g.duskWarn || g.shadow != null || g.S.rest['oddSteps'] != null || g.S.gen != 0;
   }
 
   @override
@@ -146,6 +147,137 @@ class _LiveLayerState extends State<LiveLayer> with SingleTickerProviderStateMix
           size: Size.infinite,
         ),
       );
+}
+
+/// 새 동네: 숨겨진 자리 표시(웹 townDraw), 잃은 사람의 초(memoDraw), 신기루·멈추지 않은 기계(rspotDraw)
+extension on _LivePainter {
+  void _region(Canvas canvas, double time, List<(Offset, double, Color, double)> glows) {
+    if (g.S.gen == 0) return;
+    final Q = g.S.rest['rq'];
+    if (Q is Map && Q['spotI'] != null && Q['spot'] == null && g.curRegK == 'spot') {
+      final c = tileC((Q['spotI'] as num).toInt(), 14), b = math.sin(time / 320) * 3;
+      canvas.drawRect(Rect.fromLTWH(c.dx - 5, c.dy - 90, 10, 90),
+          Paint()..shader = ui.Gradient.linear(c, c.translate(0, -90), [const Color(0x80FFE6AA), const Color(0x00FFE6AA)]));
+      final o = Offset(c.dx, c.dy - 30 + b);
+      canvas.drawCircle(o, 11, Paint()..color = const Color(0xFFFFF8E6));
+      canvas.drawCircle(
+          o,
+          11,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.4
+            ..color = const Color(0xFF3B2A1A));
+      final ico = (web.regionMisc['spotIco'] as Map)[g.S.region] as String? ?? '?';
+      final tp = TextPainter(text: TextSpan(text: ico, style: const TextStyle(fontSize: 12, height: 1)), textDirection: TextDirection.ltr)..layout();
+      tp.paint(canvas, o - Offset(tp.width / 2, tp.height / 2));
+      glows.add((Offset(c.dx, c.dy - 20), 40.0, const Color(0xFFFFDC96), .5));
+    }
+    final memo = (g.S.rest['memo'] as Map?)?['${g.S.gen}'];
+    if (memo is Map && memo['i'] != null && g.S.rev[(memo['i'] as num).toInt()] == 1) {
+      final i = (memo['i'] as num).toInt(), c = tileC(i, 2), f = .85 + .15 * math.sin(time / 180 + i);
+      final r = Rect.fromLTWH(c.dx + 12, c.dy - 9, 3.2, 7);
+      canvas.drawRect(r, Paint()..color = const Color(0xFFEFE6D2));
+      canvas.drawRect(
+          r,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = .9
+            ..color = const Color(0xFF231A14));
+      final x = c.dx + 13.6, y = c.dy;
+      canvas.drawPath(
+          Path()
+            ..moveTo(x, y - 15 * f)
+            ..quadraticBezierTo(x + 2.4, y - 11, x, y - 9.5)
+            ..quadraticBezierTo(x - 2.4, y - 11, x, y - 15 * f)
+            ..close(),
+          Paint()..color = Color.fromRGBO(255, 207, 122, f));
+      glows.add((Offset(x, y - 11), 16.0, const Color(0xFFFFC878), .35 * f));
+    }
+    final sp = g.rspot;
+    if (sp == null) return;
+    final i = (sp['i'] as num).toInt();
+    if (g.S.rev[i] != 1) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final lf = math.min(1.0, math.min((now - (sp['start'] as num)) / 900, ((sp['end'] as num) - now) / 1500));
+    if (lf <= 0) return;
+    final c = tileC(i, 4), x = c.dx, y = c.dy;
+    if (sp['k'] == 'mirage') {
+      final w = math.sin(time / 260);
+      for (var q = 0; q < 3; q++) {
+        canvas.drawOval(
+            Rect.fromCenter(center: c, width: (16 + q * 5 + w * 1.5) * 2, height: (6 + q * 2) * 2),
+            Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 1.2
+              ..color = Color.fromRGBO(235, 250, 255, .55 * lf * (.55 - q * .15) / .55));
+      }
+      final wav = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2
+        ..color = Color.fromRGBO(255, 246, 220, .7 * .8 * lf);
+      for (var q = -1; q <= 1; q++) {
+        final p = Path();
+        for (var k = 0; k < 6; k++) {
+          final yy = y - 6 - k * 4, xx = x + q * 8 + math.sin(time / 200 + k + q) * 2;
+          k == 0 ? p.moveTo(xx, yy) : p.lineTo(xx, yy);
+        }
+        canvas.drawPath(p, wav);
+      }
+      final gl = .6 + .4 * math.sin(time / 180);
+      canvas.drawPath(
+          Path()
+            ..moveTo(x, y - 26)
+            ..lineTo(x + 2, y - 21)
+            ..lineTo(x + 7, y - 19)
+            ..lineTo(x + 2, y - 17)
+            ..lineTo(x, y - 12)
+            ..lineTo(x - 2, y - 17)
+            ..lineTo(x - 7, y - 19)
+            ..lineTo(x - 2, y - 21)
+            ..close(),
+          Paint()..color = Color.fromRGBO(255, 250, 230, gl * lf));
+      glows.add((Offset(x, y - 10), 30.0, const Color(0xFFFFECBE), .35 * lf));
+    } else {
+      final n = ((sp['n'] as num?) ?? 0).toDouble(), need = ((sp['need'] as num?) ?? 8).toDouble(), p2 = .5 + .5 * math.sin(time / 140);
+      // 점선 고리 (돌아간다)
+      final ring = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..color = Color.fromRGBO(230, 80, 50, (.5 + .4 * p2) * lf);
+      final off = (time / 40) % 7;
+      for (var a = 0.0; a < 2 * math.pi; a += .35) {
+        final a0 = a + off * .05, a1 = a0 + .2;
+        canvas.drawLine(Offset(x + math.cos(a0) * 20, y + math.sin(a0) * 8), Offset(x + math.cos(a1) * 20, y + math.sin(a1) * 8), ring);
+      }
+      final gy = y - 20, rot = time / (n > 0 ? 120 : 300);
+      final gear = Path();
+      for (var k = 0; k < 16; k++) {
+        final a = rot + k * math.pi / 8, rr = k.isOdd ? 7.5 : 10.0;
+        k == 0 ? gear.moveTo(x + math.cos(a) * rr, gy + math.sin(a) * rr) : gear.lineTo(x + math.cos(a) * rr, gy + math.sin(a) * rr);
+      }
+      gear.close();
+      canvas.drawPath(gear, Paint()..color = Color.fromRGBO(58, 53, 50, lf));
+      canvas.drawPath(
+          gear,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1
+            ..color = Color.fromRGBO(35, 26, 20, lf));
+      canvas.drawCircle(Offset(x, gy), 3.2, Paint()..color = Color.fromRGBO(201, 163, 90, lf));
+      if (n > 0) {
+        canvas.drawArc(
+            Rect.fromCircle(center: Offset(x, gy), radius: 14),
+            -math.pi / 2,
+            n / need * math.pi * 2,
+            false,
+            Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 3
+              ..color = Color.fromRGBO(255, 207, 122, lf));
+      }
+      glows.add((Offset(x, gy), 26.0, const Color(0xFFFF9650), (.3 + .2 * p2) * lf));
+    }
+  }
 }
 
 /// 수상한 밤: 발자국(아침), 무전실 불빛, 그림자 (웹 towerDraw 덮어쓰기 5958)
@@ -286,6 +418,7 @@ class _LivePainter extends CustomPainter {
       if (k == 'fox') glows.add((Offset(c.dx, c.dy - 6), 30.0, const Color(0xFFC8DCFF), .4));
     }
     _odd(canvas, time, glows);
+    _region(canvas, time, glows);
     _foes(canvas, time, glows);
     canvas.restore();
 

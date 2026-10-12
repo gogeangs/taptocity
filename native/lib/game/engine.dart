@@ -16,6 +16,7 @@ part 'story.dart';
 part 'underground.dart';
 part 'tutorial.dart';
 part 'season.dart';
+part 'region.dart';
 
 /// 화면 연출(떠오르는 글자·알림·창 열기)을 그림 쪽에 알려 주는 신호.
 sealed class Fx {
@@ -176,6 +177,8 @@ class Game extends ChangeNotifier {
   (String, String, double)? prs;
   OddShadow? shadow;
   bool endingOn = false, onbAsked = false;
+  double coldAcc = 0;
+  int townChoiceShown = -1;
 
   GameState S;
   final math.Random rnd;
@@ -248,7 +251,7 @@ class Game extends ChangeNotifier {
   static bool _inStay(GameState s, int id) {
     final st = s.rest['stay'];
     if (st is! Map) return false;
-    return st.values.any((v) => v is List && v.any((e) => e == id || (e is Map && e['id'] == id)));
+    return st.values.any((v) => v is Map && v['sv'] is Map && (v['sv'] as Map).containsKey('$id'));
   }
 
   /// 웹 fixDiaries (1803)
@@ -539,6 +542,7 @@ class Game extends ChangeNotifier {
     final ht = hopeT is Map && (hopeT['until'] as num? ?? 0) > DateTime.now().millisecondsSinceEpoch ? (hopeT['v'] as num? ?? 0) : 0;
     final h = S.sv.length * 3 + e['hope']! + S.hopeB + ht + hopeM + (S.lv - 1) * 4 + S.lm.values.where((l) => l.ok).length * 5;
     hope = jsRound(h);
+    _regionAfterRecalc();
     final rg = S.lv + .5;
     for (var i = 0; i < N; i++) {
       final d = math.max((i % W - CX).abs(), (i ~/ W - CY).abs());
@@ -1646,7 +1650,7 @@ class Game extends ChangeNotifier {
       }
       r -= p;
     }
-    final n = matOf[k]!.tier == 2 ? 1 : math.max(1, jsRound((1 + rnd.nextDouble() * 1.3) * scavMult));
+    final n = matOf[k]!.tier == 2 ? 1 : math.max(1, jsRound((1 + rnd.nextDouble() * 1.3) * scavMult * regScav(k)));
     final got = loot({k: n}, i);
     if (!got.containsKey(k)) fx.add(FxFloat(i, '${matOf[k]!.n} 창고가 가득 찼어요', 0xFFFFB4A0));
     if ((s.k == 'bunker' || s.k == 'lm') && rnd.nextDouble() < .1) loot({'batt': 1}, i);

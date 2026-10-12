@@ -10,6 +10,7 @@ import 'crisis_ui.dart';
 import 'gear.dart';
 import 'people.dart';
 import 'portrait.dart';
+import 'region_ui.dart';
 import 'survivors.dart';
 import 'story_ui.dart';
 import 'season_ui.dart';
@@ -302,8 +303,9 @@ Widget radioArt({double width = 230}) => SizedBox(
     );
 
 class RadioBody extends StatelessWidget {
-  const RadioBody(this.g, {super.key});
+  const RadioBody(this.g, {super.key, this.onRoute});
   final Game g;
+  final VoidCallback? onRoute;
   @override
   Widget build(BuildContext context) {
     final b = g.batt, c = g.exchangeCost;
@@ -368,6 +370,7 @@ class RadioBody extends StatelessWidget {
           ),
         ],
       ]),
+      ...radioRegion(context, g, onRoute: onRoute),
       sec('확률'),
       for (final (_, p, n) in gTable)
         Padding(

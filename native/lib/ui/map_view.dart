@@ -316,6 +316,16 @@ class _MapViewState extends State<MapView> {
           return;
         }
       }
+      // 신기루·멈추지 않은 기계 (웹 rspotHit)
+      final rsp = g.rspot;
+      if (rsp != null) {
+        final ri = (rsp['i'] as num).toInt();
+        if (g.S.rev[ri] == 1 && (toScreen(tileC(ri, rsp['k'] == 'machine' ? 14 : 10)) - p.pos).distance <= math.max(30, 26 * cam.z) && g.rspotHit(ri)) {
+          widget.fxLayer.pull(g);
+          _after();
+          return;
+        }
+      }
       // 펫: 한 번 누르면 쓰다듬기, 1.5초 안에 또 누르면 자세히 (웹 petTap)
       final pk = life.petAt(w0, math.max(16 / cam.z, 12));
       if (pk != null) {

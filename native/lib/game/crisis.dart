@@ -135,7 +135,7 @@ extension Crisis on Game {
 
   bool get ashLearned => S.gen != 0 || mi >= stepI('재폭풍 밤 한 번 버티기');
   bool get stormOn => isNight && revCount >= 16 && (S.gen != 0 || mi >= stepI('구조 신호를 따라가 생존자 구하기'));
-  bool get bigNightNext => S.lv >= 2 && ashLearned && num_('nightCount').toInt() % 3 == 2;
+  bool get bigNightNext => S.lv >= 2 && ashLearned && num_('nightCount').toInt() % bigPeriod == bigPeriod - 1;
   bool get shield => num_('shield') != 0;
 
   /// 큰 밤이 다가오면 화면 가장자리를 붉게 (웹 tickDusk)
@@ -297,7 +297,7 @@ extension Crisis on Game {
     final w = wxK;
     switch (kind) {
       case 'prod':
-        return w == 'acid' && k == 'food' ? .5 : 1;
+        return (w == 'acid' && k == 'food' ? .5 : 1) * regProd(k ?? '');
       case 'eat':
         return w == 'cold' ? 1.3 : 1;
       case 'fuel':
@@ -311,6 +311,8 @@ extension Crisis on Game {
   }
 
   String rollWx() {
+    final rw = rollRegionWx();
+    if (rw != null) return rw;
     final r = rnd.nextDouble();
     return r < .4 ? 'normal' : r < .62 ? 'clear' : r < .76 ? 'acid' : r < .9 ? 'cold' : 'wind';
   }
@@ -323,6 +325,7 @@ extension Crisis on Game {
     S.rest['day'] = num_('day') + 1;
     final w = wxInfo[wxK]!, nx = wxInfo[S.rest['wxNext']]!;
     fx.add(FxNote('${w.ic} 오늘의 날씨 · ${w.n}', '${w.d}${canForecast ? ' · 내일은 ${nx.ic} ${nx.n}' : ''}', ms: 5000));
+    _regionDawn();
     _pedDawn();
     _allyGifts();
     _kidsDawn();
@@ -827,6 +830,7 @@ extension Crisis on Game {
     }
     fx.add(const FxDefense(false));
     crowRaidAfterDefense();
+    deathAfterDefense(win, D2);
     _changed();
   }
 }

@@ -6,6 +6,7 @@ import '../game/engine.dart';
 import 'gear.dart';
 import 'icons.dart';
 import 'portrait.dart';
+import 'region_ui.dart';
 import 'season_ui.dart';
 import 'theme.dart';
 import 'widgets.dart';
@@ -230,6 +231,7 @@ class _SurvBodyState extends State<SurvBody> {
       else if (list.isEmpty)
         Padding(padding: const EdgeInsets.all(10), child: Text('여기에 해당하는 생존자가 없어요', style: Ttc.t(12.5, color: Ttc.sepia2))),
       for (final id in list) _row(id),
+      ...memorialRows(g),
       if (unmet.isNotEmpty) ...[
         sec('아직 만나지 못한 사람 ${unmet.length}'),
         for (final id in unmet) _unmetRow(id),

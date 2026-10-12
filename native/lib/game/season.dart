@@ -493,7 +493,7 @@ extension Season on Game {
   void _oddLog(String k, String t) {
     if (S.rest['odd'] is! List) S.rest['odd'] = <Object?>[];
     final L = S.rest['odd'] as List;
-    L.insert(0, <String, Object?>{'n': num_('nightCount').toInt(), 'r': '', 'k': k, 't': t});
+    L.insert(0, <String, Object?>{'n': num_('nightCount').toInt(), 'r': S.gen != 0 ? (reg?.n ?? '') : '', 'k': k, 't': t});
     if (L.length > 20) L.removeRange(20, L.length);
     dirty = true;
   }
@@ -707,7 +707,7 @@ extension Season on Game {
   /// 시즌 1 엔딩: 세 번째 새 동네의 탑 다음에 (이주는 6단계에서 옮긴다, 웹 tickEnding 5864)
   bool _tickEnding() {
     if (S.rest['ehEnd'] != null || endingOn) return false;
-    if (!(S.gen > 3)) return false;
+    if (!(S.gen > 3 || (S.gen == 3 && rmi >= regionMis().length))) return false;
     endingOn = true;
     talk(endLines, tag: '그날 밤', noskip: true, after: 'endCard');
     return true;

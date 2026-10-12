@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../data/web_data.g.dart' as web;
 import '../game/data.dart';
 import '../game/engine.dart';
 import '../game/state.dart';
@@ -20,6 +21,7 @@ import 'outside_ui.dart';
 import 'season_ui.dart';
 import 'sheets.dart';
 import 'story_ui.dart';
+import 'region_ui.dart';
 import 'theme.dart';
 import 'ring.dart';
 import 'survivors.dart';
@@ -160,6 +162,27 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       case FxConf():
         _pageQ.add(() => showConf(context, g));
         _pumpPages();
+      case FxTownChoice():
+        _pageQ.add(() => showTownChoice(context, g));
+        _pumpPages();
+      case FxDeath():
+        // 폭풍이 걷히고 잠시 뒤 (웹 setTimeout 2200)
+        Future.delayed(const Duration(milliseconds: 2200), () {
+          if (!mounted) return;
+          setState(() {
+            sheet = null;
+            _closeRing();
+          });
+          _pageQ.insert(0, () => showDeath(context, g, f));
+          _pumpPages();
+        });
+      case FxMigrated(g: final n, :final region):
+        setState(() {
+          sheet = null;
+          _closeRing();
+          _mig = (n, region);
+        });
+        cam.set(0, (CX + CY + 1) * TH / 2 - 10);
       case FxLevelUp(:final lv):
         HapticFeedback.mediumImpact();
         _stamp(lv);
@@ -182,6 +205,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   static final _kMats = GlobalKey(), _kTape = GlobalKey(), _kClock = GlobalKey(), _kLamp = GlobalKey(), _kTabs = GlobalKey();
   int _coach = -1;
   bool _endCard = false;
+  (int, String)? _mig;
   Rect? _coachRect() {
     final k = [_kMats, _kTape, _kClock, _kLamp, _kTabs][_coach];
     final box = k.currentContext?.findRenderObject() as RenderBox?;
@@ -309,8 +333,41 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       });
     }
 
+    if (st == null && m.reg) {
+      switch (m.rk) {
+        case 'spot':
+          final si = (g.rq['spotI'] as num?)?.toInt() ?? -1;
+          if (si >= 0) {
+            _close();
+            _flyTo(si);
+            fxc.toast('${(web.regionMisc['spotIco'] as Map)[g.S.region] ?? ''} 표시 쪽 구름을 걷어요');
+          }
+        case 'op':
+          showOp(context, g);
+        case 'choice':
+          showTownChoice(context, g);
+        case 'raid':
+          fxc.toast('밤이 오면 물 도둑이 몰려와요');
+        case 'cold':
+          toShelter(1);
+        default:
+          if (RegExp('쉘터|요새|도시|탑').hasMatch(m.txt)) {
+            toShelter(0);
+          } else if (m.txt.contains('재폭풍')) {
+            _close();
+            hint();
+          } else {
+            _close();
+            if (g.aim >= 0) _flyTo(g.aim);
+            hint();
+          }
+      }
+      return;
+    }
     if (st == null) {
       switch (g.egGo) {
+        case 'radio':
+          _open(const SheetSpec('radio'));
         case 'build':
           toShelter(0);
         case 'craft':
@@ -320,7 +377,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         case 'surv':
           _open(const SheetSpec('surv'));
         case 'clock':
-          fxc.toast('대형 재폭풍은 세 번째 밤마다 와요');
+          fxc.toast(g.bigPeriod == 2 ? '이 동네의 대형 재폭풍은 두 밤마다 와요' : '대형 재폭풍은 세 번째 밤마다 와요');
         default:
           _close();
           if (g.aim >= 0) _flyTo(g.aim);
@@ -650,7 +707,10 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       case 'exp':
         return SheetPanel(icon: Ico.exp, title: '원정', onClose: _close, child: ExpBody(g, toast: fxc.toast));
       default:
-        return SheetPanel(icon: Ico.radio, title: '주파수 탐색', onClose: _close, child: RadioBody(g));
+        return SheetPanel(icon: Ico.radio, title: '주파수 탐색', onClose: _close, child: RadioBody(g, onRoute: () {
+          DiaryBody.tab = 'towns';
+          _open(const SheetSpec('diary'));
+        }));
     }
   }
 
@@ -679,6 +739,10 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             onPed: () {
               _close();
               showPedPage(context, g, fxc.toast);
+            },
+            onMig: () {
+              _close();
+              showMigrate(context, g);
             },
           ),
         ),
@@ -939,6 +1003,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             g.dirty = true;
             setState(() => _endCard = false);
           })),
+        if (_mig != null) Positioned.fill(child: MigStamp(_mig!.$1, _mig!.$2, key: ValueKey(_mig), onDone: () => setState(() => _mig = null))),
         if (coachR != null) Positioned.fill(child: CoachOverlay(i: _coach, hole: coachR, onNext: _coachNext, onSkip: () => setState(_coachEnd))),
       ]),
     );
@@ -948,12 +1013,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 // ======================= 머리 (자원·설정·할 일 띠) =======================
 class _Header extends StatelessWidget {
   const _Header(this.g,
-      {required this.top, required this.ping, required this.onGo, required this.onSettings, required this.onMats, required this.onShelter, required this.onPed, this.matsKey, this.tapeKey});
+      {required this.top, required this.ping, required this.onGo, required this.onSettings, required this.onMats, required this.onShelter, required this.onPed, required this.onMig, this.matsKey, this.tapeKey});
   final Game g;
   final Key? matsKey, tapeKey;
   final double top;
   final int ping;
-  final VoidCallback onSettings, onMats, onShelter, onPed, onGo;
+  final VoidCallback onSettings, onMats, onShelter, onPed, onGo, onMig;
 
   @override
   Widget build(BuildContext context) {
@@ -983,7 +1048,7 @@ class _Header extends StatelessWidget {
           ]),
         ),
         const SizedBox(height: 6),
-        KeyedSubtree(key: tapeKey, child: MissionTape(g, onLv: onShelter, onGo: onGo, onPed: onPed, ping: ping)),
+        KeyedSubtree(key: tapeKey, child: MissionTape(g, onLv: onShelter, onGo: onGo, onPed: onPed, onMig: onMig, ping: ping)),
       ]),
     );
   }
