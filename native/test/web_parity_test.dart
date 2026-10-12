@@ -178,7 +178,8 @@ void main() {
     expect(g.promote(0), 'star');
     expect(g.starOf(0), st0 + 1);
     // 스킬: 쓰면 대기시간이 생긴다
-    g.toggleParty(0);
+    expect(g.party, [0, 1], reason: '구조하면 스킬 바에 들어간다');
+    g.toggleParty(1);
     expect(g.party, [0]);
     expect(g.useSkill(0), isTrue);
     expect(g.cdLeft(0), greaterThan(0));
