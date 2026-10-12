@@ -49,6 +49,11 @@ void main() {
 
   testWidgets('iPhone에서 앱 띄워 보기', (tester) async {
     final t0 = DateTime.now();
+    // 시험 틀의 오류 처리기는 마지막에 되돌려 놓는다 (안 그러면 실패 보고까지 삼켜 멈춘다)
+    final origErr = FlutterError.onError;
+    final origPd = WidgetsBinding.instance.platformDispatcher.onError;
+    String where(StackTrace? st) =>
+        (st?.toString() ?? '').split('\n').where((l) => l.contains('package:taptocity')).take(3).map((l) => l.replaceAll(RegExp(r'^#\d+\s+'), '').trim()).join(' ← ');
     String at() => '${DateTime.now().difference(t0).inSeconds}s';
 
     Future<void> wait(double sec) async {
@@ -60,11 +65,11 @@ void main() {
 
     void hook() {
       FlutterError.onError = (d) {
-        final m = d.exceptionAsString().split('\n').first;
+        final m = '${d.exceptionAsString().split('\n').first} @ ${where(d.stack)} (${d.context?.toDescription() ?? ''})';
         if (!errors.contains(m)) errors.add(m);
       };
       WidgetsBinding.instance.platformDispatcher.onError = (e, st) {
-        final m = '$e'.split('\n').first;
+        final m = '${'$e'.split('\n').first} @ ${where(st)}';
         if (!errors.contains(m)) errors.add(m);
         return true;
       };
@@ -100,7 +105,8 @@ void main() {
     Future<bool> tapText(String t) async {
       final f = find.text(t);
       if (f.evaluate().isEmpty) {
-        log.add('못 찾음: $t');
+        final seen = [for (final e in find.byType(Text).evaluate().take(12)) (e.widget as Text).data ?? ''].where((x) => x.isNotEmpty).join(' | ');
+        log.add('못 찾음: $t — 화면 글자: $seen');
         return false;
       }
       await tester.tap(f.last, warnIfMissed: false);
@@ -210,6 +216,9 @@ void main() {
 
     log.add('끝까지 진행 (${at()})');
     binding.reportData = {'errors': errors, 'log': log};
+    FlutterError.onError = origErr;
+    WidgetsBinding.instance.platformDispatcher.onError = origPd;
+    await tester.pumpWidget(const SizedBox());
     expect(errors, isEmpty, reason: errors.join('\n'));
   }, timeout: const Timeout(Duration(minutes: 20)));
 }
