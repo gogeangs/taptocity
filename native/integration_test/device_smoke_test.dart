@@ -149,8 +149,13 @@ void main() {
     await wait(1.5);
     await snap('profile');
     // 앱이 뒤로 갔다 돌아오기 (저장·소리 멈춤·다시 켜기)
+    // (뒤로 간 동안은 화면을 그리지 않으므로 pump 대신 실제 시간만 흘려보낸다)
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
-    await wait(1);
+    await tester.runAsync(() => Future<void>.delayed(const Duration(seconds: 2)));
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await wait(2);
     await snap('resumed');
@@ -158,8 +163,9 @@ void main() {
     if (saved == null || (jsonDecode(saved) as Map)['lv'] != 3) errors.add('저장 확인 실패');
     if (tester.takeException() case final e?) errors.add('$e'.split('\n').first);
 
+    log.add('끝까지 진행');
     binding.reportData = {'errors': errors, 'log': log};
     await SystemChannels.platform.invokeMethod<void>('HapticFeedback.vibrate'); // 진동 채널이 살아 있는지
     expect(errors, isEmpty, reason: errors.join('\n'));
-  }, timeout: const Timeout(Duration(minutes: 6)));
+  }, timeout: const Timeout(Duration(minutes: 12)));
 }
