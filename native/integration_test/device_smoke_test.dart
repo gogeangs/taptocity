@@ -14,6 +14,7 @@ import 'package:taptocity/game/data.dart';
 import 'package:taptocity/game/engine.dart';
 import 'package:taptocity/game/storage.dart';
 import 'package:taptocity/main.dart' as app;
+import 'package:taptocity/ui/sound.dart';
 
 Game _midGame() {
   final g = Game(Game.fresh(seed: 7));
@@ -218,7 +219,12 @@ void main() {
     binding.reportData = {'errors': errors, 'log': log};
     FlutterError.onError = origErr;
     WidgetsBinding.instance.platformDispatcher.onError = origPd;
+    // 소리를 멈추고(재생 위치를 매 프레임 읽는 콜백이 남지 않게) 화면을 비운다
+    await Sound.stopAll();
     await tester.pumpWidget(const SizedBox());
+    for (var k = 0; k < 30 && tester.binding.transientCallbackCount > 0; k++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
     expect(errors, isEmpty, reason: errors.join('\n'));
   }, timeout: const Timeout(Duration(minutes: 20)));
 }

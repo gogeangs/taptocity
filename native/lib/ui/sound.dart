@@ -260,4 +260,14 @@ class Sound {
       _apply();
     }
   }
+
+  /// 모든 소리를 멈춘다 (기기 시험이 끝날 때)
+  static Future<void> stopAll() async {
+    pauseAll(true);
+    for (final p in [..._pool, if (_ma != null) _ma!, if (_mb != null) _mb!]) {
+      try {
+        await p.stop();
+      } catch (_) {}
+    }
+  }
 }
