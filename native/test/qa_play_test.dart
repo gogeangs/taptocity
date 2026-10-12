@@ -127,21 +127,24 @@ void autoStep(Game g, Qa qa, math.Random r) {
   });
   if (r.nextDouble() < .3) {
     safe('build', () {
-      for (final id in [9, 1, 2, 8, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15]) {
+      // 아직 안 지은 모듈 먼저, 같은 모듈 또 짓기는 그다음
+      final want = [for (final id in const [1, 2, 9, 3, 4, 8, 5, 6, 7]) if (mods[id] != null && g.modN(id) == 0 && g.S.lv >= mods[id]!.req) id];
+      for (final id in [...want, if (want.isEmpty) ...[9, 1, 2, 8, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15]]) {
         if (mods[id] != null && g.canBuild(id)) {
           g.buildMod(id);
           break;
         }
       }
-      // 아직 안 지은 모듈이 있으면 자재를 아낀다 (철판·밧줄만 가공)
-      final saving = [for (final id in const [1, 2, 9, 3, 4, 8, 5, 6, 7]) if (mods[id] != null && g.modN(id) == 0 && g.S.lv >= mods[id]!.req) id].isNotEmpty;
+      // 아직 안 지은 모듈이 있으면 자재를 아낀다 (그 모듈에 드는 재료의 가공만)
+      final saving = want.isNotEmpty;
+      final need = {for (final id in want) ...g.modBuildCost(id).keys};
       for (final k in g.S.mods.keys.toList()) {
         if (!saving && r.nextDouble() < .2) g.upMod(k);
       }
       g.upShelter();
       g.upWalls();
       for (var k = 0; k < recipes.length; k++) {
-        if ((!saving || k < 2) && r.nextDouble() < .3) g.craft(k, 3);
+        if ((!saving || k < 2 || need.contains(recipes[k].out)) && r.nextDouble() < .3) g.craft(k, 3);
       }
       for (final k in const ['tap', 'splash', 'drone']) {
         if (!saving && r.nextDouble() < .2) g.buyUp(k);
