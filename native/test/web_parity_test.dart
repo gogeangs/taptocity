@@ -252,6 +252,25 @@ void main() {
     expect(g.num_('evDone'), 1);
   });
 
+  test('원정을 보내고 돌아오면 전리품과 신뢰를 받는다', () {
+    final g = Game(Game.fresh(seed: 42));
+    g.rescue(0, 'sig');
+    g.rescue(1, 'sig');
+    final c = g.sendExp('mall', [0, 1]);
+    expect(c, isNotNull);
+    expect(g.busy(0), isTrue);
+    expect(c!.t, 21); // 60초 × 0.6 × 정찰(도윤) 0.7 × 운전(만수) 0.85 = 21.42 → 21
+    expect(c.mult, closeTo(1.25 * 1.25, 1e-9)); // 두 명 +25%, 기술(만수) +25%
+    ((g.S.rest['exp'] as Map)['mall'] as Map)['end'] = 0;
+    final xp0 = g.xpOf(0), b0 = g.have('batt');
+    g.claimExp('mall');
+    expect(g.busy(0), isFalse);
+    expect(g.xpOf(0), greaterThan(xp0));
+    expect(g.have('batt'), b0 + 2);
+    expect(g.num_('expDone'), 1);
+    expect(g.takeFx().whereType<FxExpBack>(), isNotEmpty);
+  });
+
   test('구름을 두드리면 밝혀지고, 경계가 이어진다', () {
     final g = Game(Game.fresh(seed: 7));
     final before = g.S.rev.where((v) => v == 1).length;

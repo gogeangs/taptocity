@@ -10,6 +10,7 @@ import 'rng.dart';
 import 'state.dart';
 
 part 'crisis.dart';
+part 'outside.dart';
 
 /// 화면 연출(떠오르는 글자·알림·창 열기)을 그림 쪽에 알려 주는 신호.
 sealed class Fx {
@@ -135,6 +136,7 @@ Cost scaleCost(Cost o, [double f = 1]) {
 
 class Game extends ChangeNotifier {
   Game(this.S, {math.Random? random}) : rnd = random ?? math.Random() {
+    repairExpeditions();
     _rebuildFrontier();
     recalc();
     wasNight = isNight;
@@ -146,6 +148,8 @@ class Game extends ChangeNotifier {
   int nightN = 0, nightLost = 0, evCur = -1, sqOpenUntil = 0;
   final List<int> evSeen = [];
   Defense? defn;
+  final Set<String> _expNotified = {};
+  int _autoExpT = 0;
 
   GameState S;
   final math.Random rnd;
@@ -1902,6 +1906,7 @@ class Game extends ChangeNotifier {
       }
       _tickAuto();
       _tickSide();
+      _tickExp();
       if (S.droneLv > 0 || overT > 0) {
         final i = frontierNearest();
         if (i >= 0) {

@@ -55,6 +55,8 @@ const T = {
   events: ev('EVENTS.map(e=>({who:e.who,t:e.t,x:e.x,dog:!!e.ok,a:{l:e.a.l,cost:e.a.cost||null,fx:e.a.fx,r:e.a.r},b:{l:e.b.l,cost:e.b.cost||null,fx:e.b.fx,r:e.b.r}}))'),
   wx: ev('WX'),
   role: ev('ROLE'),
+  exps: ev('EXPS.map(e=>({key:e.key,name:e.name,t:e.t,risk:e.risk,mult:e.mult,loot:e.loot,reveal:e.reveal,min:e.min,lock:e.lock,desc:e.desc,open:e.open}))'),
+  expq: ev('EXPQ'),
 };
 
 const dartStr = s => "'" + String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\$/g, '\\$').replace(/\n/g, '\\n') + "'";

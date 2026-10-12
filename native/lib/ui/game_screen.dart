@@ -13,6 +13,7 @@ import 'crisis_ui.dart';
 import 'gear.dart';
 import 'icons.dart';
 import 'map_view.dart';
+import 'outside_ui.dart';
 import 'sheets.dart';
 import 'theme.dart';
 import 'ring.dart';
@@ -114,6 +115,10 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           });
           _frameDefense();
         }
+      case FxExpBack():
+        Future.delayed(const Duration(milliseconds: 150), () {
+          if (mounted) showExpBack(context, g, f);
+        });
       case FxEventDone(:final ev, :final k, :final sum):
         Future.delayed(const Duration(milliseconds: 200), () {
           if (mounted) showRequestDone(context, g, ev, k, sum);
@@ -363,7 +368,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               if (gid != null) _survPage(gid);
             }));
       case 'exp':
-        return SheetPanel(icon: Ico.exp, title: '원정', onClose: _close, child: comingBody('원정', '4단계'));
+        return SheetPanel(icon: Ico.exp, title: '원정', onClose: _close, child: ExpBody(g, toast: fxc.toast));
       default:
         return SheetPanel(icon: Ico.radio, title: '라디오', onClose: _close, child: comingBody('라디오', '4단계'));
     }
