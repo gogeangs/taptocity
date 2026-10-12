@@ -12,8 +12,19 @@ const fs = require('fs');
   page.on('pageerror', (e) => log.push(`[pageerror] ${e.message}`));
   page.on('requestfailed', (r) => log.push(`[requestfailed] ${r.url()} ${r.failure() && r.failure().errorText}`));
   const url = 'http://localhost:8080/taptocity/native-play/';
+  let bytes = 0;
+  page.on('response', async (r) => {
+    try {
+      const b = await r.buffer();
+      bytes += b.length;
+    } catch (_) {}
+  });
+  const t0 = Date.now();
   await page.goto(url, { waitUntil: 'load', timeout: 60000 });
-  await new Promise((r) => setTimeout(r, 15000));
+  await page.waitForSelector('flutter-view', { timeout: 60000 }).catch(() => log.push('[timing] flutter-view 없음'));
+  log.push(`[timing] 첫 화면까지 ${((Date.now() - t0) / 1000).toFixed(1)}초`);
+  await new Promise((r) => setTimeout(r, 12000));
+  log.push(`[timing] 받은 양 ${(bytes / 1e6).toFixed(1)}MB`);
   await page.screenshot({ path: `${out}/web-1-first.png` });
   // 다시 열기 (저장된 진행으로 시작)
   await page.reload({ waitUntil: 'load' });

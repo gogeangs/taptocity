@@ -16,7 +16,8 @@ class Atlas {
   ];
 
   static Future<void> load() => _loading ??= () async {
-        for (final f in files) {
+        // 한꺼번에 받아 첫 화면을 빨리 띄운다
+        await Future.wait(files.map((f) async {
           try {
             final data = await rootBundle.load('assets/illustrated/$f');
             final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
@@ -24,7 +25,7 @@ class Atlas {
           } catch (_) {
             // 그림이 없으면 그 부분만 단순한 도형으로 그린다
           }
-        }
+        }));
       }();
 
   static ui.Image? image(String f) => _img[f];

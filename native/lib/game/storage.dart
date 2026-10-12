@@ -20,6 +20,13 @@ class Storage {
     return null;
   }
 
+  /// 읽지 못한 저장을 지우지 않고 옆에 남겨 둔다
+  static Future<void> backup() async {
+    _p ??= await SharedPreferences.getInstance();
+    final raw = _p!.getString(key);
+    if (raw != null) await _p!.setString('$key-backup-${DateTime.now().millisecondsSinceEpoch}', raw);
+  }
+
   static Future<void> save(String json) async {
     _p ??= await SharedPreferences.getInstance();
     await _p!.setString(key, json);

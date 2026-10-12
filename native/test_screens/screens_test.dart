@@ -13,10 +13,6 @@ import 'package:taptocity/ui/theme.dart';
 Future<void> _fonts() async {
   final sans = FontLoader('TTCSans')..addFont(rootBundle.load('assets/fonts/ttc-sans.ttf'));
   await sans.load();
-  final serif = FontLoader('GowunBatang')
-    ..addFont(rootBundle.load('assets/fonts/GowunBatang-Regular.ttf'))
-    ..addFont(rootBundle.load('assets/fonts/GowunBatang-Bold.ttf'));
-  await serif.load();
 }
 
 /// 사진용 진행: 쉘터 Lv.2, 모듈 몇 개, 생존자 셋, 구조 캠프 하나

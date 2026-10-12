@@ -26,8 +26,3 @@ flutter:
     - family: TTCSans
       fonts:
         - asset: assets/fonts/ttc-sans.ttf
-    - family: GowunBatang
-      fonts:
-        - asset: assets/fonts/GowunBatang-Regular.ttf
-        - asset: assets/fonts/GowunBatang-Bold.ttf
-          weight: 700

@@ -13,7 +13,14 @@ Future<void> main() async {
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Colors.transparent, statusBarIconBrightness: Brightness.light));
   await Atlas.load();
   final saved = await Storage.load();
-  final game = Game(saved ?? Game.fresh());
+  Game game;
+  try {
+    game = Game(saved ?? Game.fresh());
+  } catch (_) {
+    // 저장을 읽다 문제가 생겨도 화면이 비지 않게: 원래 저장은 따로 남겨 두고 새로 시작
+    if (saved != null) await Storage.backup();
+    game = Game(Game.fresh());
+  }
   if (saved != null) {
     game.offline(DateTime.now().millisecondsSinceEpoch);
   } else {
