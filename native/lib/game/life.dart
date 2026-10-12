@@ -17,7 +17,7 @@ const feastCd = 20 * 60 * 1000, feastT = 600;
 Map<String, Object?> petInfo(String k) => Map<String, Object?>.from(web.pets[k]!);
 List<String> get petNormal => [for (final k in petKeys) if (petInfo(k)['hidden'] != true) k];
 
-extension Life on Game {
+extension Living on Game {
   // ================= 유물 =================
   List<String> get relics => [for (final r in (S.rest['relics'] as List? ?? const [])) '$r'];
   List<String> get relicLeft => [for (final s in web.rsets) for (final it in s['items'] as List) if (!relics.contains(it)) it as String];
