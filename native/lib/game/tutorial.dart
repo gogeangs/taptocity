@@ -152,6 +152,7 @@ extension Tutorial on Game {
     S.rest['onb'] = 1;
     fx.add(const FxTutDone(false));
     fx.add(const FxOnboard());
+    onbAsked = true;
     _changed();
   }
 

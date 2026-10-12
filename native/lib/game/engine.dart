@@ -174,8 +174,8 @@ class Game extends ChangeNotifier {
   bool oddDone = false, dread = false, prsDone = false;
   FxNote? oddDawn, oddDawnNote, prsDawn;
   (String, String, double)? prs;
-  Shadow? shadow;
-  bool endingOn = false;
+  OddShadow? shadow;
+  bool endingOn = false, onbAsked = false;
 
   GameState S;
   final math.Random rnd;

@@ -369,7 +369,15 @@ extension Story on Game {
 
   /// 화면이 비어 있을 때 다음 걸음의 장면을 연다 (웹 tickStory 2075)
   void tickStory() {
-    if (uiBusy || tut != null || tutPending || onb == 1) return;
+    if (uiBusy || tut != null || tutPending) return;
+    if (onb == 1) {
+      // 안내 카드를 닫기 전에 앱을 껐다면 다시 띄운다 (웹 tickStory 덮어쓰기)
+      if (!onbAsked) {
+        onbAsked = true;
+        fx.add(const FxOnboard());
+      }
+      return;
+    }
     if (storyI < mi && mi < steps.length) {
       S.rest['storyI'] = mi;
       introStep(mi);

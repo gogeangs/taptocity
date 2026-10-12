@@ -212,9 +212,9 @@ class FxCrowMeet extends Fx {
 }
 
 /// 수상한 밤의 그림자 (지도 위에 그린다, 웹 SHD)
-class Shadow {
-  Shadow.walk(this.ax, this.ay, this.bx, this.by, this.dur) : light = null, far = false;
-  Shadow.light(this.light, this.dur, {this.far = false})
+class OddShadow {
+  OddShadow.walk(this.ax, this.ay, this.bx, this.by, this.dur) : light = null, far = false;
+  OddShadow.light(this.light, this.dur, {this.far = false})
       : ax = 0,
         ay = 0,
         bx = 0,
@@ -568,7 +568,7 @@ extension Season on Game {
         final from = _modTile(7) >= 0 ? _modTile(7) : C0, e = _edgeTiles();
         final to = e.isNotEmpty ? e[rnd.nextInt(e.length)] : C0;
         final a = _tc(from), b = _tc(to);
-        shadow = Shadow.walk(a.$1 + 14, a.$2 + 6, b.$1, b.$2, 14);
+        shadow = OddShadow.walk(a.$1 + 14, a.$2 + 6, b.$1, b.$2, 14);
         if (rnd.nextDouble() < .5) {
           oddDawn = const FxNote('아침 · 장갑 한 짝', '내 잠자리 근처에 그을음 묻은 장갑 한 짝이 떨어져 있었다. 내 것이던가?', ms: 5500);
           _oddLog('shadow', '아침, 내 잠자리 근처에 그을음 묻은 장갑 한 짝이 떨어져 있었다.');
@@ -578,7 +578,7 @@ extension Season on Game {
         fx.add(const FxNote('새벽 3시 · 라디오', '꺼 둔 라디오에서 잡음이 새어 나왔어요. “…여기는…” 딸깍. 그리고 조용해졌어요.', ms: 5500));
         _oddLog(k, '꺼 둔 라디오에서 잡음이 새어 나왔다. “…여기는…” 딸깍, 하는 소리와 함께 끊겼다.');
       case 'light':
-        shadow = Shadow.light(_modTile(7), 9);
+        shadow = OddShadow.light(_modTile(7), 9);
         fx.add(const FxNote('새벽 3시 · 무전실', '아무도 없어야 할 무전실에 불이 켜졌다 꺼졌어요.', ms: 5500));
         if (hasSv(10)) oddDawn = const FxNote('아침 · 은호', '“무전실이요? 전 그 시간에 방송 중이었어요.” 무전실 문 앞엔 내 랜턴이 놓여 있었다. 내가 두고 왔던가?', ms: 6000);
         _oddLog(k, '아무도 없어야 할 무전실에 불이 켜졌다 꺼졌다. 아침에 보니 내 랜턴이 무전실 문 앞에 있었다.');
@@ -678,7 +678,7 @@ extension Season on Game {
     }
     if (k == 'light') {
       final e = _edgeTiles();
-      if (e.isNotEmpty) shadow ??= Shadow.light(e[rnd.nextInt(e.length)], 4.5, far: true);
+      if (e.isNotEmpty) shadow ??= OddShadow.light(e[rnd.nextInt(e.length)], 4.5, far: true);
     }
     if (k == 'lamp') lampFlick = DateTime.now().millisecondsSinceEpoch;
     oddHit = DateTime.now().millisecondsSinceEpoch;
