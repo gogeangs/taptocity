@@ -215,6 +215,22 @@ class Sound {
     }
   }
 
+  /// 화면을 처음 누를 때: 브라우저는 누르기 전엔 소리를 못 내게 막아서, 그때 배경음을 다시 튼다 (웹 start)
+  static bool _kicked = false;
+  static void kick() {
+    if (!_ready || _kicked || _cur == 'off') return;
+    _kicked = true;
+    final on = _aOn ? _ma! : _mb!;
+    if (on.state != PlayerState.playing) {
+      () async {
+        try {
+          await on.play(AssetSource('music/$_cur.m4a'), volume: _aOn ? _va : _vb);
+        } catch (_) {}
+        _apply();
+      }();
+    }
+  }
+
   /// 앱이 뒤로 가면 멈추고, 돌아오면 다시
   static void pauseAll(bool paused) {
     if (!_ready) return;
