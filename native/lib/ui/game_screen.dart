@@ -790,7 +790,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                         }
                         final x = p0.dx.clamp(40.0, math.max(40.0, box.maxWidth - 40)), y = p0.dy.clamp(40.0, math.max(40.0, box.maxHeight - 8));
                         return Stack(children: [
-                          Positioned(left: x, top: y, child: FractionalTranslation(translation: const Offset(-.5, -1), child: GuideArrow(label))),
+                          Positioned(left: x.toDouble(), top: y.toDouble(), child: FractionalTranslation(translation: const Offset(-.5, -1), child: GuideArrow(label))),
                         ]);
                       },
                     ),
