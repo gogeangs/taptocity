@@ -8,6 +8,7 @@ import '../game/engine.dart';
 import 'atlas.dart';
 import 'crisis_ui.dart';
 import 'gear.dart';
+import 'people.dart';
 import 'portrait.dart';
 import 'survivors.dart';
 import 'theme.dart';
@@ -108,6 +109,7 @@ class ExpBody extends StatefulWidget {
 class _ExpBodyState extends State<ExpBody> {
   static String? planKey;
   static List<int> team = [];
+  static bool withPet = false;
   Game get g => widget.g;
 
   @override
@@ -159,7 +161,8 @@ class _ExpBodyState extends State<ExpBody> {
             }
             if (planKey == e.key) {
               team.removeWhere((id) => !g.hasSv(id) || g.busy(id));
-              final c = g.expCalc(e, team);
+              final pk = withPet && g.petOn != null && g.petHere(g.petOn!) ? g.petOn : null;
+              final c = g.expCalc(e, team, pk);
               final free = [for (final id in g.svIds) if (!g.busy(id)) id];
               out.add(_card([
                 SceneArt(e.key),
@@ -184,6 +187,24 @@ class _ExpBodyState extends State<ExpBody> {
                           onTap: !team.contains(id) && team.length >= 3
                               ? null
                               : () => setState(() => team.contains(id) ? team.remove(id) : team.add(id))),
+                    if (g.petOn != null && g.petHere(g.petOn!))
+                      GestureDetector(
+                        onTap: () => setState(() => withPet = !withPet),
+                        child: Container(
+                          constraints: const BoxConstraints(minHeight: 42),
+                          padding: const EdgeInsets.fromLTRB(4, 4, 9, 4),
+                          decoration: BoxDecoration(
+                            color: pk != null ? const Color(0xFFEDD6A6) : const Color(0xFFF5EEDF),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: pk != null ? const Color(0xFFB58B49) : Ttc.line),
+                          ),
+                          child: Row(mainAxisSize: MainAxisSize.min, children: [
+                            PetPic(g.petOn!, size: 32, collar: ((g.pets[g.petOn!]!['c'] as num?) ?? 0).toInt()),
+                            const SizedBox(width: 4),
+                            Text('${g.petName(g.petOn!)} 데려가기', style: Ttc.t(12, color: Ttc.sepia, weight: FontWeight.w600)),
+                          ]),
+                        ),
+                      ),
                   ]),
                 Container(
                   margin: const EdgeInsets.fromLTRB(0, 8, 0, 8),
@@ -212,7 +233,7 @@ class _ExpBodyState extends State<ExpBody> {
                   BuyButton('출발', onTap: team.length < e.min
                       ? null
                       : () {
-                          if (g.sendExp(e.key, team) != null) setState(() => planKey = null);
+                          if (g.sendExp(e.key, team, pet: pk) != null) setState(() => planKey = null);
                         }),
                 ]),
               ]));

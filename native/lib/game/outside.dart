@@ -48,10 +48,12 @@ extension Outside on Game {
     return {for (final e in (S.rest['exp'] as Map).entries) e.key as String: e.value as Map};
   }
 
-  ExpCalc expCalc(ExpInfo e, List<int> team) {
-    final t = e.t * .6 * (1 - expDisc) * (hasRole(team, 'scout') ? .7 : 1) * (hasRole(team, 'drive') ? .85 : 1);
-    final risk = e.risk * (hasRole(team, 'medic') ? .3 : 1) * (hasRole(team, 'guard') ? .5 : 1);
-    final mult = e.mult * (1 + .25 * (team.length - 1)) * (hasRole(team, 'mech') ? 1.25 : 1);
+  ExpCalc expCalc(ExpInfo e, List<int> team, [String? pk]) {
+    final px = pk != null && web.pets.containsKey(pk) ? (web.pets[pk]!['exp'] as Map? ?? const {}) : const {};
+    double pxv(String k) => ((px[k] as num?) ?? 1).toDouble();
+    final t = e.t * .6 * (1 - expDisc) * (hasRole(team, 'scout') ? .7 : 1) * (hasRole(team, 'drive') ? .85 : 1) * pxv('t');
+    final risk = e.risk * (hasRole(team, 'medic') ? .3 : 1) * (hasRole(team, 'guard') ? .5 : 1) * pxv('risk');
+    final mult = e.mult * (1 + .25 * (team.length - 1)) * (hasRole(team, 'mech') ? 1.25 : 1) * pxv('mult');
     final perks = <String>[
       if (hasRole(team, 'scout')) '정찰: 시간 -30%',
       if (hasRole(team, 'drive')) '운전: 시간 -15%',
@@ -63,6 +65,7 @@ extension Outside on Game {
       if (hasRole(team, 'farm')) '순례: 식량 ×1.5 60초',
       if (hasRole(team, 'art')) '유나: 지도 스케치 30초',
       if (hasRole(team, 'sci')) '재혁: 어둠 +4칸',
+      if (pk != null && web.pets.containsKey(pk)) '${petName(pk)}: ${(web.pets[pk]!['expd'] as String).replaceAll('원정 ', '')}',
     ];
     return ExpCalc(jsRound(t), risk, mult, perks);
   }
@@ -100,13 +103,15 @@ extension Outside on Game {
   }
 
   /// 원정 출발 (웹 startExp/sendExp)
-  ExpCalc? sendExp(String key, List<int> team0) {
+  ExpCalc? sendExp(String key, List<int> team0, {String? pet}) {
     final e = expOf(key);
     if (e == null || expMap.containsKey(key)) return null;
     final team = team0.where((id) => hasSv(id) && !busy(id)).toList();
     if (team.length < e.min) return null;
-    final c = expCalc(e, team);
-    (S.rest['exp'] as Map)[key] = <String, Object?>{'team': team, 'end': DateTime.now().millisecondsSinceEpoch + c.t * 1000, 'dur': c.t};
+    final pk = pet != null && petHere(pet) ? pet : null;
+    final c = expCalc(e, team, pk);
+    (S.rest['exp'] as Map)[key] = <String, Object?>{'team': team, 'end': DateTime.now().millisecondsSinceEpoch + c.t * 1000, 'dur': c.t, 'pet': pk};
+    if (pk != null) (S.rest['pets'] as Map)[pk]['away'] = key;
     for (final id in team) {
       rec(id)!['away'] = key; // 일터 자리는 그대로, 돌아오면 다시 일한다
     }
@@ -175,10 +180,16 @@ extension Outside on Game {
     repairExpeditions();
     final x = expMap[key];
     if (x == null || DateTime.now().millisecondsSinceEpoch < (x['end'] as num)) return;
-    final e = expOf(key)!, team = [for (final v in x['team'] as List) (v as num).toInt()], c = expCalc(e, team), sum = <String>[];
+    final pk = x['pet'] as String?;
+    final e = expOf(key)!, team = [for (final v in x['team'] as List) (v as num).toInt()], c = expCalc(e, team, pk), sum = <String>[];
     (S.rest['exp'] as Map).remove(key);
     _expNotified.remove(key);
     final lines = [e.open];
+    if (pk != null && pets.containsKey(pk)) {
+      (S.rest['pets'] as Map)[pk]['away'] = false;
+      petGain(pk, 15);
+      lines.add('${jo(petName(pk), '이', '가')} 앞장서서 길을 살폈다. 덕분에 모두 한결 든든했다.');
+    }
     for (final id in team) {
       final q = id < web.expq.length ? web.expq[id] : const <String>[];
       if (q.isNotEmpty) lines.add('${survivors[id].name}: ${q[rnd.nextInt(q.length)]}');
