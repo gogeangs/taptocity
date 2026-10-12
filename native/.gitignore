@@ -1,0 +1,13 @@
+# 빌드 때 생기는 것
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+# 빌드 때 저장소 원본에서 복사하는 그림·글꼴
+assets/illustrated/
+assets/fonts/
+# CI에서 flutter create로 만드는 플랫폼 폴더 (출시 준비 단계에서 저장소에 넣는다)
+android/
+ios/
+web/

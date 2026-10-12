@@ -1,0 +1,89 @@
+# 탭투시티 네이티브(Flutter) — 검사·테스트·안드로이드 APK·웹 미리보기
+# native/ 가 바뀌면 자동으로 돈다. 결과:
+#   - 실행 화면 아래 Artifacts 의 'taptocity-apk' → 휴대폰에 설치하는 미리보기 APK
+#   - https://gogeangs.github.io/taptocity/native-play/ → 브라우저 미리보기
+name: Native
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['native/**', '.github/workflows/native.yml']
+
+concurrency:
+  group: native-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        shell: bash
+        working-directory: native
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install fonttools brotli
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: 그림·글꼴 복사
+        run: tool/prepare_assets.sh
+
+      - name: 플랫폼 폴더 만들기 (android·web)
+        run: |
+          flutter --version
+          flutter create --org kr.co.itso --project-name taptocity --platforms android,web .
+          rm -f test/widget_test.dart
+          # 앱 이름
+          sed -i 's/android:label="[^"]*"/android:label="탭투시티"/' android/app/src/main/AndroidManifest.xml
+          sed -i 's#<title>[^<]*</title>#<title>탭투시티 · 네이티브 미리보기</title>#' web/index.html
+
+      - name: 검사
+        run: |
+          flutter pub get
+          flutter analyze --no-fatal-infos
+
+      - name: 테스트 (웹 버전과 같은 결과인지)
+        run: flutter test
+
+      - name: 안드로이드 APK
+        run: flutter build apk --release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: taptocity-apk
+          path: native/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+
+      - name: 웹 미리보기
+        run: flutter build web --release --base-href /taptocity/native-play/ --pwa-strategy=none
+
+      - name: 미리보기 올리기 (native-play/)
+        if: github.ref == 'refs/heads/main'
+        working-directory: .
+        run: |
+          rm -rf native-play
+          cp -r native/build/web native-play
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A native-play
+          if git diff --cached --quiet; then echo "변경 없음"; exit 0; fi
+          git commit -qm "네이티브 미리보기 갱신 (${GITHUB_SHA::7})"
+          for i in 1 2 3; do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep 5; done

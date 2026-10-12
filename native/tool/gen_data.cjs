@@ -1,0 +1,90 @@
+// 웹 버전에서 데이터 표와 비교 기준값을 뽑아 네이티브 코드로 옮긴다.
+//   node native/tool/gen_data.cjs
+// 결과: native/lib/data/web_data.g.dart (표), native/test/fixtures/web_core.json (테스트 기준값)
+const fs = require('node:fs');
+const path = require('node:path');
+const load = require('./web_harness.cjs');
+
+const web = load();
+const ev = web.ev;
+const out = path.join(__dirname, '..');
+
+// ---------- 데이터 표 ----------
+const T = {
+  W: ev('W'), H: ev('H'), TW: ev('TW'), TH: ev('TH'),
+  mats: ev('MATS.map(m=>({k:m.k,n:m.n,c:m.c,tier:m.tier||0,s2:m.s2,src:m.src}))'),
+  sites: ev('Object.fromEntries(Object.entries(SITES).map(([k,s])=>[k,{n:s.n,drops:s.drops||null,c:s.c,hp:s.hp,regen:s.regen}]))'),
+  landmarks: ev(`(()=>{const r=S&&S.region;return LMS.map(l=>({key:l.key,d:l.d,drops:l.drops,cost:l.cost,desc:l.desc}));})()`),
+  landmarkText: ev(`(()=>{S={region:null};const o={home:LMS.map(l=>[l.name,l.ruin,l.done])};for(const r of Object.keys(LM_REG)){S={region:r};o[r]=LMS.map(l=>[l.name,l.ruin,l.done]);}S=undefined;return o;})()`),
+  traceItem: ev('Object.assign({},TRACE_ITEM)'),
+  shelter: ev('SHELTER'), slots: ev('SLOTS'), cap: ev('CAP'),
+  shupBase: ev('SHUP_BASE.map((c,i)=>({cost:c,need:SHUP[i].need}))'),
+  slotOff: ev('SLOT_OFF'),
+  mods: ev('Object.fromEntries(Object.entries(MODS).map(([k,m])=>[k,{n:m.n,req:m.req,h:m.h,cost:m.cost,fx:[0,1,2].map(l=>m.fx(l))}]))'),
+  modOrder: ev('MOD_ORDER'),
+  walls: ev('WALLS'),
+  // 작업대 단계(1~3)마다 재료가 달라지는 가공법은 단계별로 펼쳐 둔다
+  recipes: ev(`RECIPES.map(r=>({out:r.out,n:r.n||1,lv:r.lv||0,wb:r.wb||0,nm:r.nm||null,d:r.d||null,inp:[1,2,3].map(l=>{S={mods:{0:{id:1,l:l-1}}};const v=r.inp();S=undefined;return v;})}))`),
+  say: ev('SAY'),
+  diary: ev('DIARY'),
+  surv: ev('SURV.map(s=>({id:s.id,name:s.name,age:s.age,job:s.job,src:s.src,d:s.d||0,region:s.region||null,hidden:!!s.hidden,hope:s.hope||0,match:s.match||[]}))'),
+};
+
+const dartStr = s => "'" + String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\$/g, '\\$').replace(/\n/g, '\\n') + "'";
+function dart(v) {
+  if (v === null || v === undefined) return 'null';
+  if (typeof v === 'string') return dartStr(v);
+  if (typeof v === 'number') return Number.isInteger(v) ? String(v) : String(v);
+  if (typeof v === 'boolean') return String(v);
+  if (Array.isArray(v)) return '[' + v.map(dart).join(', ') + ']';
+  return '{' + Object.entries(v).map(([k, x]) => dartStr(k) + ': ' + dart(x)).join(', ') + '}';
+}
+let src = '// 자동 생성 — native/tool/gen_data.cjs 가 웹 버전(index.html)에서 뽑은 값이에요. 직접 고치지 마세요.\n// ignore_for_file: type=lint\n\n';
+for (const [k, v] of Object.entries(T)) src += `const ${k} = ${dart(v)};\n\n`;
+fs.mkdirSync(path.join(out, 'lib/data'), { recursive: true });
+fs.writeFileSync(path.join(out, 'lib/data/web_data.g.dart'), src);
+
+// ---------- 테스트 기준값 ----------
+// 같은 시드로 웹이 만든 지도와 각종 계산 결과. Dart 쪽 테스트가 똑같이 나오는지 확인한다.
+const maps = [];
+for (const seed of [1, 42, 284711989, 777777777, 123456789]) {
+  const m = ev(`(()=>{const {ter,diaryAt}=genMap(${seed});S={seed:${seed},ter,diaryAt,rev:new Array(N).fill(0),hp:new Array(N).fill(-1),m:{},found:[],sv:{},site:{},camp:{},gen:0};
+    for(let y=CY-2;y<=CY+2;y++)for(let x=CX-2;x<=CX+2;x++){const i=y*W+x;if(S.ter[i]===T.WATER||isSlot(i))S.ter[i]=T.ASH;}
+    for(let y=CY-1;y<=CY+1;y++)for(let x=CX-1;x<=CX+1;x++)S.rev[y*W+x]=1;
+    [[3,0,T.RUIN],[-1,-3,T.CAR],[-3,2,T.RUIN],[2,3,T.CRATE]].forEach(([dx,dy,t])=>{const i=(CY+dy)*W+CX+dx;S.ter[i]=t;});
+    const missing=[0,1,2,3,4,5,6].filter(k=>!Object.values(S.diaryAt).includes(k)).length;
+    placeSignals();sprinkle();
+    const r={seed:${seed},missingDiaries:missing,genTer:genMap(${seed}).ter,ter:S.ter.slice(),diaryAt:S.diaryAt,sig:S.sig,trace:S.trace,lm:S.lm,
+      maxHp:[0,21,57,820,C0+5,C0-W*7,1599].map(i=>maxHp(i))};
+    S=undefined;return r;})()`);
+  maps.push(m);
+}
+const rng = ev('(()=>{const r=mulberry(12345),a=[];for(let i=0;i<20;i++)a.push(r());const n=noise(mulberry(9),6),b=[];for(const [x,y] of [[0,0],[3,7],[17,22],[39,39],[25.5,1]])b.push(n(x,y));return {mulberry:a,noise:b};})()');
+// 계산 공식: 상태 몇 가지를 놓고 웹이 낸 값
+const calc = ev(`(()=>{const res=[];
+  const base=()=>({seed:1,ter:new Array(N).fill(0),rev:new Array(N).fill(1),hp:new Array(N).fill(0),diaryAt:{},m:{wood:500,scrap:500,cloth:300,parts:200,fuel:100,food:300,plate:80,rope:40,wire:10,med:5,batt:2},got:{},frac:{},
+    lv:1,mods:{},walls:0,site:{},tapLv:0,splashLv:0,droneLv:0,found:[],sv:{},asg:{},ash:{},camp:{},inv:[],lm:{},sig:{},trace:{},gen:0,hopeB:0});
+  const cases=[
+    {name:'start'},
+    {name:'lv2', lv:2, mods:{0:{id:1,l:0},1:{id:2,l:1},2:{id:9,l:0}}},
+    {name:'lv3', lv:3, tapLv:4, splashLv:2, droneLv:1, mods:{0:{id:1,l:1},1:{id:2,l:2},2:{id:9,l:2},3:{id:3,l:1},4:{id:4,l:0},5:{id:8,l:1},6:{id:5,l:0}}},
+    {name:'lv4gen1', lv:4, gen:1, tapLv:9, mods:{0:{id:1,l:2},1:{id:2,l:2},2:{id:9,l:1},3:{id:9,l:0},4:{id:4,l:2},5:{id:8,l:2},6:{id:5,l:2},7:{id:6,l:1},8:{id:7,l:0}}, half:true},
+    {name:'lv5', lv:5, tapLv:15, splashLv:5, droneLv:8, mods:{0:{id:1,l:2},1:{id:2,l:2},2:{id:2,l:1},3:{id:9,l:2},4:{id:4,l:2},5:{id:8,l:2},6:{id:5,l:1},7:{id:6,l:2},8:{id:7,l:2},9:{id:3,l:2}}},
+  ];
+  for(const c of cases){S=Object.assign(base(),c);delete S.name;recalc();
+    const sites={};for(const k of ['house','car','store','bunker','rubble']){sites[k]=[0,5,12.5].map(d=>siteHp({k,d}));}
+    res.push({name:c.name,state:{lv:S.lv,gen:S.gen,tapLv:S.tapLv,splashLv:S.splashLv,droneLv:S.droneLv,mods:S.mods,half:!!S.half},
+      prod:D.prod,cap:D.cap,hope:D.hope,eat:D.eat,fuelUse:D.fuelUse,tapAdd:D.tapAdd,tapPow:tapPow(),droneDmg:droneDmg(),
+      siteHp:sites,
+      modBuild:Object.fromEntries(MOD_ORDER.map(id=>[id,modBuildCost(id)])),
+      modUp:Object.fromEntries(MOD_ORDER.map(id=>[id,[1,2].map(l=>modCost(id,l))])),
+      shup:S.lv<5?scaleCost(SHUP[S.lv-1].cost,costMult()):null,
+      walls:WALLS.map(w=>scaleCost(w.cost,costMult())),
+      upg:Object.fromEntries(['tap','splash','drone'].map(k=>[k,UPG[k].cost()])),
+      upgWb:Object.fromEntries(['tap','splash','drone'].map(k=>[k,UPG[k].wb()])),
+      capOf:Object.fromEntries(MATS.map(m=>[m.k,capOf(m.k)]))});}
+  S=undefined;return res;})()`);
+fs.mkdirSync(path.join(out, 'test/fixtures'), { recursive: true });
+fs.writeFileSync(path.join(out, 'test/fixtures/web_core.json'), JSON.stringify({ rng, maps, calc }));
+console.log('ok', Object.keys(T).length, 'tables,', maps.length, 'maps,', calc.length, 'calc cases');
+process.exit(0);

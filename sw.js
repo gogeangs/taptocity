@@ -10,6 +10,8 @@ self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.
 self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET')return;
  const u=new URL(r.url);
  if(u.origin!==location.origin)return;
+ // 네이티브 미리보기(native-play/)는 이 게임과 별개 — 가로채지도, 저장하지도 않는다
+ if(u.pathname.includes('/native-play/'))return;
  if(u.origin===location.origin&&(r.mode==='navigate'||u.pathname.endsWith('/')||u.pathname.endsWith('index.html'))){
   e.respondWith(fetch(r.url,{cache:'no-cache',credentials:'same-origin'}).then(res=>{if(!res.ok)throw new Error('Navigation unavailable');const c=res.clone();e.waitUntil(caches.open(CACHE).then(x=>x.put('./index.html',c)));return res;}).catch(()=>caches.match('./index.html')));return;}
  if(u.pathname.includes('/assets/')){e.respondWith(caches.open(IMG).then(c=>c.match(r).then(hit=>{const net=fetch(r,{cache:'no-cache'}).then(res=>{if(res.ok){e.waitUntil(c.put(r,res.clone()));}return res;});

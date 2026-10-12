@@ -1,0 +1,32 @@
+name: taptocity
+description: 탭투시티 — 재 속의 등불 (네이티브)
+publish_to: none
+version: 2.0.0+100
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  # 그림과 글꼴은 저장소의 원본(assets/illustrated, fonts)을 빌드 때 복사해 쓴다 (tool/prepare_assets.sh)
+  assets:
+    - assets/illustrated/
+  fonts:
+    - family: TTCSans
+      fonts:
+        - asset: assets/fonts/ttc-sans.ttf
+    - family: GowunBatang
+      fonts:
+        - asset: assets/fonts/GowunBatang-Regular.ttf
+        - asset: assets/fonts/GowunBatang-Bold.ttf
+          weight: 700
