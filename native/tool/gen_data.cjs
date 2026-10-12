@@ -27,7 +27,23 @@ const T = {
   recipes: ev(`RECIPES.map(r=>({out:r.out,n:r.n||1,lv:r.lv||0,wb:r.wb||0,nm:r.nm||null,d:r.d||null,inp:[1,2,3].map(l=>{S={mods:{0:{id:1,l:l-1}}};const v=r.inp();S=undefined;return v;})}))`),
   say: ev('SAY'),
   diary: ev('DIARY'),
-  surv: ev('SURV.map(s=>({id:s.id,name:s.name,age:s.age,job:s.job,src:s.src,d:s.d||0,region:s.region||null,hidden:!!s.hidden,hope:s.hope||0,match:s.match||[]}))'),
+  surv: ev(`SURV.map(s=>{
+    // 특기 문구 틀: 효과 값을 표식 숫자로 넣어 돌린 뒤, 나온 숫자를 {키:방식} 자리표로 바꾼다
+    const keys=Object.keys(s.eff||{});let tpl='';
+    if(s.trait){const A={},B={};keys.forEach((k,i)=>{A[k]=(9100+i*7)/100;B[k]=9100+i*7;});
+      let t1=s.trait(A),t2=s.trait(B);
+      keys.forEach((k,i)=>{const n=9100+i*7;t1=t1.split(String(n)).join('{'+k+':pc}');});
+      keys.forEach((k,i)=>{const n=9100+i*7;if(t1.includes('{'+k+':pc}'))return;if(t2.includes(String(n)+'.0')){const at=t2.indexOf(String(n)+'.0');const j=t1.indexOf(String((n/100).toFixed(1)));if(j>=0)t1=t1.slice(0,j)+'{'+k+':f1}'+t1.slice(j+String((n/100).toFixed(1)).length);}
+        else if(t2.includes(String(n))){const j=t1.indexOf(String(Math.round(n/100)));if(j>=0)t1=t1.slice(0,j)+'{'+k+':r}'+t1.slice(j+String(Math.round(n/100)).length);}});
+      tpl=t1;}
+    return {id:s.id,name:s.name,age:s.age||0,job:s.job,src:s.src,d:s.d||0,region:s.region||null,hidden:!!s.hidden,alias:s.alias||null,hint:s.hint||null,
+      hope:s.hope||0,need:s.need==null?null:s.need,match:s.match||[],eff:s.eff||{},grade:s.grade==null?0:s.grade,story:s.story||[],trait:tpl};})`),
+  rescue: ev('Object.fromEntries(Object.entries(RESCUE).map(([k,r])=>[k,{need:r.need,why:r.why}]))'),
+  bonds: ev('BONDS.map(b=>({ids:b.ids,name:b.name,txt:b.txt,eff:b.eff,d:b.d}))'),
+  trust: ev('TRUST'),
+  grades: ev('GR.map(g=>({n:g.n||null,m:g.m,cd:g.cd,w:g.w,c:g.c||null}))'),
+  beds: ev('BEDS'),
+  duty: ev('Object.fromEntries(Object.entries(DUTY).map(([k,d])=>[k,{n:d.n,v:d.v,ic:d.ic,d:d.d}]))'),
 };
 
 const dartStr = s => "'" + String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\$/g, '\\$').replace(/\n/g, '\\n') + "'";
@@ -69,11 +85,15 @@ const calc = ev(`(()=>{const res=[];
     {name:'lv2', lv:2, mods:{0:{id:1,l:0},1:{id:2,l:1},2:{id:9,l:0}}},
     {name:'lv3', lv:3, tapLv:4, splashLv:2, droneLv:1, mods:{0:{id:1,l:1},1:{id:2,l:2},2:{id:9,l:2},3:{id:3,l:1},4:{id:4,l:0},5:{id:8,l:1},6:{id:5,l:0}}},
     {name:'lv4gen1', lv:4, gen:1, tapLv:9, mods:{0:{id:1,l:2},1:{id:2,l:2},2:{id:9,l:1},3:{id:9,l:0},4:{id:4,l:2},5:{id:8,l:2},6:{id:5,l:2},7:{id:6,l:1},8:{id:7,l:0}}, half:true},
+    {name:'survivors', lv:3, tapLv:3, mods:{0:{id:1,l:1},1:{id:2,l:2},2:{id:9,l:1},3:{id:3,l:0},4:{id:4,l:1},5:{id:6,l:1}}, sv:{0:{xp:200,at:-1},1:{xp:45,at:-1},3:{xp:900,at:-1,g:1,st:3},4:{xp:10,at:-1},5:{xp:400,at:-1,st:5},6:{xp:0,at:-1}}, asgAt:{0:0,1:4,2:1,3:5,4:6}},
     {name:'lv5', lv:5, tapLv:15, splashLv:5, droneLv:8, mods:{0:{id:1,l:2},1:{id:2,l:2},2:{id:2,l:1},3:{id:9,l:2},4:{id:4,l:2},5:{id:8,l:2},6:{id:5,l:1},7:{id:6,l:2},8:{id:7,l:2},9:{id:3,l:2}}},
   ];
-  for(const c of cases){S=Object.assign(base(),c);delete S.name;recalc();
+  for(const c of cases){S=Object.assign(base(),c);delete S.name;
+    if(c.asgAt){delete S.asgAt;for(const [k,id] of Object.entries(c.asgAt)){const t=slotTile(+k);S.asg[t]=id;S.sv[id].at=t;}}
+    recalc();
     const sites={};for(const k of ['house','car','store','bunker','rubble']){sites[k]=[0,5,12.5].map(d=>siteHp({k,d}));}
     res.push({name:c.name,state:{lv:S.lv,gen:S.gen,tapLv:S.tapLv,splashLv:S.splashLv,droneLv:S.droneLv,mods:S.mods,half:!!S.half},
+      sv:S.sv,asg:S.asg,E:D.E,trait:Object.keys(S.sv).map(id=>[+id,SURV[id].trait(effOf(+id))]),asgMult:Object.keys(S.asg).map(t=>[+t,asgMult(+t)]),
       prod:D.prod,cap:D.cap,hope:D.hope,eat:D.eat,fuelUse:D.fuelUse,tapAdd:D.tapAdd,tapPow:tapPow(),droneDmg:droneDmg(),
       siteHp:sites,
       modBuild:Object.fromEntries(MOD_ORDER.map(id=>[id,modBuildCost(id)])),

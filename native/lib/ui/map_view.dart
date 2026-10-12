@@ -138,6 +138,22 @@ class _MapViewState extends State<MapView> {
     }
     final w = toWorld(p.pos);
     final i = pickTile(w);
+    if (i >= 0 && g.S.rev[i] == 1 && ((g.S.camp[i]?['hp'] as num?) ?? 0) > 0) {
+      p.acted = true;
+      g.setAim(i);
+      g.hitCamp(i, g.tapPow * (g.fever > 0 ? 2 : 1));
+      _after();
+      void again() {
+        final q = ptrs[e.pointer];
+        if (q == null || q.moved || ((g.S.camp[i]?['hp'] as num?) ?? 0) <= 0) return;
+        g.hitCamp(i, g.tapPow * (g.fever > 0 ? 2 : 1));
+        _after();
+        q.hold = Timer(const Duration(milliseconds: 110), again);
+      }
+
+      p.hold = Timer(const Duration(milliseconds: 320), again);
+      return;
+    }
     if (i >= 0 && g.S.rev[i] == 1 && g.siteLive(i)) {
       p.acted = true;
       p.site = i;
@@ -370,6 +386,19 @@ class MapPainter extends CustomPainter {
         }
       }
     }
+    if (g.sel >= 0) {
+      final c = tileC(g.sel);
+      _line
+        ..color = const Color(0xE6FFCF7A)
+        ..strokeWidth = 2.5;
+      final pts = [Offset(c.dx, c.dy - TH / 2), Offset(c.dx + TW / 2, c.dy), Offset(c.dx, c.dy + TH / 2), Offset(c.dx - TW / 2, c.dy)];
+      for (var k = 0; k < 4; k++) {
+        final a = pts[k], b = pts[(k + 1) % 4], len = (b - a).distance;
+        for (var d = 0.0; d < len; d += 14) {
+          canvas.drawLine(a + (b - a) * (d / len), a + (b - a) * (math.min(len, d + 8) / len), _line);
+        }
+      }
+    }
     if (g.aimValid) _aim(canvas);
     // 불빛 (웹 glowPts, 더하기 합성)
     for (final (c, r, col, a) in _glows) {
@@ -462,7 +491,31 @@ class MapPainter extends CustomPainter {
     }
     final camp = S.camp[i];
     if (camp != null) {
-      _prop(canvas, ((camp['hp'] as num?) ?? 0) > 0 ? 1 : 0, c);
+      final hp = (camp['hp'] as num?) ?? 0, mx = (camp['max'] as num?) ?? 1;
+      _prop(canvas, hp > 0 ? 1 : 0, c);
+      final p = P(i, .5, .5, hp > 0 ? 34 : 30);
+      if (hp > 0) {
+        canvas.drawRect(
+            Rect.fromLTWH(p.dx - 2, p.dy - 80, 4, 80),
+            Paint()
+              ..blendMode = BlendMode.plus
+              ..shader = ui.Gradient.linear(p, p.translate(0, -80), const [Color(0x99C8E6FF), Color(0x00C8E6FF)]));
+      }
+      final y = p.dy - 8;
+      _fill.color = hp > 0 ? const Color(0xFFE8F4FF) : const Color(0xFFFFCF7A);
+      canvas.drawCircle(Offset(p.dx, y), 9, _fill);
+      _line
+        ..color = const Color(0xFF3B2A1A)
+        ..strokeWidth = 1.5;
+      canvas.drawCircle(Offset(p.dx, y), 9, _line);
+      final tp = TextPainter(text: TextSpan(text: hp > 0 ? '!' : '?', style: const TextStyle(fontSize: 12, color: Color(0xFF3B2A1A), fontWeight: FontWeight.bold)), textDirection: TextDirection.ltr)..layout();
+      tp.paint(canvas, Offset(p.dx - tp.width / 2, y - tp.height / 2));
+      if (hp > 0) {
+        _fill.color = const Color(0xBF0D0B08);
+        canvas.drawRect(Rect.fromLTWH(p.dx - 20, y + 13, 40, 5), _fill);
+        _fill.color = const Color(0xFFCFE6FF);
+        canvas.drawRect(Rect.fromLTWH(p.dx - 19, y + 14, 38 * (1 - hp / mx).clamp(0.0, 1.0).toDouble(), 3), _fill);
+      }
       return;
     }
     if (t == T.lm) {
@@ -616,8 +669,9 @@ class MapPainter extends CustomPainter {
   /// 조준 표시 (웹 draw의 aimValid 부분): 점선 타원 + 네 방향 눈금 + 남은 체력 막대
   void _aim(Canvas canvas) {
     final S = g.S, aim = g.aim;
-    final site = S.rev[aim] == 1 ? S.site[aim] : null;
-    final c = tileC(aim, site != null ? 8 : 14);
+    final camp = S.rev[aim] == 1 ? S.camp[aim] : null;
+    final site = S.rev[aim] == 1 && camp == null ? S.site[aim] : null;
+    final c = tileC(aim, site != null || camp != null ? 8 : 14);
     const r = 20.0;
     final col = site != null ? const Color(0xF2BEE696) : const Color(0xF2FFDC96);
     _line
@@ -650,7 +704,9 @@ class MapPainter extends CustomPainter {
     }
     const bw = 46.0;
     double f;
-    if (site != null) {
+    if (camp != null) {
+      f = ((camp['hp'] as num?) ?? 0) / ((camp['max'] as num?) ?? 1);
+    } else if (site != null) {
       f = site.hp / g.siteHp(site);
     } else {
       final mh = g.maxHp(aim), cur = S.hp[aim] < 0 ? mh.toDouble() : S.hp[aim];

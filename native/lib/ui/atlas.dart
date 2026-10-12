@@ -11,6 +11,8 @@ class Atlas {
 
   static const files = [
     'shelters.webp', 'modules.webp', 'module-upgrades.webp', 'exploration-sites.webp', 'landmarks.webp', 'settlement-props.webp', 'resources.webp',
+    'survivors-founders.webp', 'survivors-neighbors.webp', 'survivors-signals.webp', 'survivors-frontier.webp', 'survivors-scouts.webp',
+    'residents.webp', 'survivors-silhouettes.webp',
   ];
 
   static Future<void> load() => _loading ??= () async {

@@ -12,6 +12,8 @@ import 'icons.dart';
 import 'map_view.dart';
 import 'sheets.dart';
 import 'theme.dart';
+import 'ring.dart';
+import 'survivors.dart';
 import 'widgets.dart';
 
 class GameScreen extends StatefulWidget {
@@ -95,6 +97,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         Future.delayed(const Duration(milliseconds: 350), () {
           if (mounted) showDiary(context, k);
         });
+      case FxCamp(:final tile):
+        showCampPage(context, g, tile);
+      case FxRescue(:final id, :final via):
+        Future.delayed(const Duration(milliseconds: 250), () {
+          if (mounted) showRescuePage(context, g, id, via);
+        });
       case FxLevelUp(:final lv):
         HapticFeedback.mediumImpact();
         _stamp(lv);
@@ -169,13 +177,40 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   void _open(SheetSpec s) => setState(() {
         sheet = sheet == s ? null : s;
         matsOpen = false;
+        _closeRing();
       });
+
+  // 둥근 빠른 메뉴 (웹 ring)
+  int ringTile = -1;
+  String ringSay = '';
+  int _ringClosedAt = -1;
+  void _closeRing() {
+    ringTile = -1;
+    g.sel = -1;
+  }
+
+  void _openRing(int tile) {
+    final m = g.modAtTile(tile);
+    final says = m == null ? null : modSay[m.id];
+    setState(() {
+      sheet = null;
+      matsOpen = false;
+      ringTile = tile;
+      g.sel = tile;
+      ringSay = says == null || says.isEmpty ? '' : says[DateTime.now().millisecond % says.length];
+    });
+    g.mapVersion.value++;
+  }
+
   void _close() {
-    if (sheet != null || matsOpen) {
+    _ringClosedAt = ringTile;
+    if (sheet != null || matsOpen || ringTile >= 0) {
       setState(() {
         sheet = null;
         matsOpen = false;
+        _closeRing();
       });
+      g.mapVersion.value++;
     }
   }
 
@@ -185,9 +220,18 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         _open(const SheetSpec('shelter'));
       case 'module':
       case 'landmark':
-      case 'camp':
-        _open(SheetSpec(kind, tile: tile));
+        if (_ringClosedAt == tile) {
+          _ringClosedAt = -1; // 같은 건물을 다시 누르면 닫기만
+        } else {
+          _openRing(tile);
+        }
     }
+  }
+
+  void _flyTo(int tile) {
+    final w = tileC(tile);
+    setState(() => sheet = null);
+    cam.set(w.dx, w.dy);
   }
 
   void _reset() {
@@ -226,8 +270,18 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         return SheetPanel(icon: Ico.diary, title: '일지', onClose: _close, child: Builder(builder: (c) => diaryBody(c, g)));
       case 'settings':
         return SheetPanel(icon: Ico.gear, title: '설정', onClose: _close, child: SettingsBody(g, onReset: _reset));
+      case 'assign':
+        return SheetPanel(
+            icon: Ico.surv,
+            title: '${g.workName(s.tile)}에서 일할 사람',
+            onClose: _close,
+            child: assignBody(g, s.tile, onDone: () {
+              setState(() => sheet = null);
+              _openRing(s.tile);
+            }));
       case 'surv':
-        return SheetPanel(icon: Ico.surv, title: '생존자', onClose: _close, child: comingBody('생존자', '2단계'));
+        final n = g.S.sv.length, total = survivors.where((x) => x.src != 'town' || g.S.gen != 0 || g.hasSv(x.id)).length;
+        return SheetPanel(icon: Ico.surv, title: '생존자 수첩 $n/$total', onClose: _close, child: SurvBody(g, onOpen: (id) => showSurvPage(context, g, id), onFly: _flyTo));
       case 'exp':
         return SheetPanel(icon: Ico.exp, title: '원정', onClose: _close, child: comingBody('원정', '4단계'));
       default:
@@ -320,6 +374,25 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                     onTap: (k) => _open(SheetSpec(const ['surv', 'exp', 'shelter', 'radio', 'diary'][k])),
                   ),
                 ),
+                if (ringTile >= 0)
+                  Positioned.fill(
+                    child: AnimatedBuilder(
+                      animation: Listenable.merge([cam, g]),
+                      builder: (c, _) => RingMenu(
+                        g: g,
+                        cam: cam,
+                        tile: ringTile,
+                        say: ringSay,
+                        toast: fxc.toast,
+                        onClose: _close,
+                        onAssign: () {
+                          final t = ringTile;
+                          _open(SheetSpec('assign', tile: t));
+                        },
+                        onShelter: () => _open(const SheetSpec('shelter')),
+                      ),
+                    ),
+                  ),
                 if (matsOpen) Positioned(left: 8, right: 8, top: 4, child: AnimatedBuilder(animation: g, builder: (c, _) => _MatsAll(g))),
                 if (_stampText != null) Center(child: _Stamp(_stampText!)),
               ]),

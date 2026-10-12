@@ -107,18 +107,92 @@ final Map<int, List<String>> modSay = {for (final e in web.say.entries) int.pars
 final List<(String, String)> diaries = [for (final d in web.diary) (d[0], d[1])];
 
 class SurvInfo {
-  const SurvInfo(this.id, this.name, this.job, this.src, this.d, this.region, this.hidden);
-  final int id;
-  final String name, job, src;
-  final double d;
-  final String? region;
+  const SurvInfo({
+    required this.id, required this.name, required this.age, required this.job, required this.src, required this.d, required this.region,
+    required this.hidden, required this.alias, required this.hint, required this.hope, required this.need, required this.match,
+    required this.eff, required this.grade, required this.story, required this.trait,
+  });
+  final int id, age, grade;
+  final String name, job, src, trait;
+  final double d, hope;
+  final String? region, alias, hint;
   final bool hidden;
+  final int? need;
+  final List<int> match;
+  final Map<String, double> eff;
+  final List<String> story;
 }
 
 final List<SurvInfo> survivors = [
   for (final s in web.surv)
-    SurvInfo(s['id'] as int, s['name'] as String, s['job'] as String, s['src'] as String, (s['d'] as num).toDouble(), s['region'] as String?, s['hidden'] as bool),
+    SurvInfo(
+      id: s['id'] as int,
+      name: s['name'] as String,
+      age: s['age'] as int,
+      job: s['job'] as String,
+      src: s['src'] as String,
+      d: (s['d'] as num).toDouble(),
+      region: s['region'] as String?,
+      hidden: s['hidden'] as bool,
+      alias: s['alias'] as String?,
+      hint: s['hint'] as String?,
+      hope: (s['hope'] as num).toDouble(),
+      need: s['need'] as int?,
+      match: [for (final m in s['match'] as List) m as int],
+      eff: {for (final e in (s['eff'] as Map).entries) e.key as String: (e.value as num).toDouble()},
+      grade: s['grade'] as int,
+      story: [for (final t in s['story'] as List) t as String],
+      trait: s['trait'] as String,
+    ),
 ];
+
+/// 구조에 필요한 것 (웹 RESCUE)
+final Map<int, (Cost, String)> rescueNeed = {
+  for (final e in web.rescue.entries) int.parse(e.key): (_cost(e.value['need']), e.value['why'] as String),
+};
+
+class Bond {
+  const Bond(this.ids, this.name, this.txt, this.eff, this.d);
+  final List<int> ids;
+  final String name, txt, d;
+  final Map<String, double> eff;
+}
+
+final List<Bond> bonds = [
+  for (final b in web.bonds)
+    Bond([for (final i in b['ids'] as List) i as int], b['name'] as String, b['txt'] as String,
+        {for (final e in (b['eff'] as Map).entries) e.key as String: (e.value as num).toDouble()}, b['d'] as String),
+];
+
+final List<int> trustXp = List<int>.of(web.trust);
+final List<int> bedsByLv = List<int>.of(web.beds);
+
+class GradeInfo {
+  const GradeInfo(this.n, this.m, this.cd, this.w, this.color);
+  final String? n;
+  final double m, cd, w;
+  final int color;
+}
+
+final List<GradeInfo> grades = [
+  for (final g in web.grades)
+    GradeInfo(g['n'] as String?, (g['m'] as num).toDouble(), (g['cd'] as num).toDouble(), (g['w'] as num).toDouble(),
+        g['c'] == null ? 0xFF8A8479 : int.parse((g['c'] as String).substring(1), radix: 16) | 0xFF000000),
+];
+
+final Map<String, (String, String, String, String)> duties = {
+  for (final e in web.duty.entries) e.key: (e.value['n'] as String, e.value['v'] as String, e.value['ic'] as String, e.value['d'] as String),
+};
+
+/// 특기 문구: '{tap:pc}' → 백분율, '{hope:r}' → 반올림, '{fever:f1}' → 소수 한 자리
+String traitText(SurvInfo s, Map<String, double> v) => s.trait.replaceAllMapped(RegExp(r'\{(\w+):(\w+)\}'), (m) {
+      final x = v[m[1]] ?? 0;
+      return switch (m[2]) {
+        'pc' => '${(x * 100 + .5).floor()}',
+        'r' => '${(x + .5).floor()}',
+        _ => x.toStringAsFixed(1),
+      };
+    });
 
 /// 한국어 조사: jo('목재','을','를') → '목재를'
 String jo(String w, String a, String b) {

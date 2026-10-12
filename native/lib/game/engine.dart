@@ -41,6 +41,17 @@ class FxLevelUp extends Fx {
   final int lv;
 }
 
+class FxCamp extends Fx {
+  const FxCamp(this.tile);
+  final int tile;
+}
+
+class FxRescue extends Fx {
+  const FxRescue(this.id, this.via);
+  final int id;
+  final String via;
+}
+
 class FxOffline extends Fx {
   const FxOffline(this.seconds, this.got);
   final double seconds;
@@ -146,6 +157,7 @@ class Game extends ChangeNotifier {
 
   // ---------- 손맛 ----------
   double combo = 0, idle = 0, fever = 0, feverT = 6;
+  int sel = -1; // 빠른 메뉴로 고른 칸 (저장하지 않음)
   int aim = -1;
   (int, int) aimDir = (0, -1);
   final Set<int> frontier = {};
@@ -401,7 +413,14 @@ class Game extends ChangeNotifier {
   // ================= 파생 값 다시 계산 (웹 recalc 1837) =================
   void recalc() {
     final e = <String, double>{'scav': 0, 'tap': 0, 'thrift': 0, 'hope': 0, 'food': 0, 'cost': 0, 'craft': 0, 'fever': 0, 'global': 0};
-    // 생존자·인연·장비 효과는 2단계, 유물·아이·펫·탑·잔치·동네·장식 효과(웹 extraEff 4108)는 4~6단계에서 옮긴다
+    // 웹 calcEff (1833): 일터에 있는 생존자의 특기 + 인연. 장비 효과는 2단계 후반, 유물·아이·펫·탑·잔치·동네·장식(웹 extraEff 4108)은 4~6단계
+    for (final id in svIds) {
+      if (atOf(id) < 0 || busy(id)) continue;
+      effOf(id).forEach((k, v) => e[k] = (e[k] ?? 0) + v);
+    }
+    for (final b in bonds) {
+      if (b.ids.every(hasSv)) b.eff.forEach((k, v) => e[k] = (e[k] ?? 0) + v);
+    }
     // 이주한 동네 수만큼: 모든 생산 +10%, 두드리는 힘 +10%
     if (S.gen > 0) {
       e['global'] = e['global']! + .1 * S.gen;
@@ -425,7 +444,7 @@ class Game extends ChangeNotifier {
       final m = en.value, l = m.l, t = slotTile(en.key);
       final ash = S.ash['$t'];
       final stuck = ash is Map && ash['stuck'] == true;
-      final pm = stuck ? 0.0 : 1.0; // 배치 배수(asgMult)는 2단계
+      final pm = stuck ? 0.0 : asgMult(t);
       final q = stuck ? 0.0 : 1 + (pm - 1) * .5;
       switch (m.id) {
         case 2:
@@ -466,7 +485,7 @@ class Game extends ChangeNotifier {
           expDisc = math.max(expDisc, const [0.0, .1, .2][l]);
       }
     }
-    final home = S.sv.values.where((r) => !(r is Map && r['away'] != null && r['away'] != false && r['away'] != 0)).length;
+    final home = svIds.where((id) => !_truthy(rec(id)?['away'])).length;
     eat = home * 1 * (1 - e['thrift']!) * (1 - math.min(.7, waterRed));
     fuelUse = fUse;
     tapAdd = tAdd;
@@ -551,7 +570,11 @@ class Game extends ChangeNotifier {
   }
 
   bool get aimValid =>
-      aim >= 0 && (frontier.contains(aim) || siteLive(aim) || (S.site[aim]?.k == 'lm' && (S.site[aim]?.c ?? 0) > 0 && !(S.lm[aim]?.ok ?? true)));
+      aim >= 0 &&
+      (frontier.contains(aim) ||
+          (S.rev[aim] == 1 && ((S.camp[aim]?['hp'] as num?) ?? 0) > 0) ||
+          siteLive(aim) ||
+          (S.site[aim]?.k == 'lm' && (S.site[aim]?.c ?? 0) > 0 && !(S.lm[aim]?.ok ?? true)));
 
   // ================= 두드리기 (웹 2402–2462) =================
   int get comboMax => lmOn('gas') ? 16 : 24;
@@ -658,15 +681,269 @@ class Game extends ChangeNotifier {
     fx.add(FxBurst(i, 0xFFFFE68A, 14));
   }
 
-  void makeCamp(int i, int id) {
-    if (S.sv.containsKey('$id')) return;
+  /// 웹 makeCamp (3080): 구조 신호 자리(잔해) 또는 쉘터 앞 손님
+  void makeCamp(int i, int id, {bool visit = false}) {
+    if (hasSv(id)) return;
     final hp = jsRound(14 + dist(i) * 2.6);
-    S.camp[i] = {'id': id, 'hp': hp, 'max': hp, 'visit': false};
+    S.camp[i] = {'id': id, 'hp': visit ? 0 : hp, 'max': visit ? 1 : hp, 'visit': visit};
     S.hp[i] = 0;
     S.site.remove(i);
-    S.ter[i] = T.ash;
+    if (!visit) S.ter[i] = T.ash;
     fx.add(FxBurst(i, 0xFFCFE6FF, 24));
-    fx.add(const FxToast('생존자를 찾았어요! 잔해를 치우고 구조해요'));
+    fx.add(FxToast(visit ? '${jo(survivors[id].name, '이', '가')} 쉘터 앞에 찾아왔어요!' : '생존자를 찾았어요! 잔해를 치우고 구조해요'));
+    _mapChanged();
+  }
+
+  // ================= 생존자 (웹 1489–1545, 2639–2662, 3058–3110, 4116–4160) =================
+  static bool _truthy(Object? v) => v != null && v != false && v != 0 && v != '';
+  Iterable<int> get svIds => (S.sv.keys.map(int.tryParse).whereType<int>().toList()..sort());
+  bool hasSv(int id) => S.sv['$id'] is Map;
+  Map? rec(int id) => S.sv['$id'] is Map ? S.sv['$id'] as Map : null;
+  num xpOf(int id) => (rec(id)?['xp'] as num?) ?? 0;
+  int atOf(int id) => ((rec(id)?['at'] as num?) ?? -1).toInt();
+  bool busy(int id) {
+    final r = rec(id);
+    return r != null && (_truthy(r['away']) || ((r['hurt'] as num?) ?? 0) > 0);
+  }
+
+  bool isDead(int id) => _dead(S, id);
+  bool inStay(int id) => _inStay(S, id);
+
+  static int trustLv(num xp) {
+    var l = 0;
+    while (l < 5 && xp >= trustXp[l]) {
+      l++;
+    }
+    return l;
+  }
+
+  int gradeOf(int id) => (rec(id)?['g'] as num?)?.toInt() ?? survivors[id].grade;
+  int starOf(int id) {
+    final st = (rec(id)?['st'] as num?)?.toInt() ?? 0;
+    return st > 0 ? st : 1;
+  }
+
+  /// 웹 pw(): 등급 사이를 별로 보간 (5성은 다음 등급까지 80%)
+  ({double m, double w, double cd}) pw(int id) {
+    final g = gradeOf(id), st = starOf(id);
+    final a = grades[g], b = grades[math.min(g + 1, grades.length - 1)], f = .8 * (st - 1) / 4;
+    return (m: a.m + (b.m - a.m) * f, w: a.w + (b.w - a.w) * f, cd: a.cd + (b.cd - a.cd) * f);
+  }
+
+  /// 웹 effOf (1520): 신뢰도·등급만큼 커지는 특기 효과
+  Map<String, double> effOf(int id) {
+    final sc = 1 + .25 * (trustLv(xpOf(id)) - 1), gm = pw(id).m;
+    return {for (final e in survivors[id].eff.entries) e.key: e.value * math.max(1, sc) * gm};
+  }
+
+  String traitOf(int id) => traitText(survivors[id], effOf(id));
+
+  /// 웹 asgMult (1832): 딱 맞는 일터면 ×(2+등급), 아니면 ×1.3, 신뢰도마다 +10%
+  double asgMult(int tile) {
+    final id = S.asg[tile];
+    if (id == null || !hasSv(id) || busy(id)) return 1;
+    final m = modAtTile(tile);
+    return ((m != null && survivors[id].match.contains(m.id)) ? 2 + pw(id).w : 1.3) * (1 + .1 * (trustLv(xpOf(id)) - 1));
+  }
+
+  int get bedsMax => bedsByLv[S.lv - 1] + ((S.rest['carry'] as num?) ?? 0).toInt();
+  int get bedsUsed => S.sv.length;
+  int get bedFree => bedsMax - bedsUsed;
+  Cost campNeed(int id) => scaleCost(rescueNeed[id]!.$1, 1);
+  bool campReady(int i) {
+    final c = S.camp[i];
+    if (c == null) return false;
+    final id = (c['id'] as num).toInt();
+    return ((c['hp'] as num?) ?? 0) <= 0 && canPay(campNeed(id)) && bedFree > 0;
+  }
+
+  /// 웹 hitCamp (3085): 잔해를 두드려 치우고, 다 치우면 구조
+  void hitCamp(int i, double amt) {
+    final c = S.camp[i];
+    if (c == null) return;
+    if (((c['hp'] as num?) ?? 0) <= 0) {
+      if (campReady(i)) {
+        doRescue(i);
+      } else {
+        fx.add(FxCamp(i));
+      }
+      return;
+    }
+    addCombo();
+    c['hp'] = (c['hp'] as num) - amt;
+    fx.add(FxBurst(i, 0xFFC9B48F, 7));
+    if ((c['hp'] as num) <= 0) {
+      c['hp'] = 0;
+      fx.add(FxBurst(i, 0xFFFFD98A, 24));
+      fx.add(FxFloat(i, '잔해를 치웠다!', 0xFFFFE6A0, rise: 30));
+      if (aim == i) aim = -1;
+      if (campReady(i)) {
+        doRescue(i);
+      } else {
+        fx.add(FxCamp(i));
+      }
+    }
+    dirty = true;
+    _mapChanged();
+  }
+
+  void doRescue(int i) {
+    final c = S.camp[i];
+    if (c == null || ((c['hp'] as num?) ?? 0) > 0 || bedFree <= 0) return;
+    final id = (c['id'] as num).toInt();
+    if (!pay(campNeed(id))) return;
+    S.camp.remove(i);
+    fx.add(FxBurst(i, 0xFFFFD98A, 30));
+    rescue(id, c['visit'] == true ? 'visit' : 'sig');
+  }
+
+  /// 웹 rescue (2643)
+  void rescue(int id, String via) {
+    if (hasSv(id) || isDead(id)) return;
+    S.sv['$id'] = {'xp': 0, 'at': -1};
+    if (S.rest['party'] is! List) S.rest['party'] = <Object?>[];
+    final party = S.rest['party'] as List;
+    if (party.length < 3) party.add(id);
+    recalc();
+    fx.add(FxRescue(id, via));
+    _changed();
+  }
+
+  Cost giftCost(int id) => {'food': (6 * math.pow(2.5, trustLv(xpOf(id)) - 1)).ceil()};
+  bool gift(int id) {
+    final r = rec(id);
+    if (r == null) return false;
+    final l = trustLv(xpOf(id));
+    if (l >= 5 || !pay(giftCost(id))) return false;
+    r['xp'] = xpOf(id) + math.max(20, ((trustXp[l] - trustXp[l - 1]) * .45).ceil());
+    final a = trustLv(xpOf(id));
+    if (a > l) {
+      fx.add(FxToast('${survivors[id].name} 신뢰도 $a! 새 사연이 열렸어요'));
+      recalc();
+    }
+    _changed();
+    return true;
+  }
+
+  void unassign(int tile) {
+    final id = S.asg[tile];
+    if (id == null) return;
+    rec(id)?['at'] = -1;
+    S.asg.remove(tile);
+  }
+
+  void assign(int tile, int id) {
+    final r = rec(id);
+    if (r == null || modAtTile(tile) == null) return;
+    final at = atOf(id);
+    if (at >= 0) S.asg.remove(at);
+    unassign(tile);
+    S.asg[tile] = id;
+    r['at'] = tile;
+    recalc();
+    fx.add(FxBurst(tile, 0xFFFFD98A, 16));
+    fx.add(FxFloat(tile, '${survivors[id].name} 합류!', 0xFFFFE6A0, rise: 30));
+    _changed();
+  }
+
+  String workName(int at) {
+    final m = modAtTile(at);
+    return m != null ? mods[m.id]!.n : '쉘터';
+  }
+
+  String dutyOf(int id) {
+    final d = rec(id)?['duty'];
+    return d is String && duties.containsKey(d) ? d : 'gather';
+  }
+
+  String statusOf(int id) {
+    final r = rec(id)!;
+    if (_truthy(r['away'])) return '원정 중';
+    if (((r['hurt'] as num?) ?? 0) > 0) return '다쳐서 쉬는 중';
+    final at = atOf(id);
+    if (at >= 0) return '${workName(at)}에서 일하는 중';
+    return duties[dutyOf(id)]!.$2;
+  }
+
+  /// 웹 visitorTile (3097)
+  int visitorTile() {
+    var best = -1;
+    var bd = 1e9;
+    for (var i = 0; i < N; i++) {
+      if (S.rev[i] == 0 || isSlot(i) || S.ter[i] == T.water || S.ter[i] == T.lm || (S.site[i] != null && S.site[i]!.c > 0) || S.camp.containsKey(i)) continue;
+      final d = (dist(i) - 3.2).abs() + speck[i] * .3;
+      if (d < bd) {
+        bd = d;
+        best = i;
+      }
+    }
+    return best;
+  }
+
+  void _tickVisitors() {
+    for (final s in survivors) {
+      if (s.src != 'visit' || hasSv(s.id) || isDead(s.id) || inStay(s.id) || S.camp.values.any((c) => c['id'] == s.id)) continue;
+      if (hope >= s.hope * (1 - visitDisc) && (s.need == null || hasSv(s.need!))) {
+        final t = visitorTile();
+        if (t >= 0) makeCamp(t, s.id, visit: true);
+        break;
+      }
+    }
+  }
+
+  /// 웹 tickSurv (2659): 다친 사람 회복, 일하는 사람 신뢰 쌓기, 손님 맞기
+  void _tickSurv() {
+    var ch = false;
+    for (final id in svIds) {
+      final r = rec(id)!;
+      final hurt = (r['hurt'] as num?) ?? 0;
+      if (hurt > 0) {
+        r['hurt'] = hurt - heal;
+        if ((r['hurt'] as num) <= 0) {
+          r['hurt'] = 0;
+          ch = true;
+          fx.add(FxToast('${jo(survivors[id].name, '이', '가')} 다 나았어요'));
+        }
+        continue;
+      }
+      if (atOf(id) < 0 || _truthy(r['away']) || hungry) continue;
+      final b = trustLv(xpOf(id));
+      r['xp'] = xpOf(id) + (lmOn('school') ? 1.5 : 1) * trustM;
+      final a = trustLv(xpOf(id));
+      if (a > b) {
+        ch = true;
+        fx.add(FxToast('${survivors[id].name} 신뢰도 $a! 새 사연이 열렸어요'));
+      }
+    }
+    if (ch) recalc();
+    _tickVisitors();
+  }
+
+  int _dutyT = 0;
+
+  /// 웹 tickDuty (4136): 쉬는 사람의 일. 훈련(신뢰 절반), 주워 오기(25초마다 기본 자재). 순찰·아이 돌보기는 3·4단계
+  void _tickDuty() {
+    _dutyT++;
+    final ids = svIds.where((id) => atOf(id) < 0 && !busy(id) && !(((rec(id)!['hurt'] as num?) ?? 0) > 0)).toList();
+    if (ids.isEmpty) return;
+    for (final id in ids) {
+      final d = dutyOf(id);
+      if (d == 'train' && !hungry) {
+        final b = trustLv(xpOf(id));
+        rec(id)!['xp'] = xpOf(id) + .5 * trustM;
+        final a = trustLv(xpOf(id));
+        if (a > b) {
+          fx.add(FxToast('${survivors[id].name} 신뢰도 $a! 새 사연이 열렸어요'));
+          recalc();
+        }
+      }
+    }
+    if (_dutyT % 25 == 0) {
+      for (final id in ids.where((id) => dutyOf(id) == 'gather')) {
+        final k = baseMats[rnd.nextInt(baseMats.length)];
+        loot({k: math.max(1, jsRound(2.4 * lvScale))}, C0);
+      }
+    }
   }
 
   Map<String, int> loot(Map<String, num> o, int tile) {
@@ -741,7 +1018,9 @@ class Game extends ChangeNotifier {
       if (aim < 0) return;
     }
     final pw = tapPow * (fever > 0 ? 2 : 1);
-    if (S.rev[aim] == 1 && S.site[aim] != null) {
+    if (S.rev[aim] == 1 && S.camp[aim] != null) {
+      hitCamp(aim, pw);
+    } else if (S.rev[aim] == 1 && S.site[aim] != null) {
       hitSite(aim, pw);
     } else {
       dig(aim);
@@ -758,7 +1037,15 @@ class Game extends ChangeNotifier {
         return 'site';
       }
       if (i == C0) return 'shelter';
-      if (S.camp.containsKey(i)) return 'camp';
+      if (S.camp.containsKey(i)) {
+        if (((S.camp[i]!['hp'] as num?) ?? 0) > 0) {
+          setAim(i);
+          hitCamp(i, tapPow * (fever > 0 ? 2 : 1));
+          return 'camphit';
+        }
+        hitCamp(i, 0);
+        return 'campdone';
+      }
       if (modAtTile(i) != null) return 'module';
       if (S.ter[i] == T.lm) return 'landmark';
       return 'none';
@@ -790,7 +1077,8 @@ class Game extends ChangeNotifier {
     S.hp[t] = 0;
     S.site.remove(t);
     if (S.ter[t] != T.ash) S.ter[t] = T.ash;
-    // 구조 신호가 있던 자리는 2단계에서 바로 구조로 이어진다
+    final id = S.sig.remove(t);
+    if (id != null) rescue(id, 'sig');
   }
 
   bool canBuild(int id) => freeSlot() >= 0 && (modN(id) == 0 || repeatable.contains(id)) && S.lv >= mods[id]!.req && canPay(modBuildCost(id));
@@ -975,6 +1263,8 @@ class Game extends ChangeNotifier {
     while (_acc >= 1) {
       _acc -= 1;
       if (_tickSites()) _mapChanged();
+      _tickSurv();
+      _tickDuty();
       if (S.droneLv > 0) {
         final i = frontierNearest();
         if (i >= 0) {

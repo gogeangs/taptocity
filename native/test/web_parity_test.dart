@@ -77,7 +77,16 @@ void main() {
       s.droneLv = st['droneLv'] as int;
       s.half = st['half'] as bool;
       (st['mods'] as Map).forEach((k, v) => s.mods[int.parse(k as String)] = Mod((v as Map)['id'] as int, v['l'] as int));
+      (c['sv'] as Map).forEach((k, v) => s.sv[k as String] = Map<String, Object?>.from(v as Map));
+      (c['asg'] as Map).forEach((k, v) => s.asg[int.parse(k as String)] = v as int);
       final g = Game(s);
+      for (final t in c['trait'] as List) {
+        expect(g.traitOf(t[0] as int), t[1], reason: '특기 문구 ${t[0]}');
+      }
+      for (final t in c['asgMult'] as List) {
+        expect(g.asgMult(t[0] as int), closeTo((t[1] as num).toDouble(), 1e-9), reason: '배치 배수 ${t[0]}');
+      }
+      (c['E'] as Map).forEach((k, v) => expect(g.E[k] ?? 0, closeTo((v as num).toDouble(), 1e-9), reason: '효과 $k'));
 
       Map<String, double> dbl(Object? m) => {for (final e in (m as Map).entries) e.key as String: (e.value as num).toDouble()};
       Map<String, num> cost(Object? m) => {for (final e in (m as Map).entries) e.key as String: e.value as num};
@@ -122,6 +131,29 @@ void main() {
     expect(back.ter, s.ter);
     expect(back.rest['future'], {'아직': '옮기지 않은 필드'});
     expect(jsonEncode(back.toJson()), jsonEncode(s.toJson()));
+  });
+
+  test('구조 신호를 밝히면 캠프가 생기고, 잔해를 치우고 자재를 내면 구조된다', () {
+    final g = Game(Game.fresh(seed: 42));
+    final sig = g.S.sig.entries.first;
+    g.reveal(sig.key);
+    expect(g.S.camp[sig.key]?['id'], sig.value);
+    g.S.m.addAll({for (final e in g.campNeed(sig.value).entries) e.key: e.value});
+    var n = 0;
+    while (g.S.camp.containsKey(sig.key) && n++ < 500) {
+      g.hitCamp(sig.key, 5);
+    }
+    expect(g.hasSv(sig.value), isTrue);
+    expect(g.bedsUsed, 1);
+    // 일터에 배치하면 효과가 붙고 신뢰가 쌓인다
+    g.S.m.addAll({'wood': 999, 'scrap': 999});
+    g.buildMod(1);
+    final tile = g.modAt.keys.first;
+    g.assign(tile, sig.value);
+    expect(g.atOf(sig.value), tile);
+    final xp0 = g.xpOf(sig.value);
+    g.tick(5);
+    expect(g.xpOf(sig.value), greaterThan(xp0));
   });
 
   test('구름을 두드리면 밝혀지고, 경계가 이어진다', () {
