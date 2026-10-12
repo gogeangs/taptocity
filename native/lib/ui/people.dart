@@ -1,16 +1,20 @@
 // 지도 위를 걷는 생존자 (웹 tickLife 3907 · drawLife · drawWorker · drawBubbles, 그림은 people.js).
 // 보여 주기만 한다: 게임 상태를 바꾸지 않는다.
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
 import '../data/web_data.g.dart' as web;
 import '../game/data.dart';
 import '../game/engine.dart';
+import 'atlas.dart';
 import 'map_view.dart';
 
 class Walk {
-  Walk(this.x, this.y, {this.idle = 0, this.brk = 0}) : tx = x, ty = y;
+  Walk(this.x, this.y, {this.idle = 0, this.brk = 0})
+      : tx = x,
+        ty = y;
   double x, y, tx, ty, idle, brk;
   double face = 1;
   bool mv = false;
@@ -29,6 +33,11 @@ class Life {
   Life(this.g);
   final Game g;
   final Map<int, Walk> walk = {};
+  final List<Walk> kids = [];
+  final Map<String, Walk> pets = {};
+  Offset? petTap; // 마지막으로 누른 곳 (동행 펫이 달려온다)
+  double petTapT = 0;
+  final List<(double, double, double, double)> hearts = []; // x, y, 시간, 흔들림
   final _r = math.Random();
   double _chatT = 8;
   Chat? chat;
@@ -163,7 +172,99 @@ class Life {
     return [if (sa.isNotEmpty) (a, sa[r % sa.length]), if (sb.isNotEmpty) (b, sb[(r + 1) % sb.length])];
   }
 
-  bool get busy => walk.isNotEmpty || g.S.asg.isNotEmpty;
+  bool get busy => walk.isNotEmpty || g.S.asg.isNotEmpty || kids.isNotEmpty || pets.isNotEmpty;
+
+  /// 아이들·펫 걷기 (웹 tickKidWalk · petWalk)
+  void stepKidsPets(double dt) {
+    final night = g.isNight, c = tileC(C0);
+    final n = g.kids.length;
+    while (kids.length < n) {
+      kids.add(Walk(c.dx + 20, c.dy + 18));
+    }
+    if (kids.length > n) kids.removeRange(n, kids.length);
+    for (final w in kids) {
+      final dx = w.tx - w.x, dy = w.ty - w.y, d = math.sqrt(dx * dx + dy * dy);
+      if (d > 2) {
+        final s = (night ? 20 : 24) * dt;
+        w.x += dx / d * math.min(s, d);
+        w.y += dy / d * math.min(s, d);
+        w.face = dx >= 0 ? 1 : -1;
+        w.mv = true;
+      } else {
+        w.mv = false;
+        w.idle -= dt;
+        if (w.idle <= 0) {
+          final p = _spot(night);
+          w.tx = p.dx;
+          w.ty = p.dy;
+          w.idle = 1 + _r.nextDouble() * 3;
+        }
+      }
+    }
+    petTapT += dt;
+    final own = g.pets;
+    pets.removeWhere((k, _) => !g.petHere(k));
+    for (final k in own.keys) {
+      if (!g.petHere(k)) continue;
+      final w = pets.putIfAbsent(k, () => Walk(c.dx + (_r.nextDouble() - .5) * 50, c.dy + 14 + (_r.nextDouble() - .5) * 20)..tx = c.dx..ty = c.dy);
+      var sp = 26.0;
+      if (k == g.petOn) {
+        if (petTap != null && petTapT < 5) {
+          w.tx = petTap!.dx + 16;
+          w.ty = petTap!.dy + 8;
+          sp = 90;
+        } else if (walk.isNotEmpty) {
+          final t0 = walk.values.first;
+          w.tx = t0.x + 10;
+          w.ty = t0.y + 4;
+          sp = 40;
+        } else {
+          w.tx = c.dx + 26;
+          w.ty = c.dy + 16;
+        }
+      } else if (w.idle <= 0 && math.sqrt(math.pow(w.tx - w.x, 2) + math.pow(w.ty - w.y, 2)) < 3) {
+        final p = _spot(night);
+        w.tx = p.dx;
+        w.ty = p.dy;
+        w.idle = 2 + _r.nextDouble() * 4;
+      }
+      final dx = w.tx - w.x, dy = w.ty - w.y, d = math.sqrt(dx * dx + dy * dy);
+      w.mv = d > 4;
+      if (w.mv) {
+        final s = math.min(d, sp * dt * (k == 'turtle' ? .4 : 1));
+        w.x += dx / d * s;
+        w.y += dy / d * s;
+        if (dx.abs() > 1) w.face = dx > 0 ? 1 : -1;
+      } else {
+        w.idle -= dt;
+      }
+    }
+    for (var q = 0; q < hearts.length; q++) {
+      final h = hearts[q];
+      hearts[q] = (h.$1, h.$2, h.$3 + dt, h.$4);
+    }
+    hearts.removeWhere((h) => h.$3 >= 1.2);
+  }
+
+  /// 세계 좌표 가까이의 펫
+  String? petAt(Offset w, double reach) {
+    String? best;
+    var bd = reach * reach;
+    pets.forEach((k, p) {
+      final d = (Offset(p.x, p.y - 8) - w).distanceSquared;
+      if (d < bd) {
+        bd = d;
+        best = k;
+      }
+    });
+    return best;
+  }
+
+  void heartsAt(double x, double y) {
+    for (var q = 0; q < 3; q++) {
+      hearts.add((x + (q - 1) * 5, y - 14, -q * .12, q * 2.0));
+    }
+  }
 
   /// 세계 좌표 가까이의 사람 (웹 personAt)
   int? personAt(Offset w, double reach) {
@@ -196,16 +297,16 @@ const _styles = [
 
 Color _hex(Object? s, Color d) => s is String && s.startsWith('#') && s.length == 7 ? Color(int.parse(s.substring(1), radix: 16) | 0xFF000000) : d;
 
-void drawPerson(Canvas g, int id, double x, double y, double time, bool moving, double face, String? job) {
-  final sv = survivors[id];
-  final L = (id < web.surv.length ? web.surv[id]['look'] : null) as Map? ?? const {};
-  final st = id < _styles.length ? _styles[id] : null;
+void drawPerson(Canvas g, int id, double x, double y, double time, bool moving, double face, String? job, {Map? look, int? age}) {
+  final svAge = age ?? survivors[id].age;
+  final L = look ?? (id >= 0 && id < web.surv.length ? web.surv[id]['look'] : null) as Map? ?? const {};
+  final st = look == null && id >= 0 && id < _styles.length ? _styles[id] : null;
   final top = st != null ? Color(st.$1) : _hex(L['top'], const Color(0xFF6E7B77));
   final acc = st?.$2 ?? (L['acc'] as String? ?? '');
   final hair = st?.$3 ?? 'short';
   final skin = _hex(L['skin'], const Color(0xFFD5AC88)), hairC = _hex(L['hair'], _ink);
-  final child = sv.age < 13, scale = child ? .78 : sv.age < 18 ? .9 : 1.0, width = st?.$4 ?? .94;
-  final phase = time / (child ? 135 : 165) + id * .71;
+  final child = svAge < 13, scale = child ? .78 : svAge < 18 ? .9 : 1.0, width = st?.$4 ?? .94;
+  final phase = time / (child ? 135 : 165) + math.max(0, id) * .71;
   final stride = moving ? math.sin(phase) * 2.1 : 0.0, work = job != null ? math.sin(phase * .7) : 0.0;
   final bob = moving ? (math.sin(phase)).abs() * .65 : 0.0;
   g.save();
@@ -289,7 +390,7 @@ void drawPerson(Canvas g, int id, double x, double y, double time, bool moving, 
     }
   }
   line([[1.3, -23], [2.2, -23]], _ink, .75);
-  if (sv.age > 55) line([[-1.5, -20.5], [1, -20]], const Color(0xFFC4BBA8), 1);
+  if (svAge > 55) line([[-1.5, -20.5], [1, -20]], const Color(0xFFC4BBA8), 1);
   if (const ['cap', 'beret', 'helmet', 'firehelm', 'vest'].contains(acc)) {
     final c = acc == 'helmet' || acc == 'vest' ? const Color(0xFFC4A153) : acc == 'firehelm' ? const Color(0xFFA05144) : const Color(0xFF3E505E);
     poly([[-4, -25], [-3.5, -28], [.6, -29], [3.5, -27.5], [4, -25]], c);
@@ -330,4 +431,85 @@ void drawPerson(Canvas g, int id, double x, double y, double time, bool moving, 
     g.restore();
   }
   g.restore();
+}
+
+
+// ======================= 펫 그림 (settlement.js pet · companions.webp) =======================
+const _petFrames = [
+  [16, 44, 353, 329], [408, 37, 302, 332], [735, 112, 340, 258], [1115, 15, 321, 355], [29, 493, 290, 212], [350, 386, 366, 325],
+  [723, 476, 385, 239], [1144, 383, 269, 340], [15, 728, 365, 325], [378, 726, 348, 341], [747, 769, 332, 285],
+];
+const _collars = [
+  [.66, .40, .77, .50], [.72, .43, .86, .5], [.66, .4, .79, .47], [.65, .40, .82, .45], [.67, .65, .75, .86], [.66, .47, .83, .52],
+  [.79, .54, .83, .67], [.39, .57, .67, .57], [.63, .49, .82, .54], [.66, .42, .79, .50], [.68, .53, .87, .54],
+];
+const _petOrder = ['dog', 'cat', 'crow', 'goat', 'hog', 'fox', 'turtle', 'owl', 'fennec', 'bot', 'bear'];
+
+/// 펫 하나를 (0,0) 발밑 기준으로 그린다. 크기 단위는 세계 좌표 (가로 약 23)
+void drawPet(Canvas g, String k, double t, bool moving, Color? col, bool night, {double scale = 1, bool silhouette = false, double alpha = 1}) {
+  final n = _petOrder.indexOf(k);
+  final img = Atlas.image('companions.webp');
+  if (n < 0 || img == null) return;
+  final f = _petFrames[n], size = k == 'hog' || k == 'turtle' ? 18.0 : k == 'goat' ? 25.0 : 23.0;
+  final w = math.min(size, size * f[2] / f[3]) * scale, h = w * f[3] / f[2];
+  final phase = t / (k == 'turtle' ? 300 : 120), bob = moving ? (math.sin(phase)).abs() * (k == 'crow' || k == 'owl' ? 1.8 : .75) * scale : 0.0;
+  g.save();
+  g.translate(0, -bob);
+  if (moving) g.rotate(math.sin(phase) * .035);
+  if (k == 'fox' && night && !silhouette) {
+    g.drawCircle(Offset(0, -h / 2), 17 * scale, Paint()..shader = ui.Gradient.radial(Offset(0, -h / 2), 17 * scale, const [Color(0x4DD0E0F8), Color(0x00D0E0F8)]));
+  }
+  final p = Paint()..filterQuality = FilterQuality.medium;
+  if (silhouette) p.colorFilter = const ColorFilter.mode(Color(0xFF5A4A3A), BlendMode.srcIn);
+  if (alpha < 1) p.color = Color.fromRGBO(255, 255, 255, alpha);
+  g.drawImageRect(img, Rect.fromLTWH(f[0].toDouble(), f[1].toDouble(), f[2].toDouble(), f[3].toDouble()), Rect.fromLTWH(-w / 2, -h, w, h), p);
+  if (col != null && !silhouette) {
+    final c = _collars[n], x1 = (c[0] - .5) * w, y1 = (c[1] - 1) * h, x2 = (c[2] - .5) * w, y2 = (c[3] - 1) * h;
+    final L = math.sqrt(math.pow(x2 - x1, 2) + math.pow(y2 - y1, 2)), mx = (x1 + x2) / 2, my = (y1 + y2) / 2 + L * .22;
+    final path = Path()
+      ..moveTo(x1, y1)
+      ..quadraticBezierTo(mx, my, x2, y2);
+    for (final (sc, sw) in [(const Color(0x991E140C), .07), (col, .045)]) {
+      g.drawPath(
+          path,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeCap = StrokeCap.round
+            ..color = sc
+            ..strokeWidth = w * sw);
+    }
+    g.drawCircle(Offset(mx, my + w * .025), w * .028, Paint()..color = const Color(0xFFE8C56A));
+  }
+  g.restore();
+}
+
+/// 화면용 펫 그림 (웹 petImg)
+class PetPic extends StatelessWidget {
+  const PetPic(this.k, {super.key, this.size = 72, this.collar, this.silhouette = false, this.alpha = 1});
+  final String k;
+  final double size, alpha;
+  final int? collar;
+  final bool silhouette;
+  @override
+  Widget build(BuildContext context) => SizedBox(width: size, height: size, child: CustomPaint(painter: _PetPicPainter(k, collar, silhouette, alpha)));
+}
+
+class _PetPicPainter extends CustomPainter {
+  _PetPicPainter(this.k, this.collar, this.sil, this.alpha);
+  final String k;
+  final int? collar;
+  final bool sil;
+  final double alpha;
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    canvas.translate(size.width / 2 - size.width * .04, size.height * .8);
+    final sc = size.width / 30;
+    canvas.scale(sc, sc);
+    drawPet(canvas, k, 0, false, collar == null ? null : Color(collarColors[collar! % collarColors.length]), !sil && k == 'fox', silhouette: sil, alpha: alpha);
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_PetPicPainter old) => old.k != k || old.collar != collar || old.sil != sil || old.alpha != alpha;
 }

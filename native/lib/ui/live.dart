@@ -43,7 +43,7 @@ class _LiveLayerState extends State<LiveLayer> with SingleTickerProviderStateMix
 
   bool get _wants {
     final w = g.wxK;
-    return g.S.sv.isNotEmpty || g.defn != null || (g.nightness > 0 && g.stormOn) || w == 'acid' || w == 'cold' || w == 'wind' || g.duskWarn;
+    return g.S.sv.isNotEmpty || g.kids.isNotEmpty || g.pets.isNotEmpty || g.stray != null || g.defn != null || (g.nightness > 0 && g.stormOn) || w == 'acid' || w == 'cold' || w == 'wind' || g.duskWarn;
   }
 
   @override
@@ -65,6 +65,20 @@ class _LiveLayerState extends State<LiveLayer> with SingleTickerProviderStateMix
     _last = t;
     time += dt * 1000;
     widget.life.step(dt);
+    widget.life.stepKidsPets(dt);
+    final tr = g.petTrick;
+    if (tr != null) {
+      g.petTrick = null;
+      final w = widget.life.pets[tr.$1];
+      if (w != null) {
+        g.fx.add(FxFloatAt(w.x, w.y - 30, tr.$3, 0xFFFFE6A0));
+        var dy = 46.0;
+        tr.$2.forEach((k, v) {
+          g.fx.add(FxFloatAt(w.x, w.y - dy, '+$v ${matOf[k]?.n ?? k}', 0xFFFFE6A0));
+          dy += 16;
+        });
+      }
+    }
     if (g.defn != null) {
       g.tickDefense(dt);
       if (g.fx.isNotEmpty) g.poke();
@@ -166,6 +180,64 @@ class _LivePainter extends CustomPainter {
     }
     for (final e in list) {
       drawPerson(canvas, e.key, e.value.x, e.value.y, time, e.value.mv, e.value.face, null);
+    }
+    // 아이들
+    final ks = g.kids;
+    for (var n = 0; n < ks.length && n < life.kids.length; n++) {
+      final w = life.kids[n];
+      drawPerson(canvas, -1, w.x, w.y, time, w.mv, w.face, null, look: ks[n]['look'] as Map?, age: ((ks[n]['g'] as num?) ?? 0) < 1 ? 8 : 18);
+    }
+    // 펫
+    final night = g.isNight;
+    life.pets.forEach((k, w) {
+      final p = g.pets[k];
+      if (p == null) return;
+      canvas.save();
+      canvas.translate(w.x, w.y);
+      canvas.drawOval(Rect.fromCenter(center: Offset.zero, width: k == 'owl' ? 8 : 12, height: 4), Paint()..color = const Color(0x470A0805));
+      canvas.scale(w.face * 1.15, 1.15);
+      drawPet(canvas, k, time, w.mv, Color(collarColors[((p['c'] as num?) ?? 0).toInt() % collarColors.length]), night);
+      canvas.restore();
+      if (k == 'fox' && night) glows.add((Offset(w.x, w.y - 6), 26.0, const Color(0xFFC8DCFF), .45));
+    });
+    for (final h in life.hearts) {
+      if (h.$3 < 0) continue;
+      final a = 1 - h.$3 / 1.2, x = h.$1 + math.sin(h.$3 * 6 + h.$4) * 3, y = h.$2 - h.$3 * 24;
+      final path = Path()
+        ..moveTo(x, y + 2.5)
+        ..cubicTo(x - 4, y - 1, x - 2, y - 4, x, y - 1.6)
+        ..cubicTo(x + 2, y - 4, x + 4, y - 1, x, y + 2.5);
+      canvas.drawPath(path, Paint()..color = Color.fromRGBO(230, 90, 90, a));
+    }
+    // 떠돌이 동물: 발자국과 흐릿한 모습
+    final s0 = g.stray;
+    if (s0 != null && g.strayVis) {
+      final k = s0['k'] as String, c = tileC((s0['i'] as num).toInt()), n = ((s0['n'] as num?) ?? 0), need = ((s0['need'] as num?) ?? 3);
+      final a = .35 + .6 * math.min(1, n / math.max(1, need - 1));
+      final fp = Paint()..color = k == 'fox' ? const Color(0xCCD7E6FF) : const Color(0x8C3C2819);
+      for (var q = 0; q < 5; q++) {
+        final px = c.dx - 30 + q * 7, py = c.dy + 10 - q * 2.5 + (q.isOdd ? 2 : -1);
+        canvas.drawOval(Rect.fromCenter(center: Offset(px, py), width: 3.2, height: 2), fp);
+        canvas.drawOval(Rect.fromCenter(center: Offset(px - 1.4, py - 1.8), width: 1.2, height: 1), fp);
+        canvas.drawOval(Rect.fromCenter(center: Offset(px + 1.4, py - 1.8), width: 1.2, height: 1), fp);
+      }
+      canvas.save();
+      canvas.translate(c.dx + 4, c.dy + 4);
+      canvas.scale(-1.25, 1.25);
+      drawPet(canvas, k, time, false, const Color(0xFF8A7A64), k == 'fox', alpha: a);
+      canvas.restore();
+      final by = c.dy - 24 - (math.sin(time / 300)).abs() * 4;
+      canvas.drawCircle(Offset(c.dx + 4, by), 7, Paint()..color = const Color(0xFFFFF8E6));
+      canvas.drawCircle(
+          Offset(c.dx + 4, by),
+          7,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.2
+            ..color = const Color(0xFF3B2A1A));
+      final tp = TextPainter(text: TextSpan(text: n > 0 ? '♥' : '?', style: Ttc.t(10, color: Ttc.no, weight: FontWeight.w700, height: 1)), textDirection: TextDirection.ltr)..layout();
+      tp.paint(canvas, Offset(c.dx + 4 - tp.width / 2, by - tp.height / 2));
+      if (k == 'fox') glows.add((Offset(c.dx, c.dy - 6), 30.0, const Color(0xFFC8DCFF), .4));
     }
     _foes(canvas, time, glows);
     canvas.restore();

@@ -47,8 +47,10 @@ final List<double> groundNoise = List<double>.generate(N, (i) {
 });
 
 class MapView extends StatefulWidget {
-  const MapView({super.key, required this.game, required this.camera, required this.onSelect, required this.fxLayer, this.onTouch});
+  const MapView({super.key, required this.game, required this.camera, required this.onSelect, required this.fxLayer, this.onTouch, this.onPlace});
   final Game game;
+  /// 장식 놓는 중이면 누른 칸을 넘긴다
+  final void Function(int tile)? onPlace;
   final Camera camera;
   final void Function(String kind, int tile) onSelect;
   final FxLayerController fxLayer;
@@ -76,6 +78,7 @@ const holdMax = 30;
 class _MapViewState extends State<MapView> {
   final Map<int, _Ptr> ptrs = {};
   late final Life life = Life(widget.game);
+  final Map<String, int> _petPatT = {};
   Size size = Size.zero;
   Offset? dragCam;
   Offset? dragStart;
@@ -298,6 +301,43 @@ class _MapViewState extends State<MapView> {
     p.hold?.cancel();
     if (!cancel && !p.moved && !p.acted && pinchD == null) {
       final w0 = toWorld(p.pos), i0 = pickTile(w0);
+      if (widget.onPlace != null) {
+        widget.onPlace!(i0);
+        return;
+      }
+      // 펫: 한 번 누르면 쓰다듬기, 1.5초 안에 또 누르면 자세히 (웹 petTap)
+      final pk = life.petAt(w0, math.max(16 / cam.z, 12));
+      if (pk != null) {
+        final w = life.pets[pk]!;
+        final now = DateTime.now().millisecondsSinceEpoch;
+        if (now - (_petPatT[pk] ?? 0) < 1500) {
+          widget.onSelect('pet', petKeys.indexOf(pk));
+        } else {
+          _petPatT[pk] = now;
+          life.heartsAt(w.x, w.y);
+          final snd = petInfo(pk)['snd'] as String;
+          widget.fxLayer.pull(g);
+          g.fx.add(FxFloatAt(w.x, w.y - 26, snd == '은빛 발자국' ? '…' : '$snd!', 0xFFFFE6C8));
+          g.petPat(pk);
+          _after();
+        }
+        return;
+      }
+      life.petTap = w0;
+      life.petTapT = 0;
+      final st = g.stray;
+      if (st != null && g.strayVis && (toScreen(tileC((st['i'] as num).toInt(), 6)) - p.pos).distance < math.max(22, 20 * cam.z)) {
+        widget.onSelect('stray', (st['i'] as num).toInt());
+        return;
+      }
+      if (i0 >= 0 && g.band != null && g.band!['tile'] == i0) {
+        widget.onSelect('band', i0);
+        return;
+      }
+      if (i0 >= 0 && g.deco.containsKey('$i0')) {
+        widget.onSelect('deco', i0);
+        return;
+      }
       final bld = i0 >= 0 && g.S.rev[i0] == 1 && (i0 == C0 || g.modAtTile(i0) != null || g.S.camp.containsKey(i0) || g.S.ter[i0] == T.lm);
       final pid = life.personAt(w0, bld ? 9 + 3 / cam.z : 18 + 8 / cam.z);
       if (pid != null) {
@@ -458,6 +498,15 @@ class MapPainter extends CustomPainter {
         if (S.rev[i] == 1) {
           _landTile(canvas, i, x, y);
           if (S.ash.containsKey('$i')) _ash(canvas, i);
+          if (g.placingDeco != null && g.decoOk(i)) {
+            canvas.drawPath(
+                _diamond(tileC(i), .9),
+                Paint()
+                  ..style = PaintingStyle.stroke
+                  ..strokeWidth = 2
+                  ..color = const Color(0xCCFFD98A));
+            canvas.drawPath(_diamond(tileC(i), .9), Paint()..color = const Color(0x22FFD98A));
+          }
         } else {
           _fogTile(canvas, i, x, y);
         }
@@ -588,6 +637,38 @@ class MapPainter extends CustomPainter {
       }
       if (mod.id == 8) _glows.add((P(i, .5, .5, 34), 34.0, const Color(0xFFF0C071), .42));
       if (mod.id == 5 && g.have('fuel') > 0) _glows.add((P(i, .5, .5, 12), 22.0, const Color(0xFFF0C071), .42));
+      return;
+    }
+    // 떠돌이 무리 (웹 drawBandTile)
+    final band = g.band;
+    if (band != null && band['tile'] == i) {
+      final f = Atlas.fr(Atlas.propFrames[0]);
+      _sprite(canvas, Atlas.image('settlement-props.webp'), f, c, 60, 1, dy: 5);
+      final k = band['k'] as String;
+      final fp = P(i, .75, .25), tp = P(i, .75, .25, 34);
+      _line
+        ..color = const Color(0xFF3B2A1A)
+        ..strokeWidth = 1.6;
+      canvas.drawLine(fp, tp, _line);
+      _fill.color = Color(bandTypes[k]!.$2);
+      canvas.drawPath(Path()..moveTo(tp.dx, tp.dy)..lineTo(tp.dx + 14, tp.dy + 3)..lineTo(tp.dx, tp.dy + 8)..close(), _fill);
+      final m = P(i, .5, .5, 44);
+      _fill.color = k == 'raider' ? const Color(0xFFE2644F) : const Color(0xFFFFCF7A);
+      canvas.drawCircle(m, 9, _fill);
+      _line.strokeWidth = 1.5;
+      canvas.drawCircle(m, 9, _line);
+      final tx = TextPainter(text: TextSpan(text: k == 'trader' ? '⇄' : k == 'raider' ? '!' : '?', style: const TextStyle(fontSize: 11, color: Color(0xFF3B2A1A), fontWeight: FontWeight.bold)), textDirection: TextDirection.ltr)..layout();
+      tx.paint(canvas, Offset(m.dx - tx.width / 2, m.dy - tx.height / 2));
+      _glows.add((P(i, .35, .62, 2), 24.0, const Color(0xFFFFAA50), .4));
+      return;
+    }
+    // 장식 (웹 drawDeco: settlement-props 8~15)
+    final dk = g.deco['$i'];
+    if (dk != null) {
+      const ids = {'pot': 8, 'flag': 9, 'bench': 10, 'lamp': 11, 'chime': 12, 'string': 13, 'mural': 14, 'statue': 15};
+      final id = ids[dk];
+      if (id != null) _prop(canvas, id, c);
+      if (dk == 'lamp' || dk == 'string') _glows.add((P(i, .5, .5, dk == 'lamp' ? 22 : 15), dk == 'lamp' ? 24.0 : 30.0, const Color(0xFFF0C071), .36));
       return;
     }
     final camp = S.camp[i];

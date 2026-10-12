@@ -8,6 +8,7 @@ import '../game/data.dart';
 import '../game/engine.dart';
 import 'atlas.dart';
 import 'icons.dart';
+import 'life_ui.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -73,8 +74,9 @@ EdgeInsets get _bodyPad => const EdgeInsets.fromLTRB(14, 14, 14, 20);
 
 // ======================= 쉘터 =======================
 class ShelterBody extends StatefulWidget {
-  const ShelterBody(this.g, {super.key});
+  const ShelterBody(this.g, {super.key, this.onDeco});
   final Game g;
+  final void Function(String k)? onDeco;
   @override
   State<ShelterBody> createState() => _ShelterBodyState();
 }
@@ -103,11 +105,12 @@ class _ShelterBodyState extends State<ShelterBody> {
       ]),
       if (g.hungry) Padding(padding: const EdgeInsets.only(top: 6), child: Text('배고파서 생산이 절반으로 줄었어요 · 텃밭을 늘리거나 식량을 모아요', style: Ttc.t(12, color: Ttc.no, weight: FontWeight.w600))),
       const SizedBox(height: 12),
-      Segs(items: const ['건설', '가공', '연구', '창고'], on: tab, onTap: (k) => setState(() => tab = k)),
+      Segs(items: const ['건설', '가공', '연구', '창고', '꾸미기'], on: tab, onTap: (k) => setState(() => tab = k)),
       ...switch (tab) {
         0 => _build(),
-        1 => _craft(),
+        1 => [..._craft(), ...feastCard(g)],
         2 => _research(),
+        4 => decoTab(g, onPick: (k) => widget.onDeco?.call(k)),
         _ => _store(),
       },
     ]);
@@ -462,6 +465,7 @@ Widget diaryBody(BuildContext context, Game g) {
           desc: descText('목격자의 일기 · ${k + 1}/7'),
         ),
       ),
+    ...relicsSection(g),
     const SizedBox(height: 6),
     Text('이야기·사건 수첩·회상은 5단계에서 옮겨요', textAlign: TextAlign.center, style: Ttc.t(12, color: Ttc.sepia2)),
   ]);

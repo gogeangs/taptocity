@@ -60,11 +60,12 @@ Widget faceBox(Game g, int id, {double w = 54, double h = 63, bool locked = fals
 
 // ======================= 생존자 수첩 =======================
 class SurvBody extends StatefulWidget {
-  const SurvBody(this.g, {super.key, required this.onOpen, required this.onFly, required this.onBag, required this.onRadio, required this.toast});
+  const SurvBody(this.g, {super.key, required this.onOpen, required this.onFly, required this.onBag, required this.onRadio, required this.toast, this.onPets});
   final Game g;
   final void Function(int id) onOpen;
   final void Function(int tile) onFly;
   final VoidCallback onBag, onRadio;
+  final VoidCallback? onPets;
   final void Function(String) toast;
   @override
   State<SurvBody> createState() => _SurvBodyState();
@@ -110,6 +111,8 @@ class _SurvBodyState extends State<SurvBody> {
     final bt = <Widget>[
       _svt(null, '라디오', res: 'batt', count: '${g.have('batt').toInt()}', onTap: widget.onRadio),
       _svt(_ti('<path d="M5 8h14l-1 12H6zM9 8V5a3 3 0 0 1 6 0v3"/>'), '장비', count: '${g.inv.length}', onTap: widget.onBag),
+      if (g.pets.isNotEmpty || g.stray != null)
+        _svt(_ti('<circle cx="7" cy="9" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="17" cy="9" r="2"/><path d="M8 17c0-3 2-5 4-5s4 2 4 5c0 2-2 3-4 3s-4-1-4-3z"/>'), '펫', count: '${g.pets.length}', onTap: widget.onPets ?? () {}),
       if (g.autoOpen)
         _svt(_ti('<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>'), '자동',
             on: tool == 'auto', onx: autoOn, onTap: () => setState(() => tool = tool == 'auto' ? null : 'auto')),

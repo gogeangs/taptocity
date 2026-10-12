@@ -283,6 +283,43 @@ void main() {
     expect(g.pull(99), isNull);
   });
 
+  test('바깥 세상: 펫·떠돌이 무리·장식·유물·잔치', () {
+    final g = Game(Game.fresh(seed: 42));
+    g.S.m.addAll({'wood': 999, 'scrap': 999, 'food': 999, 'cloth': 99, 'parts': 99, 'fuel': 99, 'med': 9});
+    g.rescue(0, 'sig');
+    g.rescue(3, 'sig');
+    // 펫: 데려오면 동행하고 효과가 붙는다
+    g.petAdopt('dog', quiet: true);
+    expect(g.petOn, 'dog');
+    expect(g.E['scav'], greaterThan(0));
+    expect(g.petFeed('dog'), isTrue);
+    expect(g.petFeed('dog'), isFalse, reason: '2분 동안은 배불러요');
+    // 떠돌이 무리: 피란민에게 식량을 나누면 희망
+    g.S.rest['band'] = <String, Object?>{'k': 'refugee', 'name': '저수지 피란민', 'tile': C0 + 3, 't': 150, 'offers': [], 'say': '', 'tribute': {}};
+    final h0 = g.S.hopeB;
+    expect(g.bandAct('bref'), isTrue);
+    expect(g.S.hopeB, h0 + 4);
+    expect(g.band, isNull);
+    // 장식: 쉘터 둘레에 놓으면 희망
+    for (var y = CY - 3; y <= CY + 3; y++) {
+      for (var x = CX - 3; x <= CX + 3; x++) {
+        if (g.S.rev[y * W + x] == 0) g.reveal(y * W + x);
+      }
+    }
+    final spot = [for (var i = 0; i < N; i++) if (g.decoOk(i)) i].first;
+    final hope0 = g.hope;
+    expect(g.placeDeco('bench', spot), isTrue);
+    expect(g.hope, greaterThan(hope0));
+    // 유물
+    expect(g.findRelic(), isNotNull);
+    expect(g.relics.length, 1);
+    // 잔치
+    g.S.lv = 3;
+    g.S.m.addAll({'food': 999, 'wood': 999});
+    expect(g.holdFeast(), isTrue);
+    expect(g.holdFeast(), isFalse, reason: '20분에 한 번');
+  });
+
   test('구름을 두드리면 밝혀지고, 경계가 이어진다', () {
     final g = Game(Game.fresh(seed: 7));
     final before = g.S.rev.where((v) => v == 1).length;

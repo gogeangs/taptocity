@@ -311,30 +311,36 @@ class Segs extends StatelessWidget {
   final int on;
   final void Function(int) onTap;
   @override
-  Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.only(bottom: 14),
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(color: Ttc.segs, borderRadius: BorderRadius.circular(9)),
-        child: Row(children: [
-          for (var k = 0; k < items.length; k++)
-            Expanded(
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => onTap(k),
-                child: Container(
-                  height: 40,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(color: k == on ? Ttc.surface : Colors.transparent, borderRadius: BorderRadius.circular(6)),
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    Text(items[k], style: Ttc.t(13, color: k == on ? const Color(0xFF22323B) : Ttc.segText, weight: FontWeight.w600)),
-                    if (k < dots.length && dots[k])
-                      Container(width: 8, height: 8, margin: const EdgeInsets.only(left: 5), decoration: const BoxDecoration(shape: BoxShape.circle, color: Ttc.amber)),
-                  ]),
-                ),
-              ),
-            ),
-        ]),
-      );
+  Widget build(BuildContext context) {
+    Widget seg(int k) => GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => onTap(k),
+          child: Container(
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: k == on ? Ttc.surface : Colors.transparent, borderRadius: BorderRadius.circular(6)),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Text(items[k], style: Ttc.t(13, color: k == on ? const Color(0xFF22323B) : Ttc.segText, weight: FontWeight.w600)),
+              if (k < dots.length && dots[k])
+                Container(width: 8, height: 8, margin: const EdgeInsets.only(left: 5), decoration: const BoxDecoration(shape: BoxShape.circle, color: Ttc.amber)),
+            ]),
+          ),
+        );
+    // 웹 .segs: 5칸이면 3칸씩 두 줄
+    final cols = items.length >= 5 ? 3 : items.length;
+    final rows = <Widget>[];
+    for (var r = 0; r * cols < items.length; r++) {
+      rows.add(Row(children: [
+        for (var c = 0; c < cols; c++) Expanded(child: r * cols + c < items.length ? seg(r * cols + c) : const SizedBox()),
+      ]));
+    }
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(color: Ttc.segs, borderRadius: BorderRadius.circular(9)),
+      child: Column(children: rows),
+    );
+  }
 }
 
 /// 웹 .sumchips 한 칸

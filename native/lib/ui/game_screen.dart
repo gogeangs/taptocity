@@ -12,6 +12,7 @@ import '../game/storage.dart';
 import 'crisis_ui.dart';
 import 'gear.dart';
 import 'icons.dart';
+import 'life_ui.dart';
 import 'map_view.dart';
 import 'outside_ui.dart';
 import 'sheets.dart';
@@ -37,6 +38,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   bool _lampDown = false;
   SheetSpec? sheet;
   bool matsOpen = false;
+  String? placing; // 놓으려는 장식
   bool camOpen = false;
 
   Game get g => widget.game;
@@ -115,6 +117,14 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           });
           _frameDefense();
         }
+      case FxKidGrown(:final n):
+        Future.delayed(const Duration(milliseconds: 200), () {
+          if (mounted) showKidGrown(context, g, n);
+        });
+      case FxPetNew(:final k):
+        Future.delayed(const Duration(milliseconds: 200), () {
+          if (mounted) showPetName(context, g, k, true);
+        });
       case FxExpBack():
         Future.delayed(const Duration(milliseconds: 150), () {
           if (mounted) showExpBack(context, g, f);
@@ -240,6 +250,14 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         _open(const SheetSpec('shelter'));
       case 'person':
         _survPage(tile);
+      case 'pet':
+        showPetPage(context, g, petKeys[tile]);
+      case 'stray':
+        showStrayPage(context, g);
+      case 'band':
+        showBandPage(context, g);
+      case 'deco':
+        showDecoTile(context, g, tile);
       case 'module':
       case 'landmark':
         if (_ringClosedAt == tile) {
@@ -319,7 +337,18 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   Widget _sheetFor(SheetSpec s) {
     switch (s.kind) {
       case 'shelter':
-        return SheetPanel(icon: Ico.shelter, title: 'Lv.${g.S.lv} ${shelterName[g.S.lv - 1]}', onClose: _close, child: ShelterBody(g));
+        return SheetPanel(
+            icon: Ico.shelter,
+            title: 'Lv.${g.S.lv} ${shelterName[g.S.lv - 1]}',
+            onClose: _close,
+            child: ShelterBody(g, onDeco: (k) {
+              setState(() {
+                sheet = null;
+                placing = k;
+              });
+              g.placingDeco = k;
+              g.mapVersion.value++;
+            }));
       case 'module':
         final slot = g.modAt[s.tile];
         final m = slot == null ? null : g.S.mods[slot];
@@ -353,7 +382,17 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                 onFly: _flyTo,
                 onBag: () => _open(const SheetSpec('gear')),
                 onRadio: () => _open(const SheetSpec('radio')),
+                onPets: () => _open(const SheetSpec('pets')),
                 toast: fxc.toast));
+      case 'pets':
+        return SheetPanel(
+            icon: Ico.surv,
+            title: '펫',
+            onClose: _close,
+            child: PetsBody(g, onPet: (k) => showPetPage(context, g, k), onStray: () {
+              final st = g.stray;
+              if (st != null) _flyTo((st['i'] as num).toInt());
+            }));
       case 'party':
         return SheetPanel(icon: Ico.surv, title: '스킬 바에 데려갈 3명', onClose: _close, child: partyBody(g));
       case 'gear':
@@ -390,6 +429,10 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             onSettings: () => _open(const SheetSpec('settings')),
             onMats: () => setState(() => matsOpen = !matsOpen),
             onShelter: () => _open(const SheetSpec('shelter')),
+            onPed: () {
+              _close();
+              showPedPage(context, g, fxc.toast);
+            },
           ),
         ),
         Expanded(
@@ -398,7 +441,44 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             return Container(
               color: Ttc.stage,
               child: Stack(clipBehavior: Clip.hardEdge, children: [
-                Positioned.fill(child: MapView(game: g, camera: cam, onSelect: _select, fxLayer: fxc, onTouch: _close)),
+                Positioned.fill(
+                    child: MapView(
+                        game: g,
+                        camera: cam,
+                        onSelect: _select,
+                        fxLayer: fxc,
+                        onTouch: placing == null ? _close : null,
+                        onPlace: placing == null
+                            ? null
+                            : (i) {
+                                if (i < 0 || !g.decoOk(i)) {
+                                  fxc.toast('쉘터 둘레의 빈 땅을 눌러요');
+                                  return;
+                                }
+                                if (g.placeDeco(placing!, i)) {
+                                  HapticFeedback.selectionClick();
+                                  fxc.pull(g);
+                                  if (!g.canPay(g.decoCost(placing!))) {
+                                    setState(() => placing = null);
+                                    g.placingDeco = null;
+                                  }
+                                } else {
+                                  fxc.toast('자재가 모자라요');
+                                  setState(() => placing = null);
+                                  g.placingDeco = null;
+                                }
+                              })),
+                if (placing != null)
+                  Positioned(
+                    left: 10,
+                    right: 10,
+                    top: 56,
+                    child: placeBar(g, placing!, () {
+                      setState(() => placing = null);
+                      g.placingDeco = null;
+                      g.mapVersion.value++;
+                    }),
+                  ),
                 // 오른쪽 위: 쉘터로, 카메라 도구
                 Positioned(
                   right: 10,
@@ -559,11 +639,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
 // ======================= 머리 (자원·설정·할 일 띠) =======================
 class _Header extends StatelessWidget {
-  const _Header(this.g, {required this.top, required this.goal, required this.onSettings, required this.onMats, required this.onShelter});
+  const _Header(this.g, {required this.top, required this.goal, required this.onSettings, required this.onMats, required this.onShelter, required this.onPed});
   final Game g;
   final double top;
   final (String, String, double) goal;
-  final VoidCallback onSettings, onMats, onShelter;
+  final VoidCallback onSettings, onMats, onShelter, onPed;
 
   @override
   Widget build(BuildContext context) {
@@ -629,8 +709,24 @@ class _Header extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Text('▾', style: Ttc.t(12, color: const Color(0xFFC7CEC9))),
-              const SizedBox(width: 4),
+              if (g.pedHere)
+                GestureDetector(
+                  onTap: onPed,
+                  child: Container(
+                    margin: const EdgeInsets.only(left: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(99),
+                      gradient: const LinearGradient(colors: [Color(0xFF4A3A2A), Color(0xFF7A5A33)]),
+                      boxShadow: const [BoxShadow(color: Color(0x66B0452A), blurRadius: 8, offset: Offset(0, 2))],
+                    ),
+                    child: Text('🛒 노친네', style: Ttc.t(12.5, color: const Color(0xFFF3E2B8), weight: FontWeight.w700, height: 1)),
+                  ),
+                )
+              else ...[
+                Text('▾', style: Ttc.t(12, color: const Color(0xFFC7CEC9))),
+                const SizedBox(width: 4),
+              ],
             ]),
           ),
         ),

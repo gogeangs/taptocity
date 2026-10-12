@@ -150,7 +150,8 @@ class Game extends ChangeNotifier {
   final List<int> evSeen = [];
   Defense? defn;
   final Set<String> _expNotified = {};
-  (String, Map<String, num>, String)? petTrick; // 동행 펫이 물어 온 것 (화면이 펫 위에 띄우고 지운다)
+  (String, Map<String, num>, String)? petTrick;
+  String? placingDeco; // 장식 놓는 중 (화면 상태, 저장하지 않음) // 동행 펫이 물어 온 것 (화면이 펫 위에 띄우고 지운다)
   int _autoExpT = 0;
 
   GameState S;
