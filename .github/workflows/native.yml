@@ -96,6 +96,18 @@ jobs:
           flutter build web --release --base-href /taptocity/native-play/ --pwa-strategy=none 2>&1 | tee ../out.txt; s=${PIPESTATUS[0]}
           if [ $s -ne 0 ]; then m=$(tail -60 ../out.txt | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}'); echo "::error title=web::$m"; exit $s; fi
 
+      - name: 웹 미리보기 확인 (크롬)
+        run: |
+          set +e +o pipefail
+          mkdir -p /tmp/site/taptocity && cp -r build/web /tmp/site/taptocity/native-play
+          (cd /tmp/site && nohup python3 -m http.server 8080 >/dev/null 2>&1 &)
+          (cd /tmp && npm i --silent puppeteer-core@23 >/dev/null 2>&1)
+          sleep 2
+          mkdir -p test_screens/shots
+          NODE_PATH=/tmp/node_modules node tool/web_smoke.cjs test_screens/shots > ../smoke.txt 2>&1
+          if [ -s ../smoke.txt ]; then m=$(head -40 ../smoke.txt | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}'); echo "::warning title=web::$m"; fi
+          cp test_screens/shots/web-* /tmp/ 2>/dev/null; ls test_screens/shots
+
       - name: 미리보기 올리기 (native-play/)
         if: github.ref == 'refs/heads/main'
         working-directory: .
@@ -104,7 +116,7 @@ jobs:
           rm -rf native-play
           cp -r native/build/web native-play
           rm -rf native-play/canvaskit   # 엔진(CanvasKit)은 구글 CDN에서 받으므로 저장소에 올리지 않는다
-          mkdir -p native-play/shots && cp native/test_screens/shots/*.png native/test_screens/shots/log.txt native-play/shots/ 2>/dev/null || true
+          mkdir -p native-play/shots && cp native/test_screens/shots/*.png native/test_screens/shots/*.txt native-play/shots/ 2>/dev/null || true
           echo "파일 $(find native-play -type f | wc -l)개"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
