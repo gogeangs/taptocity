@@ -260,27 +260,30 @@ class MCard extends StatelessWidget {
       if (desc != null) Padding(padding: const EdgeInsets.only(top: 3), child: desc!),
       if (costs != null) Padding(padding: const EdgeInsets.only(top: 7), child: costs!),
     ]);
+    final body = hero
+        ? Column(children: [
+            Row(crossAxisAlignment: CrossAxisAlignment.center, children: [thumb, const SizedBox(width: 10), Expanded(child: head)]),
+            if (button != null) ...[const SizedBox(height: 10), button!],
+          ])
+        : Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+            Opacity(opacity: dim ? .5 : 1, child: thumb),
+            const SizedBox(width: 10),
+            Expanded(child: Opacity(opacity: dim ? .6 : 1, child: head)),
+            if (button != null) ...[const SizedBox(width: 10), button!],
+          ]);
+    // 둥근 모서리에는 한 가지 색 테두리만 그릴 수 있어서, 영웅 카드의 왼쪽 띠는 따로 얹는다
     return Container(
       margin: const EdgeInsets.only(bottom: 9),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
         color: hero ? Ttc.heroCard : dim ? Ttc.lockedCard : kind == CardKind.more ? Colors.transparent : Ttc.surface,
         borderRadius: BorderRadius.circular(9),
-        border: hero
-            ? const Border(left: BorderSide(color: Ttc.heroLine, width: 2.4), top: BorderSide(color: Ttc.line, width: .8), right: BorderSide(color: Ttc.line, width: .8), bottom: BorderSide(color: Ttc.line, width: .8))
-            : Border.all(color: Ttc.line, width: .8),
+        border: Border.all(color: Ttc.line, width: .8),
       ),
-      child: hero
-          ? Column(children: [
-              Row(crossAxisAlignment: CrossAxisAlignment.center, children: [thumb, const SizedBox(width: 10), Expanded(child: head)]),
-              if (button != null) ...[const SizedBox(height: 10), button!],
-            ])
-          : Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-              Opacity(opacity: dim ? .5 : 1, child: thumb),
-              const SizedBox(width: 10),
-              Expanded(child: Opacity(opacity: dim ? .6 : 1, child: head)),
-              if (button != null) ...[const SizedBox(width: 10), button!],
-            ]),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(children: [
+        Padding(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12), child: body),
+        if (hero) const Positioned(left: 0, top: 0, bottom: 0, width: 2.4, child: ColoredBox(color: Ttc.heroLine)),
+      ]),
     );
   }
 }
