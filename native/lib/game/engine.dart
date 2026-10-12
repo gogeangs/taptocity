@@ -800,7 +800,7 @@ class Game extends ChangeNotifier {
   /// 웹 rescue (2643)
   void rescue(int id, String via) {
     if (hasSv(id) || isDead(id)) return;
-    S.sv['$id'] = {'xp': 0, 'at': -1};
+    S.sv['$id'] = <String, Object?>{'xp': 0, 'at': -1};
     if (S.rest['party'] is! List) S.rest['party'] = <Object?>[];
     final party = S.rest['party'] as List;
     if (party.length < 3) party.add(id);
