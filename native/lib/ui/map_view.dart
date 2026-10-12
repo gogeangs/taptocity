@@ -13,6 +13,7 @@ import '../game/data.dart';
 import '../game/engine.dart';
 import '../game/rng.dart';
 import 'atlas.dart';
+import 'live.dart';
 import 'people.dart';
 import 'theme.dart';
 
@@ -63,6 +64,7 @@ class _Ptr {
   final Offset start;
   bool moved = false;
   bool acted = false;
+  bool def = false;
   int site = -1;
   int digging = -1;
   int r0 = 0;
@@ -73,6 +75,7 @@ const holdMax = 30;
 
 class _MapViewState extends State<MapView> {
   final Map<int, _Ptr> ptrs = {};
+  late final Life life = Life(widget.game);
   Size size = Size.zero;
   Offset? dragCam;
   Offset? dragStart;
@@ -88,6 +91,23 @@ class _MapViewState extends State<MapView> {
   bool onScreen(int i) {
     final s = toScreen(tileC(i, 12));
     return s.dx >= 14 && s.dx <= size.width - 14 && s.dy >= 40 && s.dy <= size.height - 14;
+  }
+
+  /// 눌린 곳의 붉은 재 (웹 ashAt)
+  int ashAt(Offset p) {
+    final under = pickTile(toWorld(p));
+    if (under >= 0 && g.S.ash.containsKey('$under')) return under;
+    final r = TW * .3 * cam.z;
+    var best = -1;
+    var bd = r * r;
+    for (final k in g.S.ash.keys) {
+      final d = (toScreen(tileC(int.parse(k), 10)) - p).distanceSquared;
+      if (d < bd) {
+        bd = d;
+        best = int.parse(k);
+      }
+    }
+    return best;
   }
 
   int frontierAt(Offset p) {
@@ -135,6 +155,42 @@ class _MapViewState extends State<MapView> {
       final l = ptrs.values.toList();
       pinchD = math.max(1.0, (l[0].pos - l[1].pos).distance);
       pinchZ = cam.z;
+      return;
+    }
+    // 대형 재폭풍: 두드리면 가까운 괴물, 누르고 있으면 연타, 문지르면 베기
+    if (g.defn != null) {
+      p.acted = true;
+      p.def = true;
+      void strike() {
+        final w = toWorld(p.pos);
+        g.strikeAt(w.dx, w.dy, 110 * math.max(.8, cam.z) / cam.z);
+        _after();
+      }
+
+      strike();
+      void again() {
+        if (!ptrs.containsKey(e.pointer) || g.defn == null) return;
+        strike();
+        p.hold = Timer(const Duration(milliseconds: 120), again);
+      }
+
+      p.hold = Timer(const Duration(milliseconds: 260), again);
+      return;
+    }
+    final ax = ashAt(p.pos);
+    if (ax >= 0) {
+      p.acted = true;
+      g.hitAsh(ax, g.tapPow * (g.fever > 0 ? 2 : 1));
+      _after();
+      void again() {
+        final q = ptrs[e.pointer];
+        if (q == null || q.moved || !g.S.ash.containsKey('$ax')) return;
+        g.hitAsh(ax, g.tapPow * (g.fever > 0 ? 2 : 1));
+        _after();
+        q.hold = Timer(const Duration(milliseconds: 110), again);
+      }
+
+      p.hold = Timer(const Duration(milliseconds: 320), again);
       return;
     }
     final w = toWorld(p.pos);
@@ -213,6 +269,14 @@ class _MapViewState extends State<MapView> {
     final p = ptrs[e.pointer];
     if (p == null) return;
     p.pos = e.localPosition;
+    if (p.def) {
+      if (g.defn != null) {
+        final w = toWorld(p.pos);
+        g.slashAt(w.dx, w.dy, 46 * math.max(.8, cam.z) / cam.z, DateTime.now().millisecondsSinceEpoch);
+        _after();
+      }
+      return;
+    }
     if (!p.moved && (p.pos - p.start).distance > 14) {
       p.moved = true;
       p.hold?.cancel();
@@ -233,6 +297,14 @@ class _MapViewState extends State<MapView> {
     if (p == null) return;
     p.hold?.cancel();
     if (!cancel && !p.moved && !p.acted && pinchD == null) {
+      final w0 = toWorld(p.pos), i0 = pickTile(w0);
+      final bld = i0 >= 0 && g.S.rev[i0] == 1 && (i0 == C0 || g.modAtTile(i0) != null || g.S.camp.containsKey(i0) || g.S.ter[i0] == T.lm);
+      final pid = life.personAt(w0, bld ? 9 + 3 / cam.z : 18 + 8 / cam.z);
+      if (pid != null) {
+        widget.onSelect('person', pid);
+        if (ptrs.isEmpty) dragStart = null;
+        return;
+      }
       final i = pickTile(toWorld(p.pos));
       final kind = g.tapTile(i);
       if (kind == 'far' || kind == 'none') {
@@ -287,7 +359,7 @@ class _MapViewState extends State<MapView> {
         },
         child: ClipRect(child: Stack(fit: StackFit.expand, children: [
           RepaintBoundary(child: CustomPaint(painter: MapPainter(g, cam, Listenable.merge([g.mapVersion, cam])))),
-          RepaintBoundary(child: PeopleLayer(game: g, camera: cam)),
+          RepaintBoundary(child: LiveLayer(game: g, camera: cam, life: life)),
           RepaintBoundary(child: FxLayer(controller: widget.fxLayer, camera: cam)),
         ])),
       );
@@ -340,7 +412,9 @@ class MapPainter extends CustomPainter {
 
   Color waterCol(int i) => _rgb(_lerp(w1, w2, (.5 + groundNoise[i] * .6).clamp(0, 1).toDouble()));
 
-  final List<(Offset, double, Color, double)> _glows = [];
+  /// 불빛 자리 (웹 glowPts). 그리기는 위층(LiveLayer)이 밤 어둠을 덮은 뒤에 한다.
+  static final List<(Offset, double, Color, double)> glows = [];
+  List<(Offset, double, Color, double)> get _glows => glows;
 
   bool _nearRev(int i) {
     final x = i % W, y = i ~/ W;
@@ -383,6 +457,7 @@ class MapPainter extends CustomPainter {
         final i = y * W + x;
         if (S.rev[i] == 1) {
           _landTile(canvas, i, x, y);
+          if (S.ash.containsKey('$i')) _ash(canvas, i);
         } else {
           _fogTile(canvas, i, x, y);
         }
@@ -402,22 +477,46 @@ class MapPainter extends CustomPainter {
       }
     }
     if (g.aimValid) _aim(canvas);
-    // 불빛 (웹 glowPts, 더하기 합성)
-    for (final (c, r, col, a) in _glows) {
-      canvas.drawCircle(
-          c,
-          r,
-          Paint()
-            ..blendMode = BlendMode.plus
-            ..shader = ui.Gradient.radial(c, r, [col.withValues(alpha: math.min(.85, a * .75)), col.withValues(alpha: 0)]));
-    }
     canvas.restore();
-    // 가장자리 어둡게 (웹 비네트)
-    final c = size.center(Offset.zero), mn = math.min(size.width, size.height), mx = math.max(size.width, size.height);
-    canvas.drawRect(
-        rect,
-        Paint()
-          ..shader = ui.Gradient.radial(c, mx * .75, const [Color(0x00000000), Color(0x00000000), Color(0x80000000)], [0, (mn * .35) / (mx * .75), 1]));
+  }
+
+  /// 붉은 재 (웹 drawAsh 2826)
+  void _ash(Canvas canvas, int i) {
+    final a = g.S.ash['$i'];
+    if (a is! Map) return;
+    final f = (((a['hp'] as num?) ?? 0) / math.max(.001, ((a['max'] as num?) ?? 1))).clamp(0.0, 1.0).toDouble();
+    for (var k = 0; k < 4; k++) {
+      final c = P(i, .5 + (k % 2 - .5) * .3, .5 + ((k >> 1) - .5) * .3, 6 + k * 2.0);
+      _fill.color = k.isOdd ? const Color(0xFF6C6760) : const Color(0xFF85807A);
+      canvas.drawCircle(c, (9 + k * 2) * (.5 + f * .5), _fill);
+    }
+    final c = tileC(i);
+    final pts = [Offset(c.dx, c.dy - TH / 2), Offset(c.dx + TW / 2, c.dy), Offset(c.dx, c.dy + TH / 2), Offset(c.dx - TW / 2, c.dy)];
+    _line
+      ..color = const Color(0xD9E2644F)
+      ..strokeWidth = 2.2;
+    for (var k = 0; k < 4; k++) {
+      final p0 = pts[k], p1 = pts[(k + 1) % 4], len = (p1 - p0).distance;
+      for (var d = 0.0; d < len; d += 10) {
+        canvas.drawLine(p0 + (p1 - p0) * (d / len), p0 + (p1 - p0) * (math.min(len, d + 6) / len), _line);
+      }
+    }
+    final b = P(i, .5, .5, 34);
+    if (a['stuck'] != true) {
+      _line
+        ..color = const Color(0xB30D0B08)
+        ..strokeWidth = 4;
+      canvas.drawCircle(b, 7, _line..style = PaintingStyle.stroke);
+      _line
+        ..color = const Color(0xFFE2644F)
+        ..strokeWidth = 3;
+      final t = (((a['t'] as num?) ?? 0) / 14).clamp(0.0, 1.0).toDouble();
+      canvas.drawArc(Rect.fromCircle(center: b, radius: 7), -math.pi / 2, math.pi * 2 * t, false, _line);
+    }
+    _fill.color = const Color(0xBF0D0B08);
+    canvas.drawRect(Rect.fromLTWH(b.dx - 18, b.dy + 10, 36, 5), _fill);
+    _fill.color = const Color(0xFFB9B3AA);
+    canvas.drawRect(Rect.fromLTWH(b.dx - 17, b.dy + 11, 34 * f, 3), _fill);
   }
 
   Path _diamond(Offset c, [double k = 1]) => Path()
@@ -757,14 +856,24 @@ class _Particle {
 
 class FxLayerController extends ChangeNotifier {
   final List<_Particle> parts = [];
-  final List<(String, double)> toasts = [];
+  final List<Toast> toasts = [];
   Size viewSize = Size.zero;
   final math.Random _r = math.Random();
   void Function(Fx fx)? onFx;
 
   void toast(String t) {
-    toasts.add((t, 2.6));
+    toasts.add(Toast(null, t, 2.6));
     if (toasts.length > 3) toasts.removeAt(0);
+    notifyListeners();
+  }
+
+  /// 제목이 있는 알림 카드 (웹 note)
+  void note(String h, String t, {int ms = 4500}) {
+    toasts.removeWhere((x) => x.h == h);
+    toasts.add(Toast(h, t, ms / 1000));
+    while (toasts.length > 3) {
+      toasts.removeAt(0);
+    }
     notifyListeners();
   }
 
@@ -783,6 +892,15 @@ class FxLayerController extends ChangeNotifier {
           parts.add(_Particle(c, const Offset(0, -26), color, 1.1, text: text));
         case FxToast(:final text):
           toast(text);
+        case FxNote(:final h, :final t, :final ms):
+          note(h, t, ms: ms);
+        case FxBurstAt(:final x, :final y, :final color, :final n):
+          for (var k = 0; k < math.min(n, 16); k++) {
+            final a = _r.nextDouble() * math.pi * 2, sp = 20 + _r.nextDouble() * 50;
+            parts.add(_Particle(Offset(x, y), Offset(math.cos(a) * sp, math.sin(a) * sp * .6 - 40), color, .5 + _r.nextDouble() * .3));
+          }
+        case FxFloatAt(:final x, :final y, :final text, :final color):
+          parts.add(_Particle(Offset(x, y), const Offset(0, -26), color, 1.1, text: text));
         default:
           onFx?.call(f);
       }
@@ -799,10 +917,10 @@ class FxLayerController extends ChangeNotifier {
       p.life -= dt;
     }
     parts.removeWhere((p) => p.life <= 0);
-    for (var k = 0; k < toasts.length; k++) {
-      toasts[k] = (toasts[k].$1, toasts[k].$2 - dt);
+    for (final t in toasts) {
+      t.life -= dt;
     }
-    toasts.removeWhere((t) => t.$2 <= 0);
+    toasts.removeWhere((t) => t.life <= 0);
     return parts.isNotEmpty || toasts.isNotEmpty;
   }
 }
@@ -854,31 +972,51 @@ class _FxLayerState extends State<FxLayer> with SingleTickerProviderStateMixin {
     return IgnorePointer(
       child: Stack(fit: StackFit.expand, children: [
         CustomPaint(painter: _FxPainter(c, widget.camera)),
+        // 알림은 지도 아래쪽 (웹 #toasts: 아래에서 196px, 폭 100%-110 최대 340)
         Positioned(
-          left: 55,
-          right: 55,
-          top: 96,
-          child: Column(children: [
-            for (final (t, life) in c.toasts)
-              Opacity(
-                opacity: life.clamp(0, .3) / .3,
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 5),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xE620160E),
-                    borderRadius: BorderRadius.circular(99),
-                    border: Border.all(color: const Color(0x29EFE3C4)),
-                    boxShadow: const [BoxShadow(color: Color(0x59000000), blurRadius: 12, offset: Offset(0, 5))],
+          left: 0,
+          right: 0,
+          bottom: 196,
+          child: Center(
+            child: SizedBox(
+              width: math.min(340, math.max(0, MediaQuery.of(context).size.width - 110)).toDouble(),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                for (final t in c.toasts)
+                  Opacity(
+                    opacity: t.life.clamp(0, .3) / .3,
+                    child: Container(
+                      width: t.h != null ? double.infinity : null,
+                      margin: const EdgeInsets.only(top: 6),
+                      padding: t.h != null ? const EdgeInsets.fromLTRB(8, 6, 11, 6) : const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEEE5D3),
+                        borderRadius: BorderRadius.circular(9),
+                        border: Border.all(color: Ttc.line),
+                        boxShadow: const [BoxShadow(color: Color(0x2E000000), blurRadius: 14, offset: Offset(0, 4))],
+                      ),
+                      child: t.h == null
+                          ? Text(t.t, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: Ttc.t(13, color: Ttc.sepia, height: 1.4))
+                          : Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                              Text(t.h!, style: Ttc.serif(13.5, color: Ttc.sepia, weight: FontWeight.w700, height: 1.3)),
+                              if (t.t.isNotEmpty)
+                                Text(t.t, maxLines: 3, overflow: TextOverflow.ellipsis, style: Ttc.t(12, color: Ttc.sepia2, height: 1.5)),
+                            ]),
+                    ),
                   ),
-                  child: Text(t, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: Ttc.t(13, color: const Color(0xFFF1E5C6), height: 1.4)),
-                ),
-              ),
-          ]),
+              ]),
+            ),
+          ),
         ),
       ]),
     );
   }
+}
+
+class Toast {
+  Toast(this.h, this.t, this.life);
+  final String? h;
+  final String t;
+  double life;
 }
 
 class _FxPainter extends CustomPainter {

@@ -3,23 +3,21 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 
 import '../data/web_data.g.dart' as web;
 import '../game/data.dart';
 import '../game/engine.dart';
 import 'map_view.dart';
-import 'theme.dart';
 
-class _Walk {
-  _Walk(this.x, this.y, {this.idle = 0, this.brk = 0}) : tx = x, ty = y;
+class Walk {
+  Walk(this.x, this.y, {this.idle = 0, this.brk = 0}) : tx = x, ty = y;
   double x, y, tx, ty, idle, brk;
   double face = 1;
   bool mv = false;
 }
 
-class _Chat {
-  _Chat(this.a, this.b, this.dur, this.lines, {this.solo = false});
+class Chat {
+  Chat(this.a, this.b, this.dur, this.lines, {this.solo = false});
   final int a, b;
   final double dur;
   final List<(int, String)> lines;
@@ -30,10 +28,10 @@ class _Chat {
 class Life {
   Life(this.g);
   final Game g;
-  final Map<int, _Walk> walk = {};
+  final Map<int, Walk> walk = {};
   final _r = math.Random();
   double _chatT = 8;
-  _Chat? chat;
+  Chat? chat;
 
   List<int> _lifeTiles() {
     final S = g.S, R = S.lv + 1, o = <int>[];
@@ -48,7 +46,11 @@ class Life {
     return o;
   }
 
-  Offset _spot() {
+  Offset _spot(bool night) {
+    if (night) {
+      final c = tileC(C0), a = _r.nextDouble() * math.pi * 2;
+      return Offset(c.dx + math.cos(a) * 44, c.dy + 14 + math.sin(a) * 18);
+    }
     final L = _lifeTiles();
     if (L.isEmpty) return tileC(C0) + const Offset(20, 20);
     final c = tileC(L[_r.nextInt(L.length)]);
@@ -56,6 +58,7 @@ class Life {
   }
 
   void step(double dt) {
+    final night = g.isNight && g.defn == null;
     final ids = g.svIds.toList();
     walk.removeWhere((id, _) => !ids.contains(id));
     for (final id in ids) {
@@ -67,18 +70,18 @@ class Life {
         continue;
       }
       if (w == null) {
-        if (working) continue;
-        final p = _spot();
-        w = walk[id] = _Walk(p.dx, p.dy, idle: 1 + _r.nextDouble() * 3);
+        if (working && !night) continue;
+        final p = working ? tileC(g.atOf(id)) : _spot(night);
+        w = walk[id] = Walk(p.dx, p.dy, idle: 1 + _r.nextDouble() * 3, brk: working ? 12 + _r.nextDouble() * 10 : 0);
       }
-      if (working && w.brk <= 0) {
+      if (working && !night && w.brk <= 0) {
         walk.remove(id);
         continue;
       }
       if (w.brk > 0) w.brk -= dt;
       final dx = w.tx - w.x, dy = w.ty - w.y, d = math.sqrt(dx * dx + dy * dy);
       if (d > 2) {
-        final sp = 18 * dt;
+        final sp = (night ? 26 : 18) * dt;
         w.x += dx / d * math.min(sp, d);
         w.y += dy / d * math.min(sp, d);
         w.face = dx >= 0 ? 1 : -1;
@@ -87,7 +90,7 @@ class Life {
         w.mv = false;
         w.idle -= dt;
         if (w.idle <= 0) {
-          final p = _spot();
+          final p = _spot(night);
           w.tx = p.dx;
           w.ty = p.dy;
           w.idle = 2 + _r.nextDouble() * 4;
@@ -97,16 +100,16 @@ class Life {
     // 일하던 사람도 가끔 쉬러 나온다
     for (final id in ids) {
       final r = g.rec(id)!, at = g.atOf(id);
-      if (at >= 0 && r['away'] != true && !(((r['hurt'] as num?) ?? 0) > 0) && !walk.containsKey(id) && _r.nextDouble() < dt / 55) {
+      if (at >= 0 && r['away'] != true && !(((r['hurt'] as num?) ?? 0) > 0) && !walk.containsKey(id) && !g.isNight && _r.nextDouble() < dt / 55) {
         final c = tileC(at);
-        walk[id] = _Walk(c.dx, c.dy, brk: 14 + _r.nextDouble() * 10);
+        walk[id] = Walk(c.dx, c.dy, brk: 14 + _r.nextDouble() * 10);
       }
     }
     final c = chat;
     if (c != null) {
       c.t += dt;
       if (c.t > c.dur || !walk.containsKey(c.a) || !walk.containsKey(c.b)) chat = null;
-    } else {
+    } else if (g.defn == null) {
       _chatT -= dt;
       if (_chatT <= 0) {
         _chatT = 9 + _r.nextDouble() * 9;
@@ -136,11 +139,16 @@ class Life {
             ..tx = mx + 12
             ..ty = my
             ..idle = 9;
-          chat = _Chat(a, b, 8, _convo(a, b));
+          chat = Chat(a, b, 8, _convo(a, b));
         } else if (ws.isNotEmpty) {
           final a = ws[_r.nextInt(ws.length)];
           final sm = _small(a);
-          if (sm.isNotEmpty) chat = _Chat(a, a, 4, [(a, sm[_r.nextInt(sm.length)])], solo: true);
+          final nl = [for (final t in web.nightLine) t as String];
+          if (g.isNight) {
+            chat = Chat(a, a, 4, [(a, nl[_r.nextInt(nl.length)])], solo: true);
+          } else if (sm.isNotEmpty) {
+            chat = Chat(a, a, 4, [(a, sm[_r.nextInt(sm.length)])], solo: true);
+          }
         }
       }
     }
@@ -156,121 +164,20 @@ class Life {
   }
 
   bool get busy => walk.isNotEmpty || g.S.asg.isNotEmpty;
-}
 
-/// 지도 위 사람 층. 사람이 있을 때만 30fps 남짓으로 그린다.
-class PeopleLayer extends StatefulWidget {
-  const PeopleLayer({super.key, required this.game, required this.camera});
-  final Game game;
-  final Camera camera;
-  @override
-  State<PeopleLayer> createState() => _PeopleLayerState();
-}
-
-class _PeopleLayerState extends State<PeopleLayer> with SingleTickerProviderStateMixin {
-  late final Life life = Life(widget.game);
-  late final Ticker _ticker = createTicker(_tick);
-  Duration _last = Duration.zero, _drawn = Duration.zero;
-  double time = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    widget.game.addListener(_wake);
-    _wake();
+  /// 세계 좌표 가까이의 사람 (웹 personAt)
+  int? personAt(Offset w, double reach) {
+    int? best;
+    var bd = reach * reach;
+    walk.forEach((id, p) {
+      final d = (Offset(p.x, p.y - 8) - w).distanceSquared;
+      if (d < bd) {
+        bd = d;
+        best = id;
+      }
+    });
+    return best;
   }
-
-  void _wake() {
-    if (!_ticker.isActive && widget.game.S.sv.isNotEmpty) {
-      _last = Duration.zero;
-      _ticker.start();
-    }
-  }
-
-  void _tick(Duration t) {
-    final dt = _last == Duration.zero ? 1 / 30 : (t - _last).inMicroseconds / 1e6;
-    _last = t;
-    time += dt * 1000;
-    life.step(dt.clamp(0, .1).toDouble());
-    if ((t - _drawn).inMilliseconds >= 33) {
-      _drawn = t;
-      setState(() {});
-    }
-    if (!life.busy && widget.game.S.sv.isEmpty) _ticker.stop();
-  }
-
-  @override
-  void dispose() {
-    widget.game.removeListener(_wake);
-    _ticker.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) =>
-      IgnorePointer(child: CustomPaint(painter: _PeoplePainter(widget.game, life, widget.camera, time), size: Size.infinite));
-}
-
-class _PeoplePainter extends CustomPainter {
-  _PeoplePainter(this.g, this.life, this.cam, this.time) : super(repaint: cam);
-  final Game g;
-  final Life life;
-  final Camera cam;
-  final double time;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.clipRect(Offset.zero & size);
-    canvas.save();
-    canvas.translate(size.width / 2, size.height / 2);
-    canvas.scale(cam.z);
-    canvas.translate(-cam.x, -cam.y);
-    // 일터에서 일하는 사람 (모듈 앞 모서리)
-    for (final e in g.S.asg.entries) {
-      final id = e.value, m = g.modAtTile(e.key);
-      if (!g.hasSv(id) || g.busy(id) || life.walk.containsKey(id) || m == null) continue;
-      final p = MapPainter.P(e.key, .9, .9);
-      const jobs = {2: 'grow', 3: 'water', 4: 'read', 6: 'care', 7: 'read'};
-      drawPerson(canvas, id, p.dx, p.dy, time, false, 1, jobs[m.id] ?? 'repair');
-    }
-    final list = life.walk.entries.toList()..sort((a, b) => a.value.y.compareTo(b.value.y));
-    for (final e in list) {
-      drawPerson(canvas, e.key, e.value.x, e.value.y, time, e.value.mv, e.value.face, null);
-    }
-    canvas.restore();
-    _bubble(canvas, size);
-  }
-
-  void _bubble(Canvas canvas, Size size) {
-    final c = life.chat;
-    if (c == null || c.lines.isEmpty) return;
-    final k = math.min(c.lines.length - 1, (c.t / (c.dur / c.lines.length)).floor());
-    final (who, txt0) = c.lines[k];
-    final w = life.walk[who];
-    if (w == null) return;
-    final sx = (w.x - cam.x) * cam.z + size.width / 2, sy = (w.y - 26 - cam.y) * cam.z + size.height / 2;
-    final t = txt0.length > 18 ? '${txt0.substring(0, 17)}…' : txt0;
-    final tp = TextPainter(text: TextSpan(text: t, style: Ttc.t(12, color: const Color(0xFF3B2A1A), weight: FontWeight.w600, height: 1)), textDirection: TextDirection.ltr)..layout();
-    final tw = tp.width + (c.solo ? 16 : 30), bx = (sx - tw / 2).clamp(8.0, math.max(8.0, size.width - tw - 8)).toDouble(), by = sy - 26;
-    final rr = RRect.fromRectAndRadius(Rect.fromLTWH(bx, by, tw, 22), const Radius.circular(9));
-    final fill = Paint()..color = const Color(0xF5EFE3C4);
-    canvas.drawRRect(rr, fill);
-    canvas.drawRRect(
-        rr,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.4
-          ..color = const Color(0xFF3B2A1A));
-    canvas.drawPath(Path()..moveTo(sx - 4, by + 21)..lineTo(sx, by + 28)..lineTo(sx + 4, by + 21)..close(), fill);
-    tp.paint(canvas, Offset(bx + 8, by + 11.5 - tp.height / 2));
-    if (!c.solo) {
-      final ar = TextPainter(text: TextSpan(text: '▸', style: Ttc.t(12, color: Ttc.no, weight: FontWeight.w600, height: 1)), textDirection: TextDirection.ltr)..layout();
-      ar.paint(canvas, Offset(bx + tw - 18, by + 11.5 - ar.height / 2));
-    }
-  }
-
-  @override
-  bool shouldRepaint(_PeoplePainter old) => true;
 }
 
 // ======================= 사람 그림 (people.js person) =======================

@@ -52,6 +52,9 @@ const T = {
   small: ev('Object.fromEntries(Object.entries(SMALL).map(([k,v])=>[k,v]))'),
   pairs: ev('PAIRS'),
   nightLine: ev('NIGHTLINE'),
+  events: ev('EVENTS.map(e=>({who:e.who,t:e.t,x:e.x,dog:!!e.ok,a:{l:e.a.l,cost:e.a.cost||null,fx:e.a.fx,r:e.a.r},b:{l:e.b.l,cost:e.b.cost||null,fx:e.b.fx,r:e.b.r}}))'),
+  wx: ev('WX'),
+  role: ev('ROLE'),
 };
 
 const dartStr = s => "'" + String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\$/g, '\\$').replace(/\n/g, '\\n') + "'";

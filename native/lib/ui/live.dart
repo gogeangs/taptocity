@@ -1,0 +1,370 @@
+// 지도 위층: 사람들, 대형 재폭풍 괴물, 밤 어둠, 불빛, 말풍선, 재 눈·날씨, 가장자리 어둠.
+// 웹 render 2370–2385 순서(사람 → 괴물 → 밤 어둠 → 불빛 → 말풍선 → 날림 → 비네트)를 그대로 따른다.
+// 움직이는 것이 있을 때만 30fps 남짓으로 그리고, 없으면 지도·카메라가 바뀔 때만 다시 그린다.
+import 'dart:math' as math;
+import 'dart:ui' as ui;
+
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+
+import '../game/data.dart';
+import '../game/engine.dart';
+import 'map_view.dart';
+import 'people.dart';
+import 'theme.dart';
+
+class LiveLayer extends StatefulWidget {
+  const LiveLayer({super.key, required this.game, required this.camera, required this.life});
+  final Game game;
+  final Camera camera;
+  final Life life;
+  @override
+  State<LiveLayer> createState() => _LiveLayerState();
+}
+
+class _Flake {
+  _Flake(math.Random r)
+      : x = r.nextDouble(),
+        y = r.nextDouble(),
+        v = r.nextDouble(),
+        s = r.nextDouble();
+  double x, y, v, s;
+}
+
+class _LiveLayerState extends State<LiveLayer> with SingleTickerProviderStateMixin {
+  late final Ticker _ticker = createTicker(_tick);
+  final ValueNotifier<int> _frame = ValueNotifier(0);
+  Duration _last = Duration.zero, _drawn = Duration.zero;
+  double time = 0;
+  final _r = math.Random();
+  late final List<_Flake> flakes = List.generate(70, (_) => _Flake(_r));
+  late final List<_Flake> wparts = List.generate(90, (_) => _Flake(_r));
+  Game get g => widget.game;
+
+  bool get _wants {
+    final w = g.wxK;
+    return g.S.sv.isNotEmpty || g.defn != null || (g.nightness > 0 && g.stormOn) || w == 'acid' || w == 'cold' || w == 'wind' || g.duskWarn;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    g.addListener(_wake);
+    _wake();
+  }
+
+  void _wake() {
+    if (!_ticker.isActive && _wants) {
+      _last = Duration.zero;
+      _ticker.start();
+    }
+  }
+
+  void _tick(Duration t) {
+    final dt = (_last == Duration.zero ? 1 / 30 : (t - _last).inMicroseconds / 1e6).clamp(0.0, .1).toDouble();
+    _last = t;
+    time += dt * 1000;
+    widget.life.step(dt);
+    if (g.defn != null) {
+      g.tickDefense(dt);
+      if (g.fx.isNotEmpty) g.poke();
+    }
+    _stepParts(dt);
+    if ((t - _drawn).inMilliseconds >= 33) {
+      _drawn = t;
+      _frame.value++;
+    }
+    if (!_wants) _ticker.stop();
+  }
+
+  void _stepParts(double dt) {
+    final fs = dt * 60;
+    if (g.nightness > 0 && g.stormOn) {
+      for (final f in flakes) {
+        f.y += (.04 + f.v * .06) * .016 * 6 * fs;
+        f.x += .0015 * fs;
+        if (f.y > 1) {
+          f.y = 0;
+          f.x = _r.nextDouble();
+        }
+        if (f.x > 1) f.x = 0;
+      }
+    }
+    final w = g.wxK;
+    for (final p in wparts) {
+      final v = .5 + p.v * .6;
+      if (w == 'acid') {
+        p.y += v * .02 * fs;
+        p.x -= .004 * fs;
+        if (p.y > 1) {
+          p.y = 0;
+          p.x = _r.nextDouble();
+        }
+        if (p.x < 0) p.x = 1;
+      } else if (w == 'cold') {
+        p.y += v * .004 * fs;
+        p.x += math.sin(p.y * 20 + p.s * 6) * .0008 * fs;
+        if (p.y > 1) {
+          p.y = 0;
+          p.x = _r.nextDouble();
+        }
+      } else if (w == 'wind') {
+        p.x += v * .012 * fs;
+        if (p.x > 1) {
+          p.x = 0;
+          p.y = _r.nextDouble();
+        }
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    g.removeListener(_wake);
+    _ticker.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => IgnorePointer(
+        child: CustomPaint(
+          painter: _LivePainter(this, Listenable.merge([_frame, widget.camera, g.mapVersion])),
+          size: Size.infinite,
+        ),
+      );
+}
+
+class _LivePainter extends CustomPainter {
+  _LivePainter(this.st, Listenable repaint) : super(repaint: repaint);
+  final _LiveLayerState st;
+  Game get g => st.g;
+  Camera get cam => st.widget.camera;
+  Life get life => st.widget.life;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    canvas.clipRect(rect);
+    final time = st.time, nt = g.nightness;
+    canvas.save();
+    canvas.translate(size.width / 2, size.height / 2);
+    canvas.scale(cam.z);
+    canvas.translate(-cam.x, -cam.y);
+    // 일터에서 일하는 사람 (모듈 앞 모서리)
+    for (final e in g.S.asg.entries) {
+      final id = e.value, m = g.modAtTile(e.key);
+      if (!g.hasSv(id) || g.busy(id) || life.walk.containsKey(id) || m == null) continue;
+      final p = MapPainter.P(e.key, .9, .9);
+      const jobs = {2: 'grow', 3: 'water', 4: 'read', 6: 'care', 7: 'read'};
+      drawPerson(canvas, id, p.dx, p.dy, time, false, 1, jobs[m.id] ?? 'repair');
+    }
+    final glows = [...MapPainter.glows];
+    final list = life.walk.entries.toList()..sort((a, b) => a.value.y.compareTo(b.value.y));
+    if (g.isNight && list.isNotEmpty) {
+      final c = tileC(C0);
+      glows.add((Offset(c.dx, c.dy + 14), 70.0, const Color(0xFFFFAA50), .25));
+    }
+    for (final e in list) {
+      drawPerson(canvas, e.key, e.value.x, e.value.y, time, e.value.mv, e.value.face, null);
+    }
+    _foes(canvas, time, glows);
+    canvas.restore();
+
+    // 밤 어둠: 불빛 자리에 구멍을 낸다 (웹 drawNightLight)
+    Offset scr(Offset w) => Offset((w.dx - cam.x) * cam.z + size.width / 2, (w.dy - cam.y) * cam.z + size.height / 2);
+    if (nt <= .01) {
+      canvas.drawRect(rect, Paint()..color = const Color(0x14281E50));
+    } else {
+      canvas.saveLayer(rect, Paint());
+      canvas.drawRect(rect, Paint()..color = Color.fromRGBO((30 - 16 * nt).round(), (26 - 8 * nt).round(), (70 - 24 * nt).round(), .1 + .58 * nt));
+      void hole(Offset w, double r0, double a0) {
+        final s = scr(w), r = r0 * cam.z;
+        if (s.dx < -r || s.dy < -r || s.dx > size.width + r || s.dy > size.height + r) return;
+        canvas.drawCircle(
+            s,
+            r,
+            Paint()
+              ..blendMode = BlendMode.dstOut
+              ..shader = ui.Gradient.radial(s, r, [Color.fromRGBO(0, 0, 0, a0), Color.fromRGBO(0, 0, 0, a0 * .55), const Color(0x00000000)], [0, .55, 1]));
+      }
+
+      for (final (c, r0, _, a0) in glows) {
+        hole(c.translate(0, 6), r0 * 2.3, math.min(.95, a0 * 1.7));
+      }
+      hole(tileC(C0, 10), 110.0 + g.S.lv * 28, .9);
+      if (g.aimValid) hole(tileC(g.aim, 8), 70, .6);
+      for (final k in g.S.ash.keys) {
+        hole(tileC(int.parse(k), 6), 40, .55);
+      }
+      if (g.defn != null) hole(tileC(C0), 400, .5);
+      canvas.restore();
+    }
+    // 불빛 (더하기 합성)
+    for (final (c, r0, col, a0) in glows) {
+      final s = scr(c), r = r0 * (1 + nt * .2) * cam.z, a = math.min(.85, a0 * (.75 + nt * .45));
+      canvas.drawCircle(
+          s,
+          r,
+          Paint()
+            ..blendMode = BlendMode.plus
+            ..shader = ui.Gradient.radial(s, r, [col.withValues(alpha: a), col.withValues(alpha: 0)]));
+    }
+    _bubble(canvas, size);
+    // 재폭풍 밤의 재 눈송이 · 날씨
+    if (nt > 0 && g.stormOn) {
+      final p = Paint()..color = Color.fromRGBO(170, 165, 158, .45 * nt);
+      for (final f in st.flakes) {
+        final s = 1 + f.s * 2;
+        canvas.drawRect(Rect.fromLTWH(f.x * size.width, f.y * size.height, s, s), p);
+      }
+    }
+    _weather(canvas, size);
+    // 큰 밤이 다가오면 가장자리가 붉게 (웹 #stage.danger)
+    if (g.duskWarn) {
+      final p = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 16
+        ..color = const Color(0x47AB5145)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14);
+      canvas.drawRect(rect.deflate(4), p);
+    }
+    // 가장자리 어둡게 (웹 비네트, 피버 중엔 주황)
+    final c = size.center(Offset.zero), mn = math.min(size.width, size.height), mx = math.max(size.width, size.height);
+    canvas.drawRect(
+        rect,
+        Paint()
+          ..shader = ui.Gradient.radial(
+              c, mx * .75, [const Color(0x00000000), const Color(0x00000000), g.fever > 0 ? const Color(0x73783C0A) : const Color(0x80000000)], [0, (mn * .35) / (mx * .75), 1]));
+  }
+
+  void _weather(Canvas canvas, Size size) {
+    final w = g.wxK;
+    if (w == 'acid') {
+      final p = Paint()
+        ..color = const Color(0x59AAC896)
+        ..strokeWidth = 1;
+      for (final q in st.wparts) {
+        canvas.drawLine(Offset(q.x * size.width, q.y * size.height), Offset(q.x * size.width - 3, q.y * size.height + 10), p);
+      }
+    } else if (w == 'cold') {
+      final p = Paint()..color = const Color(0xB3F0F5FF);
+      for (final q in st.wparts) {
+        final s = 1.6 + q.s * 1.4;
+        canvas.drawRect(Rect.fromLTWH(q.x * size.width, q.y * size.height, s, s), p);
+      }
+    } else if (w == 'wind') {
+      final p = Paint()
+        ..color = const Color(0x47C8BEAA)
+        ..strokeWidth = 1;
+      for (final q in st.wparts) {
+        canvas.drawLine(Offset(q.x * size.width, q.y * size.height), Offset(q.x * size.width + 14 + q.s * 10, q.y * size.height + 1), p);
+      }
+    }
+  }
+
+  /// 대형 재폭풍 괴물 (웹 drawFoes)
+  void _foes(Canvas canvas, double time, List<(Offset, double, Color, double)> glows) {
+    final D2 = g.defn;
+    if (D2 == null) return;
+    final c = tileC(C0);
+    final stroke = Paint()..style = PaintingStyle.stroke;
+    stroke
+      ..color = Color.fromRGBO(226, 100, 79, .35 + .25 * math.sin(time / 200))
+      ..strokeWidth = 2;
+    _dashedOval(canvas, Rect.fromCenter(center: c, width: 68, height: 34), stroke, 6, 6, 0);
+    final uf = g.urgentFoe;
+    if (uf != null) {
+      stroke
+        ..color = const Color(0xD9FF5A3C)
+        ..strokeWidth = 2;
+      final rx = uf.brute ? 26.0 : 18.0, ry = uf.brute ? 26.0 : 19.0;
+      _dashedOval(canvas, Rect.fromCenter(center: Offset(uf.x, uf.y - (uf.brute ? 24 : 17)), width: rx * 2, height: ry * 2), stroke, 4, 4, time / 50);
+    }
+    if (D2.trail.length > 1) {
+      final path = Path()..moveTo(D2.trail.first.$1, D2.trail.first.$2);
+      for (final p in D2.trail.skip(1)) {
+        path.lineTo(p.$1, p.$2);
+      }
+      canvas.drawPath(
+          path,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 3
+            ..strokeCap = StrokeCap.round
+            ..color = const Color(0xCCFFE6AA));
+    }
+    final fill = Paint();
+    for (final f in D2.foes) {
+      if (f.delay > 0) continue;
+      final s = f.brute ? 2.0 : 1.3, bob = math.sin(time / 180 + f.ph) * 2, x = f.x, y = f.y - 10 * s + bob;
+      fill.color = const Color(0x590A0805);
+      canvas.drawOval(Rect.fromCenter(center: Offset(f.x, f.y), width: 20 * s, height: 8 * s), fill);
+      for (var k = 0; k < 5; k++) {
+        final a = time / 300 + k * 1.3 + f.ph, r = (6 + k % 3 * 2) * s;
+        fill.color = k.isOdd ? const Color(0xFF2E2A26) : const Color(0xFF45403A);
+        canvas.drawCircle(Offset(x + math.cos(a) * 3 * s, y + math.sin(a) * 2 * s - k * 1.5 * s), r, fill);
+      }
+      fill.color = f.hit > 0 ? Colors.white : const Color(0xFFFF5A3C);
+      canvas.drawCircle(Offset(x - 3 * s, y - 4 * s), 1.8 * s, fill);
+      canvas.drawCircle(Offset(x + 3 * s, y - 4 * s), 1.8 * s, fill);
+      glows.add((Offset(x, y - 4 * s), 10 * s, const Color(0xFFFF5032), .5));
+      final bw = 22 * s;
+      fill.color = const Color(0xB30D0B08);
+      canvas.drawRect(Rect.fromLTWH(x - bw / 2, y - 18 * s, bw, 3.5), fill);
+      fill.color = const Color(0xFFE2644F);
+      canvas.drawRect(Rect.fromLTWH(x - bw / 2, y - 18 * s, bw * math.max(0, f.hp / f.max), 3.5), fill);
+    }
+    for (final b in D2.beams) {
+      canvas.drawLine(
+          Offset(b.x0, b.y0),
+          Offset(b.x1, b.y1),
+          Paint()
+            ..strokeWidth = 2
+            ..color = Color(b.color).withValues(alpha: math.min(1, b.t * 5)));
+    }
+  }
+
+  void _dashedOval(Canvas canvas, Rect r, Paint p, double on, double off, double offset) {
+    final path = Path()..addOval(r);
+    for (final m in path.computeMetrics()) {
+      var d = -(offset % (on + off));
+      while (d < m.length) {
+        final a = math.max(0.0, d), b = math.min(m.length, d + on);
+        if (b > a) canvas.drawPath(m.extractPath(a, b), p);
+        d += on + off;
+      }
+    }
+  }
+
+  /// 말풍선 (웹 drawBubbles)
+  void _bubble(Canvas canvas, Size size) {
+    final c = life.chat;
+    if (c == null || c.lines.isEmpty) return;
+    final k = math.min(c.lines.length - 1, (c.t / (c.dur / c.lines.length)).floor());
+    final (who, txt0) = c.lines[k];
+    final w = life.walk[who];
+    if (w == null) return;
+    final sx = (w.x - cam.x) * cam.z + size.width / 2, sy = (w.y - 26 - cam.y) * cam.z + size.height / 2;
+    final t = txt0.length > 18 ? '${txt0.substring(0, 17)}…' : txt0;
+    final tp = TextPainter(text: TextSpan(text: t, style: Ttc.t(12, color: const Color(0xFF3B2A1A), weight: FontWeight.w600, height: 1)), textDirection: TextDirection.ltr)..layout();
+    final tw = tp.width + (c.solo ? 16 : 30), bx = (sx - tw / 2).clamp(8.0, math.max(8.0, size.width - tw - 8)).toDouble(), by = sy - 26;
+    final rr = RRect.fromRectAndRadius(Rect.fromLTWH(bx, by, tw, 22), const Radius.circular(9));
+    final fill = Paint()..color = const Color(0xF5EFE3C4);
+    canvas.drawRRect(rr, fill);
+    canvas.drawRRect(
+        rr,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.4
+          ..color = const Color(0xFF3B2A1A));
+    canvas.drawPath(Path()..moveTo(sx - 4, by + 21)..lineTo(sx, by + 28)..lineTo(sx + 4, by + 21)..close(), fill);
+    tp.paint(canvas, Offset(bx + 8, by + 11.5 - tp.height / 2));
+    if (!c.solo) {
+      final ar = TextPainter(text: TextSpan(text: '▸', style: Ttc.t(12, color: Ttc.no, weight: FontWeight.w600, height: 1)), textDirection: TextDirection.ltr)..layout();
+      ar.paint(canvas, Offset(bx + tw - 18, by + 11.5 - ar.height / 2));
+    }
+  }
+
+  @override
+  bool shouldRepaint(_LivePainter old) => true;
+}

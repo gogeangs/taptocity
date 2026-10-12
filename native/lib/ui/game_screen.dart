@@ -1,5 +1,6 @@
 // 게임 화면. 배치·치수·색은 웹 버전(header / #tape / #stage / #lamp / .tabs / #sheet)을 그대로 따른다.
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../game/data.dart';
 import '../game/engine.dart';
 import '../game/storage.dart';
+import 'crisis_ui.dart';
 import 'gear.dart';
 import 'icons.dart';
 import 'map_view.dart';
@@ -104,6 +106,18 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         Future.delayed(const Duration(milliseconds: 250), () {
           if (mounted) showRescuePage(context, g, id, via);
         });
+      case FxDefense(:final start):
+        if (start) {
+          setState(() {
+            sheet = null;
+            _closeRing();
+          });
+          _frameDefense();
+        }
+      case FxEventDone(:final ev, :final k, :final sum):
+        Future.delayed(const Duration(milliseconds: 200), () {
+          if (mounted) showRequestDone(context, g, ev, k, sum);
+        });
       case FxLevelUp(:final lv):
         HapticFeedback.mediumImpact();
         _stamp(lv);
@@ -146,7 +160,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   void _lampRepeat() {
     if (!_lampDown) return;
-    if (g.S.rev.fold<int>(0, (a, v) => a + v) - _lampR0 >= holdMax) {
+    if (g.defn == null && g.urgentAsh < 0 && g.S.rev.fold<int>(0, (a, v) => a + v) - _lampR0 >= holdMax) {
       _lampStop();
       fxc.toast('구름 $holdMax개를 걷었어요 · 다시 눌러요');
       return;
@@ -219,6 +233,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     switch (kind) {
       case 'shelter':
         _open(const SheetSpec('shelter'));
+      case 'person':
+        _survPage(tile);
       case 'module':
       case 'landmark':
         if (_ringClosedAt == tile) {
@@ -226,6 +242,45 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         } else {
           _openRing(tile);
         }
+    }
+  }
+
+  /// 대형 재폭풍: 쉘터를 화면 아래쪽에 두고, 괴물이 나오는 타원을 화면 크기에 맞춘다 (웹 frameDefense)
+  void _frameDefense() {
+    final D2 = g.defn;
+    if (D2 == null || _stageSize == Size.zero) return;
+    final cw = _stageSize.width, ch = _stageSize.height, c = tileC(C0);
+    final z = math.min(1.15, math.max(.85, cw / 360)).clamp(.45, 3.2).toDouble();
+    cam.z = z;
+    cam.set(c.dx, c.dy - (ch * .58 - ch / 2) / z);
+    D2.rx = (cw / 2 - 22) / z;
+    D2.ry = math.min(ch * .58 - 190, ch * .42 - 120) / z;
+    D2.up = (ch * .58 - 200) / z;
+  }
+
+  void _sqGo() {
+    final q = g.sq;
+    if (q == null) return;
+    if (g.sqDone) {
+      HapticFeedback.mediumImpact();
+      g.claimSq();
+      fxc.pull(g);
+      return;
+    }
+    if (DateTime.now().millisecondsSinceEpoch >= g.sqOpenUntil) {
+      g.sqOpenUntil = DateTime.now().millisecondsSinceEpoch + 7000;
+      g.poke();
+      return;
+    }
+    final who = (q['who'] as num?)?.toInt() ?? -1;
+    fxc.toast('${g.hasSv(who) ? '${survivors[who].name}: ' : ''}${(q['say'] as String? ?? '').replaceAll(RegExp(r'^“|”$'), '')}');
+    switch (sqTypes[q['k']]?.go) {
+      case 'craft':
+        _open(const SheetSpec('shelter'));
+      case 'ev':
+        if (g.evCur >= 0) showRequestPage(context, g);
+      default:
+        break;
     }
   }
 
@@ -354,6 +409,48 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                       _StageBtn(null, () => cam.set(cam.x, cam.y, cam.z / 1.25), text: '−'),
                     ],
                   ]),
+                ),
+                // 시계 (웹 #clock)
+                Positioned(
+                  left: 10,
+                  top: 12,
+                  right: 116,
+                  child: Align(alignment: Alignment.centerLeft, child: Every(g: g, builder: (c) => clockChip(g))),
+                ),
+                // 대형 재폭풍 막대 · 생존자 의뢰 · 부탁
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 56,
+                  child: Center(
+                    child: SizedBox(
+                      width: math.min(350, box.maxWidth - 20),
+                      child: Every(g: g, ms: 250, builder: (c) => defenseBar(g)),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 12,
+                  top: 70,
+                  child: Every(
+                    g: g,
+                    builder: (c) => g.defn != null || matsOpen
+                        ? const SizedBox.shrink()
+                        : DateTime.now().millisecondsSinceEpoch >= g.sqOpenUntil && !g.sqDone
+                            ? sideQuest(g, onTap: _sqGo)
+                            : SizedBox(width: math.min(300, box.maxWidth - 84), child: sideQuest(g, onTap: _sqGo)),
+                  ),
+                ),
+                Every(
+                  g: g,
+                  builder: (c) => g.defn != null || matsOpen || g.evCur < 0
+                      ? const SizedBox.shrink()
+                      : Positioned(
+                          left: 12,
+                          right: 72,
+                          top: g.sq != null && g.sqOn ? 122 : 50,
+                          child: Align(alignment: Alignment.centerLeft, child: eventButton(g, () => showRequestPage(context, g))),
+                        ),
                 ),
                 // 시트
                 Positioned(
@@ -648,7 +745,7 @@ class _Lamp extends StatelessWidget {
     final fev = g.fever > 0;
     final p = fev ? g.fever / g.feverT : g.combo / g.comboMax;
     final flame = .7 + (fev ? 1 : g.combo / g.comboMax) * .8;
-    final label = fev ? '피버!' : g.combo > 0 ? '연타 ${g.combo.floor()}' : '두드리기';
+    final label = g.defn != null ? (fev ? '피버! 막기' : '막기') : fev ? '피버!' : g.combo > 0 ? '연타 ${g.combo.floor()}' : '두드리기';
     return Transform.translate(
       offset: Offset(0, down ? 2 : 0),
       child: Container(

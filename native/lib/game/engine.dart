@@ -4,9 +4,12 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
+import '../data/web_data.g.dart' as web;
 import 'data.dart';
 import 'rng.dart';
 import 'state.dart';
+
+part 'crisis.dart';
 
 /// 화면 연출(떠오르는 글자·알림·창 열기)을 그림 쪽에 알려 주는 신호.
 sealed class Fx {
@@ -134,7 +137,15 @@ class Game extends ChangeNotifier {
   Game(this.S, {math.Random? random}) : rnd = random ?? math.Random() {
     _rebuildFrontier();
     recalc();
+    wasNight = isNight;
   }
+
+  // ---------- 낮밤·위기 (저장하지 않는 진행 상태, crisis.dart) ----------
+  bool wasNight = false;
+  double spawnT = 0, evT = 45, evLeft = 0;
+  int nightN = 0, nightLost = 0, evCur = -1, sqOpenUntil = 0;
+  final List<int> evSeen = [];
+  Defense? defn;
 
   GameState S;
   final math.Random rnd;
@@ -372,7 +383,7 @@ class Game extends ChangeNotifier {
   double get scavMult {
     final b = S.buff;
     final bm = b != null && b['k'] == 'scav' ? (b['m'] as num).toDouble() : 1.0;
-    return (1 + (E['scav'] ?? 0) + (S.lv - 1) * .15) * (fever > 0 ? 2 : 1) * bm;
+    return (1 + (E['scav'] ?? 0) + (S.lv - 1) * .15) * (fever > 0 ? 2 : 1) * bm * wxMul('scav');
   }
 
   double buffMult(String k) {
@@ -1589,7 +1600,7 @@ class Game extends ChangeNotifier {
   void dig(int i) {
     final x = i % W;
     addCombo();
-    damage(i, tapPow * (fever > 0 ? 2 : 1), fromTap: true);
+    damage(i, tapPow * (fever > 0 ? 2 : 1) * wxMul('dig'), fromTap: true);
     final spl = S.splashLv + (fever > 0 ? tapPow : 0);
     if (spl > 0) {
       final tg = fever > 0
@@ -1603,6 +1614,16 @@ class Game extends ChangeNotifier {
 
   /// 랜턴 버튼 (웹 digAim 2450의 지도 부분)
   void digAim() {
+    if (defn != null) {
+      final f = urgentFoe;
+      if (f != null) tapFoe(f);
+      return;
+    }
+    final a = urgentAsh;
+    if (a >= 0) {
+      hitAsh(a, tapPow * (fever > 0 ? 2 : 1));
+      return;
+    }
     if (!aimValid) {
       setAim(nearestFrontierTo(C0));
       if (aim < 0) return;
@@ -1795,7 +1816,7 @@ class Game extends ChangeNotifier {
     var changed = false;
     // 생산·식량·연료 (웹 tickProd 2721)
     prod.forEach((k, v) {
-      final add = v * buffMult(k) * dt / 60;
+      final add = v * buffMult(k) * wxMul('prod', k) * dt / 60;
       S.frac[k] = (S.frac[k] ?? 0) + add;
       final w = S.frac[k]!.floor();
       if (w > 0) {
@@ -1803,7 +1824,7 @@ class Game extends ChangeNotifier {
         if (give({k: w}).isNotEmpty) changed = true;
       }
     });
-    final e = eat * dt / 60;
+    final e = eat * wxMul('eat') * dt / 60;
     S.frac['eat'] = (S.frac['eat'] ?? 0) + e;
     if (S.frac['eat']! >= 1) {
       final w = S.frac['eat']!.floor();
@@ -1812,7 +1833,7 @@ class Game extends ChangeNotifier {
       changed = true;
     }
     if (fuelUse > 0) {
-      S.frac['fuel'] = (S.frac['fuel'] ?? 0) + fuelUse * dt / 60;
+      S.frac['fuel'] = (S.frac['fuel'] ?? 0) + fuelUse * wxMul('fuel') * dt / 60;
       if (S.frac['fuel']! >= 1) {
         final w = S.frac['fuel']!.floor();
         S.frac['fuel'] = S.frac['fuel']! - w;
@@ -1846,6 +1867,9 @@ class Game extends ChangeNotifier {
       }
       changed = true;
     }
+    // 낮밤·밤 재·부탁 (crisis.dart)
+    _tickClock(dt);
+    _tickEvents(dt);
     // 임시 효과
     final b = S.buff;
     if (b != null) {
@@ -1877,6 +1901,7 @@ class Game extends ChangeNotifier {
         _mapChanged();
       }
       _tickAuto();
+      _tickSide();
       if (S.droneLv > 0 || overT > 0) {
         final i = frontierNearest();
         if (i >= 0) {
@@ -1941,8 +1966,11 @@ class Game extends ChangeNotifier {
     combo = 0;
     fever = 0;
     aim = -1;
+    defn = null;
+    evCur = -1;
     _rebuildFrontier();
     recalc();
+    wasNight = isNight;
     _changed();
   }
 
