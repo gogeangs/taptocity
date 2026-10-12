@@ -1,8 +1,8 @@
 [debug] Injecting <script> tag. Using callback.
-[warn] [.WebGL-0x18a40013d600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
-[warn] [.WebGL-0x18a402665a00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
-[timing] 첫 화면까지 3.2초
-[warn] [.WebGL-0x18a402665a00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
-[warn] [.WebGL-0x18a402665a00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)
-[timing] 받은 양 17.8MB
+[warn] [.WebGL-0x36cc00f70c00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
+[warn] [.WebGL-0x36cc00f74800]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
+[warn] [.WebGL-0x36cc00f74800]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
+[warn] [.WebGL-0x36cc00f74800]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)
+[timing] 첫 화면까지 4.2초
+[timing] 받은 양 18.0MB
 [debug] Injecting <script> tag. Using callback.
