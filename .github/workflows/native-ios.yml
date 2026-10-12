@@ -86,19 +86,40 @@ jobs:
           if [ $s -ne 0 ]; then m=$(tail -60 ../drive.txt | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}'); echo "::error title=simulator::$m"; fi
           exit $s
 
+      - name: 시뮬레이터 결과 알리기
+        if: always()
+        run: |
+          set +e
+          echo "::notice title=ios-shots::$(ls ios-shots 2>&1 | tr '\n' ' ')"
+          [ -f ios-shots/report.json ] && echo "::notice title=report::$(head -c 3000 ios-shots/report.json | sed 's/%/%25/g')"
+          [ -s ios-shots/faults.txt ] && echo "::warning title=faults::$(head -c 3000 ios-shots/faults.txt | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}')"
+          echo "::notice title=drive::$(tail -15 ios-shots/drive-log.txt 2>/dev/null | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}')"
+          exit 0
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-shots
+          path: native/ios-shots
+          if-no-files-found: warn
+
       - name: 시뮬레이터 사진 올리기 (native-play/ios-shots)
         if: always() && github.ref == 'refs/heads/main'
         working-directory: .
         run: |
           set +e +o pipefail
-          [ -d native/ios-shots ] || exit 0
+          [ -d native/ios-shots ] || { echo "::warning title=push::사진 폴더 없음"; exit 0; }
+          git fetch -q origin main && git checkout -q -B up origin/main
           rm -rf native-play/ios-shots && mkdir -p native-play && cp -r native/ios-shots native-play/ios-shots
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A native-play/ios-shots
-          git diff --cached --quiet && exit 0
+          git add -f -A native-play/ios-shots
+          git diff --cached --quiet && { echo "::notice title=push::변경 없음"; exit 0; }
           git commit -qm "iOS 시뮬레이터 사진 (${GITHUB_SHA::7})"
-          for i in 1 2 3; do git pull --rebase --autostash origin main && git push origin HEAD:main && break; sleep 5; done
+          ok=0
+          for i in 1 2 3; do out=$( { git pull -q --rebase origin main && git push -q origin HEAD:main; } 2>&1 ) && { ok=1; break; }; sleep 5; done
+          if [ $ok -ne 1 ]; then echo "::error title=push::$(echo "$out" | tail -5 | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}')"; exit 1; fi
+          echo "::notice title=push::올림"
 
       - name: API 키 준비
         if: env.UPLOAD == 'true'

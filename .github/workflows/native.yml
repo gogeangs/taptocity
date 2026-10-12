@@ -160,8 +160,11 @@ jobs:
         working-directory: .
         run: |
           set +e +o pipefail
+          # iOS 시뮬레이터 사진(native-play/ios-shots)은 iOS 워크플로가 올리므로 남겨 둔다
+          [ -d native-play/ios-shots ] && mv native-play/ios-shots /tmp/ios-shots
           rm -rf native-play
           cp -r native/build/web native-play
+          [ -d /tmp/ios-shots ] && mv /tmp/ios-shots native-play/ios-shots
           rm -rf native-play/canvaskit   # 엔진(CanvasKit)은 구글 CDN에서 받으므로 저장소에 올리지 않는다
           mkdir -p native-play/shots && cp native/test_screens/shots/*.png native/test_screens/shots/*.txt native-play/shots/ 2>/dev/null || true
           echo "파일 $(find native-play -type f | wc -l)개"
