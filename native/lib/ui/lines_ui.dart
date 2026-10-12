@@ -365,7 +365,9 @@ class _LnPageState extends State<_LnPage> with SingleTickerProviderStateMixin {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => PopScope(canPop: false, child: _page(context));
+
+  Widget _page(BuildContext context) {
     final L = g.ln;
     if (L == null) return const SizedBox.shrink();
     final T = lnTowns[L.reg]!;

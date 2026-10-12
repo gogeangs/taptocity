@@ -841,6 +841,19 @@ extension Season on Game {
       final r = casesMap[k];
       final ki = int.tryParse('$k');
       if (r is Map && r['p'] != null && ki != null && ki < 6) a['${36 + ki}'] = 1;
+      // 동네 사건 그림 42~44 (웹 caseArt)
+      final ri = regionOrder.indexOf('$k');
+      if (r is Map && r['p'] != null && ri >= 0) a['${42 + ri}'] = 1;
+    }
+    // 동네 이야기 그림 27~35 (웹 REGBASE + regBeat)
+    final g0 = S.gen;
+    for (var gg = 1; gg <= math.min(g0, 3); gg++) {
+      final ri = regionOrder.indexOf(regionOfGen(gg));
+      if (ri < 0) continue;
+      final dd = gg < g0 ? 99 : rmi;
+      for (var k = 0; k < math.min(dd, 9); k++) {
+        a['${27 + ri * 3 + (k < 3 ? 0 : k < 6 ? 1 : 2)}'] = 1;
+      }
     }
   }
 

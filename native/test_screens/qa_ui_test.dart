@@ -136,6 +136,9 @@ void main() {
         await go();
         await settle();
         screens++;
+        // 화면이 실제로 열렸는지: 글자 수가 너무 적으면 기록
+        final n = find.byType(Text).evaluate().length + find.byType(RichText).evaluate().length;
+        if (n < 8) add('$where · 글자가 거의 없음($n) — 화면이 안 열렸을 수 있음');
         scanText();
         final ex = tester.takeException();
         if (ex != null) add('$where · 예외: ${'$ex'.split('\n').first}');

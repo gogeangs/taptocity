@@ -72,7 +72,7 @@ class Cloud {
       return true;
     } on CloudError catch (e) {
       // 갱신 토큰이 더는 안 맞으면(계정 삭제 등) 새로 시작
-      if (_refresh != null && (e.code == 400 || e.code == 401)) {
+      if (_refresh != null && RegExp('TOKEN_EXPIRED|INVALID_REFRESH_TOKEN|USER_NOT_FOUND|USER_DISABLED').hasMatch(e.message)) {
         _refresh = null;
         uid = null;
         await Storage.setRaw(_authKey, null);
@@ -185,7 +185,8 @@ class Cloud {
     try {
       busy = true;
       final h = await _auth();
-      await client.delete(Uri.parse(_doc), headers: h).timeout(const Duration(seconds: 12));
+      final r = await client.delete(Uri.parse(_doc), headers: h).timeout(const Duration(seconds: 12));
+      if (r.statusCode >= 300 && r.statusCode != 404) throw CloudError(r.statusCode, r.body);
       await _post('https://identitytoolkit.googleapis.com/v1/accounts:delete?key=$apiKey', {'idToken': _id});
       await Storage.setRaw(_authKey, null);
       _id = null;

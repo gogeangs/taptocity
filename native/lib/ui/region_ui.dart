@@ -426,7 +426,9 @@ class _DeathPageState extends State<_DeathPage> with SingleTickerProviderStateMi
   double _in(double t, double at, double dur) => ((t - at) / dur).clamp(0, 1).toDouble();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => PopScope(canPop: false, child: _page(context));
+
+  Widget _page(BuildContext context) {
     final g = widget.g, d = widget.d, s = survivors[d.id];
     return Material(
       color: Colors.transparent,

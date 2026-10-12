@@ -295,6 +295,14 @@ extension Region on Game {
   }
 
   void _tlogLeft() {
+    // 떠날 때 남긴 장식 (웹 4273)
+    final c = <String, int>{};
+    for (final v in deco.values) {
+      c['$v'] = (c['$v'] ?? 0) + 1;
+    }
+    final ds = [for (final q in decoSets().keys) web.dsets[q]?['n'] ?? q];
+    final parts = [for (final e in c.entries) '${(web.deco[e.key]?['n']) ?? e.key} ${e.value}'];
+    if (parts.isNotEmpty) tlog('떠날 때 남긴 장식: ${parts.join(', ')}${ds.isNotEmpty ? ' · ${ds.join('·')}이(가) 있던 동네' : ''}');
     final e = tlogEntry(S.gen);
     e['left'] = <String, Object?>{'day': num_('day'), 'tower': towerN, 'lv': S.lv, 'sets': [for (final q in decoSets().keys) web.dsets[q]?['n'] ?? q]};
   }
@@ -744,6 +752,7 @@ extension Region on Game {
     out['hurt'] = 0;
     (t['sv'] as Map)['$outId'] = out;
     S.sv.remove('$outId');
+    (S.rest['cd'] as Map?)?.remove('$outId');
     party = party.where((x) => x != outId).toList();
     final inr = Map<String, Object?>.from((t['sv'] as Map)['$inId'] as Map);
     sfx('join');
@@ -899,6 +908,8 @@ extension Region on Game {
       fx.add(k == 'mirage'
           ? const FxNote('모래 위로 무언가 아른거려요', '빛나는 자리를 눌러 봐요. 진짜일 수도, 신기루일 수도 있어요', ms: 6000)
           : const FxNote('멈춘 줄 알았던 기계가 쿵쿵 돌아요', '불꽃 튀는 자리를 7초 안에 8번 두드려 꺼요. 부품이 쏟아져요', ms: 6000));
+    } else {
+      sfx(k == 'mirage' ? 'reveal' : 'hit');
     }
   }
 

@@ -369,7 +369,9 @@ class _UgPageState extends State<_UgPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => PopScope(canPop: false, child: _page(context));
+
+  Widget _page(BuildContext context) {
     final u = g.ug;
     if (u == null) return const SizedBox.shrink();
     final f = u.floor, th = ugTheme(f);

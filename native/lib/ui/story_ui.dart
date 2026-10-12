@@ -423,7 +423,9 @@ class _TalkPageState extends State<_TalkPage> {
   FxTalk get t => widget.t;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => PopScope(canPop: false, child: _page(context));
+
+  Widget _page(BuildContext context) {
     final lines = t.lines, l = lines[k], last = k == lines.length - 1, n = lines.length;
     if (_said != k) {
       _said = k;
@@ -1076,7 +1078,7 @@ Future<void> showOnboard(BuildContext context, Game g, {required VoidCallback on
           ('사람 구하기', '깜빡이는 구조 신호를 따라가요.'),
           ('밤 버티기', '가장자리의 붉은 재를 걷어내요.'),
         ];
-        return Dialog(
+        return PopScope(canPop: false, child: Dialog(
           backgroundColor: Ttc.paper,
           insetPadding: const EdgeInsets.all(16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Color(0x66EEE5D3))),
@@ -1147,7 +1149,7 @@ Future<void> showOnboard(BuildContext context, Game g, {required VoidCallback on
               ]),
             ),
           ),
-        );
+        ));
       },
     );
 

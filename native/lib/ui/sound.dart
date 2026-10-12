@@ -165,7 +165,10 @@ class Sound {
     if (!_ready) return;
     _blackUntil = DateTime.now().millisecondsSinceEpoch + (sec * 1000).round();
     _apply(fast: true);
-    Timer(Duration(milliseconds: (sec * 1000).round() + 30), _apply);
+    Timer(Duration(milliseconds: (sec * 1000).round() + 30), () {
+      _aim = null;
+      _apply();
+    });
   }
 
   static Future<void> _switch(String m) async {
@@ -188,9 +191,17 @@ class Sound {
   }
 
   /// 소리 크기를 천천히 맞춘다 (웹 setTargetAtTime 1.2초 → 약 1.5초에 걸쳐)
+  static bool _paused = false;
+  static (double, bool)? _aim; // 마지막으로 맞추던 (크기, 어느 쪽)
   static void _apply({bool fast = false}) {
+    if (_paused) return;
+    final black = DateTime.now().millisecondsSinceEpoch < _blackUntil;
+    // 매 0.25초 불려도 목표가 같으면 그대로 둔다 (진행 중인 빠른 암전을 느린 페이드로 덮지 않게)
+    final aim = (_level, _aOn);
+    if (!fast && aim == _aim) return;
+    _aim = aim;
     _fade?.cancel();
-    final step = fast ? .5 : .06;
+    final step = fast || black ? .5 : .06;
     _fade = Timer.periodic(const Duration(milliseconds: 60), (t) {
       final ta = _aOn ? _level : 0.0, tb = _aOn ? 0.0 : _level;
       double mv(double v, double to) => (to - v).abs() < step ? to : v + (to > v ? step : -step);
@@ -202,6 +213,7 @@ class Sound {
       } catch (_) {}
       if (_va == ta && _vb == tb) {
         t.cancel();
+        if (_paused) return;
         // 다 줄어든 쪽은 멈춰 둔다 (휴대폰이 덜 데워지게)
         if (ta == 0) _ma?.pause();
         if (tb == 0) _mb?.pause();
@@ -226,6 +238,7 @@ class Sound {
         try {
           await on.play(AssetSource('music/$_cur.m4a'), volume: _aOn ? _va : _vb);
         } catch (_) {}
+        _aim = null;
         _apply();
       }();
     }
@@ -234,10 +247,13 @@ class Sound {
   /// 앱이 뒤로 가면 멈추고, 돌아오면 다시
   static void pauseAll(bool paused) {
     if (!_ready) return;
+    _paused = paused;
     if (paused) {
+      _fade?.cancel();
       _ma?.pause();
       _mb?.pause();
     } else {
+      _aim = null;
       _apply();
     }
   }

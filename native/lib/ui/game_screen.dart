@@ -46,6 +46,9 @@ class GameScreen extends StatefulWidget {
 
   /// 이 기기에 저장이 없던 첫 실행 (예전 버전 진행을 찾아본다)
   static bool firstRun = false;
+
+  /// 켤 때 읽은 저장의 마지막 저장 시각 (클라우드가 더 최근인지 견줄 때)
+  static int loadedT = 0;
   @override
   State<GameScreen> createState() => _GameScreenState();
 }
@@ -158,22 +161,32 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     if (_saved != null) await Cloud.upload(_saved!, force: force);
   }
 
+  bool _cloudStarting = false, _cloudReady = false;
   Future<void> _cloudStart() async {
+    if (_cloudStarting || _cloudReady) return;
+    _cloudStarting = true;
+    try {
+      await _cloudStart0();
+    } finally {
+      _cloudStarting = false;
+    }
+  }
+
+  Future<void> _cloudStart0() async {
     Report.dev = () => devInfo(g, mounted ? context : null);
     if (!await Cloud.signIn()) return;
     Cloud.busy = true;
     try {
       final c = await Cloud.fetch();
-      g.dirty = true;
-      _save();
-      final local = _saved!, ls = Cloud.summary(local);
+      // 이 기기 저장의 시각은 켤 때 읽어 둔 값 (지금 저장하면 '지금'이 되어 늘 이 기기가 더 최근이 된다)
+      final local = jsonEncode(g.S.toJson()), ls = Cloud.summary(local), localT = GameScreen.loadedT;
       if (c != null) {
         Cloud.last = c.at > 0 ? c.at : c.t;
-        if (c.data.isNotEmpty && c.data != local && c.t > ls.$1 + 3000 && mounted) {
+        if (c.data.isNotEmpty && c.t > localT + 3000 && mounted) {
           final yes = await cloudAsk(
               context,
               '클라우드에 더 최근 진행이 있어요',
-              '클라우드: Lv.${c.lv}${c.gen > 0 ? ' · ${c.gen + 1}번째 동네' : ''} · ${cloudWhen(c.t)} 저장\n이 기기: Lv.${ls.$2}${ls.$3 > 0 ? ' · ${ls.$3 + 1}번째 동네' : ''} · ${cloudWhen(ls.$1)} 저장\n\n클라우드 진행을 불러올까요?',
+              '클라우드: Lv.${c.lv}${c.gen > 0 ? ' · ${c.gen + 1}번째 동네' : ''} · ${cloudWhen(c.t)} 저장\n이 기기: Lv.${ls.$2}${ls.$3 > 0 ? ' · ${ls.$3 + 1}번째 동네' : ''}${localT > 0 ? ' · ${cloudWhen(localT)} 저장' : ''}\n\n클라우드 진행을 불러올까요?',
               '불러오기',
               '이 기기 진행 유지');
           if (yes) {
@@ -194,6 +207,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     }
     Cloud.busy = false;
     Cloud.version.value++;
+    _cloudReady = true;
     await _cloudUp(force: true);
     unawaited(Cloud.flush());
     _cloudT?.cancel();
@@ -291,6 +305,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       g.poke();
       _start();
       Sound.pauseAll(false);
+      // 켤 때 클라우드에 못 붙었으면 다시
+      if (GameScreen.cloudOn && !_cloudReady) _cloudStart();
     }
   }
 

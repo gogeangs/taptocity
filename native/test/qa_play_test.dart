@@ -99,10 +99,21 @@ void autoStep(Game g, Qa qa, math.Random r) {
     });
     return;
   }
-  // 랜턴 두드리기 (초당 5번쯤)
-  safe('digAim', () {
+  // 사람처럼 두드리기 (초당 5번쯤): 구조 캠프 잔해 → 폐허 뒤지기 → 구름 걷기
+  safe('tap', () {
+    final camps = [for (final e in g.S.camp.entries) if (g.S.rev[e.key] == 1) e.key];
+    int near(Iterable<int> xs) => xs.reduce((a, b) => dist(a) <= dist(b) ? a : b);
+    final sites = [for (var i = 0; i < N; i++) if (g.S.rev[i] == 1 && g.siteLive(i)) i];
     for (var k = 0; k < 5; k++) {
-      g.digAim();
+      if (camps.isNotEmpty) {
+        g.tapTile(near(camps));
+      } else if (sites.isNotEmpty && r.nextDouble() < .6) {
+        final s = near(sites);
+        g.tapTile(s);
+        if (!g.siteLive(s)) sites.remove(s);
+      } else {
+        g.digAim();
+      }
     }
   });
   safe('claim', () {

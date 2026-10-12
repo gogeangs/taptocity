@@ -28,6 +28,10 @@ Future<void> main() async {
   await Atlas.load();
   final saved = await Storage.load();
   GameScreen.firstRun = saved == null;
+  // 클라우드와 비교할 '마지막 저장 시각'은 오프라인 진행이 고치기 전에 잡아 둔다
+  GameScreen.loadedT = saved?.t ?? 0;
+  // 저장이 있는데 읽지 못했으면, 새 게임으로 덮어쓰기 전에 옆에 남겨 둔다
+  if (saved == null && await Storage.getRaw(Storage.key) != null) await Storage.backup();
   Game.tutFlag = await Storage.getRaw('ttc_tut') == '1';
   Game game;
   try {
