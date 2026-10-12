@@ -53,7 +53,9 @@ Future<void> _shot(WidgetTester tester, Game g, String name, {Future<void> Funct
   await tester.pumpWidget(MaterialApp(debugShowCheckedModeBanner: false, theme: Ttc.theme(), home: GameScreen(game: g)));
   await tester.pump(const Duration(milliseconds: 50));
   if (act != null) await act();
-  await tester.pump(const Duration(milliseconds: 400));
+  for (var k = 0; k < 10; k++) {
+    await tester.pump(const Duration(milliseconds: 60));
+  }
   await expectLater(find.byType(MaterialApp), matchesGoldenFile('shots/$name.png'));
   await tester.pumpWidget(const SizedBox());
   await tester.pump(const Duration(seconds: 1));
@@ -80,7 +82,9 @@ void main() {
     });
     await _shot(tester, g, '05-survivor-page', act: () async {
       await tester.tap(find.text('생존자').last);
-      await tester.pump(const Duration(milliseconds: 300));
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
       await tester.tap(find.text(survivors[0].name).first);
     });
     await _shot(tester, g, '07-ring', act: () async {
