@@ -494,13 +494,13 @@ class MapPainter extends CustomPainter {
 
 // ======================= 연출(파티클·떠오르는 글자) =======================
 class _Particle {
-  _Particle(this.p, this.v, this.color, this.life, {this.text, this.size = 3}) : max = life;
+  _Particle(this.p, this.v, this.color, this.life, {this.text}) : max = life;
   Offset p, v;
   final int color;
   double life;
   final double max;
   final String? text;
-  final double size;
+  final double size = 3;
 }
 
 class FxLayerController extends ChangeNotifier {
