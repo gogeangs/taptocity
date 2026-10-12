@@ -42,6 +42,7 @@ extension Quest on Game {
     if (q == null || Q == null || Game._truthy(q['done'])) return;
     final s = ((q['s'] as num?) ?? 0).toInt() + 1;
     q['s'] = s;
+    sfx('chime');
     if (s >= Q.steps.length) {
       q['done'] = true;
       addGear(Q.gear);

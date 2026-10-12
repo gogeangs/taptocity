@@ -3,13 +3,13 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/services.dart';
 
 import '../game/data.dart';
 import '../game/engine.dart';
 import 'gear.dart';
 import 'portrait.dart';
 import 'survivors.dart';
+import 'sound.dart';
 import 'theme.dart';
 import 'underground_ui.dart';
 import 'widgets.dart';
@@ -102,7 +102,10 @@ Future<void> showLnPrep(BuildContext context, Game g) async {
                   thumb: const SizedBox(width: 0),
                   title: '추천 두 명',
                   desc: descText('소방·정찰을 먼저, 그다음 연구·요리 역할 · 같으면 등급 순'),
-                  button: BuyButton('추천으로 고르기', width: 112, onTap: () => set(() => _lnTeam = [...rp])),
+                  button: BuyButton('추천으로 고르기', width: 112, onTap: () {
+                    Sound.sfx('chime');
+                    set(() => _lnTeam = [...rp]);
+                  }),
                 ),
               if (free.isEmpty)
                 descText('쉬는 생존자가 없어요')
@@ -116,6 +119,7 @@ Future<void> showLnPrep(BuildContext context, Game g) async {
                         onTap: !t.contains(id) && t.length >= 2
                             ? null
                             : () => set(() {
+                                  Sound.sfx('tap');
                                   if (t.contains(id)) {
                                     t.remove(id);
                                   } else {
@@ -271,7 +275,7 @@ class _LnPageState extends State<_LnPage> with SingleTickerProviderStateMixin {
     return Expanded(
       child: GestureDetector(
         onTap: () {
-          HapticFeedback.selectionClick();
+          Sound.tick();
           g.lnPick(k);
         },
         child: Container(
@@ -325,7 +329,7 @@ class _LnPageState extends State<_LnPage> with SingleTickerProviderStateMixin {
     return Column(children: [
       Listener(
         onPointerDown: (_) {
-          HapticFeedback.lightImpact();
+          Sound.buzz();
           g.lnStrike();
         },
         child: Transform.translate(

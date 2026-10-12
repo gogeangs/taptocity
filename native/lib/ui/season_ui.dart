@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../data/web_data.g.dart' as web;
 import '../game/data.dart';
@@ -13,6 +12,7 @@ import 'atlas.dart';
 import 'portrait.dart';
 import 'story_ui.dart';
 import 'survivors.dart';
+import 'sound.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -174,7 +174,7 @@ Future<void> showCase(BuildContext context, Game g, int k) async {
       ]));
   if (picked == null || !context.mounted) return;
   final (ls, fx) = g.pickCase(k, picked!);
-  HapticFeedback.mediumImpact();
+  Sound.buzzMid();
   await _casePage(context, (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         _caseArt(g, k),
         Text('사건 ${k + 1} · ${c.ch}', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
@@ -253,6 +253,7 @@ void eggRadio(BuildContext context, Game g) {
   final m = DateTime.now().minute;
   Future.delayed(const Duration(milliseconds: 500), () {
     if (!context.mounted) return;
+    Sound.sfx('mystery');
     showEgg(context, tag: '03:$m · 잡음', body: eggDark(const ['…', '(한참 동안 아무 소리도 없다)', '“…여기는 한밤. 지금 바로 대피하—”']), note: '목소리는 거기서 뚝 끊겼다. 끊긴 시각은 3시 14분이었다.');
     g.eggGet('a', '끊긴 방송');
   });
@@ -594,6 +595,7 @@ class _EndCardState extends State<EndCard> {
     _ts.add(Timer(const Duration(milliseconds: 30), () => setState(() => on = true)));
     _ts.add(Timer(const Duration(milliseconds: 3200), () => setState(() => t = true)));
     _ts.add(Timer(const Duration(milliseconds: 6400), () {
+      Sound.sfx('static');
       const txt = '…대피 방송은 —';
       var i = 0;
       _ts.add(Timer.periodic(const Duration(milliseconds: 110), (tm) {
@@ -697,9 +699,12 @@ class _DreadLayerState extends State<DreadLayer> with SingleTickerProviderStateM
       a.stop();
       if (mounted) setState(() {});
     }
-    // 심장 소리 대신 진동 (소리는 7단계)
+    // 심장 소리와 진동 (웹 tickDread: 두 번 쿵)
     if (g.dread && _beat == null) {
-      _beat = Timer.periodic(const Duration(milliseconds: 1100), (_) => HapticFeedback.lightImpact());
+      _beat = Timer.periodic(const Duration(milliseconds: 1100), (_) {
+        Sound.sfx('heart');
+        Sound.buzz();
+      });
     } else if (!g.dread && _beat != null) {
       _beat!.cancel();
       _beat = null;

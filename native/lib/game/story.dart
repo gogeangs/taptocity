@@ -67,6 +67,11 @@ class Mission {
   final StepInfo? step;
 }
 
+/// 등불지기의 이름 창 (처음 한 번)
+class FxPfName extends Fx {
+  const FxPfName();
+}
+
 /// 대화 창 하나 (웹 openTalk opt)
 class FxTalk extends Fx {
   const FxTalk(this.lines, {this.tag, this.card, this.goal, this.reward, this.chain = false, this.scene, this.noskip = false, this.after, this.replay = false});
@@ -352,8 +357,39 @@ extension Story on Game {
 
   String speakerName(Object w) {
     final id = speakerId(w);
-    return id == null ? '나' : survivors[id].name;
+    return id == null ? (pfSet ? pfName : '나') : survivors[id].name;
   }
+
+  // ================= 내 프로필 (웹 4626) =================
+  Map get pf {
+    if (S.rest['pf'] is! Map) S.rest['pf'] = <String, Object?>{'name': '', 'portrait': 1, 'set': 0};
+    return S.rest['pf'] as Map;
+  }
+
+  bool get pfSet => S.rest['pf'] is Map && Game._truthy((S.rest['pf'] as Map)['set']);
+  String get pfName => (S.rest['pf'] is Map && ((S.rest['pf'] as Map)['name'] as String? ?? '').isNotEmpty) ? (S.rest['pf'] as Map)['name'] as String : '등불지기';
+  int pfIndex([Map? p]) {
+    final v = (p ?? (S.rest['pf'] as Map?))?['portrait'];
+    return v is int && v >= 0 && v < 4 ? v : 1;
+  }
+
+  /// 이름 정하기 (웹 pfok): 꺾쇠·따옴표를 빼고 열 글자까지
+  void setPfName(String v) {
+    final name = v.replaceAll(RegExp('[<>&"\'`]'), '').trim();
+    pf['name'] = name.length > 10 ? name.substring(0, 10) : name;
+    pf['set'] = 1;
+    _changed();
+  }
+
+  void setPfPortrait(int i) {
+    pf['portrait'] = i.clamp(0, 3);
+    pf['set'] = 1;
+    sfx('chime');
+    _changed();
+  }
+
+  /// 다른 모습: 지금과 다른 하나 (웹 pfRandom)
+  int pfRandom([int? cur]) => ((cur ?? pfIndex()) + 1 + rnd.nextInt(3)) % 4;
 
   void talk(List<Line> lines, {String? tag, (String, String)? card, String? goal, Map<String, int>? reward, bool chain = false, String? scene, bool noskip = false, String? after}) {
     final ls = talkLines(lines);
@@ -389,6 +425,14 @@ extension Story on Game {
       }
       return;
     }
+    // 프롤로그 뒤 처음 한 번: 등불지기의 이름 (웹 tickStory 2075)
+    if (S.rest['pfAsk'] == null && S.gen == 0 && mi >= 2) {
+      S.rest['pfAsk'] = 1;
+      if (!pfSet) pf['portrait'] = pfRandom();
+      fx.add(const FxPfName());
+      dirty = true;
+      return;
+    }
     if (storyI < mi && mi < steps.length) {
       S.rest['storyI'] = mi;
       introStep(mi);
@@ -402,6 +446,7 @@ extension Story on Game {
   void claimMission() {
     final m = mission();
     if (!m.done) return;
+    sfx('chime');
     final got = give(m.rw);
     final st = m.step;
     if (mi < steps.length) {
@@ -521,6 +566,7 @@ extension Story on Game {
   }
 
   void tickStorySec() {
+    S.rest['playT'] = num_('playT') + 1;
     _tickAch();
     _tickQuests();
     if (tickTut()) return;
@@ -577,6 +623,7 @@ extension Story on Game {
     final t = towerNext();
     if (!towerOk || !pay(towerCost)) return false;
     S.rest['tower'] = towerN + 1;
+    sfx('level');
     fx.add(FxBurst(C0, 0xFFFFD98A, 30));
     recalc();
     if (towerN == 5) {
@@ -598,6 +645,7 @@ extension Story on Game {
   }
 
   void _lightTower() {
+    sfx('lit');
     final first = S.rest['endSeen'] == null || S.rest['endSeen'] == 0;
     S.rest['endSeen'] = 1;
     give({'batt': first ? 10 : 5});
@@ -666,6 +714,7 @@ extension Story on Game {
     final a = achList.where((x) => x.$1 == k).firstOrNull;
     if (a == null || achState(k) != 1) return;
     achMap[k] = 2;
+    sfx('chime');
     give({'batt': a.$5});
     S.rest['title'] = a.$2;
     fx.add(FxToast('칭호 ‘${a.$2}’ · 건전지 +${a.$5}'));

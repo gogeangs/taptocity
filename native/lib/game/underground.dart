@@ -127,6 +127,7 @@ extension Underground on Game {
     ug = u;
     ugRec['runs'] = ugRuns + 1;
     _ugFloor();
+    sfx('reveal');
     _changed();
     return true;
   }
@@ -248,6 +249,7 @@ extension Underground on Game {
       if (c.c == 'stairs') {
         u.msg = '지하 ${u.floor + 1}층으로 내려갔다.';
         _ugFloor();
+        sfx('reveal');
         _changed();
         return false;
       }
@@ -271,6 +273,8 @@ extension Underground on Game {
 
   void _ugResolve(UgCell c) {
     final u = ug!, f = u.floor, sc = 1 + (f - 1) * .35;
+    final snd = const {'loot': 'get', 'oil': 'get', 'key': 'get', 'hazard': 'night', 'foe': 'night', 'empty': '', 'stairs': '', 'start': '', 'shop': ''}[c.c] ?? 'find';
+    if (snd.isNotEmpty) sfx(snd);
     switch (c.c) {
       case 'loot':
         final a = baseMats[rnd.nextInt(6)], b = baseMats[rnd.nextInt(6)], m = ugRole('mech') ? 1.3 : 1.0;
@@ -385,6 +389,7 @@ extension Underground on Game {
       ugRec['ck'] = ck;
       u.oil += 10;
       u.max = math.max(u.max, u.oil);
+      sfx('find');
       u.msg = '쉼터에서 한숨 돌렸다. 챙긴 물건을 위로 올려 보냈다${got.isNotEmpty ? ' · ${lootText(got)}' : ''}${ng > 0 ? ' · 장비 $ng개' : ''} · 기름 +10 · 다음엔 $f층에서 시작할 수 있어요';
       dirty = true;
     } else if (c.c == 'door' && !c.open) {
@@ -395,6 +400,7 @@ extension Underground on Game {
       }
       u.keys--;
       c.open = true;
+      sfx('find');
       final sc = 1 + (f - 1) * .35;
       final o = <String, num>{'plate': jsRound(3 * sc), 'parts': jsRound(4 * sc)};
       if (f >= 4) o[rnd.nextDouble() < .5 ? 'wire' : 'med'] = 1 + f ~/ 8;
@@ -411,6 +417,7 @@ extension Underground on Game {
       if (u.oil <= 0) return false;
       u.oil--;
       c.fhp -= ugRole('guard') ? 2 : 1;
+      sfx(c.fhp <= 0 ? 'find' : 'hit', buzz: true);
       if (c.fhp <= 0) {
         c.fhp = 0;
         final o = <String, num>{rnd.nextDouble() < .5 ? 'wire' : 'med': 1, 'scrap': 6 + f};

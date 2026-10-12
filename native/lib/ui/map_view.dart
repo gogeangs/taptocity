@@ -702,17 +702,17 @@ class MapPainter extends CustomPainter {
 
     if (core) {
       final lv = S.lv;
-      _sprite(canvas, Atlas.image('shelters.webp'), Atlas.cell('shelters.webp', lv - 1, 3, 2), c, const [84.0, 84.0, 90.0, 100.0, 112.0][lv - 1], .91);
+      _sprite(canvas, Atlas.mapImage('shelters.webp'), Atlas.cell('shelters.webp', lv - 1, 3, 2), c, const [84.0, 84.0, 90.0, 100.0, 112.0][lv - 1], .91);
       _glows.add((P(i, .5, .5, 16), 42.0 + lv * 3, const Color(0xFFF0C071), .38));
       return;
     }
     if (mod != null) {
       final idx = modOrder.indexOf(mod.id);
-      if (mod.l >= 1 && Atlas.image('module-upgrades.webp') != null) {
+      if (mod.l >= 1 && Atlas.mapImage('module-upgrades.webp') != null) {
         final w = mod.id == 8 ? 40.0 + mod.l * 4 : mod.id == 7 ? 78.0 + mod.l * 3 : 76.0 + mod.l * 3;
-        _sprite(canvas, Atlas.image('module-upgrades.webp'), Atlas.fr(Atlas.moduleUpFrames[idx * 2 + math.min(1, mod.l - 1)]), c, w, 1, dy: 8);
+        _sprite(canvas, Atlas.mapImage('module-upgrades.webp'), Atlas.fr(Atlas.moduleUpFrames[idx * 2 + math.min(1, mod.l - 1)]), c, w, 1, dy: 8);
       } else {
-        _sprite(canvas, Atlas.image('modules.webp'), Atlas.cell('modules.webp', idx, 3, 3), c, (mod.id == 8 || mod.id == 7 ? 94.0 : 78.0) + mod.l * 3, .9);
+        _sprite(canvas, Atlas.mapImage('modules.webp'), Atlas.cell('modules.webp', idx, 3, 3), c, (mod.id == 8 || mod.id == 7 ? 94.0 : 78.0) + mod.l * 3, .9);
       }
       if (mod.l > 0) {
         final p = P(i, .5, .8, 1);
@@ -729,7 +729,7 @@ class MapPainter extends CustomPainter {
     final band = g.band;
     if (band != null && band['tile'] == i) {
       final f = Atlas.fr(Atlas.propFrames[0]);
-      _sprite(canvas, Atlas.image('settlement-props.webp'), f, c, 60, 1, dy: 5);
+      _sprite(canvas, Atlas.mapImage('settlement-props.webp'), f, c, 60, 1, dy: 5);
       final k = band['k'] as String;
       final fp = P(i, .75, .25), tp = P(i, .75, .25, 34);
       _line
@@ -790,7 +790,7 @@ class MapPainter extends CustomPainter {
       final l = S.lm[i];
       if (l != null) {
         final f = Atlas.fr(Atlas.landmarkFrames[l.k + (l.ok ? 5 : 0)]);
-        final h = _sprite(canvas, Atlas.image('landmarks.webp'), f, c, Atlas.landmarkWidth[l.k], 1, dy: 8);
+        final h = _sprite(canvas, Atlas.mapImage('landmarks.webp'), f, c, Atlas.landmarkWidth[l.k], 1, dy: 8);
         if (l.ok) {
           _glows.add((c.translate(0, -12), 28.0, const Color(0xFFF0C071), .28));
         } else {
@@ -805,7 +805,7 @@ class MapPainter extends CustomPainter {
     if (kind >= 0) {
       final v = (((speck[i] * 7.31 + speck2[i] * 3.17) % 1) * 5).floor();
       final f = Atlas.fr(Atlas.siteFrames[kind * 6 + (live ? math.min(4, v) : 5)]);
-      _sprite(canvas, Atlas.image('exploration-sites.webp'), f, c, live ? (kind == 0 ? 60.0 : 62.0) : 54.0, 1, dy: 8);
+      _sprite(canvas, Atlas.mapImage('exploration-sites.webp'), f, c, live ? (kind == 0 ? 60.0 : 62.0) : 54.0, 1, dy: 8);
       return;
     }
     if (t == T.silo) {
@@ -862,7 +862,7 @@ class MapPainter extends CustomPainter {
 
   void _prop(Canvas canvas, int id, Offset c, {double alpha = 1}) {
     final f = Atlas.fr(Atlas.propFrames[id]);
-    _sprite(canvas, Atlas.image('settlement-props.webp'), f, c, Atlas.propWidth[id], 1, dy: 5, alpha: alpha);
+    _sprite(canvas, Atlas.mapImage('settlement-props.webp'), f, c, Atlas.propWidth[id], 1, dy: 5, alpha: alpha);
   }
 
   void _fogTile(Canvas canvas, int i, int x, int y) {

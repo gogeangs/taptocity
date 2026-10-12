@@ -52,6 +52,7 @@ Game _demo() {
   // 이야기: 2장 '방벽 세우기'까지 본 상태
   S.rest['mi'] = stepI('방벽 세우기');
   S.rest['storyI'] = g.mi;
+  S.rest['pfAsk'] = 1;
   g.takeFx();
   return g;
 }
@@ -79,7 +80,7 @@ void main() {
   testWidgets('화면 사진', (tester) async {
     await tester.runAsync(() async {
       await Atlas.load();
-      for (final f in ['story-1.webp', 'story-2.webp', 'story-3.webp', 'story-4.webp', 'story-5.webp', 'founder-expressions.webp', 'underground-icons.webp', 'crows-kids.webp', 'regional-npcs.webp']) {
+      for (final f in ['story-1.webp', 'story-2.webp', 'story-3.webp', 'story-4.webp', 'story-5.webp', 'founder-expressions.webp', 'underground-icons.webp', 'crows-kids.webp', 'regional-npcs.webp', 'player-faceless.webp']) {
         await Atlas.ensure(f);
       }
     });
@@ -342,6 +343,7 @@ void main() {
     r.S.rest['endSeen'] = 1;
     r.S.rest['mi'] = steps.length;
     r.S.rest['storyI'] = steps.length;
+    r.S.rest['pfAsk'] = 1;
     r.S.m.addAll({'wood': 200, 'scrap': 120, 'cloth': 60, 'food': 120, 'parts': 40, 'fuel': 40, 'batt': 8, 'plate': 20});
     r.recalc();
     r.takeFx();
@@ -442,6 +444,51 @@ void main() {
         await tester.pump(const Duration(milliseconds: 60));
       }
       await tester.tap(find.text('이야기').last);
+    });
+    // 7단계: 프로필·설정·산골 풍경
+    r.pf['name'] = '하람';
+    r.pf['set'] = 1;
+    r.pf['portrait'] = 2;
+    r.S.rest['playT'] = 5400;
+    await _shot(tester, r, '40-profile', act: () async {
+      await tester.tap(find.byKey(const ValueKey('pfBtn')));
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+    });
+    await _shot(tester, r, '41-settings', act: () async {
+      await tester.tap(find.byKey(const ValueKey('setBtn')));
+    });
+    final w = Game(Game.fresh(seed: 42));
+    w.S.gen = 3;
+    w.S.region = 'snow';
+    w.S.rest['pfAsk'] = 1;
+    w.S.rest['mi'] = steps.length;
+    w.S.rest['storyI'] = steps.length;
+    w.S.rest['rsI'] = 0;
+    w.S.rest['wx'] = 'normal';
+    for (var y = CY - 4; y <= CY + 4; y++) {
+      for (var x = CX - 4; x <= CX + 4; x++) {
+        if (w.S.rev[y * W + x] == 0) w.reveal(y * W + x);
+      }
+    }
+    w.buildMod(1);
+    w.buildMod(2);
+    w.S.rest['warm'] = 75;
+    w.recalc();
+    w.takeFx();
+    Atlas.region = 'snow';
+    await _shot(tester, w, '42-snow', act: () async {
+      await tester.runAsync(() async {
+        for (final f in ['shelters.webp', 'modules.webp', 'exploration-sites.webp', 'settlement-props.webp', 'landmarks.webp']) {
+          Atlas.mapImage(f);
+        }
+        await Future<void>.delayed(const Duration(seconds: 6));
+      });
+      w.mapVersion.value++;
+      for (var k = 0; k < 10; k++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
     });
   });
 }

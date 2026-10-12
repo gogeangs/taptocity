@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../game/data.dart';
 import '../game/engine.dart';
@@ -10,6 +11,7 @@ import 'atlas.dart';
 import 'icons.dart';
 import 'life_ui.dart';
 import 'season_ui.dart';
+import 'sound.dart';
 import 'story_ui.dart';
 import 'region_ui.dart';
 import 'lines_ui.dart';
@@ -570,6 +572,60 @@ class _SettingsBodyState extends State<SettingsBody> {
         ]),
       );
 
+  static const _si = {
+    'mus': '<path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
+    'snd': '<path d="M4 10v4h4l5 4V6L8 10z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>',
+    'vib': '<rect x="8" y="3" width="8" height="18" rx="2"/><path d="M4 8v8M20 8v8"/>',
+    'calm': '<path d="M3 12h4l2-5 4 10 2-5h6"/>',
+    'big': '<path d="M4 19L9 5l5 14M6 14h6"/><path d="M15 19l3-8 3 8M16 16h4"/>',
+    'eco': '<rect x="3" y="7" width="16" height="10" rx="2"/><path d="M22 11v2"/><path d="M11 9l-2 3h4l-2 3"/>',
+  };
+
+  /// 웹 .setrow: 아이콘 · 이름과 설명 · 켜고 끄기
+  Widget _setRow(String k, String n, String d) {
+    final on = Prefs.get(k);
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => setState(() => Prefs.toggle(k)),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Ttc.line))),
+        child: Row(children: [
+          Container(
+            width: 36,
+            height: 36,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: const Color(0x123B2A1A), borderRadius: BorderRadius.circular(10)),
+            child: SvgPicture.string(
+                '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#26333B" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${_si[k]}</svg>',
+                width: 20,
+                height: 20),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(n, style: Ttc.t(14, color: Ttc.sepia, weight: FontWeight.w700)),
+              Text(d, style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5)),
+            ]),
+          ),
+          const SizedBox(width: 10),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            width: 50,
+            height: 28,
+            padding: const EdgeInsets.all(2),
+            alignment: on ? Alignment.centerRight : Alignment.centerLeft,
+            decoration: BoxDecoration(color: on ? const Color(0xFF6F8F4A) : const Color(0xFFCBBD9B), borderRadius: BorderRadius.circular(99), border: Border.all(color: Ttc.sepia, width: 2)),
+            child: Container(
+                width: 20,
+                height: 20,
+                decoration: const BoxDecoration(shape: BoxShape.circle, color: Ttc.paper, boxShadow: [BoxShadow(color: Color(0x4D000000), blurRadius: 3, offset: Offset(0, 1))])),
+          ),
+        ]),
+      ),
+    );
+  }
+
   Widget _ghost(String t, VoidCallback onTap, {bool warn = false}) => GestureDetector(
         onTap: onTap,
         child: Container(
@@ -585,7 +641,17 @@ class _SettingsBodyState extends State<SettingsBody> {
   Widget build(BuildContext context) {
     final g = widget.g;
     return ListView(padding: _bodyPad, children: [
-      Text('네이티브 미리보기 · 5단계', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
+      Text('네이티브 미리보기 · 7단계', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
+      for (final (k, n, d) in const [
+        ('mus', '음악', '낮과 밤, 재폭풍, 심야 방송에 맞춰 흐르는 배경 음악'),
+        ('snd', '소리', '두드리기, 자재 줍기, 라디오 잡음 같은 효과음'),
+        ('vib', '진동', '두드릴 때 휴대폰이 살짝 떨려요'),
+        ('calm', '움직임 줄이기', '흔들림·깜빡임 같은 애니메이션을 줄여요'),
+        ('eco', '절전 모드', '화면을 덜 자주, 조금 덜 선명하게 그려 휴대폰이 덜 뜨거워지고 배터리가 오래가요'),
+        ('big', '글자 크게', '화면 글자와 창을 조금 크게 보여요'),
+      ])
+        _setRow(k, n, d),
+      sec('저장'),
       _row('저장 코드 복사', '웹 버전의 저장 코드와 같은 형식이에요', _ghost('복사', () async {
         await Clipboard.setData(ClipboardData(text: g.exportCode()));
         if (mounted) setState(() => msg = '내 저장 코드를 복사했어요');

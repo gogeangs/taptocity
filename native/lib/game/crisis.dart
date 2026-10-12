@@ -171,6 +171,7 @@ extension Crisis on Game {
     final n = isNight;
     if (n && !wasNight) {
       pedLeave();
+      if (clock > 5 && !bigNightNext) sfx('night');
       final big = (bigNightNext || S.rest['raid'] != null) && revCount >= 16;
       S.rest['nightCount'] = num_('nightCount') + 1;
       nightN = 0;
@@ -258,6 +259,7 @@ extension Crisis on Game {
 
   /// 붉은 재 두드리기 (웹 hitAsh 2841)
   void hitAsh(int i, double amt) {
+    if (S.ash['$i'] != null) sfx('hit', buzz: true);
     final a = S.ash['$i'];
     if (a is! Map) return;
     addCombo();
@@ -407,6 +409,7 @@ extension Crisis on Game {
     if (ev < 0) return false;
     final c = evCost(ev, k);
     if (!pay(c)) return false;
+    sfx('chime');
     final fx0 = (evOpt(ev, k)['fx'] as Map?) ?? const {}, sum = <(String, String?, bool)>[];
     final lootM = fx0['loot'];
     if (lootM is Map) {
@@ -560,6 +563,7 @@ extension Crisis on Game {
   void claimSq() {
     if (!sqDone) return;
     final q = sq!, rw = sqReward(), bonus = (num_('sqN').toInt() + 1) % 3 == 0;
+    sfx('chime');
     final got = give(rw);
     var extra = '';
     if (bonus) {
@@ -592,6 +596,7 @@ extension Crisis on Game {
 
   // ================= 대형 재폭풍 (웹 3826) =================
   void startDefense() {
+    sfx('night');
     defn = Defense(S.rest['raid'] as String?);
     S.rest['raid'] = null;
     if (defn!.raid != null) fx.add(FxToast('${defn!.raid}이(가) 쳐들어와요!'));
@@ -644,6 +649,7 @@ extension Crisis on Game {
         final dmg = (f.brute ? 16 : 7) * (1 - _wallRed[S.walls.clamp(0, 3)]) * petDef;
         D2.hp -= dmg;
         D2.shake = 1;
+        sfx('hit', buzz: true);
         fx.add(FxToast(S.walls > 0 ? '재가 방벽에 부딪혔어요 · 내구도 -${dmg.round()}' : '재가 쉘터를 덮쳤어요 · 내구도 -${dmg.round()}'));
         continue;
       }
@@ -747,6 +753,7 @@ extension Crisis on Game {
   }
 
   void tapFoe(Foe f) {
+    sfx('hit', buzz: true);
     addCombo();
     hurtFoe(f, tapPow * (fever > 0 ? 2 : 1));
   }
@@ -785,7 +792,10 @@ extension Crisis on Game {
         n++;
       }
     }
-    if (n > 0) addCombo();
+    if (n > 0) {
+      addCombo();
+      sfx('hit');
+    }
     D2.trail.add((x, y, .25));
   }
 
@@ -795,6 +805,7 @@ extension Crisis on Game {
     S.rest['defs'] = num_('defs') + 1;
     if (win) {
       S.rest['defWins'] = num_('defWins') + 1;
+      sfx('win');
       final q = math.max(.4, D2.hp / D2.max);
       final got = give({...scaleCost({'scrap': 25, 'parts': 12, 'plate': 5, 'fuel': 8}, lvScale * q), 'batt': q >= .8 ? 3 : 2});
       var gt = '';

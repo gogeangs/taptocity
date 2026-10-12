@@ -12,6 +12,7 @@ import '../game/data.dart';
 import '../game/engine.dart';
 import 'map_view.dart';
 import 'people.dart';
+import 'sound.dart';
 import 'theme.dart';
 
 class LiveLayer extends StatefulWidget {
@@ -28,8 +29,9 @@ class _Flake {
       : x = r.nextDouble(),
         y = r.nextDouble(),
         v = r.nextDouble(),
-        s = r.nextDouble();
-  double x, y, v, s;
+        s = r.nextDouble(),
+        p = r.nextDouble() * 7;
+  double x, y, v, s, p;
 }
 
 class _LiveLayerState extends State<LiveLayer> with SingleTickerProviderStateMixin {
@@ -40,6 +42,7 @@ class _LiveLayerState extends State<LiveLayer> with SingleTickerProviderStateMix
   final _r = math.Random();
   late final List<_Flake> flakes = List.generate(70, (_) => _Flake(_r));
   late final List<_Flake> wparts = List.generate(90, (_) => _Flake(_r));
+  late final List<_Flake> rair = List.generate(60, (_) => _Flake(_r)); // 동네의 결 (웹 RAIR)
   Game get g => widget.game;
 
   bool get _wants {
@@ -85,7 +88,7 @@ class _LiveLayerState extends State<LiveLayer> with SingleTickerProviderStateMix
       if (g.fx.isNotEmpty) g.poke();
     }
     _stepParts(dt);
-    if ((t - _drawn).inMilliseconds >= 33) {
+    if ((t - _drawn).inMilliseconds >= (Prefs.eco ? 66 : 33)) {
       _drawn = t;
       _frame.value++;
     }
@@ -94,6 +97,34 @@ class _LiveLayerState extends State<LiveLayer> with SingleTickerProviderStateMix
 
   void _stepParts(double dt) {
     final fs = dt * 60;
+    // 동네의 결: 사막 모래바람 · 공단 재 조각과 불티 · 산골 눈송이 (웹 drawRegionAir 6060)
+    final r = g.S.region, tt = time / 1000;
+    if (r != null && !Prefs.calm) {
+      for (final q in rair) {
+        if (r == 'desert') {
+          q.x += (.0018 + q.v * .0016) * fs;
+          q.y += math.sin(tt + q.p) * .0003 * fs;
+          if (q.x > 1.05) {
+            q.x = -.05;
+            q.y = _r.nextDouble();
+          }
+        } else if (r == 'factory') {
+          q.y += (.0006 + q.v * .0006) * fs;
+          q.x += (math.sin(tt * .7 + q.p) * .0004 + .0003) * fs;
+          if (q.y > 1.02) {
+            q.y = -.02;
+            q.x = _r.nextDouble();
+          }
+        } else if (r == 'snow') {
+          q.y += (.0007 + q.v * .0006) * fs;
+          q.x += math.sin(tt * .8 + q.p) * .0005 * fs;
+          if (q.y > 1.02) {
+            q.y = -.02;
+            q.x = _r.nextDouble();
+          }
+        }
+      }
+    }
     if (g.nightness > 0 && g.stormOn) {
       for (final f in flakes) {
         f.y += (.04 + f.v * .06) * .016 * 6 * fs;
@@ -470,7 +501,8 @@ class _LivePainter extends CustomPainter {
         canvas.drawRect(Rect.fromLTWH(f.x * size.width, f.y * size.height, s, s), p);
       }
     }
-    _weather(canvas, size);
+    _regionAir(canvas, size);
+    if (!Prefs.calm) _weather(canvas, size);
     // 큰 밤이 다가오면 가장자리가 붉게 (웹 #stage.danger)
     if (g.duskWarn) {
       final p = Paint()
@@ -487,6 +519,57 @@ class _LivePainter extends CustomPainter {
         Paint()
           ..shader = ui.Gradient.radial(
               c, mx * .75, [const Color(0x00000000), const Color(0x00000000), g.fever > 0 ? const Color(0x73783C0A) : const Color(0x80000000)], [0, (mn * .35) / (mx * .75), 1]));
+  }
+
+  /// 동네마다 하늘빛(아지랑이)과 날리는 것 (웹 HAZE·drawRegionAir)
+  void _regionAir(Canvas canvas, Size size) {
+    final r = g.S.region;
+    if (r == null || g.ug != null) return;
+    const haze = {
+      'desert': [(255, 214, 150, .16), (255, 190, 120, 0.0)],
+      'factory': [(96, 70, 52, .28), (60, 52, 48, .1)],
+      'snow': [(220, 232, 245, .14), (200, 215, 232, 0.0)],
+    };
+    final hz = haze[r];
+    if (hz != null) {
+      final nt = g.isNight ? .45 : 1.0, a = hz[0], b = hz[1];
+      canvas.drawRect(
+          Offset.zero & size,
+          Paint()
+            ..shader = ui.Gradient.linear(Offset.zero, Offset(0, size.height), [
+              Color.fromRGBO(a.$1, a.$2, a.$3, a.$4 * nt),
+              Color.fromRGBO(b.$1, b.$2, b.$3, b.$4 * nt),
+              Color.fromRGBO(b.$1, b.$2, b.$3, (r == 'factory' ? .16 : 0) * nt),
+            ], [0, .55, 1]));
+    }
+    if (Prefs.calm) return;
+    final n = Prefs.eco ? 30 : st.rair.length, W0 = size.width, H0 = size.height;
+    if (r == 'desert') {
+      final p = Paint()
+        ..color = const Color.fromRGBO(214, 184, 128, .17)
+        ..strokeWidth = 1.3;
+      for (var k = 0; k < n; k++) {
+        final q = st.rair[k], x = q.x * W0, y = q.y * H0;
+        canvas.drawLine(Offset(x, y), Offset(x + 18 + q.s * 26, y), p);
+      }
+    } else if (r == 'factory') {
+      final ash = Paint()..color = const Color.fromRGBO(58, 54, 52, .45), em = Paint()..color = const Color.fromRGBO(255, 170, 80, .8);
+      for (var k = 0; k < n; k++) {
+        final q = st.rair[k];
+        if (q.s > .9) {
+          canvas.drawRect(Rect.fromLTWH(q.x * W0, q.y * H0, 1.8, 1.8), em);
+        } else {
+          final z = 1.4 + q.s * 1.8;
+          canvas.drawRect(Rect.fromLTWH(q.x * W0, q.y * H0, z, z * .7), ash);
+        }
+      }
+    } else if (r == 'snow' && g.wxK != 'cold') {
+      final p = Paint()..color = const Color.fromRGBO(244, 248, 252, .6);
+      for (var k = 0; k < n; k++) {
+        final q = st.rair[k], z = 1.4 + q.s * 1.6;
+        canvas.drawRect(Rect.fromLTWH(q.x * W0, q.y * H0, z, z), p);
+      }
+    }
   }
 
   void _weather(Canvas canvas, Size size) {

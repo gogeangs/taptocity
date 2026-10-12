@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../data/web_data.g.dart' as web;
@@ -12,6 +11,7 @@ import '../game/data.dart';
 import '../game/engine.dart';
 import '../game/state.dart';
 import '../game/storage.dart';
+import 'atlas.dart';
 import 'crisis_ui.dart';
 import 'gear.dart';
 import 'icons.dart';
@@ -20,6 +20,8 @@ import 'map_view.dart';
 import 'outside_ui.dart';
 import 'season_ui.dart';
 import 'sheets.dart';
+import 'profile_ui.dart';
+import 'sound.dart';
 import 'story_ui.dart';
 import 'region_ui.dart';
 import 'theme.dart';
@@ -54,6 +56,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     fxc.onFx = _onFx;
+    Atlas.onTint = () => g.mapVersion.value++;
+    onTalkLine = _endingLine;
+    Game.onSfx = (k, b) {
+      Sound.sfx(k);
+      if (b) Sound.buzz();
+    };
     _start();
     WidgetsBinding.instance.addPostFrameCallback((_) => fxc.pull(g));
   }
@@ -66,6 +74,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       g.uiSheet = sheet != null;
       final changed = g.tick(.25);
       _storyUi();
+      Sound.mood(_mood());
+      Atlas.region = g.S.gen != 0 ? g.S.region : null;
+      Sound.duck(pageWatch.n > 0 || g.dread);
       if (g.fx.isNotEmpty) fxc.pull(g);
       if (changed) g.poke();
       if (++_saveAcc >= 40) {
@@ -73,6 +84,46 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         _save();
       }
     });
+  }
+
+  /// 엔딩 대사마다 소리 (웹 endingLine 5874)
+  int _endOffUntil = 0;
+  void _endingLine(String t) {
+    if (_endMood == null) return;
+    if (t == '03:11. 노래가 뚝 끊겼다.') {
+      _endMood = 'off';
+      Sound.blackout(4);
+    } else if (t == '딸깍.') {
+      Timer(const Duration(milliseconds: 350), () => Sound.sfx('click'));
+    } else if (t.startsWith('노래는 다시 이어지지')) {
+      Sound.sfx('static');
+    } else if (t == '셋. 하나. 하나.') {
+      for (final d in const [0, 260, 520, 1500, 2400]) {
+        Timer(Duration(milliseconds: d), () => Sound.sfx('ui'));
+      }
+    } else if (t.startsWith('바람에 흔들리는')) {
+      _endOffUntil = DateTime.now().millisecondsSinceEpoch + 3000;
+    }
+  }
+
+  /// 지금 흐를 배경음 (웹 musicMood 5922)
+  int _mournUntil = 0;
+  String? _endMood;
+  String _mood() {
+    if (DateTime.now().millisecondsSinceEpoch < _mournUntil) return 'off';
+    if (_endCard || DateTime.now().millisecondsSinceEpoch < _endOffUntil) return 'off';
+    if (_endMood != null) return _endMood!;
+    final U = g.tut;
+    if (U != null) {
+      final i = ((U['i'] as num?) ?? 0).toInt();
+      if (i < 2) return 'tut';
+      if (i == 2) return U['radio'] == 1 ? 'off' : 'air';
+      return 'storm';
+    }
+    if (g.ug != null) return 'under';
+    if (g.defn != null) return 'storm';
+    if (g.isNight) return g.S.rest['airTonight'] == g.num_('nightCount').toInt() && g.hasSv(10) ? 'air' : 'night';
+    return 'day';
   }
 
   void _save() {
@@ -88,6 +139,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       _clock?.cancel();
       _clock = null;
       _lampStop();
+      Sound.pauseAll(true);
       g.dirty = true;
       _save();
     } else if (s == AppLifecycleState.resumed && _clock == null) {
@@ -95,6 +147,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       fxc.pull(g);
       g.poke();
       _start();
+      Sound.pauseAll(false);
     }
   }
 
@@ -143,16 +196,28 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           if (mounted) showRequestDone(context, g, ev, k, sum);
         });
       case FxTalk():
-        _pageQ.add(() => showTalk(context, g, f, onDone: () {
-              if (f.goal != null) g.panGuide = DateTime.now().millisecondsSinceEpoch;
-              if (f.after == 'endCard') setState(() => _endCard = true);
-            }));
+        _pageQ.add(() {
+          if (f.after == 'endCard') _endMood = 'air';
+          return showTalk(context, g, f, onDone: () {
+            if (f.goal != null) g.panGuide = DateTime.now().millisecondsSinceEpoch;
+            if (f.after == 'endCard') {
+              _endMood = null;
+              setState(() => _endCard = true);
+            }
+          });
+        });
         _pumpPages();
       case FxCase(:final k):
-        _pageQ.add(() => showCase(context, g, k));
+        _pageQ.add(() {
+          Sound.sfx('mystery');
+          return showCase(context, g, k);
+        });
         _pumpPages();
       case FxCrowMeet():
-        _pageQ.add(() => showCrowMeet(context, g));
+        _pageQ.add(() {
+          Sound.sfx('mystery');
+          return showCrowMeet(context, g);
+        });
         _pumpPages();
       case FxTutDone(:final replay):
         _tutDone(replay);
@@ -162,6 +227,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       case FxConf():
         _pageQ.add(() => showConf(context, g));
         _pumpPages();
+      case FxPfName():
+        _pageQ.add(() => showPfName(context, g, first: true));
+        _pumpPages();
+      case FxBlackout(:final sec):
+        Sound.blackout(sec);
       case FxTownChoice():
         _pageQ.add(() => showTownChoice(context, g));
         _pumpPages();
@@ -173,7 +243,13 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             sheet = null;
             _closeRing();
           });
-          _pageQ.insert(0, () => showDeath(context, g, f));
+          _pageQ.insert(0, () async {
+            _mournUntil = DateTime.now().millisecondsSinceEpoch + 3600000;
+            Sound.sfx('toll');
+            await showDeath(context, g, f);
+            Sound.sfx('chime');
+            _mournUntil = DateTime.now().millisecondsSinceEpoch + 1500;
+          });
           _pumpPages();
         });
       case FxMigrated(g: final n, :final region):
@@ -184,7 +260,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         });
         cam.set(0, (CX + CY + 1) * TH / 2 - 10);
       case FxLevelUp(:final lv):
-        HapticFeedback.mediumImpact();
+        Sound.buzzMid();
         _stamp(lv);
       case FxOffline(:final seconds, :final got):
         final h = seconds ~/ 3600, m = (seconds % 3600 / 60).round();
@@ -466,7 +542,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     _close();
     setState(() => _lampDown = true);
     _lampR0 = g.S.rev.fold(0, (a, v) => a + v);
-    HapticFeedback.selectionClick();
+    Sound.tick();
     g.digAim();
     _follow();
     fxc.pull(g);
@@ -589,7 +665,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     final q = g.sq;
     if (q == null) return;
     if (g.sqDone) {
-      HapticFeedback.mediumImpact();
+      Sound.buzzMid();
       g.claimSq();
       fxc.pull(g);
       return;
@@ -658,6 +734,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         return SheetPanel(icon: Ico.surv, title: '구조 캠프', onClose: _close, child: campBody(g, s.tile));
       case 'diary':
         return SheetPanel(icon: Ico.diary, title: '일지', onClose: _close, child: DiaryBody(g));
+      case 'profile':
+        return SheetPanel(icon: Ico.surv, title: '내 프로필', onClose: _close, child: ProfileBody(g));
       case 'settings':
         return SheetPanel(icon: Ico.gear, title: '설정', onClose: _close, child: SettingsBody(g, onReset: _reset, onTut: _tutReplay));
       case 'assign':
@@ -744,6 +822,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               _close();
               showMigrate(context, g);
             },
+            onProfile: () => sheet?.kind == 'profile' ? _close() : _open(const SheetSpec('profile')),
           ),
         ),
         Expanded(
@@ -767,7 +846,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                   return;
                                 }
                                 if (g.placeDeco(placing!, i)) {
-                                  HapticFeedback.selectionClick();
+                                  Sound.tick();
                                   fxc.pull(g);
                                   if (!g.canPay(g.decoCost(placing!))) {
                                     setState(() => placing = null);
@@ -1013,12 +1092,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 // ======================= 머리 (자원·설정·할 일 띠) =======================
 class _Header extends StatelessWidget {
   const _Header(this.g,
-      {required this.top, required this.ping, required this.onGo, required this.onSettings, required this.onMats, required this.onShelter, required this.onPed, required this.onMig, this.matsKey, this.tapeKey});
+      {required this.top, required this.ping, required this.onGo, required this.onSettings, required this.onMats, required this.onShelter, required this.onPed, required this.onMig, required this.onProfile, this.matsKey, this.tapeKey});
   final Game g;
   final Key? matsKey, tapeKey;
   final double top;
   final int ping;
-  final VoidCallback onSettings, onMats, onShelter, onPed, onGo, onMig;
+  final VoidCallback onSettings, onMats, onShelter, onPed, onGo, onMig, onProfile;
 
   @override
   Widget build(BuildContext context) {
@@ -1029,7 +1108,7 @@ class _Header extends StatelessWidget {
         SizedBox(
           height: 45,
           child: Row(children: [
-            _HudBtn(child: SvgPicture.string(Ico.profileLamp, width: 34, height: 34), onTap: () {}),
+            KeyedSubtree(key: const ValueKey('pfBtn'), child: _HudBtn(child: g.pfSet ? ClipRRect(borderRadius: BorderRadius.circular(6), child: SizedBox(width: 30, height: 38, child: pfPortrait(g.pfIndex()))) : SvgPicture.string(Ico.profileLamp, width: 34, height: 34), onTap: onProfile)),
             const SizedBox(width: 6),
             Expanded(
               child: GestureDetector(
@@ -1044,7 +1123,7 @@ class _Header extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            _HudBtn(child: SvgIcon(Ico.gear, size: 18, color: Ttc.hudText), onTap: onSettings),
+            KeyedSubtree(key: const ValueKey('setBtn'), child: _HudBtn(child: SvgIcon(Ico.gear, size: 18, color: Ttc.hudText), onTap: onSettings)),
           ]),
         ),
         const SizedBox(height: 6),

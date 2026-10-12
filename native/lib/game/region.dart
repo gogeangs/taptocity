@@ -370,6 +370,7 @@ extension Region on Game {
     }
     Game.placeSignals(ns);
     replaceState(ns);
+    sfx('level');
     S.rest['wx'] = rollRegionWx() ?? 'normal';
     fx.add(FxMigrated(g, region));
     final wl = wayLine(g);
@@ -435,6 +436,7 @@ extension Region on Game {
         if (si >= 0 && S.rev[si] == 1 && Q['spot'] == null) {
           Q['spot'] = 1;
           tlog(spotLog);
+          sfx('chime');
           fx.add(FxNote('찾았어요!', '$spotLog 미션 띠에서 보상을 받아요'));
           _mapChanged();
         }
@@ -453,6 +455,7 @@ extension Region on Game {
         if (Q['opEnd'] != null && Q['op'] == null && DateTime.now().millisecondsSinceEpoch >= (Q['opEnd'] as num)) {
           Q['op'] = 1;
           tlog('공장을 멈췄다. 공단이 처음으로 조용해졌다.');
+          sfx('chime');
           fx.add(const FxNote('공장 끄기 작전 성공!', '미션 띠에서 보상을 받아요'));
         }
       case 'cold':
@@ -479,6 +482,7 @@ extension Region on Game {
             }
             recalc();
             tlog('한파 사흘을 버텼다. 분교 아이 $n명이 쉘터 식구가 됐다.');
+            sfx('chime');
             fx.add(FxNote('한파를 버텼어요!', '분교 아이 $n명이 쉘터에 합류했어요'));
           }
         }
@@ -674,6 +678,7 @@ extension Region on Game {
     if (have(gk) >= capOf(gk)) return '${matOf[gk]!.n} 창고가 꽉 찼어요';
     if (!pay({for (final e in (o['want'] as Map).entries) e.key as String: e.value as num})) return '자재가 모자라요';
     T['used'] = ((T['used'] as num?) ?? 0) + 1;
+    sfx('chime');
     offers.removeAt(i);
     (T['pend'] as List).add(<String, Object?>{'id': o['id'], 'gen': o['gen'], 'give': o['give'], 'day': num_('day')});
     final r = (((S.rest['stay'] as Map)['${o['gen']}'] as Map?)?['sv'] as Map?)?['${o['id']}'];
@@ -703,6 +708,7 @@ extension Region on Game {
     final L = stayList.where((x) => x.$1 == inId).firstOrNull;
     if (L == null || !hasSv(outId) || busy(outId) || swap != null || !pay(swapCost)) return false;
     S.rest['swap'] = <String, Object?>{'inId': inId, 'outId': outId, 'gen': L.$2, 'day': num_('day')};
+    sfx('chime');
     fx.add(FxToast('${survivors[inId].name}에게 무전을 보냈어요 · 새벽에 도착해요'));
     _changed();
     return true;
@@ -740,6 +746,7 @@ extension Region on Game {
     S.sv.remove('$outId');
     party = party.where((x) => x != outId).toList();
     final inr = Map<String, Object?>.from((t['sv'] as Map)['$inId'] as Map);
+    sfx('join');
     (t['sv'] as Map).remove('$inId');
     inr['at'] = -1;
     inr['away'] = false;
@@ -909,10 +916,12 @@ extension Region on Game {
         rs['mirFirst'] = 1;
         rs['mir'] = ((rs['mir'] as num?) ?? 0) + 1;
         final got = give(scaleCost({'fuel': 10, 'food': 14}, sc));
+        sfx('get');
         fx.add(FxBurst(i, 0xFFFFE7A8, 14));
         fx.add(FxToast('모래 속에 묻힌 물통과 연료 통! · ${lootText(got)}'));
         if (rs['mir'] == 1) tlog('신기루 속에서 진짜 물통을 찾았다.');
       } else {
+        sfx('reveal');
         fx.add(const FxToast('가까이 가 보니… 신기루였어요'));
       }
       _changed();
@@ -925,12 +934,14 @@ extension Region on Game {
       sp['n'] = 0;
     }
     sp['n'] = ((sp['n'] as num?) ?? 0) + 1;
+    sfx('hit', buzz: true);
     fx.add(FxBurst(i, 0xFFFFB35A, 5));
     if ((sp['n'] as num) >= 8) {
       S.rest['rspot'] = null;
       S.rest['rspotT'] = 80 + rnd.nextDouble() * 60;
       rs['mach'] = ((rs['mach'] as num?) ?? 0) + 1;
       final got = give(scaleCost({'parts': 8, 'plate': 3}, sc));
+      sfx('chime');
       fx.add(FxToast('기계를 멈췄어요 · ${lootText(got)}'));
       if (rs['mach'] == 1) tlog('혼자 돌던 기계 하나를 손으로 멈췄다.');
     }
@@ -972,6 +983,7 @@ extension Region on Game {
     }
     final t0 = warmTier;
     S.rest['warm'] = math.min(100, (warm ?? 0) + 30);
+    sfx('get');
     fx.add(FxBurst(C0, 0xFFFFB35A, 12));
     if (warmTier != t0) recalc();
     fx.add(FxToast('장작을 넣었어요 · 온기 ${(warm!).round()}% · 목재 -${c['wood']}'));

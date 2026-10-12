@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../data/web_data.g.dart' as web;
 import '../game/data.dart';
@@ -13,6 +12,7 @@ import 'portrait.dart';
 import 'season_ui.dart';
 import 'story_ui.dart';
 import 'survivors.dart';
+import 'sound.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -141,13 +141,14 @@ Future<void> showMigrate(BuildContext context, Game g) {
               title: '추천 다섯 명',
               desc: descText('${need['why'] ?? ''} · 필요한 역할 한 명씩 + 등급·신뢰 순'),
               button: BuyButton('추천으로 고르기', width: 112, onTap: () {
-                HapticFeedback.selectionClick();
+                Sound.sfx('chime');
                 set(() => _migPick = [...recPick]);
               }),
             ),
             _grid([
               for (final id in all)
                 _mpk(id, '${grades[g.gradeOf(id)].n ?? ''} · ${survivors[id].job}', on: sel.contains(id), rec: recPick.contains(id), em: (why[id] ?? const []).join(' · '), onTap: () {
+                  Sound.sfx('tap');
                   set(() {
                     if (sel.contains(id)) {
                       sel.remove(id);
@@ -390,7 +391,7 @@ Future<void> showOp(BuildContext context, Game g) {
 
 // ======================= 잃은 사람 (웹 deathScene 6033) =======================
 Future<void> showDeath(BuildContext context, Game g, FxDeath d) {
-  HapticFeedback.heavyImpact();
+  Sound.buzzHeavy();
   return showGeneralDialog(
     context: context,
     barrierDismissible: false,

@@ -38,6 +38,12 @@ class FxToast extends Fx {
   final String text;
 }
 
+/// 배경음 잠깐 끄기 (웹 TTCMusic.blackout)
+class FxBlackout extends Fx {
+  const FxBlackout(this.sec);
+  final double sec;
+}
+
 class FxBurst extends Fx {
   const FxBurst(this.tile, this.color, this.n);
   final int tile, color, n;
@@ -652,6 +658,7 @@ class Game extends ChangeNotifier {
   }
 
   void reveal(int i) {
+    sfx('reveal');
     S.rev[i] = 1;
     S.hp[i] = 0;
     frontier.remove(i);
@@ -1392,6 +1399,7 @@ class Game extends ChangeNotifier {
   void hitCamp(int i, double amt) {
     final c = S.camp[i];
     if (c == null) return;
+    if (((c['hp'] as num?) ?? 0) > 0) sfx('hit', buzz: true);
     if (((c['hp'] as num?) ?? 0) <= 0) {
       if (campReady(i)) {
         doRescue(i);
@@ -1431,6 +1439,7 @@ class Game extends ChangeNotifier {
   /// 웹 rescue (2643)
   void rescue(int id, String via) {
     if (hasSv(id) || isDead(id)) return;
+    sfx('join');
     S.sv['$id'] = <String, Object?>{'xp': 0, 'at': -1};
     if (S.rest['party'] is! List) S.rest['party'] = <Object?>[];
     final party = S.rest['party'] as List;
@@ -1613,6 +1622,7 @@ class Game extends ChangeNotifier {
 
   Map<String, int> loot(Map<String, num> o, int tile) {
     final got = give(o);
+    if (got.isNotEmpty) sfx('get');
     var rise = 26.0;
     got.forEach((k, v) {
       fx.add(FxFloat(tile, '+$v ${matOf[k]!.n}', 0xFFFFE6A0, rise: rise));
@@ -1624,6 +1634,7 @@ class Game extends ChangeNotifier {
   bool hitSite(int i, double amt) {
     final s = S.site[i];
     if (s == null || s.c <= 0) return false;
+    sfx('hit', buzz: true);
     addCombo();
     s.hp -= amt;
     while (s.hp <= 0 && s.c > 0) {
@@ -1671,6 +1682,7 @@ class Game extends ChangeNotifier {
 
   /// 구름 칸 하나를 두드린다 (웹 dig 2459)
   void dig(int i) {
+    sfx('tap');
     final x = i % W;
     addCombo();
     damage(i, tapPow * (fever > 0 ? 2 : 1) * wxMul('dig'), fromTap: true);
@@ -1815,6 +1827,7 @@ class Game extends ChangeNotifier {
     }
     recalc();
     fx.add(FxLevelUp(S.lv));
+    sfx('level');
     fx.add(FxToast('쉘터가 ${jo(shelterName[S.lv - 1], '으로', '로')} 커졌어요! 랜턴 빛이 더 멀리 닿아요'));
     _changed();
     return true;
@@ -1846,6 +1859,7 @@ class Game extends ChangeNotifier {
       made += give({r.out: r.n + extra})[r.out] ?? 0;
     }
     if (n > 0) {
+      sfx('get');
       if (n > 1) fx.add(FxToast('${matOf[r.out]!.n} ${fmt(made)}개를 만들었어요'));
     } else {
       fx.add(const FxToast('재료가 모자라요'));
@@ -2078,4 +2092,8 @@ class Game extends ChangeNotifier {
   }
 
   void poke() => notifyListeners();
+
+  /// 효과음 (웹 sfx). 화면 쪽이 Game.onSfx를 달아 두면 바로 울린다. buzz면 짧게 떨기도
+  static void Function(String k, bool buzz)? onSfx;
+  void sfx(String k, {bool buzz = false}) => onSfx?.call(k, buzz);
 }

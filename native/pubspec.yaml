@@ -11,6 +11,7 @@ dependencies:
     sdk: flutter
   shared_preferences: ^2.3.2
   flutter_svg: ^2.0.10
+  audioplayers: ^6.1.0
 
 dev_dependencies:
   flutter_test:
@@ -22,6 +23,9 @@ flutter:
   # 그림과 글꼴은 저장소의 원본(assets/illustrated, fonts)을 빌드 때 복사해 쓴다 (tool/prepare_assets.sh)
   assets:
     - assets/illustrated/
+    # 소리: 웹의 합성음을 렌더링한 음원 (tool/gen_audio.cjs)
+    - assets/audio/sfx/
+    - assets/audio/music/
   fonts:
     - family: TTCSans
       fonts:

@@ -654,6 +654,8 @@ extension Season on Game {
   }
 
   void _runOdd(String k) {
+    sfx('click');
+    fx.add(const FxBlackout(2.6));
     oddUntil = DateTime.now().millisecondsSinceEpoch + 9000;
     dread = false;
     oddHit = DateTime.now().millisecondsSinceEpoch;
@@ -711,6 +713,7 @@ extension Season on Game {
 
   /// 그림자를 눌러 쫓기 (웹 catchShadow)
   void catchShadow() {
+    sfx('mystery');
     final s = shadow;
     if (s == null || s.got || s.light != null) return;
     s.got = true;
@@ -776,6 +779,7 @@ extension Season on Game {
       final e = _edgeTiles();
       if (e.isNotEmpty) shadow ??= OddShadow.light(e[rnd.nextInt(e.length)], 4.5, far: true);
     }
+    sfx(k == 'steps' ? 'steps' : 'mystery');
     if (k == 'lamp') lampFlick = DateTime.now().millisecondsSinceEpoch;
     oddHit = DateTime.now().millisecondsSinceEpoch;
     poke();

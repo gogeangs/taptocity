@@ -10,6 +10,7 @@ import '../game/data.dart';
 import '../game/engine.dart';
 import 'atlas.dart';
 import 'portrait.dart';
+import 'profile_ui.dart';
 import 'season_ui.dart';
 import 'theme.dart';
 import 'widgets.dart';
@@ -368,6 +369,7 @@ Widget talkFace(Game g, Object who, String t, String? mood, {double w = 84, doub
   final id = g.speakerId(who);
   final box = BoxDecoration(color: id == null ? const Color(0xFF3A2618) : const Color(0xFFE6D8B6), borderRadius: BorderRadius.circular(8), border: Border.all(color: Ttc.line));
   if (id == null) {
+    if (g.pfSet) return Container(width: w, height: h, decoration: box, clipBehavior: Clip.antiAlias, child: pfPortrait(g.pfIndex()));
     return Container(width: w, height: h, decoration: box, alignment: Alignment.center, child: SvgPicture.string(_meSvg, width: 40, height: 40));
   }
   const exIds = {0: 0, 2: 1, 7: 2, 9: 3};
@@ -412,14 +414,22 @@ class _TalkPage extends StatefulWidget {
   State<_TalkPage> createState() => _TalkPageState();
 }
 
+/// 대사 한 줄이 열릴 때 (웹 openTalk의 onLine — 엔딩의 딸깍·잡음)
+void Function(String t)? onTalkLine;
+
 class _TalkPageState extends State<_TalkPage> {
-  int k = 0;
+  int k = 0, _said = -1;
   Game get g => widget.g;
   FxTalk get t => widget.t;
 
   @override
   Widget build(BuildContext context) {
     final lines = t.lines, l = lines[k], last = k == lines.length - 1, n = lines.length;
+    if (_said != k) {
+      _said = k;
+      final h = onTalkLine;
+      if (h != null) WidgetsBinding.instance.addPostFrameCallback((_) => h(l.t));
+    }
     final art = artFor(lines, k);
     if (art != null && !t.replay) g.markArt(art);
     final rect = art == null ? null : storyRect(art);

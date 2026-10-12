@@ -5,6 +5,7 @@ import 'game/engine.dart';
 import 'game/storage.dart';
 import 'ui/atlas.dart';
 import 'ui/game_screen.dart';
+import 'ui/sound.dart';
 import 'ui/story_ui.dart';
 import 'ui/theme.dart';
 
@@ -12,6 +13,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Colors.transparent, statusBarIconBrightness: Brightness.light));
+  await Prefs.load();
   await Atlas.load();
   final saved = await Storage.load();
   Game.tutFlag = await Storage.getRaw('ttc_tut') == '1';
@@ -29,6 +31,7 @@ Future<void> main() async {
     await Storage.save(game.toJsonString());
   }
   runApp(TaptocityApp(game: game));
+  Sound.init();
 }
 
 class TaptocityApp extends StatelessWidget {
@@ -40,6 +43,11 @@ class TaptocityApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: Ttc.theme(),
         navigatorObservers: [pageWatch],
+        // 글자 크게 (웹 body.big: 창·띠·알림을 1.12배)
+        builder: (context, child) => ValueListenableBuilder<int>(
+          valueListenable: Prefs.version,
+          builder: (c, _, __) => Prefs.big ? MediaQuery(data: MediaQuery.of(c).copyWith(textScaler: const TextScaler.linear(1.12)), child: child!) : child!,
+        ),
         home: GameScreen(game: game),
       );
 }

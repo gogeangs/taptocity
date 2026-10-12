@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../game/data.dart';
 import '../game/engine.dart';
@@ -13,6 +12,7 @@ import 'people.dart';
 import 'portrait.dart';
 import 'story_ui.dart';
 import 'survivors.dart';
+import 'sound.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -101,7 +101,10 @@ void showUgPrep(BuildContext context, Game g) {
                   ]),
                 ),
                 const SizedBox(width: 8),
-                BuyButton('추천으로 고르기', width: 104, onTap: () => set(() => _Prep.team = [...pick])),
+                BuyButton('추천으로 고르기', width: 104, onTap: () {
+                  Sound.sfx('chime');
+                  set(() => _Prep.team = [...pick]);
+                }),
               ]),
             ),
           if (free.isEmpty)
@@ -353,7 +356,7 @@ class _UgPageState extends State<_UgPage> {
 
   void _tap(int i) {
     if (ending) return;
-    HapticFeedback.selectionClick();
+    Sound.tick();
     final out = g.ugTap(i);
     setState(() {});
     if (out) {

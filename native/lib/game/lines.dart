@@ -138,6 +138,7 @@ extension Lines on Game {
     final t = team0.where((id) => hasSv(id) && !busy(id)).take(2).toList();
     if (t.isEmpty || defn != null || ug != null || !pay(lnCost(t.length))) return false;
     ln = LnRun(t, lnHp0(t), lnReg);
+    sfx('chime');
     _lnDeal();
     _changed();
     return true;
@@ -201,6 +202,7 @@ extension Lines on Game {
     switch (c) {
       case 'loot':
         final o = _lnAdd(_lnLoot());
+        sfx('get');
         L.msg = '버려진 짐을 뒤졌다 · ${_lnTxt(o)}';
         _lnNext();
       case 'foe':
@@ -214,11 +216,13 @@ extension Lines on Game {
           if (hasSv(id)) rec(id)!['xp'] = xpOf(id) + 10;
         }
         L.msg = '${T.trace[rnd.nextInt(T.trace.length)]} · ${_lnTxt(o)} · 동료 신뢰 +10';
+        sfx('find');
         _lnNext();
       default:
         final g = 4 + (lnRole(L.team, 'medic') ? 2 : 0);
         L.hp = math.min(L.max, L.hp + g);
         L.msg = '고요한 승강장에서 숨을 돌렸다 · 체력 +$g';
+        sfx('chime');
         _lnNext();
     }
     dirty = true;
@@ -281,12 +285,14 @@ extension Lines on Game {
       if (it != null) {
         L.items.add(it);
         extra = ' · ${jo(gear[it]?.n ?? it, '을', '를')} 찾았다!';
+        sfx('find');
       }
     }
     for (final id in L.team) {
       if (hasSv(id)) rec(id)!['xp'] = xpOf(id) + 15;
     }
     L.phase = 'station';
+    sfx('chime');
     L.msg = '${T.st[s]}에 닿았다. 플랫폼에 남은 물건을 챙겼다 · ${_lnTxt(o)}$extra · 동료 신뢰 +15';
   }
 
@@ -333,6 +339,7 @@ extension Lines on Game {
     if (dmg > 0) {
       F.hp -= dmg;
       F.res = dmg > 1 ? '딱 맞았다!' : '맞혔다';
+      sfx('hit', buzz: true);
       L.miss = 0;
     } else {
       _lnHurt();
@@ -367,6 +374,7 @@ extension Lines on Game {
   void _lnHurt() {
     final L = ln!, F = L.fight!, g = lnRole(L.team, 'guard');
     L.hp -= F.boss ? (g ? 2 : 3) : (g ? 1 : 2);
+    sfx('hit', buzz: true);
     L.miss++;
     L.hurtAt = DateTime.now().millisecondsSinceEpoch;
   }
@@ -402,6 +410,7 @@ extension Lines on Game {
       L.best = 12;
       L.msg = '${jo(lnTowns[L.reg]!.boss, '을', '를')} 쓰러뜨렸다! · ${_lnTxt(o)}${it != null ? ' · ${gear[it]?.n ?? it}' : ''}';
       L.phase = 'done';
+      sfx('win');
       poke();
       return;
     }
@@ -410,6 +419,7 @@ extension Lines on Game {
     _lnAdd(o);
     L.phase = 'pick';
     L.msg = '재 괴물을 쓰러뜨렸다 · ${_lnTxt(o)}';
+    sfx('chime');
     L.fight = null;
     _lnNext();
     poke();

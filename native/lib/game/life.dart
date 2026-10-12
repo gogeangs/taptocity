@@ -31,6 +31,7 @@ extension Living on Game {
     final left = relicLeft;
     if (left.isEmpty) return null;
     final it = left[rnd.nextInt(left.length)];
+    sfx('find');
     gainRelic(it, tile: tile);
     return it;
   }
@@ -107,6 +108,7 @@ extension Living on Game {
   bool placeDeco(String k, int i) {
     if (!decoOk(i) || !pay(decoCost(k))) return false;
     deco['$i'] = k;
+    sfx('get');
     fx.add(FxBurst(i, 0xFFFFD98A, 12));
     final fav = S.rest['favDone'] is Map ? S.rest['favDone'] as Map : (S.rest['favDone'] = <String, Object?>{});
     for (final id in decoFans(k)) {
@@ -119,6 +121,7 @@ extension Living on Game {
     for (final q in decoSets().keys) {
       if (seen[q] == 1) continue;
       seen[q] = 1;
+      sfx('chime');
       final Z = web.dsets[q]!;
       fx.add(FxNote("'${Z['n']}'이(가) 생겼어요", '${Z['d']}', ms: 5200));
     }
@@ -144,6 +147,7 @@ extension Living on Game {
   int get feastLeftMs => math.max(0, num_('feastAt').toInt() + feastCd - DateTime.now().millisecondsSinceEpoch);
   bool holdFeast() {
     if (!feastOpen || feastLeftMs > 0 || !pay(feastCost)) return false;
+    sfx('win');
     final now = DateTime.now().millisecondsSinceEpoch;
     S.rest['feastAt'] = now;
     S.rest['feasts'] = num_('feasts') + 1;
@@ -204,6 +208,7 @@ extension Living on Game {
     p['xp'] = ((p['xp'] as num?) ?? 0) + x * (hasSv(pair) ? 1.5 : 1);
     final l1 = petLv(k);
     if (l1 > l0) {
+      sfx('chime');
       fx.add(FxNote('${jo(petName(k), '과', '와')} 더 친해졌어요 · 친밀도 $l1', petStory(k, (petInfo(k)['story'] as List)[l1 - 1] as String), ms: 6000));
       recalc();
     }
@@ -326,6 +331,7 @@ extension Living on Game {
     final s = stray;
     if (s == null || strayWait > 0 || !pay(strayCost(s['k'] as String))) return false;
     s['n'] = ((s['n'] as num?) ?? 0) + 1;
+    sfx('get');
     s['t'] = DateTime.now().millisecondsSinceEpoch + 20000;
     final k = s['k'] as String;
     if ((s['n'] as num) >= ((s['need'] as num?) ?? 3)) {

@@ -385,6 +385,7 @@ extension Radio on Game {
 
   /// 건전지 n개로 n번 탐색 (웹 pull). 5번 탐색엔 희귀 이상이 하나는 꼭.
   List<Pull>? pull(int n) {
+    if (batt >= n) sfx('static');
     if (batt < n) return null;
     S.m['batt'] = have('batt') - n;
     final res = [for (var q = 0; q < n; q++) _rollOne()];
