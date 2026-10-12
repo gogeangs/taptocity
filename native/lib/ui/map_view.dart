@@ -266,10 +266,10 @@ class _MapViewState extends State<MapView> {
         onPointerSignal: (e) {
           if (e is PointerScrollEvent) cam.set(cam.x, cam.y, cam.z * math.exp(-e.scrollDelta.dy * .0015));
         },
-        child: Stack(fit: StackFit.expand, children: [
+        child: ClipRect(child: Stack(fit: StackFit.expand, children: [
           RepaintBoundary(child: CustomPaint(painter: MapPainter(g, cam, Listenable.merge([g.mapVersion, cam])))),
           RepaintBoundary(child: FxLayer(controller: widget.fxLayer, camera: cam)),
-        ]),
+        ])),
       );
     });
   }
