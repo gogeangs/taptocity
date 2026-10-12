@@ -401,7 +401,12 @@ class Game extends ChangeNotifier {
   // ================= 파생 값 다시 계산 (웹 recalc 1837) =================
   void recalc() {
     final e = <String, double>{'scav': 0, 'tap': 0, 'thrift': 0, 'hope': 0, 'food': 0, 'cost': 0, 'craft': 0, 'fever': 0, 'global': 0};
-    // 생존자·인연·장비 효과는 2단계에서 옮긴다
+    // 생존자·인연·장비 효과는 2단계, 유물·아이·펫·탑·잔치·동네·장식 효과(웹 extraEff 4108)는 4~6단계에서 옮긴다
+    // 이주한 동네 수만큼: 모든 생산 +10%, 두드리는 힘 +10%
+    if (S.gen > 0) {
+      e['global'] = e['global']! + .1 * S.gen;
+      e['tap'] = e['tap']! + .1 * S.gen;
+    }
     e['cost'] = math.min(.5, e['cost']!);
     e['thrift'] = math.min(.7, e['thrift']!);
     E = e;
