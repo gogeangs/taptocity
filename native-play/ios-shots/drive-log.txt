@@ -1,0 +1,55 @@
+Resolving dependencies...
+Downloading packages...
+  app_links 6.4.1 (7.2.2 available)
+  code_assets 1.2.1 (2.1.0 available)
+  flutter_lints 5.0.0 (6.0.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  lints 5.1.1 (6.1.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  objective_c 9.5.0 (9.6.2 available)
+  petitparser 7.0.2 (7.1.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  test_api 0.7.12 (0.7.15 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+13 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Running Xcode build...                                          
+Xcode build done.                                           123.8s
+VMServiceFlutterDriver: Connecting to Flutter application at http://127.0.0.1:55741/OheYchbFgYo=/
+VMServiceFlutterDriver: Isolate found with number: 2210799058919659
+VMServiceFlutterDriver: Isolate 2210799058919659 is runnable.
+VMServiceFlutterDriver: Isolate is paused at start.
+VMServiceFlutterDriver: Attempting to resume isolate
+flutter: 00:00 +0: iPhone에서 앱 띄워 보기
+VMServiceFlutterDriver: Connected to Flutter application.
+VMServiceFlutterDriver: request_data message is taking a long time to complete...
+flutter: 01:01 +0: iPhone에서 앱 띄워 보기 [E]
+flutter:   'package:flutter_test/src/binding.dart': Failed assertion: line 1912 pos 9: '_pendingExceptionDetails != null': A test overrode FlutterError.onError but either failed to return it to its original state, or had unexpected additional errors that it could not handle. Typically, this is caused by using expect() before restoring FlutterError.onError.
+flutter:   dart:core-patch/errors_patch.dart 67:4         _AssertionError._doThrowNew
+  dart:core-patch/errors_patch.dart 49:5         _AssertionError._throwNew
+  package:flutter_test/src/binding.dart 1912:9   TestWidgetsFlutterBinding._runTest.handleUncaughtError
+  package:flutter_test/src/binding.dart 1921:13  TestWidgetsFlutterBinding._runTest.<fn>
+  dart:async/zone.dart 563:30                    _Zone._processUncaughtError
+  dart:async/zone.dart 789:5                     _CustomZone.handleUncaughtError
+  dart:async/future_impl.dart 886:24             Future._propagateToListeners
+  dart:async/future_impl.dart 738:5              Future._completeErrorObject
+  dart:async/future_impl.dart 742:5              Future._completeError
+flutter:   TimeoutException after 0:12:00.000000: Test timed out after 12 minutes.
+flutter:   package:test_api/src/backend/invoker.dart 398:28  Invoker._handleError.<fn>
+  dart:async/zone_root.dart 27:47                   _rootRun
+  dart:async/zone.dart 810:35                       _CustomZone.run
+  package:test_api/src/backend/invoker.dart 396:10  Invoker._handleError
+  package:test_api/src/backend/invoker.dart 351:9   Invoker.heartbeat.<fn>.<fn>
+  dart:async/zone_root.dart 35:13                   _rootRun
+  dart:async/zone.dart 810:35                       _CustomZone.run
+  package:test_api/src/backend/invoker.dart 350:38  Invoker.heartbeat.<fn>
+  dart:async-patch/timer_patch.dart 18:15           Timer._createTimer.<fn>
+  dart:isolate-patch/timer_impl.dart 423:19         _Timer._runTimers
+  dart:isolate-patch/timer_impl.dart 454:5          _Timer._handleMessage
+  dart:isolate-patch/isolate_patch.dart 192:12      _RawReceivePort._handleMessage
+flutter: 12:00 +0 -1: (tearDownAll)
+flutter: 12:00 +1 -1: Some tests failed.
+All tests passed.
