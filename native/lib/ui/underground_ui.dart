@@ -76,7 +76,7 @@ void showUgPrep(BuildContext context, Game g) {
         _Prep.fuel = math.max(0, math.min(_Prep.fuel, math.min(fmax, g.have('fuel').toInt())));
         final oil = g.ugOil0(t, _Prep.fuel);
         final (pick, why) = g.ugRecommend(free, pet: _Prep.pet);
-        final perks = {for (final id in t) ...g.roleOf(id)}.map((r) => ugPerk[r]).whereType<String>().toList();
+        final perks = <String>{for (final id in t) ...g.roleOf(id)}.map((r) => ugPerk[r]).whereType<String>().toList();
         final last = g.ugLast, startF = _Prep.start == 1 ? 1 : last;
         void fuelStep(int d) => set(() => _Prep.fuel = math.max(0, math.min(_Prep.fuel + d, math.min(fmax, g.have('fuel').toInt()))));
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [

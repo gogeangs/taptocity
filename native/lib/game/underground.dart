@@ -74,8 +74,6 @@ extension Underground on Game {
     return math.max(1, ck.isEmpty ? 1 : ck.reduce(math.max));
   }
 
-  List<String> roleOf(int id) => id < web.role.length ? [for (final r in web.role[id]) r as String] : const [];
-
   int ugOil0(List<int> team, int fuel) => 14 + fuel * 3 + (team.any((id) => roleOf(id).contains('cook')) ? 6 : 0);
   int ugFuelMax(List<int> team) => 4 + 2 * team.length.clamp(1, 3);
 
@@ -110,7 +108,7 @@ extension Underground on Game {
       if (c.isNotEmpty) take(c.first, ugRoleN[rs.firstWhere((k) => roleOf(c.first).contains(k))]!);
     }
     for (final id in [...free]..sort((a, b) => score(b) - score(a))) {
-      take(id, gradeOf(id) >= 2 ? grades[gradeOf(id)].n : '');
+      take(id, gradeOf(id) >= 2 ? grades[gradeOf(id)].n ?? '' : '');
     }
     return (pick, why);
   }

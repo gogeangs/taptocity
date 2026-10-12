@@ -11,6 +11,7 @@ import 'package:taptocity/game/rng.dart';
 import 'package:taptocity/game/state.dart';
 
 void main() {
+  Game.tutFlag = true; // 튜토리얼은 따로 시험한다
   final fx = jsonDecode(File('test/fixtures/web_core.json').readAsStringSync()) as Map<String, dynamic>;
 
   test('난수(mulberry32)와 잡음이 웹과 같다', () {
@@ -421,5 +422,35 @@ void main() {
     expect(g.ug, isNull);
     expect(g.ugRuns, 1);
     expect(g.ugBest, greaterThanOrEqualTo(1));
+  });
+
+  test('튜토리얼 그날 밤: 네 걸음을 지나면 새 지도에서 시작하고 안내 카드가 뜬다', () {
+    Game.tutFlag = false;
+    final g = Game(Game.fresh(seed: 9));
+    g.tick(1);
+    final t0 = g.takeFx().whereType<FxTalk>().first;
+    expect(t0.card?.$2, '재가 내리던 새벽');
+    expect(g.mission().txt, startsWith('랜턴을 두드려 어둠 걷기'));
+    expect(g.clockText, '그날 밤 · 03:02');
+    expect(g.isNight, isTrue);
+    for (var k = 0; k < 40 && g.revCount < 20; k++) {
+      g.digAim();
+    }
+    g.tick(1);
+    expect(((g.tut!['i'] as num)).toInt(), 1);
+    // 건너뛰기
+    g.tutEnd = true;
+    g.finishTut();
+    expect(g.tut, isNull);
+    expect(g.S.rest['tutSeen'], 1);
+    expect(g.onb, 1);
+    expect(g.takeFx().whereType<FxOnboard>(), isNotEmpty);
+    // 안내 중에는 첫 이야기가 기다린다
+    g.tick(1);
+    expect(g.takeFx().whereType<FxTalk>(), isEmpty);
+    g.onbEnd();
+    g.tick(.25);
+    expect(g.takeFx().whereType<FxTalk>().first.card?.$1, '프롤로그');
+    Game.tutFlag = true;
   });
 }

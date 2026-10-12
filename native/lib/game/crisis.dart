@@ -142,6 +142,7 @@ extension Crisis on Game {
   bool get duskWarn => !isNight && defn == null && (bigNightNext || S.rest['raid'] != null) && revCount >= 16 && phase > dayLen - 12;
 
   String get clockText {
+    if (tut != null) return tutClock;
     final p = phase, n = isNight, st = n && stormOn;
     final left = n ? cycleLen - p : dayLen - p, mm = left ~/ 60, ss = (left % 60).floor().toString().padLeft(2, '0');
     String t;

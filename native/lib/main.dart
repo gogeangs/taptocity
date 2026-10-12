@@ -14,6 +14,7 @@ Future<void> main() async {
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Colors.transparent, statusBarIconBrightness: Brightness.light));
   await Atlas.load();
   final saved = await Storage.load();
+  Game.tutFlag = await Storage.getRaw('ttc_tut') == '1';
   Game game;
   try {
     game = Game(saved ?? Game.fresh());

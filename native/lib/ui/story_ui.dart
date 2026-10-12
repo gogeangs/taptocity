@@ -116,7 +116,10 @@ class _MissionTapeState extends State<MissionTape> {
     final done = m.done, ready = S.lv < 5 && _lvFrac >= 1;
     final fg = done ? const Color(0xFF252E36) : const Color(0xFFF0E7D6);
     final chapC = done ? const Color(0xFF523D24) : Ttc.glow;
-    final chap = c != null
+    final tu = g.tut;
+    final chap = tu != null
+        ? [TextSpan(text: '그날 밤 ', style: Ttc.t(11, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${((tu['i'] as num?) ?? 0) + 1}/${tutSteps.length}  ', style: Ttc.t(11, color: chapC))]
+        : c != null
         ? [TextSpan(text: '${c.ch} ', style: Ttc.t(11, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${st!.si + 1}/${c.steps.length}  ', style: Ttc.t(11, color: chapC))]
         : [TextSpan(text: '끝없는 불빛 ', style: Ttc.t(11, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${(((S.rest['eg'] as Map?)?['i'] as num?) ?? 0) + 1}  ', style: Ttc.t(11, color: chapC))];
     final lvchip = GestureDetector(
@@ -607,6 +610,7 @@ class GuideTarget {
 }
 
 GuideTarget? guideTarget(Game g) {
+  if (g.tut != null) return _tutTarget(g);
   final m = g.mission();
   if (m.done || m.step == null || m.step!.focus == null) return null;
   final st = m.step!, f = st.focus!, S = g.S;
@@ -672,6 +676,41 @@ GuideTarget? guideTarget(Game g) {
   }
   if (i < 0) return null;
   return GuideTarget(tile: i, label: t, z: i == C0 ? 30 : (S.rev[i] == 1 ? 18 : 22));
+}
+
+/// 튜토리얼의 길잡이 (웹 focusTarget 덮어쓰기)
+GuideTarget? _tutTarget(Game g) {
+  if (g.tutEnd) return null;
+  final f = tutSteps[((g.tut!['i'] as num?) ?? 0).toInt()].focus;
+  if (f == 'lamp') return const GuideTarget(el: 'lamp', label: '랜턴으로 땅 밝히기');
+  int near(bool Function(int i) ok) {
+    var best = -1;
+    var bd = 1e9;
+    for (var i = 0; i < N; i++) {
+      if (!ok(i)) continue;
+      final d = dist(i);
+      if (d < bd) {
+        bd = d;
+        best = i;
+      }
+    }
+    return best;
+  }
+
+  var i = -1, t = '';
+  if (f == 'site') {
+    i = near((j) => g.S.rev[j] == 1 && g.siteLive(j));
+    t = '뒤지기';
+    if (i < 0) return const GuideTarget(el: 'lamp', label: '더 밝혀요');
+  } else if (f == 'center') {
+    i = C0;
+    t = '텐트';
+  } else if (f == 'ash') {
+    i = near((j) => g.S.ash.containsKey('$j'));
+    t = '재';
+  }
+  if (i < 0) return null;
+  return GuideTarget(tile: i, label: t, z: i == C0 ? 20 : 18);
 }
 
 /// 화살표 (웹 #guide: 호박색 말풍선 + 아래 삼각형, 위아래로 까딱)
@@ -992,4 +1031,183 @@ List<Widget> guideTab(Game g) {
       p('· 판잣집이 되고 생존자가 두 명 모이면 지도에 떠돌이 동물의 발자국이 찍혀요. 눌러서 먹이를 두고 오기를 몇 번 하면 식구가 돼요.\n· 동행 펫 한 마리는 랜턴 곁을 따라다니며 효과를 모두 내고 재주를 부려요. 쉬는 펫은 효과가 절반이에요.\n· 지도에서 펫을 누르면 쓰다듬고, 한 번 더 누르면 자세히 볼 수 있어요. 쓰다듬기·먹이로 친밀도가 오르면 효과가 커지고 사연이 열려요.\n· 잘 맞는 생존자와 함께 있으면 희망이 오르고 더 빨리 친해져요. 원정·지하에도 데려갈 수 있어요.\n· 히든 펫 3마리는 특별한 곳과 때에만 나타나요.'),
     ]),
   ];
+}
+
+// ======================= 그날 밤 이후: 첫 동네 안내 카드 (웹 onboardHtml) =======================
+Future<void> showOnboard(BuildContext context, Game g, {required VoidCallback onTour}) => showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: const Color(0xC70F161D),
+      builder: (ctx) {
+        const st = [
+          ('구름 두드리기', '빛이 새는 구름을 두드려 땅을 밝혀요.'),
+          ('자재 모으기', '무너진 집·폐차를 두드려요.'),
+          ('쉘터 짓기', '텐트를 눌러 모듈을 짓고 증축해요.'),
+          ('사람 구하기', '깜빡이는 구조 신호를 따라가요.'),
+          ('밤 버티기', '가장자리의 붉은 재를 걷어내요.'),
+        ];
+        return Dialog(
+          backgroundColor: Ttc.paper,
+          insetPadding: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Color(0x66EEE5D3))),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 460),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
+                Text('그날 밤 이후', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
+                  child: Row(children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(color: const Color(0xFF2C333B), borderRadius: BorderRadius.circular(14)),
+                      child: CoverPic('underground-icons.webp', const Rect.fromLTWH(2 * 256.0 + 8, 3 * 256.0 + 8, 240, 240)),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text('마흔세 날 뒤,\n재 속의 텐트', style: Ttc.t(23, color: Ttc.sepia, weight: FontWeight.w700, height: 1.3))),
+                  ]),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 2, 0, 12),
+                  child: Text.rich(TextSpan(children: const [
+                    TextSpan(text: '그날 밤은 끝났어요. 이제 랜턴 하나로 재 덮인 동네를 밝히고, 텐트를 쉘터로 키워 살아남은 사람들을 모아요. 쉘터가 '),
+                    TextSpan(text: '불빛의 도시', style: TextStyle(fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)])),
+                    TextSpan(text: '가 되면 다음 동네로 떠날 수 있어요.'),
+                  ]), style: Ttc.t(15, color: const Color(0xFF30281F), height: 1.6)),
+                ),
+                Text('이렇게 진행돼요', style: Ttc.t(12.5, color: const Color(0xFF73634E), weight: FontWeight.w700)),
+                const SizedBox(height: 6),
+                for (var k = 0; k < st.length; k++)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 6),
+                    padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                    decoration: BoxDecoration(color: const Color(0x0F3B2A1A), borderRadius: BorderRadius.circular(10)),
+                    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Container(
+                        width: 21,
+                        height: 21,
+                        alignment: Alignment.center,
+                        decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF2C333B)),
+                        child: Text('${k + 1}', style: Ttc.t(12, color: const Color(0xFFFFDF9E), weight: FontWeight.w700, height: 1)),
+                      ),
+                      const SizedBox(width: 9),
+                      Expanded(
+                        child: Text.rich(TextSpan(children: [
+                          TextSpan(text: st[k].$1, style: const TextStyle(color: Color(0xFF2C333B), fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)])),
+                          TextSpan(text: ' · ${st[k].$2}'),
+                        ]), style: Ttc.t(14, color: const Color(0xFF30281F), height: 1.5)),
+                      ),
+                    ]),
+                  ),
+                const SizedBox(height: 8),
+                Row(children: [
+                  _pbtn('바로 시작', () {
+                    Navigator.pop(ctx);
+                    g.onbEnd();
+                  }, alt: true),
+                  const SizedBox(width: 8),
+                  _pbtn('화면 둘러보기', () {
+                    Navigator.pop(ctx);
+                    onTour();
+                  }),
+                ]),
+              ]),
+            ),
+          ),
+        );
+      },
+    );
+
+Widget _pbtn(String t, VoidCallback onTap, {bool alt = false}) => Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 46),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: alt ? Colors.transparent : Ttc.amberBtn,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: alt ? const Color(0x47252E36) : Ttc.amberBtnLine),
+          ),
+          child: Text(t, style: Ttc.t(14, color: const Color(0xFF243039), weight: FontWeight.w700)),
+        ),
+      ),
+    );
+
+// ======================= 화면 둘러보기 (웹 onbTour · #coach) =======================
+const coachSteps = [
+  ('모은 자재', '누르면 전체 자재와 창고 한도가 보여요.'),
+  ('지금 할 일', '목표를 다 하면 여기서 ‘받기’를 눌러요. 왼쪽 칩은 쉘터 레벨이에요.'),
+  ('낮과 밤', '밤까지 남은 시간과 날씨가 보여요.'),
+  ('랜턴 버튼', '조준한 칸을 두드려요. 연달아 두드리면 피버, 수확 두 배.'),
+  ('메뉴', '기능은 차례로 열리고, 열릴 때 안내 카드가 떠요.'),
+];
+
+class CoachOverlay extends StatelessWidget {
+  const CoachOverlay({super.key, required this.i, required this.hole, required this.onNext, required this.onSkip});
+  final int i;
+  final Rect hole;
+  final VoidCallback onNext, onSkip;
+  @override
+  Widget build(BuildContext context) {
+    final scr = MediaQuery.of(context).size, h = hole.inflate(6), below = hole.center.dy < scr.height / 2;
+    final bub = Container(
+      constraints: const BoxConstraints(maxWidth: 420),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+      decoration: BoxDecoration(color: const Color(0xFFEFE3C4), borderRadius: BorderRadius.circular(14), boxShadow: const [BoxShadow(color: Color(0x80000000), blurRadius: 30, offset: Offset(0, 10))]),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+        Text(coachSteps[i].$1, style: Ttc.t(16, color: const Color(0xFF30281F), weight: FontWeight.w700)),
+        const SizedBox(height: 4),
+        Text(coachSteps[i].$2, style: Ttc.t(14, color: const Color(0xFF30281F), height: 1.55)),
+        const SizedBox(height: 10),
+        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+          GestureDetector(
+            onTap: onSkip,
+            child: Padding(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9), child: Text('건너뛰기', style: Ttc.t(13.5, color: const Color(0xFF73634E), weight: FontWeight.w700))),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: onNext,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+              decoration: BoxDecoration(color: const Color(0xFF2C333B), borderRadius: BorderRadius.circular(99)),
+              child: Text(i == coachSteps.length - 1 ? '시작하기' : '다음 (${i + 1}/${coachSteps.length})', style: Ttc.t(13.5, color: const Color(0xFFFFDF9E), weight: FontWeight.w700)),
+            ),
+          ),
+        ]),
+      ]),
+    );
+    return Stack(children: [
+      Positioned.fill(child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: () {}, child: CustomPaint(painter: _HolePainter(h)))),
+      Positioned(
+        left: 16,
+        right: 16,
+        top: below ? h.bottom + 14 : null,
+        bottom: below ? null : scr.height - h.top + 14,
+        child: Center(child: bub),
+      ),
+    ]);
+  }
+}
+
+class _HolePainter extends CustomPainter {
+  _HolePainter(this.hole);
+  final Rect hole;
+  @override
+  void paint(Canvas canvas, Size size) {
+    final r = RRect.fromRectAndRadius(hole, const Radius.circular(12));
+    canvas.drawPath(Path.combine(PathOperation.difference, Path()..addRect(Offset.zero & size), Path()..addRRect(r)), Paint()..color = const Color(0xB8080A0E));
+    canvas.drawRRect(
+        r.deflate(1.5),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3
+          ..color = const Color(0xFFF3A53A));
+  }
+
+  @override
+  bool shouldRepaint(_HolePainter old) => old.hole != hole;
 }

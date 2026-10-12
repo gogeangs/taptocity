@@ -518,9 +518,10 @@ Widget comingBody(String title, String stage) => ListView(padding: _bodyPad, chi
 
 // ======================= 설정 =======================
 class SettingsBody extends StatefulWidget {
-  const SettingsBody(this.g, {super.key, required this.onReset});
+  const SettingsBody(this.g, {super.key, required this.onReset, this.onTut});
   final Game g;
   final VoidCallback onReset;
+  final VoidCallback? onTut;
   @override
   State<SettingsBody> createState() => _SettingsBodyState();
 }
@@ -566,7 +567,7 @@ class _SettingsBodyState extends State<SettingsBody> {
   Widget build(BuildContext context) {
     final g = widget.g;
     return ListView(padding: _bodyPad, children: [
-      Text('네이티브 미리보기 · 1단계', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
+      Text('네이티브 미리보기 · 5단계', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
       _row('저장 코드 복사', '웹 버전의 저장 코드와 같은 형식이에요', _ghost('복사', () async {
         await Clipboard.setData(ClipboardData(text: g.exportCode()));
         if (mounted) setState(() => msg = '내 저장 코드를 복사했어요');
@@ -605,6 +606,10 @@ class _SettingsBodyState extends State<SettingsBody> {
         }),
       ]),
       const SizedBox(height: 6),
+      if (g.tut == null && widget.onTut != null) ...[
+        sec('그날 밤'),
+        _row('튜토리얼 다시 보기', '재가 내리던 새벽을 다시 걸어요. 끝나면 지금 쉘터로 그대로 돌아와요.', _ghost('다시 보기', widget.onTut!)),
+      ],
       _row(confirmReset ? '정말 처음부터 할까요?' : '새 땅에서 다시 시작', confirmReset ? '지금 진행은 사라져요' : '지도와 쉘터를 처음부터', _ghost(confirmReset ? '처음부터' : '다시 시작', () {
         if (!confirmReset) {
           setState(() => confirmReset = true);

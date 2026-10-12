@@ -14,6 +14,7 @@ part 'outside.dart';
 part 'life.dart';
 part 'story.dart';
 part 'underground.dart';
+part 'tutorial.dart';
 
 /// 화면 연출(떠오르는 글자·알림·창 열기)을 그림 쪽에 알려 주는 신호.
 sealed class Fx {
@@ -161,6 +162,11 @@ class Game extends ChangeNotifier {
   int panGuide = 0, misDoneAt = 0, miyT = 0, scIdle = 0;
   bool misNudged = false, confShown = false;
   UgRun? ug; // 지금 지하 탐사 중 (저장하지 않음)
+  // 튜토리얼 (tutorial.dart)
+  static bool tutFlag = false; // 이 기기에서 튜토리얼을 끝낸 적 있음 (웹 localStorage ttc_tut)
+  int tutSheet = 0;
+  double tutAsh = 0;
+  bool tutEnd = false, tutResumed = false, tutCloseSheet = false;
 
   GameState S;
   final math.Random rnd;
@@ -2025,6 +2031,13 @@ class Game extends ChangeNotifier {
     aim = -1;
     defn = null;
     evCur = -1;
+    ug = null;
+    confShown = false;
+    misDoneAt = 0;
+    scIdle = 0;
+    miyT = 0;
+    tutEnd = false;
+    tutResumed = false;
     _rebuildFrontier();
     recalc();
     wasNight = isNight;

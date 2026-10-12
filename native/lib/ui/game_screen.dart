@@ -1,5 +1,6 @@
 // 게임 화면. 배치·치수·색은 웹 버전(header / #tape / #stage / #lamp / .tabs / #sheet)을 그대로 따른다.
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../game/data.dart';
 import '../game/engine.dart';
+import '../game/state.dart';
 import '../game/storage.dart';
 import 'crisis_ui.dart';
 import 'gear.dart';
@@ -142,6 +144,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               if (f.goal != null) g.panGuide = DateTime.now().millisecondsSinceEpoch;
             }));
         _pumpPages();
+      case FxTutDone(:final replay):
+        _tutDone(replay);
+      case FxOnboard():
+        _pageQ.add(() => showOnboard(context, g, onTour: () => setState(() => _coach = 0)));
+        _pumpPages();
       case FxConf():
         _pageQ.add(() => showConf(context, g));
         _pumpPages();
@@ -161,6 +168,57 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       default:
         break;
     }
+  }
+
+  // ---------- 화면 둘러보기 (웹 onbTour): 가리킬 곳 ----------
+  static final _kMats = GlobalKey(), _kTape = GlobalKey(), _kClock = GlobalKey(), _kLamp = GlobalKey(), _kTabs = GlobalKey();
+  int _coach = -1;
+  Rect? _coachRect() {
+    final k = [_kMats, _kTape, _kClock, _kLamp, _kTabs][_coach];
+    final box = k.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) return null;
+    return box.localToGlobal(Offset.zero) & box.size;
+  }
+
+  void _coachNext() => setState(() {
+        _coach++;
+        if (_coach >= coachSteps.length) _coachEnd();
+      });
+  void _coachEnd() {
+    _coach = -1;
+    g.onbEnd();
+  }
+
+  /// 튜토리얼 다시 보기: 지금 저장을 옆에 두고 새 지도에서 (웹 startTut(true))
+  Future<void> _tutReplay() async {
+    await Storage.setRaw('ttc_tut_bak', g.toJsonString());
+    if (!mounted) return;
+    setState(() => sheet = null);
+    g.replaceState(Game.fresh());
+    g.startTut(replay: true);
+    cam.set(0, (CX + CY + 1) * TH / 2 - 10);
+    fxc.pull(g);
+  }
+
+  Future<void> _tutDone(bool replay) async {
+    await Storage.setRaw('ttc_tut', '1');
+    if (replay) {
+      final bak = await Storage.getRaw('ttc_tut_bak');
+      await Storage.setRaw('ttc_tut_bak', null);
+      if (bak != null) {
+        try {
+          final s = GameState.fromJson(jsonDecode(bak) as Map<String, dynamic>);
+          s.rest['tutSeen'] = 1;
+          g.replaceState(s);
+          fxc.toast('원래 쉘터로 돌아왔어요');
+        } catch (_) {}
+      }
+    }
+    if (!mounted) return;
+    setState(() => sheet = null);
+    cam.set(0, (CX + CY + 1) * TH / 2 - 10);
+    g.dirty = true;
+    _save();
   }
 
   // ---------- 이야기 창 줄 세우기 (웹 mq: 창은 한 번에 하나) ----------
@@ -183,6 +241,10 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   int _claimPing = 0;
   GuideTarget? _guide;
   void _storyUi() {
+    if (g.tutCloseSheet) {
+      g.tutCloseSheet = false;
+      if (sheet != null) setState(() => sheet = null);
+    }
     _pumpPages();
     final m = g.mission(), st = m.step;
     String? k;
@@ -377,6 +439,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   void _open(SheetSpec s) => setState(() {
+        if (s.kind == 'shelter' && g.tut != null) g.tutSheet = 1;
         sheet = sheet == s ? null : s;
         matsOpen = false;
         _closeRing();
@@ -527,7 +590,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       case 'diary':
         return SheetPanel(icon: Ico.diary, title: '일지', onClose: _close, child: DiaryBody(g));
       case 'settings':
-        return SheetPanel(icon: Ico.gear, title: '설정', onClose: _close, child: SettingsBody(g, onReset: _reset));
+        return SheetPanel(icon: Ico.gear, title: '설정', onClose: _close, child: SettingsBody(g, onReset: _reset, onTut: _tutReplay));
       case 'assign':
         return SheetPanel(
             icon: Ico.surv,
@@ -583,13 +646,18 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final pad = MediaQuery.of(context).padding;
     final bottom = pad.bottom + 10;
+    final coachR = _coach >= 0 ? _coachRect() : null;
+    if (_coach >= 0 && coachR == null) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? setState(() {}) : null);
     return Scaffold(
       backgroundColor: Ttc.body,
-      body: Column(children: [
+      body: Stack(children: [
+        Column(children: [
         AnimatedBuilder(
           animation: g,
           builder: (c, _) => _Header(
             g,
+            matsKey: _kMats,
+            tapeKey: _kTape,
             top: pad.top,
             ping: _claimPing,
             onGo: _goMission,
@@ -667,7 +735,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                   left: 10,
                   top: 12,
                   right: 116,
-                  child: Align(alignment: Alignment.centerLeft, child: Every(g: g, builder: (c) => clockChip(g))),
+                  child: Align(alignment: Alignment.centerLeft, child: KeyedSubtree(key: _kClock, child: Every(g: g, builder: (c) => clockChip(g)))),
                 ),
                 // 대형 재폭풍 막대 · 생존자 의뢰 · 부탁
                 Positioned(
@@ -751,6 +819,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                   left: 8,
                   bottom: bottom,
                   child: Listener(
+                    key: _kLamp,
                     onPointerDown: (_) => _lampPress(),
                     onPointerUp: (_) => _lampStop(),
                     onPointerCancel: (_) => _lampStop(),
@@ -763,6 +832,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                   right: 8,
                   bottom: bottom,
                   child: AnimatedBuilder(
+                    key: _kTabs,
                     animation: g,
                     builder: (c, _) => _Tabs(
                     dot: g.achReady ? 4 : -1,
@@ -821,10 +891,34 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                   ),
                 if (matsOpen) Positioned(left: 8, right: 8, top: 4, child: AnimatedBuilder(animation: g, builder: (c, _) => _MatsAll(g))),
                 if (_stampText != null) Center(child: _Stamp(_stampText!)),
+                // 튜토리얼 건너뛰기 (웹 #tutSkip)
+                Positioned(
+                  left: 12,
+                  bottom: bottom + 154,
+                  child: AnimatedBuilder(
+                    animation: g,
+                    builder: (c, _) => g.tut == null
+                        ? const SizedBox.shrink()
+                        : GestureDetector(
+                            onTap: () {
+                              g.tutEnd = true;
+                              g.finishTut();
+                              fxc.pull(g);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                              decoration: BoxDecoration(color: const Color(0xB814100C), borderRadius: BorderRadius.circular(99), border: Border.all(color: const Color(0x80EFE3C4), width: 1.5)),
+                              child: Text('건너뛰기', style: Ttc.t(13, color: const Color(0xFFEFE3C4), weight: FontWeight.w600, height: 1)),
+                            ),
+                          ),
+                  ),
+                ),
               ]),
             );
           }),
         ),
+        ]),
+        if (coachR != null) Positioned.fill(child: CoachOverlay(i: _coach, hole: coachR, onNext: _coachNext, onSkip: () => setState(_coachEnd))),
       ]),
     );
   }
@@ -832,8 +926,10 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
 // ======================= 머리 (자원·설정·할 일 띠) =======================
 class _Header extends StatelessWidget {
-  const _Header(this.g, {required this.top, required this.ping, required this.onGo, required this.onSettings, required this.onMats, required this.onShelter, required this.onPed});
+  const _Header(this.g,
+      {required this.top, required this.ping, required this.onGo, required this.onSettings, required this.onMats, required this.onShelter, required this.onPed, this.matsKey, this.tapeKey});
   final Game g;
+  final Key? matsKey, tapeKey;
   final double top;
   final int ping;
   final VoidCallback onSettings, onMats, onShelter, onPed, onGo;
@@ -851,6 +947,7 @@ class _Header extends StatelessWidget {
             const SizedBox(width: 6),
             Expanded(
               child: GestureDetector(
+                key: matsKey,
                 onTap: onMats,
                 child: Row(children: [
                   for (var k = 0; k < baseMats.length; k++) ...[
@@ -865,7 +962,7 @@ class _Header extends StatelessWidget {
           ]),
         ),
         const SizedBox(height: 6),
-        MissionTape(g, onLv: onShelter, onGo: onGo, onPed: onPed, ping: ping),
+        KeyedSubtree(key: tapeKey, child: MissionTape(g, onLv: onShelter, onGo: onGo, onPed: onPed, ping: ping)),
       ]),
     );
   }

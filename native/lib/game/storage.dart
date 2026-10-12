@@ -27,6 +27,21 @@ class Storage {
     if (raw != null) await _p!.setString('$key-backup-${DateTime.now().millisecondsSinceEpoch}', raw);
   }
 
+  /// 따로 두는 작은 값 (웹 localStorage의 ttc_tut · ttc_tut_bak)
+  static Future<String?> getRaw(String k) async {
+    _p ??= await SharedPreferences.getInstance();
+    return _p!.getString(k);
+  }
+
+  static Future<void> setRaw(String k, String? v) async {
+    _p ??= await SharedPreferences.getInstance();
+    if (v == null) {
+      await _p!.remove(k);
+    } else {
+      await _p!.setString(k, v);
+    }
+  }
+
   static Future<void> save(String json) async {
     _p ??= await SharedPreferences.getInstance();
     await _p!.setString(key, json);

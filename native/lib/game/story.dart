@@ -243,6 +243,8 @@ extension Story on Game {
 
   // ================= 미션 (웹 mission 2009) =================
   Mission mission() {
+    final tm = tutMission;
+    if (tm != null) return tm;
     if (mi < steps.length) {
       final m = steps[mi];
       return Mission(m.goal, stepDone(m), {...m.rw, 'batt': (m.rw['batt'] ?? 0) + 1}, m.hint, step: m);
@@ -367,7 +369,7 @@ extension Story on Game {
 
   /// 화면이 비어 있을 때 다음 걸음의 장면을 연다 (웹 tickStory 2075)
   void tickStory() {
-    if (uiBusy) return;
+    if (uiBusy || tut != null || tutPending || onb == 1) return;
     if (storyI < mi && mi < steps.length) {
       S.rest['storyI'] = mi;
       introStep(mi);
@@ -489,6 +491,7 @@ extension Story on Game {
   /// 0.25초마다 (게임 tick에서): 미션 띠 상태와 장면 진행
   void tickStoryFast() {
     migrateSteps();
+    if (tut != null) return;
     final m = mission();
     hastenStorm(m);
     tickStory();
@@ -496,9 +499,9 @@ extension Story on Game {
   }
 
   void tickStorySec() {
-    final m = mission();
-    _tickStorySec(m);
     _tickAch();
+    if (tickTut()) return;
+    _tickStorySec(mission());
   }
 
   // ================= 등불 탑 (웹 5084–5115) =================
