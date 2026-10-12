@@ -12,6 +12,7 @@ import 'people.dart';
 import 'portrait.dart';
 import 'survivors.dart';
 import 'story_ui.dart';
+import 'season_ui.dart';
 import 'theme.dart';
 import 'underground_ui.dart';
 import 'widgets.dart';
@@ -312,7 +313,11 @@ class RadioBody extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(color: Ttc.surface, borderRadius: BorderRadius.circular(10), border: Border.all(color: Ttc.line)),
         child: Column(children: [
-          radioArt(width: math.min(230, MediaQuery.of(context).size.width * .6)),
+          Stack(clipBehavior: Clip.none, alignment: Alignment.topCenter, children: [
+            radioArt(width: math.min(230, MediaQuery.of(context).size.width * .6)),
+            // 무전실이 서면 깜빡이는 작은 신호등 (사라진 3분 · 웹 mlamp)
+            if (g.hasMod(7) && g.egg['b'] == null) Positioned(top: -2, left: math.min(230, MediaQuery.of(context).size.width * .6) / 2 + 58, child: MorseLamp(g)),
+          ]),
           const SizedBox(height: 12),
           Text.rich(TextSpan(children: [const TextSpan(text: '건전지로 다이얼을 돌려 물자와 장비를 찾아요. 가끔 '), bold('히든 생존자'), const TextSpan(text: '의 목소리도 잡혀요.')]),
               style: Ttc.t(14, color: Ttc.sepia2, height: 1.7)),

@@ -146,8 +146,11 @@ extension Crisis on Game {
     final p = phase, n = isNight, st = n && stormOn;
     final left = n ? cycleLen - p : dayLen - p, mm = left ~/ 60, ss = (left % 60).floor().toString().padLeft(2, '0');
     String t;
+    final oc = oddClock;
     if (defn != null) {
       t = '대형 재폭풍 · 쉘터를 지켜요';
+    } else if (oc != null) {
+      t = oc.startsWith('새벽 3시') ? '$oc · $mm:$ss' : oc;
     } else if (n) {
       t = st ? '재폭풍 · 새벽까지 $mm:$ss' : '고요한 밤 · $mm:$ss';
     } else {
@@ -823,6 +826,7 @@ extension Crisis on Game {
       fx.add(FxNote('쉘터가 재에 뒤덮였어요', '잃은 자재 ${lost.isEmpty ? '없음' : lootText(lost)} · 모듈 일부가 멈췄어요. 두드려 걷어내요. 방벽과 랜턴탑을 키우면 더 잘 버텨요', ms: 7500));
     }
     fx.add(const FxDefense(false));
+    crowRaidAfterDefense();
     _changed();
   }
 }

@@ -43,7 +43,7 @@ class _LiveLayerState extends State<LiveLayer> with SingleTickerProviderStateMix
 
   bool get _wants {
     final w = g.wxK;
-    return g.S.sv.isNotEmpty || g.kids.isNotEmpty || g.pets.isNotEmpty || g.stray != null || g.defn != null || (g.nightness > 0 && g.stormOn) || w == 'acid' || w == 'cold' || w == 'wind' || g.duskWarn;
+    return g.S.sv.isNotEmpty || g.kids.isNotEmpty || g.pets.isNotEmpty || g.stray != null || g.defn != null || (g.nightness > 0 && g.stormOn) || w == 'acid' || w == 'cold' || w == 'wind' || g.duskWarn || g.shadow != null || g.S.rest['oddSteps'] != null;
   }
 
   @override
@@ -148,6 +148,52 @@ class _LiveLayerState extends State<LiveLayer> with SingleTickerProviderStateMix
       );
 }
 
+/// 수상한 밤: 발자국(아침), 무전실 불빛, 그림자 (웹 towerDraw 덮어쓰기 5958)
+extension on _LivePainter {
+  void _odd(Canvas canvas, double time, List<(Offset, double, Color, double)> glows) {
+    final st = g.S.rest['oddSteps'];
+    if (st is Map && !g.isNight && st['n'] == g.num_('nightCount').toInt()) {
+      final a = tileC(C0), b = tileC((st['to'] as num).toInt());
+      final p = Paint()..color = const Color(0x80281C14);
+      for (var q = 1; q < 14; q++) {
+        final f = q / 14, x = a.dx + (b.dx - a.dx) * f + (q.isOdd ? 3 : -3), y = a.dy + (b.dy - a.dy) * f;
+        canvas.drawOval(Rect.fromCenter(center: Offset(x, y), width: 4.4, height: 2.6), p);
+      }
+    }
+    final s = g.shadow;
+    if (s == null) return;
+    if (s.light != null) {
+      final a = s.far ? (s.t < 1.6 ? .8 : 0.0) : math.sin(math.min(1, s.t / s.dur) * math.pi);
+      if (s.light! >= 0 && a > 0) {
+        final c = tileC(s.light!, 18);
+        canvas.drawCircle(c, 46, Paint()..shader = ui.Gradient.radial(c, 46, [Color.fromRGBO(255, 226, 150, .85 * a), const Color(0x00FFE296)]));
+        glows.add((c, 40.0, const Color(0xFFFFE296), .6 * a));
+      }
+      return;
+    }
+    final (x, y) = s.pos;
+    final a = math.max(0.0, math.min(1.0, math.min(s.t / 1.2, (s.dur - s.t) / 1.5)) * .9), bob = math.sin(time / 140) * 1.2;
+    canvas.saveLayer(null, Paint()..color = Color.fromRGBO(0, 0, 0, a));
+    canvas.drawOval(Rect.fromCenter(center: Offset(x, y + 1), width: 18, height: 6), Paint()..color = const Color(0x59000000));
+    final body = Path()
+      ..moveTo(x - 7, y)
+      ..quadraticBezierTo(x - 8, y - 18 + bob, x - 4, y - 22 + bob)
+      ..lineTo(x + 4, y - 22 + bob)
+      ..quadraticBezierTo(x + 8, y - 18 + bob, x + 7, y)
+      ..close();
+    final fill = Paint()..color = const Color(0xEB08060A);
+    final line = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2
+      ..color = const Color(0x73F0E1C8);
+    canvas.drawPath(body, fill);
+    canvas.drawPath(body, line);
+    canvas.drawCircle(Offset(x, y - 27 + bob), 5, fill);
+    canvas.drawCircle(Offset(x, y - 27 + bob), 5, line);
+    canvas.restore();
+  }
+}
+
 class _LivePainter extends CustomPainter {
   _LivePainter(this.st, Listenable repaint) : super(repaint: repaint);
   final _LiveLayerState st;
@@ -239,6 +285,7 @@ class _LivePainter extends CustomPainter {
       tp.paint(canvas, Offset(c.dx + 4 - tp.width / 2, by - tp.height / 2));
       if (k == 'fox') glows.add((Offset(c.dx, c.dy - 6), 30.0, const Color(0xFFC8DCFF), .4));
     }
+    _odd(canvas, time, glows);
     _foes(canvas, time, glows);
     canvas.restore();
 

@@ -78,6 +78,9 @@ void main() {
   testWidgets('화면 사진', (tester) async {
     await tester.runAsync(() async {
       await Atlas.load();
+      for (final f in ['story-1.webp', 'story-2.webp', 'story-3.webp', 'story-4.webp', 'story-5.webp', 'founder-expressions.webp', 'underground-icons.webp', 'crows-kids.webp']) {
+        await Atlas.ensure(f);
+      }
     });
     await _shot(tester, Game(Game.fresh(seed: 42)), '01-start');
     final g = _demo();
@@ -248,6 +251,36 @@ void main() {
     g.S.rest['mi'] = stepI('등불 탑 토대 놓기');
     g.S.rest['storyI'] = g.mi;
     g.S.m.addAll({'plate': 200, 'wood': 300});
+    // 사건 수첩: 사건 창 → 수첩 → 회상
+    g.S.rest['mi'] = stepI('생존자 3명 모으기');
+    g.S.rest['storyI'] = g.mi;
+    g.fx.add(const FxCase(0));
+    await _shot(tester, g, '28-case', act: () async {
+      for (var k = 0; k < 8; k++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    });
+    g.pickCase(0, 'a');
+    (g.S.rest['cases'] as Map)['1'] = <String, Object?>{'p': 'a', 'clue': 1};
+    g.S.rest['odd'] = [
+      <String, Object?>{'n': 4, 'r': '', 'k': 'knock', 't': '누가 창고 문을 세 번, 한 번, 한 번 두드리고 멈췄다. 아무도 없었다.'}
+    ];
+    g.egg['a'] = 1;
+    g.takeFx();
+    await _shot(tester, g, '29-casebook', act: () async {
+      await tester.tap(find.text('일지').last);
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.tap(find.text('사건').last);
+    });
+    await _shot(tester, g, '30-gallery', act: () async {
+      await tester.tap(find.text('일지').last);
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.tap(find.text('회상').last);
+    });
     // 지하 구역: 준비 창 → 내려간 첫 층
     g.S.lv = 3;
     g.recalc();

@@ -453,4 +453,32 @@ void main() {
     expect(g.takeFx().whereType<FxTalk>().first.card?.$1, '프롤로그');
     Game.tutFlag = true;
   });
+
+  test('사건 수첩: 조건이 되면 사건이 열리고, 추궁하면 단서와 결말이 남는다', () {
+    final g = Game(Game.fresh(seed: 11));
+    for (final id in [0, 1, 3]) {
+      g.rescue(id, 'sig');
+    }
+    g.S.rest['mi'] = stepI('생존자 3명 모으기');
+    g.S.rest['storyI'] = g.mi;
+    g.takeFx();
+    for (var k = 0; k < 8; k++) {
+      g.tick(1);
+    }
+    expect(g.takeFx().whereType<FxCase>().map((f) => f.k), contains(0));
+    final (ls, fx) = g.pickCase(0, 'a');
+    expect(ls, isNotEmpty);
+    expect(g.caseRec(0)!['solved'], 1);
+    expect(fx.join(), contains('등불'));
+    expect(g.caseSeen, isTrue);
+    // 까마귀와 마주치면 고른 대로
+    final (cl, cfx) = g.pickCrow('avoid');
+    expect(cl, isNotEmpty);
+    expect(g.crow['rel'], 'avoid');
+    expect(cfx, isEmpty);
+    // 회상: 지난 걸음의 그림이 열린다
+    g.artBackfill();
+    expect(g.artCount, greaterThan(4));
+    expect(g.sceneSource(4), isNotNull);
+  });
 }

@@ -305,6 +305,17 @@ class _MapViewState extends State<MapView> {
         widget.onPlace!(i0);
         return;
       }
+      // 수상한 그림자: 눌러서 쫓아가기 (웹 catchShadow)
+      final sh = g.shadow;
+      if (sh != null && sh.light == null && !sh.got) {
+        final (sx, sy) = sh.pos;
+        if ((Offset(sx, sy - 14) - w0).distance < 34 * math.max(.8, cam.z) / cam.z) {
+          g.catchShadow();
+          g.fx.add(FxBurstAt(sx, sy - 14, 0xFF3A3040, 14));
+          widget.fxLayer.pull(g);
+          return;
+        }
+      }
       // 펫: 한 번 누르면 쓰다듬기, 1.5초 안에 또 누르면 자세히 (웹 petTap)
       final pk = life.petAt(w0, math.max(16 / cam.z, 12));
       if (pk != null) {
@@ -513,6 +524,7 @@ class MapPainter extends CustomPainter {
       }
     }
     _tower(canvas);
+    _crowMarks(canvas);
     if (g.sel >= 0) {
       final c = tileC(g.sel);
       _line
@@ -573,6 +585,23 @@ class MapPainter extends CustomPainter {
         ..close();
       canvas.drawPath(beam, Paint()..shader = ui.Gradient.linear(Offset(x, y - h), Offset(x, y - h - 420), const [Color(0x8CFFECAA), Color(0x00FFECAA)]));
       _glows.add((Offset(x, y - h - 4), 90.0, const Color(0xFFFFE6A0), .9));
+    }
+  }
+
+  /// 까마귀가 남긴 검은 새 표식 (웹 towerDraw 덮어쓰기)
+  void _crowMarks(Canvas canvas) {
+    final p = Paint()..color = const Color(0xCC141216);
+    for (final i in g.crowMarks) {
+      if (g.S.rev[i] != 1) continue;
+      final c = tileC(i, 2), x = c.dx, y = c.dy;
+      canvas.drawPath(
+          Path()
+            ..moveTo(x - 9, y - 3)
+            ..quadraticBezierTo(x - 4, y - 7, x, y - 1)
+            ..quadraticBezierTo(x + 4, y - 7, x + 9, y - 3)
+            ..quadraticBezierTo(x + 4, y - 4, x, y + 1)
+            ..quadraticBezierTo(x - 4, y - 4, x - 9, y - 3),
+          p);
     }
   }
 

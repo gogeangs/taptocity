@@ -9,6 +9,7 @@ import '../game/engine.dart';
 import 'atlas.dart';
 import 'icons.dart';
 import 'life_ui.dart';
+import 'season_ui.dart';
 import 'story_ui.dart';
 import 'theme.dart';
 import 'widgets.dart';
@@ -459,17 +460,27 @@ class _DiaryBodyState extends State<DiaryBody> {
   Game get g => widget.g;
   @override
   Widget build(BuildContext context) {
-    const tabs = [('story', '이야기'), ('relic', '도감'), ('ach', '업적'), ('guide', '안내서')];
+    g.artBackfill();
+    final tabs = [
+      ('story', '이야기'),
+      if (g.artCount > 0) ('scene', '회상'),
+      if (g.caseSeen) ('case', '사건'),
+      ('relic', '도감'),
+      ('ach', '업적'),
+      ('guide', '안내서'),
+    ];
     final on = tabs.indexWhere((t) => t.$1 == DiaryBody.tab);
     return ListView(padding: _bodyPad, children: [
       Segs(
         items: [for (final t in tabs) t.$2],
         on: on < 0 ? 0 : on,
-        dots: [for (final t in tabs) t.$1 == 'ach' && g.achReady],
+        dots: [for (final t in tabs) (t.$1 == 'ach' && g.achReady) || (t.$1 == 'scene' && g.S.rest['artNew'] != null) || (t.$1 == 'case' && g.S.rest['caseNew'] != null)],
         onTap: (k) => setState(() => DiaryBody.tab = tabs[k].$1),
       ),
       ...switch (DiaryBody.tab) {
         'relic' => relicsSection(g),
+        'scene' => scenesTab(context, g),
+        'case' => casesTab(context, g),
         'ach' => achTab(g),
         'guide' => guideTab(g),
         _ => [...storyLog(g), ...diaryLog(g, (k) => showDiary(context, k))],

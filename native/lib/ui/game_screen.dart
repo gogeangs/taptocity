@@ -17,6 +17,7 @@ import 'icons.dart';
 import 'life_ui.dart';
 import 'map_view.dart';
 import 'outside_ui.dart';
+import 'season_ui.dart';
 import 'sheets.dart';
 import 'story_ui.dart';
 import 'theme.dart';
@@ -142,7 +143,14 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       case FxTalk():
         _pageQ.add(() => showTalk(context, g, f, onDone: () {
               if (f.goal != null) g.panGuide = DateTime.now().millisecondsSinceEpoch;
+              if (f.after == 'endCard') setState(() => _endCard = true);
             }));
+        _pumpPages();
+      case FxCase(:final k):
+        _pageQ.add(() => showCase(context, g, k));
+        _pumpPages();
+      case FxCrowMeet():
+        _pageQ.add(() => showCrowMeet(context, g));
         _pumpPages();
       case FxTutDone(:final replay):
         _tutDone(replay);
@@ -173,6 +181,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   // ---------- 화면 둘러보기 (웹 onbTour): 가리킬 곳 ----------
   static final _kMats = GlobalKey(), _kTape = GlobalKey(), _kClock = GlobalKey(), _kLamp = GlobalKey(), _kTabs = GlobalKey();
   int _coach = -1;
+  bool _endCard = false;
   Rect? _coachRect() {
     final k = [_kMats, _kTape, _kClock, _kLamp, _kTabs][_coach];
     final box = k.currentContext?.findRenderObject() as RenderBox?;
@@ -440,6 +449,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   void _open(SheetSpec s) => setState(() {
         if (s.kind == 'shelter' && g.tut != null) g.tutSheet = 1;
+        if (s.kind == 'radio' && sheet != s) eggRadio(context, g);
         sheet = sheet == s ? null : s;
         matsOpen = false;
         _closeRing();
@@ -703,6 +713,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                   g.placingDeco = null;
                                 }
                               })),
+                Positioned.fill(child: DreadLayer(g)),
                 if (placing != null)
                   Positioned(
                     left: 10,
@@ -918,6 +929,14 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           }),
         ),
         ]),
+        if (_endCard)
+          Positioned.fill(
+              child: EndCard(onDone: () {
+            g.S.rest['ehEnd'] = 1;
+            g.endingOn = false;
+            g.dirty = true;
+            setState(() => _endCard = false);
+          })),
         if (coachR != null) Positioned.fill(child: CoachOverlay(i: _coach, hole: coachR, onNext: _coachNext, onSkip: () => setState(_coachEnd))),
       ]),
     );

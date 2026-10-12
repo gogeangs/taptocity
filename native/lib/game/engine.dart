@@ -15,6 +15,7 @@ part 'life.dart';
 part 'story.dart';
 part 'underground.dart';
 part 'tutorial.dart';
+part 'season.dart';
 
 /// 화면 연출(떠오르는 글자·알림·창 열기)을 그림 쪽에 알려 주는 신호.
 sealed class Fx {
@@ -167,6 +168,14 @@ class Game extends ChangeNotifier {
   int tutSheet = 0;
   double tutAsh = 0;
   bool tutEnd = false, tutResumed = false, tutCloseSheet = false;
+  // 수상한 밤·기척 (season.dart, 저장하지 않음)
+  int oddNightSeen = -1, oddUntil = 0, oddDawnT = 0, oddHit = 0, prsNight = -1, lampFlick = 0;
+  String? oddPlan;
+  bool oddDone = false, dread = false, prsDone = false;
+  FxNote? oddDawn, oddDawnNote, prsDawn;
+  (String, String, double)? prs;
+  Shadow? shadow;
+  bool endingOn = false;
 
   GameState S;
   final math.Random rnd;
@@ -1973,6 +1982,7 @@ class Game extends ChangeNotifier {
       }
     }
     tickStoryFast();
+    tickShadow(dt);
     if (changed) dirty = true;
     return changed;
   }

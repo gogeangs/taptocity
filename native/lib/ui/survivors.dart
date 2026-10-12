@@ -6,6 +6,7 @@ import '../game/engine.dart';
 import 'gear.dart';
 import 'icons.dart';
 import 'portrait.dart';
+import 'season_ui.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -388,6 +389,7 @@ void showSurvPage(BuildContext context, Game g, int id0, {void Function(int id, 
                       ? Text(s.story[k], style: Ttc.serif(14.5, color: const Color(0xFF4A3320), height: 1.6))
                       : Text('신뢰도 ${k + 1}에 열려요', style: Ttc.t(12.5, color: const Color(0xFFA8977A))),
                 ),
+              if (id == 12 && tl >= 2) watchButton(ctx, g),
             ]),
           _ => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               _sline('특기', g.traitOf(id)),

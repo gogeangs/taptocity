@@ -38,17 +38,20 @@ class Atlas {
   static ui.Image? lazy(String f) {
     final im = _img[f];
     if (im != null) return im;
-    if (_want.add(f)) {
-      () async {
-        try {
-          final data = await rootBundle.load('assets/illustrated/$f');
-          final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
-          _img[f] = (await codec.getNextFrame()).image;
-          version.value++;
-        } catch (_) {}
-      }();
-    }
+    if (_want.add(f)) ensure(f);
     return null;
+  }
+
+  /// 그림 하나를 지금 불러온다 (시험·미리 불러오기용)
+  static Future<void> ensure(String f) async {
+    if (_img[f] != null) return;
+    _want.add(f);
+    try {
+      final data = await rootBundle.load('assets/illustrated/$f');
+      final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+      _img[f] = (await codec.getNextFrame()).image;
+      version.value++;
+    } catch (_) {}
   }
 
   /// cols × rows 격자의 index번째 칸

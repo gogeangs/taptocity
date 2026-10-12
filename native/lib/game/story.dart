@@ -474,7 +474,7 @@ extension Story on Game {
       return;
     }
     if (++scIdle < 6) return;
-    if (_tickEunho()) scIdle = -40;
+    if (_tickSeasonScenes()) scIdle = -40;
   }
 
   bool _tickEunho() {
@@ -501,6 +501,7 @@ extension Story on Game {
   void tickStorySec() {
     _tickAch();
     if (tickTut()) return;
+    _tickSeasonSec();
     _tickStorySec(mission());
   }
 
