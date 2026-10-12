@@ -45,7 +45,7 @@ Game _demo() {
   g.S.m.addAll({'wood': 140, 'scrap': 90, 'cloth': 40, 'food': 60, 'parts': 30, 'batt': 3});
   // 스킬 바 둘, 한 명은 대기 중
   g.party = [0, 3];
-  g.S.rest['cd'] = {'3': 20};
+  g.S.rest['cd'] = <String, Object?>{'3': 20.0};
   // 장비 몇 개
   for (final t in ['shovel', 'coverall', 'photo', 'shovel', 'hammer']) {
     g.addGear(t);

@@ -1833,6 +1833,7 @@ class Game extends ChangeNotifier {
       changed = true;
     }
     // 스킬 대기시간
+    if (S.rest['cd'] is Map && S.rest['cd'] is! Map<String, Object?>) S.rest['cd'] = Map<String, Object?>.from(S.rest['cd'] as Map);
     final cd = S.rest['cd'];
     if (cd is Map && cd.isNotEmpty) {
       for (final k in cd.keys.toList()) {
