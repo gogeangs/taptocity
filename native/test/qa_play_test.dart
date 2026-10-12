@@ -152,8 +152,10 @@ void autoStep(Game g, Qa qa, math.Random r) {
   }
   safe('assign', () {
     final free = [for (final id in g.svIds) if (g.atOf(id) < 0 && !g.busy(id)) id];
+    // 원정 보낼 사람 두 명은 쉬게 둔다 (원정은 쉬는 사람만 갈 수 있다)
+    final keep = g.svIds.length >= 3 ? 2 : 0;
     for (final t in g.modAt.keys) {
-      if (free.isEmpty) break;
+      if (free.length <= keep) break;
       if (g.S.asg[t] == null) g.assign(t, free.removeLast());
     }
   });
