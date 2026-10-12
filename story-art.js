@@ -51,7 +51,8 @@ function thumb(n){const f=files[Math.floor(n/9)];if(!ok(f))return'';const i=img[
   return`<svg viewBox="${x+e} ${y+e} ${w-2*e} ${h-2*e}" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><image href="${base}${f}?v=1" width="${i.naturalWidth}" height="${i.naturalHeight}"/></svg>`;}
 const whenReady=cb=>{let left=0;for(const f of files){const i=img[f];if(i&&!ok(f)){left++;i.addEventListener('load',()=>{if(--left===0)cb();},{once:true});}}return left===0;};
 // story order (the casebook page belongs to the ending)
-const ORDER=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,22,23,24,25,26,21,36,37,38,39,40,41,27,28,29,42,30,31,32,43,33,34,35,44];
+// the casebook's last page (21) stays the very last picture, after the towns and their incidents (bible: 회상 갤러리)
+const ORDER=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,22,23,24,25,26,36,37,38,39,40,41,27,28,29,42,30,31,32,43,33,34,35,44,21];
 // put panel n at the top of an open page (the casebook card); waits for the atlas if it is still loading
 function into(sel,n){try{if(n==null)return;const put=()=>{const pg=document.querySelector(sel);if(!pg||pg.querySelector('.story-art'))return;const a=panelSvg(n);if(a)pg.insertAdjacentHTML('afterbegin',a);};
   const f=files[Math.floor(n/9)];if(ok(f))put();else if(img[f])img[f].addEventListener('load',put,{once:true});}catch(e){}}

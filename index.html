@@ -5776,7 +5776,7 @@ function pickCase(p){const k=caseCur,c=cOf(k);if(!c)return;const o=c[p],R=S.case
   S.caseNew=1;save();$('fDiary')&&pingEl($('fDiary'));}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="case"]');if(!b)return;e.stopPropagation();pickCase(b.dataset.arg);},true);
 function tickCases(){S.cases=S.cases||{};
-  if(S.gen&&S.region&&TCASES[S.region]&&svIn(10)){const k=S.region,R=S.cases[k];if(R&&R.p)return false;if(R||TCASES[k].gate()){openCase(k);return true;}return false;}
+  if(S.gen&&S.region&&TCASES[S.region]){/* 2026-10-12: no longer needs 은호 in this town — the season now ends after these */const k=S.region,R=S.cases[k];if(R&&R.p)return false;if(R||TCASES[k].gate()){openCase(k);return true;}return false;}
   if(!s1On())return false;
   for(let k=0;k<CASES.length;k++){const R=S.cases[k];if(R&&(R.p||R.skip))continue;if(R&&!R.p){openCase(k);return true;}
     if(k===0&&!svIn(3)&&S.mi>=STEP_I('첫 원정 보내기')){S.cases[0]={skip:1};continue;}
@@ -6448,7 +6448,7 @@ if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.r
   d.querySelector('.x').onclick=()=>d.remove();const g=d.querySelector('.go');if(g)g.onclick=async()=>{d.remove();if(dp){dp.prompt();try{await dp.userChoice;}catch(e){}dp=null;}};},25000);
 })();
 </script>
-<script src="story-art.js?v=20261012-towns"></script>
+<script src="story-art.js?v=20261012-order"></script>
 <script src="music.js?v=20261011-cool"></script>
 </body>
 </html>
