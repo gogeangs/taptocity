@@ -107,6 +107,10 @@ final Map<String, _Sq> sqTypes = {
 
 extension Crisis on Game {
   num num_(String k) => (S.rest[k] as num?) ?? 0;
+  Map get _stat {
+    if (S.rest['stat'] is! Map) S.rest['stat'] = <String, Object?>{};
+    return S.rest['stat'] as Map;
+  }
   int get revCount => S.rev.fold(0, (a, v) => a + v);
   bool hasMod(int id) => modLv(id) >= 0;
 
@@ -251,7 +255,7 @@ extension Crisis on Game {
     a['hp'] = ((a['hp'] as num?) ?? 0) - amt;
     fx.add(FxBurst(i, 0xFF9A948C, 6));
     if ((a['hp'] as num) <= 0) {
-      final st = S.rest['stat'] is Map ? S.rest['stat'] as Map : (S.rest['stat'] = <String, Object?>{}) as Map;
+      final st = _stat;
       st['ash'] = ((st['ash'] as num?) ?? 0) + 1;
       final was = a['stuck'] == true;
       S.ash.remove('$i');
@@ -603,7 +607,7 @@ extension Crisis on Game {
     return ((x - y) * TW / 2, (x + y + 1) * TH / 2 - z);
   }
 
-  bool _isGuard(int id) => id < web.role.length && (web.role[id] as List).contains('guard');
+  bool _isGuard(int id) => id < web.role.length && web.role[id].contains('guard');
 
   /// 화면 쪽에서 프레임마다 부른다 (웹 tickDefense)
   void tickDefense(double dt) {
@@ -639,7 +643,8 @@ extension Crisis on Game {
         final m = S.mods[en.value]!;
         final a = S.ash['${en.key}'];
         if (m.id != 8 || (a is Map && a['stuck'] == true)) continue;
-        final (tx, ty) = _tc(en.key, 50), R = (2 + m.l) * TW * .55;
+        final (tx, ty) = _tc(en.key, 50);
+        final R = (2 + m.l) * TW * .55;
         for (final f in D2.foes) {
           if (!f.dead && f.delay <= 0 && math.sqrt(math.pow(f.x - tx, 2) + math.pow((f.y - ty) * 1.6, 2)) < R) {
             hurtFoe(f, tapPow * (1 + m.l * .5));
@@ -696,7 +701,7 @@ extension Crisis on Game {
     if (f.hp <= 0) {
       f.dead = true;
       defn!.kills++;
-      final st = S.rest['stat'] is Map ? S.rest['stat'] as Map : (S.rest['stat'] = <String, Object?>{}) as Map;
+      final st = _stat;
       st['foe'] = ((st['foe'] as num?) ?? 0) + 1;
       fx.add(FxBurstAt(f.x, f.y - 8, 0xFFFFD98A, 12));
       fx.add(FxBurstAt(f.x, f.y - 8, 0xFF3A332B, 10));

@@ -143,7 +143,7 @@ class Life {
         } else if (ws.isNotEmpty) {
           final a = ws[_r.nextInt(ws.length)];
           final sm = _small(a);
-          final nl = [for (final t in web.nightLine) t as String];
+          final nl = web.nightLine;
           if (g.isNight) {
             chat = Chat(a, a, 4, [(a, nl[_r.nextInt(nl.length)])], solo: true);
           } else if (sm.isNotEmpty) {
