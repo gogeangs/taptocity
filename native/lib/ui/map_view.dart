@@ -72,6 +72,7 @@ class _MapViewState extends State<MapView> {
   Offset? dragCam;
   Offset? dragStart;
   double? pinchD, pinchZ;
+  bool _framed = false;
 
   Game get g => widget.game;
   Camera get cam => widget.camera;
@@ -248,6 +249,11 @@ class _MapViewState extends State<MapView> {
     return LayoutBuilder(builder: (context, c) {
       size = c.biggest;
       widget.fxLayer.viewSize = size;
+      if (!_framed && size.width > 0) {
+        // 처음 열 때 웹과 같은 확대: 화면 폭에 칸 4.2개
+        _framed = true;
+        cam.z = (size.width / (TW * 4.2)).clamp(.6, 2.2).toDouble();
+      }
       return Listener(
         behavior: HitTestBehavior.opaque,
         onPointerDown: _down,

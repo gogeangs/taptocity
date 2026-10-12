@@ -37,8 +37,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     fxc.onFx = _onFx;
     _start();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final sz = MediaQuery.of(context).size;
-      cam.set(0, (CX + CY + 1) * TH / 2 - 10, (sz.width / (TW * 4.2)).clamp(.6, 2.2).toDouble());
       fxc.pull(g);
     });
   }

@@ -95,6 +95,7 @@ jobs:
           set +e +o pipefail
           rm -rf native-play
           cp -r native/build/web native-play
+          rm -rf native-play/canvaskit   # 엔진(CanvasKit)은 구글 CDN에서 받으므로 저장소에 올리지 않는다
           echo "파일 $(find native-play -type f | wc -l)개"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
