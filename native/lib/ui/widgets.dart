@@ -302,8 +302,9 @@ Widget sec(String t, [String? small]) => Padding(
 
 /// 웹 .segs
 class Segs extends StatelessWidget {
-  const Segs({super.key, required this.items, required this.on, required this.onTap});
+  const Segs({super.key, required this.items, required this.on, required this.onTap, this.dots = const []});
   final List<String> items;
+  final List<bool> dots;
   final int on;
   final void Function(int) onTap;
   @override
@@ -321,7 +322,11 @@ class Segs extends StatelessWidget {
                   height: 40,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(color: k == on ? Ttc.surface : Colors.transparent, borderRadius: BorderRadius.circular(6)),
-                  child: Text(items[k], style: Ttc.t(13, color: k == on ? const Color(0xFF22323B) : Ttc.segText, weight: FontWeight.w600)),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Text(items[k], style: Ttc.t(13, color: k == on ? const Color(0xFF22323B) : Ttc.segText, weight: FontWeight.w600)),
+                    if (k < dots.length && dots[k])
+                      Container(width: 8, height: 8, margin: const EdgeInsets.only(left: 5), decoration: const BoxDecoration(shape: BoxShape.circle, color: Ttc.amber)),
+                  ]),
                 ),
               ),
             ),

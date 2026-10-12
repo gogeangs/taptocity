@@ -156,6 +156,39 @@ void main() {
     expect(g.xpOf(sig.value), greaterThan(xp0));
   });
 
+  test('장비를 입히면 효과가 붙고, 강화와 스킬이 돈다', () {
+    final g = Game(Game.fresh(seed: 42));
+    g.S.m.addAll({'wood': 999, 'scrap': 999, 'food': 900, 'parts': 300, 'batt': 9, 'med': 9, 'wire': 9});
+    g.buildMod(1);
+    g.rescue(0, 'sig');
+    g.rescue(1, 'sig');
+    final tile = g.modAt.keys.first;
+    g.assign(tile, 0);
+    final it = g.addGear('shovel');
+    expect(g.equip(0, 'tool', it['u']), isTrue);
+    expect(g.wearer(it['u']), 0);
+    expect(g.gearEff(0)['scav'], greaterThan(0));
+    // 착용 중인 장비는 분해되지 않는다
+    g.dismantle(it['u']);
+    expect(g.itemAt(it['u']), isNotNull);
+    // 별 강화: 신뢰도가 모자라면 안 되고, 채우면 된다
+    g.rec(0)!['xp'] = 0;
+    final st0 = g.starOf(0);
+    g.rec(0)!['xp'] = trustXp[4];
+    expect(g.promote(0), 'star');
+    expect(g.starOf(0), st0 + 1);
+    // 스킬: 쓰면 대기시간이 생긴다
+    g.toggleParty(0);
+    expect(g.party, [0]);
+    expect(g.useSkill(0), isTrue);
+    expect(g.cdLeft(0), greaterThan(0));
+    expect(g.useSkill(0), isFalse);
+    // 저장했다가 다시 읽어도 그대로
+    final back = Game(Game.parseCode(g.exportCode())!);
+    expect(back.wearer(it['u']), 0);
+    expect(back.party, [0]);
+  });
+
   test('구름을 두드리면 밝혀지고, 경계가 이어진다', () {
     final g = Game(Game.fresh(seed: 7));
     final before = g.S.rev.where((v) => v == 1).length;
