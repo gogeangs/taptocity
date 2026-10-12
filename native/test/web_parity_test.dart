@@ -190,6 +190,68 @@ void main() {
     expect(back.party, [0]);
   });
 
+  test('밤이 오면 재가 밀려오고, 새벽엔 날씨가 바뀐다', () {
+    final g = Game(Game.fresh(seed: 42));
+    g.S.m.addAll({'wood': 999, 'scrap': 999, 'food': 999});
+    for (var k = 0; k < 400 && g.revCount < 30; k++) {
+      g.digAim();
+    }
+    g.rescue(0, 'sig');
+    g.S.lv = 2;
+    g.recalc();
+    expect(g.isNight, isFalse);
+    // 해 질 녘까지
+    for (var k = 0; k < 4 * 160; k++) {
+      g.tick(.25);
+    }
+    expect(g.isNight, isTrue);
+    expect(g.stormOn, isTrue);
+    expect(g.S.ash, isNotEmpty, reason: '재가 내려앉음');
+    // 재를 두드려 걷어내면 고철을 준다
+    final a = int.parse(g.S.ash.keys.first), s0 = g.have('scrap');
+    for (var k = 0; k < 50 && g.S.ash.containsKey('$a'); k++) {
+      g.hitAsh(a, 999);
+    }
+    expect(g.S.ash.containsKey('$a'), isFalse);
+    expect(g.have('scrap'), greaterThanOrEqualTo(s0));
+    // 새벽: 날씨가 정해진다
+    for (var k = 0; k < 4 * 60; k++) {
+      g.tick(.25);
+    }
+    expect(g.isNight, isFalse);
+    expect(g.S.rest['wx'], isNotNull);
+    expect(g.num_('day'), 1);
+  });
+
+  test('대형 재폭풍: 괴물을 다 막으면 이긴다', () {
+    final g = Game(Game.fresh(seed: 42));
+    g.S.lv = 2;
+    g.recalc();
+    g.startDefense();
+    expect(g.defn, isNotNull);
+    var n = 0;
+    while (g.defn != null && n++ < 4000) {
+      g.tickDefense(1 / 30);
+      final f = g.urgentFoe;
+      if (f != null) g.hurtFoe(f, 999);
+    }
+    expect(g.defn, isNull);
+    expect(g.num_('defWins'), 1);
+  });
+
+  test('생존자의 부탁을 고르면 보상과 건전지를 받는다', () {
+    final g = Game(Game.fresh(seed: 42));
+    g.S.m.addAll({'wood': 999, 'scrap': 999, 'food': 999, 'cloth': 99, 'parts': 99, 'fuel': 99});
+    g.rescue(0, 'sig');
+    g.evCur = 1; // 고장 난 트럭 (만수)
+    g.evLeft = evTotal;
+    final b0 = g.have('batt');
+    expect(g.chooseEv(1), isTrue);
+    expect(g.have('batt'), b0 + 1);
+    expect(g.evCur, -1);
+    expect(g.num_('evDone'), 1);
+  });
+
   test('구름을 두드리면 밝혀지고, 경계가 이어진다', () {
     final g = Game(Game.fresh(seed: 7));
     final before = g.S.rev.where((v) => v == 1).length;
