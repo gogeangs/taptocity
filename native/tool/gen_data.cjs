@@ -57,6 +57,12 @@ const T = {
   role: ev('ROLE'),
   exps: ev('EXPS.map(e=>({key:e.key,name:e.name,t:e.t,risk:e.risk,mult:e.mult,loot:e.loot,reveal:e.reveal,min:e.min,lock:e.lock,desc:e.desc,open:e.open}))'),
   expq: ev('EXPQ'),
+  rsets: ev('RSETS.map(s=>({k:s.k,n:s.n,items:s.items,fx:s.fx,e:s.e||null}))'),
+  rstory: ev('RSTORY'),
+  deco: ev('DECO'),
+  fav: ev('FAV'), favSay: ev('FAV_SAY'), decoTalk: ev('DECO_TALK'),
+  dsets: ev('DSETS'),
+  pets: ev('Object.fromEntries(Object.entries(PETS).map(([k,p])=>[k,{n:p.n,def:p.def,snd:p.snd,eff:p.eff,v:p.v,ed:[1,1.25,1.5,1.75,2].map(m=>p.ed(m)),edHalf:[1,1.25,1.5,1.75,2].map(m=>p.ed(m*.5)),act:p.act,ug:p.ug,ugd:p.ugd,exp:p.exp,expd:p.expd,pair:p.pair,pairN:p.pairN,story:p.story,hidden:!!p.hidden,region:p.region||null,how:p.how||null}]))'),
 };
 
 const dartStr = s => "'" + String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\$/g, '\\$').replace(/\n/g, '\\n') + "'";

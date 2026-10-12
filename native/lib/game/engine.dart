@@ -11,6 +11,7 @@ import 'state.dart';
 
 part 'crisis.dart';
 part 'outside.dart';
+part 'life.dart';
 
 /// 화면 연출(떠오르는 글자·알림·창 열기)을 그림 쪽에 알려 주는 신호.
 sealed class Fx {
@@ -149,6 +150,7 @@ class Game extends ChangeNotifier {
   final List<int> evSeen = [];
   Defense? defn;
   final Set<String> _expNotified = {};
+  (String, Map<String, num>, String)? petTrick; // 동행 펫이 물어 온 것 (화면이 펫 위에 띄우고 지운다)
   int _autoExpT = 0;
 
   GameState S;
@@ -437,11 +439,8 @@ class Game extends ChangeNotifier {
     for (final b in bonds) {
       if (b.ids.every(hasSv)) b.eff.forEach((k, v) => e[k] = (e[k] ?? 0) + v);
     }
-    // 이주한 동네 수만큼: 모든 생산 +10%, 두드리는 힘 +10%
-    if (S.gen > 0) {
-      e['global'] = e['global']! + .1 * S.gen;
-      e['tap'] = e['tap']! + .1 * S.gen;
-    }
+    // 웹 extraEff (4108): 유물·아이·펫·잔치·장식 + 이주한 동네 수만큼 모든 생산·두드리는 힘 +10%
+    _extraEff(e);
     e['cost'] = math.min(.5, e['cost']!);
     e['thrift'] = math.min(.7, e['thrift']!);
     E = e;
@@ -1534,11 +1533,44 @@ class Game extends ChangeNotifier {
         }
       }
     }
+    // 순찰: 3초마다 쉘터에 가까운 재를 하나씩 (웹 4137)
+    final patrol = ids.where((id) => dutyOf(id) == 'patrol').toList();
+    if (patrol.isNotEmpty && _dutyT % 3 == 0 && S.ash.isNotEmpty) {
+      final keys = S.ash.keys.map(int.parse).toList()..sort((a, b) => dist(a).compareTo(dist(b)));
+      for (var n = 0; n < patrol.length; n++) {
+        final i = keys[n % keys.length];
+        if (!S.ash.containsKey('$i')) continue;
+        fx.add(FxFloat(i, '${survivors[patrol[n]].name.substring(1)} 순찰!', 0xFFC8E6FF, rise: 38));
+        hitAsh(i, tapPow * .6 * patrolM);
+        final st = _stat;
+        st['patrol'] = ((st['patrol'] as num?) ?? 0) + 1;
+      }
+    }
     if (_dutyT % 25 == 0) {
       final n = ids.where((id) => dutyOf(id) == 'gather').length;
       for (var q = 0; q < n; q++) {
         final k = baseMats[rnd.nextInt(baseMats.length)];
         loot({k: math.max(1, jsRound(2.4 * lvScale))}, C0);
+      }
+    }
+    // 아이 돌보기: 아이가 빨리 자라고, 돌본 사람을 보고 배운다 (웹 4144)
+    final care = ids.where((id) => dutyOf(id) == 'care').toList();
+    final growing = kids.where((k) => ((k['g'] as num?) ?? 0) < 1).toList();
+    if (care.isNotEmpty && growing.isNotEmpty) {
+      final boost = math.min(2, care.length) * .5 / 600;
+      for (final k in growing) {
+        k['g'] = math.min(1.0, ((k['g'] as num?) ?? 0) + boost);
+        if (k['care'] is! Map) k['care'] = <String, Object?>{};
+        final c = k['care'] as Map;
+        for (final id in care) {
+          final j = careJob(id);
+          if (j != null) c[j] = ((c[j] as num?) ?? 0) + 1;
+        }
+        if ((k['g'] as num) >= 1 && k['job'] == null) fx.add(FxKidGrown(kids.indexOf(k)));
+      }
+    } else if (care.isNotEmpty && !hungry) {
+      for (final id in care) {
+        rec(id)!['xp'] = xpOf(id) + .25 * trustM;
       }
     }
   }
@@ -1589,7 +1621,7 @@ class Game extends ChangeNotifier {
     final got = loot({k: n}, i);
     if (!got.containsKey(k)) fx.add(FxFloat(i, '${matOf[k]!.n} 창고가 가득 찼어요', 0xFFFFB4A0));
     if ((s.k == 'bunker' || s.k == 'lm') && rnd.nextDouble() < .1) loot({'batt': 1}, i);
-    // 장비 발견: 폐허 1%, 벙커·랜드마크 4% (유물은 4단계)
+    // 장비 발견: 폐허 1%, 벙커·랜드마크 4% · 유물 1.2%
     final gp = s.k == 'bunker' || s.k == 'lm' ? .04 : .01;
     if (rnd.nextDouble() < gp) {
       final it = dropGear(s.k == 'bunker' || s.k == 'lm' ? 1 : 0);
@@ -1598,6 +1630,7 @@ class Game extends ChangeNotifier {
         fx.add(FxToast('폐허에서 장비를 찾았어요: ${gear[it]!.n}'));
       }
     }
+    if (rnd.nextDouble() < .012) findRelic(i);
   }
 
   /// 구름 칸 하나를 두드린다 (웹 dig 2459)
@@ -1907,6 +1940,9 @@ class Game extends ChangeNotifier {
       _tickAuto();
       _tickSide();
       _tickExp();
+      _tickBand();
+      _tickKids();
+      _tickPets();
       if (S.droneLv > 0 || overT > 0) {
         final i = frontierNearest();
         if (i >= 0) {

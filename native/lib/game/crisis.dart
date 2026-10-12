@@ -59,7 +59,7 @@ class Beam {
 class Defense {
   Defense(this.raid);
   final String? raid;
-  double t = 0, dur = 80, hp = 100, max = 100, shake = 0, fire = 0;
+  double t = 0, dur = 80, hp = 100, max = 100, shake = 0, fire = 0, ally = 0;
   int wave = 0, kills = 0;
   final List<Foe> foes = [];
   final List<Beam> beams = [];
@@ -162,6 +162,7 @@ extension Crisis on Game {
     S.rest['clock'] = clock + dt;
     final n = isNight;
     if (n && !wasNight) {
+      pedLeave();
       final big = (bigNightNext || S.rest['raid'] != null) && revCount >= 16;
       S.rest['nightCount'] = num_('nightCount') + 1;
       nightN = 0;
@@ -252,7 +253,7 @@ extension Crisis on Game {
     final a = S.ash['$i'];
     if (a is! Map) return;
     addCombo();
-    a['hp'] = ((a['hp'] as num?) ?? 0) - amt;
+    a['hp'] = ((a['hp'] as num?) ?? 0) - amt * petAsh;
     fx.add(FxBurst(i, 0xFF9A948C, 6));
     if ((a['hp'] as num) <= 0) {
       final st = _stat;
@@ -314,6 +315,9 @@ extension Crisis on Game {
     S.rest['day'] = num_('day') + 1;
     final w = wxInfo[wxK]!, nx = wxInfo[S.rest['wxNext']]!;
     fx.add(FxNote('${w.ic} 오늘의 날씨 · ${w.n}', '${w.d}${canForecast ? ' · 내일은 ${nx.ic} ${nx.n}' : ''}', ms: 5000));
+    _pedDawn();
+    _allyGifts();
+    _kidsDawn();
     recalc();
   }
 
@@ -626,7 +630,7 @@ extension Crisis on Game {
       final dx = cx - f.x, dy = cy - f.y, d = math.sqrt(dx * dx + dy * dy);
       if (d < 16) {
         f.dead = true;
-        final dmg = (f.brute ? 16 : 7) * (1 - _wallRed[S.walls.clamp(0, 3)]);
+        final dmg = (f.brute ? 16 : 7) * (1 - _wallRed[S.walls.clamp(0, 3)]) * petDef;
         D2.hp -= dmg;
         D2.shake = 1;
         fx.add(FxToast(S.walls > 0 ? '재가 방벽에 부딪혔어요 · 내구도 -${dmg.round()}' : '재가 쉘터를 덮쳤어요 · 내구도 -${dmg.round()}'));
@@ -675,6 +679,7 @@ extension Crisis on Game {
         }
       }
     }
+    _worldFight(D2, dt);
     for (final b in D2.beams) {
       b.t -= dt;
     }
