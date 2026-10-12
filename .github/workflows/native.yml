@@ -70,6 +70,13 @@ jobs:
           flutter test 2>&1 | tee ../out.txt; s=${PIPESTATUS[0]}
           if [ $s -ne 0 ]; then m=$(grep -vE "^\s*$|✅" ../out.txt | grep -v "^::" | tail -80 | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}'); echo "::error title=test::$m"; exit $s; fi
 
+      - name: 화면 사진
+        run: |
+          set +e +o pipefail
+          flutter test test_screens --update-goldens 2>&1 | tee ../out.txt; s=${PIPESTATUS[0]}
+          if [ $s -ne 0 ]; then m=$(grep -vE "^\s*$|✅" ../out.txt | grep -v "^::" | tail -60 | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}'); echo "::warning title=shots::$m"; fi
+          ls test_screens/shots 2>/dev/null
+
       - name: 안드로이드 APK
         run: |
           set +e +o pipefail
@@ -96,6 +103,7 @@ jobs:
           rm -rf native-play
           cp -r native/build/web native-play
           rm -rf native-play/canvaskit   # 엔진(CanvasKit)은 구글 CDN에서 받으므로 저장소에 올리지 않는다
+          mkdir -p native-play/shots && cp native/test_screens/shots/*.png native-play/shots/ 2>/dev/null || true
           echo "파일 $(find native-play -type f | wc -l)개"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
