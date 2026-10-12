@@ -23,3 +23,7 @@ Setting: mountain village under snow over grey ash, dark timber, slate roofs hea
 ## 넣는 법
 
 이미지를 받으면 대화에 올려 주세요. 칸 자르기·투명 배경 확인·WebP 변환·동네별 연결은 Claude가 한다.
+
+## 적용 (2026-10-12)
+
+ChatGPT로 만든 세 장을 `landmarks-desert.webp` · `landmarks-factory.webp` · `landmarks-snow.webp`로 넣었다. 알파 16 미만 픽셀과 떠다니는 먼지 점은 지우고, 칸은 연결 영역으로 자동 검출해 `design.js`의 `LMR` 프레임에 적었다. 그 동네에 있을 때만 처음 쓸 때 받으며, 받기 전에는 첫 동네 그림에 동네 색을 입혀 보여 준다. 동네 색 입히기(SNOW_FILES)는 이 그림들에는 적용하지 않는다.

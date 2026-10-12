@@ -67,7 +67,11 @@
   }
   function siteHeight(kind,variant){const a=siteMetrics(kind,variant,true);return a?Math.max(10,a.height-16):0;}
   const landmarkFrames=[[18,83,473,334],[499,53,236,362],[757,173,400,255],[1169,91,443,331],[1623,180,346,256],[22,437,471,328],[501,424,235,335],[758,524,406,246],[1164,435,449,338],[1618,525,353,256]];
-  function landmarkMetrics(k,ok){const img=images['landmarks.webp'];if(!img.complete||!img.naturalWidth||k<0||k>4)return null;const frame=landmarkFrames[k+(ok?5:0)],width=[76,44,72,76,66][k];return{img,frame,width,height:width*frame[3]/frame[2]};}
+  // 동네별 랜드마크 그림(사막·공단·설원). 그 동네에 있을 때만, 처음 쓸 때 받는다. 받기 전에는 첫 동네 그림에 동네 색을 입혀 보여 준다.
+  const LMR={desert:{file:'landmarks-desert.webp',frames:[[17,85,366,268],[427,95,372,254],[862,24,252,333],[1189,66,384,283],[1615,64,353,287],[12,463,375,282],[430,474,369,266],[872,408,243,342],[1190,449,385,289],[1616,446,352,294]]},factory:{file:'landmarks-factory.webp',frames:[[22,49,380,340],[450,82,325,305],[824,96,337,277],[1211,62,346,324],[1599,95,364,288],[22,403,381,344],[449,427,329,319],[823,450,338,276],[1210,415,349,328],[1598,448,365,292]]},snow:{file:'landmarks-snow.webp',frames:[[6,81,412,312],[442,115,363,270],[836,83,335,297],[1205,91,350,298],[1587,96,382,291],[11,393,419,375],[446,483,360,273],[831,403,350,345],[1202,417,357,346],[1583,438,388,323]]}};
+  const lmRegion=()=>{try{return window.TTCDesign&&TTCDesign.regionFn?TTCDesign.regionFn():null;}catch(e){return null;}};
+  function lmRegArt(){const R=LMR[lmRegion()];if(!R)return null;const img=R.img||(R.img=ttcLazy(base+R.file));return img.complete&&img.naturalWidth?R:null;}
+  function landmarkMetrics(k,ok){const R=lmRegArt();if(R&&k>=0&&k<=4){const frame=R.frames[k+(ok?5:0)],width=Math.max(48,Math.min(80,frame[2]*.2));return{img:R.img,frame,width,height:width*frame[3]/frame[2]};}const img=images['landmarks.webp'];if(!img.complete||!img.naturalWidth||k<0||k>4)return null;const frame=landmarkFrames[k+(ok?5:0)],width=[76,44,72,76,66][k];return{img,frame,width,height:width*frame[3]/frame[2]};}
   function landmark(ctx,P,k,ok,scale=1){const a=landmarkMetrics(k,ok);if(!a)return false;const[x,y]=P(.5,.5,0),h=a.height*scale;ctx.drawImage(a.img,...a.frame,x-a.width/2,y+8-h,a.width,h);return true;}
   function landmarkHeight(k,ok){const a=landmarkMetrics(k,ok);return a?Math.max(10,a.height-16):0;}
   const thumbs=new Map();
@@ -84,5 +88,5 @@
   const gsImg={};for(const k in GS){gsImg[k]=ttcLazy(base+GS[k].file);}
   function gear(t){const c=GCELL[t];if(!c)return null;const A=GS[c[0]],im=gsImg[c[0]];if(!(im.complete&&im.naturalWidth))return null;const w=A.w/A.cols,h=A.h/A.rows,x=c[1]%A.cols*w,y=Math.floor(c[1]/A.cols)*h;
     return '<svg class="gart" viewBox="'+[x+8,y+8,w-16,h-16].join(' ')+'" aria-hidden="true"><image href="'+base+A.file+'" width="'+A.w+'" height="'+A.h+'"/></svg>';}
-  window.TTCDesign={portrait,silhouette,kid,core,module,moduleHeight,site,siteHeight,landmark,landmarkHeight,thumb,radio,gear,sigPortrait,version:'landmarks-20261002',assets:[...Object.values(sheets).map(a=>base+a.file),...Object.values(GS).map(a=>base+a.file),...SG.map(a=>base+a.file),base+SIL.file,base+'shelters.webp',base+'modules.webp',base+'radio.webp',base+'exploration-sites.webp',base+'landmarks.webp']};
+  window.TTCDesign={lmArtKey:()=>{const r=lmRegion();return (r||'')+(lmRegArt()?'+':'');},portrait,silhouette,kid,core,module,moduleHeight,site,siteHeight,landmark,landmarkHeight,thumb,radio,gear,sigPortrait,version:'landmarks-20261002',assets:[...Object.values(sheets).map(a=>base+a.file),...Object.values(GS).map(a=>base+a.file),...SG.map(a=>base+a.file),base+SIL.file,base+'shelters.webp',base+'modules.webp',base+'radio.webp',base+'exploration-sites.webp',base+'landmarks.webp']};
 })();

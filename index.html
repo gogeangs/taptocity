@@ -1279,10 +1279,10 @@ window.ttcLazy=function(src){const im=new Image();im.decoding='async';let go=fal
   const kick=()=>{if(!go){go=true;im.src=src;}};try{Object.defineProperty(im,'complete',{get(){kick();return dc.get.call(im);}});Object.defineProperty(im,'naturalWidth',{get(){kick();return dn.get.call(im);}});}catch(e){kick();}
   im.addEventListener('load',()=>{try{dispatchEvent(new Event('ttc-img'));}catch(e){}});im.kick=kick;return im;};
 </script>
-<script src="chapter-design.js?v=20261011-lazy"></script>
+<script src="chapter-design.js?v=20261012-lmreg"></script>
 <script src="settlement.js?v=20261011-lazy"></script>
 <script src="people.js?v=20261001-people"></script>
-<script src="design.js?v=20261011-lazy"></script>
+<script src="design.js?v=20261012-lmreg"></script>
 <script>
 
 (function(){
@@ -2284,6 +2284,7 @@ function withFade(i,fn){const fa=bldAlpha(i);if(fa<1){ctx.save();ctx.globalAlpha
   else fn();if(fa<1){ctx.restore();ghostOutline(i);}}
 // 땅 캐시: 평평한 것(바닥 색·테두리·풀·자갈·안개 바깥 바닥)을 화면 크기 캔버스에 한 번 그려 두고, 카메라와 땅이 그대로면 매 프레임 그 한 장만 깐다.
 // GFLAT 0 = 전부 그림(카메라가 움직이는 중) · 1 = 평평한 것만(캐시 만들기) · 2 = 평평한 것은 건너뜀(캐시를 깔았음)
+if(window.TTCDesign)TTCDesign.regionFn=()=>S&&S.region;
 let GFLAT=0;const GC={cv:null,key:'',sig:0,last:''};
 // 늦게 받은 그림이 도착하면 땅 캐시를 다시 그리고, 열린 시트도 새로 그려 빈 썸네일을 채워요
 let imgRT=0;addEventListener('ttc-img',()=>{GC.key='';if(imgRT)return;imgRT=setTimeout(()=>{imgRT=0;try{if(sheetTab)renderSheet();}catch(e){}},250);});
@@ -2662,9 +2663,9 @@ function openDiary(k){const[t,p]=DIARY[k];openModal(`<div class="page"><div clas
 // ---------- discoveries & landmarks ----------
 function hintNear(i){if(S.hintT>0)return true;const x=i%W,y=i/W|0;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const xx=x+dx,yy=y+dy;if(xx>=0&&yy>=0&&xx<W&&yy<H&&S.rev[yy*W+xx])return true;}return false;}
 const lmSil={};
-function lmSilhouette(k){if(lmSil[k])return lmSil[k];const D=window.TTCDesign;if(!D||!D.landmarkHeight||!D.landmarkHeight(k,false))return null;
+function lmSilhouette(k){const D=window.TTCDesign,sk=k+':'+(D&&D.lmArtKey?D.lmArtKey():'');if(lmSil[sk])return lmSil[sk];if(!D||!D.landmarkHeight||!D.landmarkHeight(k,false))return null;
   const W2=180,H2=D.landmarkHeight(k,false)+60,cv=document.createElement('canvas');cv.width=W2;cv.height=H2;const g=cv.getContext('2d');
-  if(!D.landmark(g,()=>[W2/2,H2-16],k,false,1))return null;g.globalCompositeOperation='source-atop';g.fillStyle='rgba(26,21,18,.92)';g.fillRect(0,0,W2,H2);return lmSil[k]=cv;}
+  if(!D.landmark(g,()=>[W2/2,H2-16],k,false,1))return null;g.globalCompositeOperation='source-atop';g.fillStyle='rgba(26,21,18,.92)';g.fillRect(0,0,W2,H2);return lmSil[sk]=cv;}
 function drawHint(i,t,time){const[cx,cy]=P(.5,.5,22);
   if(t===T.LM){const sil=lmSilhouette(S.lm[i].k);if(sil){const[x,y]=P(.5,.5,0);ctx.save();ctx.globalAlpha=.78;ctx.drawImage(sil,x-sil.width/2,y+16-sil.height);ctx.restore();lmMarker(x,y+16-sil.height+44,time,null,true);return;}const k=LMS[S.lm[i].k].key,c='rgba(38,32,27,.95)',hl='rgba(243,165,58,.35)';ctx.fillStyle=c;ctx.strokeStyle=hl;ctx.lineWidth=1.5;ctx.beginPath();
     if(k==='tower'){ctx.rect(cx-2,cy-40,4,30);ctx.ellipse(cx,cy-46,14,10,0,0,7);}
