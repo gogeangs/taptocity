@@ -4241,7 +4241,7 @@ const regionMis=()=>{const r=S.region,base=S.arriveWins||0,Q=S.rq||{};
   {goal:'한파 사흘 버티기',k:'cold',done:()=>!!Q.cold,rw:{fuel:40,batt:3},hint:'사흘 밤 동안 장작이 빨리 줄어요. 목재를 넉넉히 모아 둬요'},
   {goal:'산 너머 대피소를 어떻게 할지 정하기',k:'choice',done:()=>!!Q.pick,rw:{batt:2},hint:'미션을 눌러 정해요'},fort,city,tower];};
 function nextRegion(){return RORDER[(S.gen||0)%RORDER.length];}
-function migrateHtml(){if(S.lv<5||!(S.endSeen||S.gen)||(!S.gen&&!S.ehEnd&&svIn(10)))return'';const nr=REGIONS[nextRegion()],g=(S.gen||0)+1;
+function migrateHtml(){if(S.lv<5||!(S.endSeen||S.gen))return'';const nr=REGIONS[nextRegion()],g=(S.gen||0)+1;
   return`<button class="banner mig" data-act="migrate"><span><b>(선택) ${nextCaller()?nextCaller().n+'의 신호를 따라 ':''}새 동네로 떠나기 →</b><br>불씨를 들고 ${nr.n}에서 다시 시작해요 · 등불의 기억 ${g}단계 (생산·두드리기 +${g*10}%)</span></button>`;}
 let migConfirm=false;
 const MIG_MAX=5;let migPick=null;
@@ -4305,7 +4305,7 @@ const FEAT=[
  {k:'acraft',tab:'fUp',sheet:'shelter',seg:'craft',on:()=>acraftOpen(),msg:'가공 탭에서 레시피마다 자동 가공을 켤 수 있어요 (쉘터 Lv.4 · 작업대 2단계)',h:'자동 가공'},
  {k:'trade',tab:'radio',sheet:'radio',on:()=>stayList().length>0,msg:'라디오 ‘무전 거래’에서 남은 사람들과 물건을 바꿀 수 있어요',h:'무전 거래'},
  {k:'route',tab:'fDiary',sheet:'diary',seg:'towns',on:()=>(S.gen||0)>0,msg:'일지 ‘노선도’에서 지나온 동네와 남은 사람들을 볼 수 있어요',h:'만수의 노선도'},
- {k:'migrate',tab:'fUp',sheet:'shelter',seg:'build',on:()=>!!S.endSeen&&S.lv>=5&&(S.gen||S.ehEnd||!svIn(10)),msg:'쉘터 화면에서 새 동네로 떠날 수 있어요',h:'이주'},
+ {k:'migrate',tab:'fUp',sheet:'shelter',seg:'build',on:()=>!!S.endSeen&&S.lv>=5,msg:'쉘터 화면에서 새 동네로 떠날 수 있어요',h:'이주'},
  {k:'line',tab:'fExp',sheet:'exp',on:()=>lnOpen(),msg:'복구한 역 안쪽 끊긴 노선에 들어갈 수 있어요',h:'끊긴 노선'},
  {k:'pets',tab:'fSurv',sheet:'pets',on:()=>Object.keys(pets()).length>0,msg:'식구가 된 동물을 펫 화면에서 돌볼 수 있어요',h:'펫'},
  {k:'fire',tab:null,sheet:null,on:()=>S.region==='snow',msg:'위쪽 띠의 모닥불 온기를 지켜요',h:'모닥불 온기'}];
@@ -5861,12 +5861,13 @@ function tickEunho(){if(svIn(10)||inStay(10)||isDead(10))return false;const st=m
   if((st&&st.goal==='목소리의 주인 맞이하기')||(S.mi>ji&&ji>=0)){rescue(10,'visit');return true;}return false;}
 
 let endingOn=false;
-function tickEnding(){if(endingOn||S.gen||!S.endSeen||S.ehEnd||S.mi<STEPS.length||!svIn(10))return false;endingOn=true;
+// 2026-10-12: the season ends after the THIRD new town's tower (snow), so all nine casebook incidents come first.
+function tickEnding(){if(endingOn||S.ehEnd)return false;const g=S.gen||0;if(!(g>3||(g===3&&(S.rmi||0)>=regionMis().length)))return false;endingOn=true;
   playEnding(false);return true;}
 // 시즌 1 엔딩 '다시, 03:11': the tutorial's night, mirrored. Same song, the same cut at 03:11, the latch click, silence,
 // then the far light blinks 3·1·1. Nobody explains any of it. Then the season card and one line of radio.
-const END_LINES=[[ME,'그날 밤에도 심야 방송이 흘렀다.'],[10,'여기는 심야 방송 한밤. 오늘 탑에 불을 켠 모든 분께, 마지막 곡 보내 드립니다.'],[ME,'어디서 들어 본 노래였다. 언제였는지는 떠오르지 않았다.'],
-  [ME,'03:11. 노래가 뚝 끊겼다.'],[ME,'딸깍.'],[ME,'라디오는 잡음조차 없이 조용했다. 꼭 누가 스위치를 내린 것처럼.'],[10,'…죄송합니다. 송출이 잠깐 끊겼네요.'],[ME,'노래는 다시 이어지지 않았다. 한참 동안, 잡음만 흘렀다.'],
+const END_LINES=[[ME,'그날 밤에도 심야 방송이 흘렀다.'],[10,'여기는 심야 방송 한밤. 오늘 탑에 불을 켠 모든 분께, 마지막 곡 보내 드립니다.',null,null,[ME,'라디오 너머로 은호의 목소리가 흘렀다. “여기는 심야 방송 한밤. 오늘 탑에 불을 켠 모든 분께, 마지막 곡 보내 드립니다.”']],[ME,'어디서 들어 본 노래였다. 언제였는지는 떠오르지 않았다.'],
+  [ME,'03:11. 노래가 뚝 끊겼다.'],[ME,'딸깍.'],[ME,'라디오는 잡음조차 없이 조용했다. 꼭 누가 스위치를 내린 것처럼.'],[10,'…죄송합니다. 송출이 잠깐 끊겼네요.',null,null,[ME,'라디오 너머에서 은호가 말했다. “…죄송합니다. 송출이 잠깐 끊겼네요.”']],[ME,'노래는 다시 이어지지 않았다. 한참 동안, 잡음만 흘렀다.'],
   [ME,'잠들기 전 사건 수첩을 펼쳤다. 마지막 장에 내 글씨로 적혀 있었다. “다음은 탑.”'],[ME,'언제 썼는지, 기억나지 않는다.'],
   [ME,'창밖, 탑 불빛 너머로 그 먼 불빛이 다시 깜빡였다.'],[ME,'셋. 하나. 하나.'],[ME,'바람에 흔들리는 거겠지. 랜턴을 끄고 누웠다.']];
 let endFx=null;
