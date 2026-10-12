@@ -11,7 +11,10 @@ import '../game/data.dart';
 import '../game/engine.dart';
 import '../game/state.dart';
 import '../game/storage.dart';
+import '../game/cloud.dart';
+import '../report.dart';
 import 'atlas.dart';
+import 'cloud_ui.dart';
 import 'crisis_ui.dart';
 import 'gear.dart';
 import 'icons.dart';
@@ -32,6 +35,9 @@ import 'widgets.dart';
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key, required this.game});
   final Game game;
+
+  /// 클라우드 저장 켜기 (앱에서만. 시험에서는 끈다)
+  static bool cloudOn = false;
   @override
   State<GameScreen> createState() => _GameScreenState();
 }
@@ -64,7 +70,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     };
     _start();
     WidgetsBinding.instance.addPostFrameCallback((_) => fxc.pull(g));
+    if (GameScreen.cloudOn) Future.delayed(const Duration(seconds: 2), () => mounted ? _cloudStart() : null);
   }
+
 
   void _start() {
     _clock?.cancel();
@@ -126,10 +134,62 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     return 'day';
   }
 
+  String? _saved; // 마지막으로 기기에 쓴 저장 (클라우드에는 이걸 올린다)
   void _save() {
     if (!g.dirty) return;
     g.dirty = false;
-    Storage.save(g.toJsonString());
+    _saved = g.toJsonString();
+    Storage.save(_saved!);
+  }
+
+  // ---------- 클라우드 저장 (웹 cloud.js: 켤 때 맞춰 보고, 45초마다·뒤로 갈 때 올린다) ----------
+  Timer? _cloudT;
+  Future<void> _cloudUp({bool force = false}) async {
+    g.dirty = true;
+    _save();
+    if (_saved != null) await Cloud.upload(_saved!, force: force);
+  }
+
+  Future<void> _cloudStart() async {
+    Report.dev = () => devInfo(g, mounted ? context : null);
+    if (!await Cloud.signIn()) return;
+    Cloud.busy = true;
+    try {
+      final c = await Cloud.fetch();
+      g.dirty = true;
+      _save();
+      final local = _saved!, ls = Cloud.summary(local);
+      if (c != null) {
+        Cloud.last = c.at > 0 ? c.at : c.t;
+        if (c.data.isNotEmpty && c.data != local && c.t > ls.$1 + 3000 && mounted) {
+          final yes = await cloudAsk(
+              context,
+              '클라우드에 더 최근 진행이 있어요',
+              '클라우드: Lv.${c.lv}${c.gen > 0 ? ' · ${c.gen + 1}번째 동네' : ''} · ${cloudWhen(c.t)} 저장\n이 기기: Lv.${ls.$2}${ls.$3 > 0 ? ' · ${ls.$3 + 1}번째 동네' : ''} · ${cloudWhen(ls.$1)} 저장\n\n클라우드 진행을 불러올까요?',
+              '불러오기',
+              '이 기기 진행 유지');
+          if (yes) {
+            final s = GameState.fromJson(jsonDecode(c.data) as Map<String, dynamic>);
+            if (s != null) {
+              await Storage.backup();
+              g.replaceState(s);
+              cam.set(0, (CX + CY + 1) * TH / 2 - 10);
+              g.dirty = true;
+              _save();
+              fxc.toast('클라우드 진행을 불러왔어요');
+            }
+          }
+        }
+      }
+    } catch (_) {
+      Cloud.msg = '클라우드에 연결하지 못했어요';
+    }
+    Cloud.busy = false;
+    Cloud.version.value++;
+    await _cloudUp(force: true);
+    unawaited(Cloud.flush());
+    _cloudT?.cancel();
+    _cloudT = Timer.periodic(const Duration(seconds: 45), (_) => _cloudUp());
   }
 
   @override
@@ -142,6 +202,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       Sound.pauseAll(true);
       g.dirty = true;
       _save();
+      if (GameScreen.cloudOn) _cloudUp();
     } else if (s == AppLifecycleState.resumed && _clock == null) {
       g.offline(DateTime.now().millisecondsSinceEpoch);
       fxc.pull(g);
@@ -155,6 +216,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _clock?.cancel();
+    _cloudT?.cancel();
     _lampHold?.cancel();
     super.dispose();
   }
@@ -737,7 +799,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       case 'profile':
         return SheetPanel(icon: Ico.surv, title: '내 프로필', onClose: _close, child: ProfileBody(g));
       case 'settings':
-        return SheetPanel(icon: Ico.gear, title: '설정', onClose: _close, child: SettingsBody(g, onReset: _reset, onTut: _tutReplay));
+        return SheetPanel(icon: Ico.gear, title: '설정', onClose: _close, child: SettingsBody(g, onReset: _reset, onTut: _tutReplay, onSaveNow: () => _cloudUp(force: true)));
       case 'assign':
         return SheetPanel(
             icon: Ico.surv,

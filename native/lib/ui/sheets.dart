@@ -8,6 +8,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../game/data.dart';
 import '../game/engine.dart';
 import 'atlas.dart';
+import 'cloud_ui.dart';
 import 'icons.dart';
 import 'life_ui.dart';
 import 'season_ui.dart';
@@ -538,10 +539,11 @@ Widget comingBody(String title, String stage) => ListView(padding: _bodyPad, chi
 
 // ======================= 설정 =======================
 class SettingsBody extends StatefulWidget {
-  const SettingsBody(this.g, {super.key, required this.onReset, this.onTut});
+  const SettingsBody(this.g, {super.key, required this.onReset, this.onTut, this.onSaveNow});
   final Game g;
   final VoidCallback onReset;
   final VoidCallback? onTut;
+  final Future<void> Function()? onSaveNow;
   @override
   State<SettingsBody> createState() => _SettingsBodyState();
 }
@@ -641,7 +643,9 @@ class _SettingsBodyState extends State<SettingsBody> {
   Widget build(BuildContext context) {
     final g = widget.g;
     return ListView(padding: _bodyPad, children: [
-      Text('네이티브 미리보기 · 7단계', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
+      Text('네이티브 미리보기 · 8단계', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
+      if (widget.onSaveNow != null) CloudSection(onSaveNow: widget.onSaveNow!),
+      _row('피드백 보내기', '버그·제안·소감, 무엇이든 개발자에게 바로 전해져요', _ghost('쓰기', () => showFeedback(context, g))),
       for (final (k, n, d) in const [
         ('mus', '음악', '낮과 밤, 재폭풍, 심야 방송에 맞춰 흐르는 배경 음악'),
         ('snd', '소리', '두드리기, 자재 줍기, 라디오 잡음 같은 효과음'),

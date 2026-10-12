@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'game/engine.dart';
+import 'report.dart';
 import 'game/storage.dart';
 import 'ui/atlas.dart';
 import 'ui/game_screen.dart';
@@ -11,6 +12,16 @@ import 'ui/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // 잡히지 않은 오류는 개발자에게 (하루 다섯 건까지)
+  FlutterError.onError = (d) {
+    FlutterError.presentError(d);
+    Report.error(d.exception, d.stack);
+  };
+  WidgetsBinding.instance.platformDispatcher.onError = (e, st) {
+    Report.error(e, st);
+    return true;
+  };
+  GameScreen.cloudOn = true;
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Colors.transparent, statusBarIconBrightness: Brightness.light));
   await Prefs.load();

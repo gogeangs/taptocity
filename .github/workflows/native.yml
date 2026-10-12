@@ -28,6 +28,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 앱(웹 주소가 없는 곳)에서 Firebase 키가 통하는지 확인 — 계정을 만들지 않는 조회만 한다
+      - name: 클라우드 키 확인
+        continue-on-error: true
+        run: |
+          K=AIzaSyAzqQSuc2RtaenC7FD8vgtc8O-Q8ppL37k
+          B='{"identifier":"probe@example.com","continueUri":"https://gogeangs.github.io/taptocity/"}'
+          U="https://identitytoolkit.googleapis.com/v1/accounts:createAuthUri?key=$K"
+          a=$(curl -s -o /dev/null -w '%{http_code}' -H 'Content-Type: application/json' -d "$B" "$U")
+          b=$(curl -s -o /dev/null -w '%{http_code}' -H 'Content-Type: application/json' -H 'X-Android-Package: kr.co.itso.taptocity' -d "$B" "$U")
+          c=$(curl -s -o /dev/null -w '%{http_code}' -H 'Content-Type: application/json' -H 'Referer: https://gogeangs.github.io/taptocity/' -d "$B" "$U")
+          m=$(curl -s -H 'Content-Type: application/json' -d "$B" "$U" | head -c 300 | tr '\n' ' ')
+          echo "::notice title=cloud-key::머리 없음 $a · 안드로이드 $b · 웹 주소 $c · $m"
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
