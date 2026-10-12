@@ -100,9 +100,15 @@ final Map<String, _Sq> sqTypes = {
       (n) => '밧줄 ${fmt(n)}개 만들기', 'craft', const ['“빨랫줄이 끊어졌어요. 밧줄 좀 꼬아 줄래요?”', '“망루에 올라갈 밧줄이 필요해요.”']),
   'reveal': _Sq((g) => g.frontier.length >= 30, (g) => 10 + g.S.lv * 2, (g) => g.revCount, (n) => '어둠 $n칸 걷어내기', 'lamp',
       const ['“저 너머에 뭐가 있는지 궁금해요. 조금만 더 밝혀 줘요.”', '“구름 속에서 뭔가 반짝였어요. 가까이 가 봐요.”']),
-  // 원정·지하·주파수 탐색·잔치 의뢰는 그 기능을 옮기는 4·6단계에서 켠다
+  'exp': _Sq((g) => g.num_('expDone') > 0 || g.mi > stepI('첫 원정 보내기'), (g) => 1, (g) => g.num_('expDone'), (n) => '원정 한 번 다녀오기', 'fExp',
+      const ['“지도에 표시해 둔 곳이 있어요. 누가 다녀와 줄래요?”', '“멀리서 연기가 올라와요. 확인해 봐야겠어요.”']),
+  'ug': _Sq((g) => g.ugOpen && g.ugRuns > 0, (g) => 1, (g) => g.ugRuns, (n) => '지하 구역 한 번 내려가기', 'fExp',
+      const ['“지하에서 이상한 소리가 났대요. 한번 내려가 봐요.”', '“지하철역 매점에 통조림이 남아 있을지도 몰라요.”']),
+  'radio': _Sq((g) => g.have('batt') >= 3, (g) => 3, (g) => g.num_('gTotal'), (n) => '주파수 탐색 $n번 하기', 'radio',
+      const ['“라디오에서 누가 부르는 것 같았어요. 다이얼 좀 돌려 봐요.”', '“건전지 아껴서 뭐 해요. 신호 좀 찾아봐요!”']),
   'ev': _Sq((g) => g.num_('evDone') > 0, (g) => 1, (g) => g.num_('evDone'), (n) => '생존자의 부탁 하나 들어주기', 'ev', const ['“다들 말은 안 해도 부탁이 하나씩 있을 거예요.”']),
   'night': _Sq((g) => g.num_('nights') > 0, (g) => 1, (g) => g.num_('nights'), (n) => '재폭풍 밤 한 번 버티기', 'clock', const ['“오늘 밤도 무사히 넘겨요. 그럼 한잔해요.”']),
+  'feast': _Sq((g) => g.feastOpen && g.feastLeftMs <= 0, (g) => 1, (g) => g.num_('feasts'), (n) => '마을 잔치 한 번 열기', 'craft', const ['“요즘 다들 지쳤어요. 잔치 한번 열어요!”']),
 };
 
 extension Crisis on Game {

@@ -248,6 +248,44 @@ void main() {
     g.S.rest['mi'] = stepI('등불 탑 토대 놓기');
     g.S.rest['storyI'] = g.mi;
     g.S.m.addAll({'plate': 200, 'wood': 300});
+    // 지하 구역: 준비 창 → 내려간 첫 층
+    g.S.lv = 3;
+    g.recalc();
+    await _shot(tester, g, '26-ug-prep', act: () async {
+      await tester.tap(find.text('원정').last);
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.tap(find.text('내려갈 준비'));
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.tap(find.text(survivors[0].name).last);
+      await tester.pump(const Duration(milliseconds: 60));
+      await tester.tap(find.text(survivors[1].name).last);
+    });
+    await _shot(tester, g, '27-ug', act: () async {
+      await tester.tap(find.text('원정').last);
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.tap(find.text('내려갈 준비'));
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.tap(find.text('내려가기'));
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      // 입구 위 칸 두 번 두드리기
+      for (final i in [(ugH - 2) * ugW + 2, (ugH - 3) * ugW + 2]) {
+        if (g.ugFront(i)) g.ugTap(i);
+      }
+    });
+    g.ugEnd(true);
+    g.S.lv = 2;
+    g.recalc();
+    g.takeFx();
     await _shot(tester, g, '25-tower', act: () async {
       await tester.tap(find.text('쉘터').last);
       for (var k = 0; k < 6; k++) {

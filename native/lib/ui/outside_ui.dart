@@ -13,6 +13,7 @@ import 'portrait.dart';
 import 'survivors.dart';
 import 'story_ui.dart';
 import 'theme.dart';
+import 'underground_ui.dart';
 import 'widgets.dart';
 
 /// 장소 그림 (chapter-design.js scene: world-panorama 3×3, 행 높이 258·236·230)
@@ -134,6 +135,7 @@ class _ExpBodyState extends State<ExpBody> {
               }),
             ));
           }
+          out.add(ugCard(context, g));
           final em = g.expMap;
           for (final e in exps) {
             if (!g.expOpen(e)) {

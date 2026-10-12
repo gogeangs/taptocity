@@ -354,7 +354,11 @@ extension Living on Game {
     for (final q in pets.keys) {
       final p = _petsRaw[q] as Map;
       final aw = p['away'];
-      if (aw != null && aw != false && aw != 'ug' && !(ex[aw] is Map && ex[aw]!['pet'] == q)) p['away'] = false;
+      if (aw == 'ug' && ug == null) {
+        p['away'] = false;
+      } else if (aw != null && aw != false && aw != 'ug' && !(ex[aw] is Map && ex[aw]!['pet'] == q)) {
+        p['away'] = false;
+      }
     }
     final k = petOn;
     if (k != null && petHere(k)) {

@@ -375,7 +375,7 @@ extension Story on Game {
     }
   }
 
-  bool get uiBusy => uiModal || uiSheet || defn != null;
+  bool get uiBusy => uiModal || uiSheet || defn != null || ug != null;
 
   // ================= 받기 (웹 claim 2019) =================
   void claimMission() {

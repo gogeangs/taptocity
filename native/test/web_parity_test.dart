@@ -1,6 +1,7 @@
 // 웹 버전과 같은 결과가 나오는지 확인한다.
 // 기준값(test/fixtures/web_core.json)은 tool/gen_data.cjs가 웹 코드를 직접 돌려서 만든 것이다.
 import 'dart:convert';
+import 'dart:math' as math;
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -388,5 +389,37 @@ void main() {
     g.achGet('rev100');
     expect(g.achState('rev100'), 2);
     expect(g.title, '어둠을 걷는 사람');
+  });
+
+  test('지하 구역: 칸을 밝히면 기름이 줄고, 계단으로 내려가고, 돌아오면 챙긴 것을 받는다', () {
+    final g = Game(Game.fresh(seed: 5), random: math.Random(3));
+    g.S.lv = 3;
+    for (final id in [0, 1]) {
+      g.rescue(id, 'sig');
+    }
+    g.S.m['fuel'] = 10;
+    expect(g.ugStart([0, 1], 4, 1), isTrue);
+    expect(g.have('fuel'), 6);
+    final u = g.ug!;
+    expect(u.oil, 14 + 4 * 3);
+    expect(u.floor, 1);
+    // 계단을 찾을 때까지 앞쪽 칸을 두드린다
+    var guard = 0;
+    while (g.ug != null && g.ug!.floor == 1 && guard++ < 200) {
+      final st = u.cells.indexWhere((c) => c.rev && c.c == 'stairs');
+      if (st >= 0) {
+        g.ugTap(st);
+        break;
+      }
+      final i = List.generate(ugW * ugH, (k) => k).firstWhere((k) => g.ugFront(k), orElse: () => -1);
+      if (i < 0 || g.ugTap(i)) break;
+    }
+    if (g.ug != null) {
+      expect(g.ug!.floor, greaterThanOrEqualTo(1));
+      g.ugEnd(true);
+    }
+    expect(g.ug, isNull);
+    expect(g.ugRuns, 1);
+    expect(g.ugBest, greaterThanOrEqualTo(1));
   });
 }

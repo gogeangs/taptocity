@@ -13,6 +13,7 @@ part 'crisis.dart';
 part 'outside.dart';
 part 'life.dart';
 part 'story.dart';
+part 'underground.dart';
 
 /// 화면 연출(떠오르는 글자·알림·창 열기)을 그림 쪽에 알려 주는 신호.
 sealed class Fx {
@@ -159,6 +160,7 @@ class Game extends ChangeNotifier {
   bool uiModal = false, uiSheet = false; // 화면에 창·시트가 열려 있음 (화면 쪽이 매번 알려 준다)
   int panGuide = 0, misDoneAt = 0, miyT = 0, scIdle = 0;
   bool misNudged = false, confShown = false;
+  UgRun? ug; // 지금 지하 탐사 중 (저장하지 않음)
 
   GameState S;
   final math.Random rnd;

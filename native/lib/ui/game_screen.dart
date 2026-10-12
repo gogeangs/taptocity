@@ -471,7 +471,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     fxc.toast('${g.hasSv(who) ? '${survivors[who].name}: ' : ''}${(q['say'] as String? ?? '').replaceAll(RegExp(r'^“|”$'), '')}');
     switch (sqTypes[q['k']]?.go) {
       case 'craft':
+        ShelterBody.tab = 1;
         _open(const SheetSpec('shelter'));
+      case 'fExp':
+        _open(const SheetSpec('exp'));
+      case 'radio':
+        _open(const SheetSpec('radio'));
       case 'ev':
         if (g.evCur >= 0) showRequestPage(context, g);
       default:
