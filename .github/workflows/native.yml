@@ -92,11 +92,21 @@ jobs:
         if: github.ref == 'refs/heads/main'
         working-directory: .
         run: |
+          set +e +o pipefail
           rm -rf native-play
           cp -r native/build/web native-play
+          echo "파일 $(find native-play -type f | wc -l)개"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A native-play
-          if git diff --cached --quiet; then echo "변경 없음"; exit 0; fi
+          if git diff --cached --quiet; then echo "::notice title=preview::변경 없음"; exit 0; fi
           git commit -qm "네이티브 미리보기 갱신 (${GITHUB_SHA::7})"
-          for i in 1 2 3; do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep 5; done
+          ok=0
+          for i in 1 2 3; do
+            out=$( { git pull --rebase origin main && git push origin HEAD:main; } 2>&1 ); r=$?
+            if [ $r -eq 0 ]; then ok=1; break; fi
+            sleep 5
+          done
+          m=$(echo "$out" | tail -20 | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}')
+          if [ $ok -ne 1 ]; then echo "::error title=preview::$m"; exit 1; fi
+          echo "::notice title=preview::올림"
