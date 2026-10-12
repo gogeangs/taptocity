@@ -17,6 +17,8 @@ part 'underground.dart';
 part 'tutorial.dart';
 part 'season.dart';
 part 'region.dart';
+part 'lines.dart';
+part 'quest.dart';
 
 /// 화면 연출(떠오르는 글자·알림·창 열기)을 그림 쪽에 알려 주는 신호.
 sealed class Fx {
@@ -178,6 +180,7 @@ class Game extends ChangeNotifier {
   OddShadow? shadow;
   bool endingOn = false, onbAsked = false;
   double coldAcc = 0;
+  LnRun? ln;
   int townChoiceShown = -1;
 
   GameState S;
@@ -2046,6 +2049,7 @@ class Game extends ChangeNotifier {
     defn = null;
     evCur = -1;
     ug = null;
+    ln = null;
     confShown = false;
     misDoneAt = 0;
     scIdle = 0;

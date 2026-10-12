@@ -201,6 +201,88 @@ final List<CaseInfo> cases = [
   ),
 ];
 
+/// 새 동네 사건 셋 (웹 TCASES 5736) — 사건 7·8·9. 동네 미션 3번째부터.
+const _dN = 'npc:desert', _fN = 'npc:factory', _wN = 'npc:snow';
+bool _tGate(Game g) => g.rmi >= 3;
+final List<CaseInfo> townCases = [
+  CaseInfo(
+    ch: '사막 도시',
+    t: '빠진 진공관',
+    when: '새벽 3시 무렵',
+    sus: 14,
+    susN: '마을 사람',
+    gate: _tGate,
+    x: (g) => [
+      const Line(_dN, '급유탑 무전기가 죽었소. 누가 진공관을 쏙 빼 갔어. 당신들을 부른 바로 그 무전기요.'),
+      const Line(_dN, '새벽 3시쯤이었소. 우리 마을 사람들은 그 시간에 탱크 밑에서 자고 있었는데.'),
+      if (g.hasSv(10)) const Line(10, '저는 그 시간에 방송 중이었어요. 사막에서도 잘 들렸다면서요?'),
+    ],
+    alibi: '은호: “그 시간엔 방송 중이었어요.”',
+    a: CaseOpt(
+        (g) => g.hasSv(14) ? '한별에게 따져 묻는다' : '마을 사람들을 불러 묻는다',
+        (g) => [
+              g.hasSv(14) ? const Line(14, '진공관이요? 전 약초밖에 몰라요. 정말이에요.') : const Line(_dN, '우리 사람들은 아니오. 그 무전기가 유일한 희망이었는데.'),
+              const Line(_me, '며칠 뒤, 빠진 진공관이 나왔다. 사막 마을이 아니라 우리 쉘터 공구함 안에서.'),
+              const Line(_me, '공구함 열쇠는 늘 내 허리춤에 있다. 누가 언제 빌려 갔던가.'),
+            ],
+        clue: '빠진 진공관이 우리 쉘터 공구함에서 나왔다.'),
+    b: CaseOpt((g) => g.hasSv(14) ? '한별을 믿는다' : '마을 사람들을 믿는다',
+        (g) => [g.hasSv(14) ? const Line(14, '…고마워요. 무전기는 두식 할아버지랑 다시 맞춰 볼게요.') : const Line(_dN, '…믿어 줘서 고맙소.')]),
+    c: CaseOpt((g) => '모래바람 탓이라고 해 둔다', (g) => const [Line(_me, '모래바람이 진공관을 날려 버렸다고, 다들 그렇게 넘어갔다.')]),
+  ),
+  CaseInfo(
+    ch: '녹슨 공단',
+    t: '끊긴 확성기',
+    when: '새벽 3시 무렵',
+    sus: 15,
+    susN: '공단 사람들',
+    gate: _tGate,
+    x: (g) => [
+      const Line(_fN, '공단 확성기 선이 끊겼다. 밤마다 흩어진 사람들을 불러 모으던 확성기다.'),
+      const Line(_fN, '새벽 3시에. 불꽃 다루는 놈 짓이라고들 하더군.'),
+      if (g.hasSv(10)) const Line(10, '그 시간엔 방송 중이었어요. 확성기 대신 제 방송 들으시면 되죠.'),
+    ],
+    alibi: '은호: “그 시간엔 방송 중이었어요.”',
+    a: CaseOpt(
+        (g) => g.hasSv(15) ? '도진을 불러 묻는다' : '공단 사람들을 불러 묻는다',
+        (g) => [
+              g.hasSv(15) ? const Line(15, '…내 불꽃이면 저렇게 얌전히 안 끊겨.') : const Line(_fN, '우리 사람들은 그 시간에 자고 있었다.'),
+              const Line(_me, '끊긴 자리를 살폈다. 용접 불꽃이 아니었다. 무언가 뜨겁고 둥근 것을 대서 녹여 낸 자국. 둥근 그을음 고리가 남아 있었다.'),
+            ],
+        clue: '확성기 선은 용접이 아니라 둥글고 뜨거운 것으로 녹여 끊겨 있었다.'),
+    b: CaseOpt((g) => g.hasSv(15) ? '도진을 믿는다' : '공단 사람들을 믿는다',
+        (g) => [g.hasSv(15) ? const Line(15, '…말없이 다시 이어 두지.') : const Line(_fN, '…믿어 줘서 고맙다.')]),
+    c: CaseOpt((g) => '재 괴물 탓이라고 해 둔다', (g) => const [Line(_me, '재 괴물이 선을 갉아 먹었다고, 다들 그렇게 믿기로 했다.')]),
+  ),
+  CaseInfo(
+    ch: '눈 덮인 산골',
+    t: '사라진 녹음테이프',
+    when: '새벽 3시 무렵',
+    susN: '분교 아이들',
+    gate: _tGate,
+    x: (g) => [
+      const Line(_wN, '교실 서랍에 둔 테이프가 없어졌어요. 재가 내린 그날 밤, 아이들 재우려고 틀어 둔 라디오를 녹음한 거예요.'),
+      const Line(_wN, '새벽 3시쯤 누가 교실에 들어왔대요. 아이들 중 하나가 장난친 걸까요…'),
+      if (g.hasSv(10)) const Line(10, '저는 그 시간에 방송 중이었어요.'),
+    ],
+    alibi: '은호: “그 시간엔 방송 중이었어요.”',
+    a: CaseOpt(
+        (g) => '아이들을 모아 묻는다',
+        (g) => const [
+              Line(_wN, '아이들은 아무도 몰랐어요. 그런데… 이상한 게 하나 있어요.'),
+              Line(_wN, '그 테이프, 3시 11분부터 3분 동안 아무 소리도 없었어요. 방송이 끊긴 줄 알았죠.'),
+              Line(_wN, '아, 아주 작게… 딸깍, 딸깍. 뭔가 여닫는 소리만 몇 번 들렸어요.'),
+            ],
+        clue: '사라진 테이프에는 그날 밤 3시 11분부터 3분 동안 딸깍 소리만 남아 있었다.'),
+    b: CaseOpt((g) => '아이들을 믿는다', (g) => const [Line(_wN, '그래요. 우리 애들이 그럴 리 없죠.')]),
+    c: CaseOpt((g) => '그냥 잊어버리자고 한다', (g) => const [Line(_me, '테이프 한 개쯤이야. 은솔 선생님도 곧 웃었다.')]),
+  ),
+];
+
+/// 사건 번호 k(0~8) → 내용. 6·7·8은 사막·공단·산골
+CaseInfo caseOf(int k) => k < cases.length ? cases[k] : townCases[k - cases.length];
+String caseKeyOf(int k) => k < cases.length ? '$k' : regionOrder[k - cases.length];
+
 /// 사건 창 열기 / 고른 결과
 class FxCase extends Fx {
   const FxCase(this.k);
@@ -255,7 +337,10 @@ extension Season on Game {
     return S.rest['cases'] as Map;
   }
 
-  Map? caseRec(int k) => casesMap['$k'] as Map?;
+  Map? caseRec(int k) => casesMap[caseKeyOf(k)] as Map?;
+
+  /// 수첩에 보일 사건: 처음 여섯 + 고른 동네 사건 (웹 cKeys)
+  List<int> get caseKeys => [for (var k = 0; k < cases.length; k++) k, for (var j = 0; j < townCases.length; j++) if (caseRec(cases.length + j)?['p'] != null) cases.length + j];
   Map get egg {
     if (S.rest['egg'] is! Map) S.rest['egg'] = <String, Object?>{};
     return S.rest['egg'] as Map;
@@ -266,6 +351,17 @@ extension Season on Game {
 
   // ================= 사건 (웹 tickCases 5778) =================
   bool _tickCases() {
+    if (S.gen != 0 && S.region != null && regionOrder.contains(S.region)) {
+      final k = cases.length + regionOrder.indexOf(S.region!), R = caseRec(k);
+      if (R != null && R['p'] != null) return false;
+      if (R != null || townCases[k - cases.length].gate(this)) {
+        casesMap[caseKeyOf(k)] ??= <String, Object?>{'at': DateTime.now().millisecondsSinceEpoch};
+        dirty = true;
+        fx.add(FxCase(k));
+        return true;
+      }
+      return false;
+    }
     if (!s1On) return false;
     for (var k = 0; k < cases.length; k++) {
       final R = caseRec(k);
@@ -294,15 +390,15 @@ extension Season on Game {
   }
 
   String caseSus(int k) {
-    final c = cases[k];
+    final c = caseOf(k);
     return c.sus != null && hasSv(c.sus!) ? survivors[c.sus!].name : c.susN;
   }
 
   /// 사건에서 고르기 (웹 pickCase). 돌려주는 것: 이어지는 대사, 효과 글
   (List<Line>, List<String>) pickCase(int k, String p) {
-    final c = cases[k], o = c.opt(p);
-    casesMap['$k'] ??= <String, Object?>{'at': DateTime.now().millisecondsSinceEpoch};
-    final R = casesMap['$k'] as Map;
+    final c = caseOf(k), o = c.opt(p);
+    casesMap[caseKeyOf(k)] ??= <String, Object?>{'at': DateTime.now().millisecondsSinceEpoch};
+    final R = casesMap[caseKeyOf(k)] as Map;
     if (R['p'] != null) return (const [], const []);
     R['p'] = p;
     final sid = c.sus != null && hasSv(c.sus!) ? c.sus : null;
@@ -750,6 +846,17 @@ extension Season on Game {
   (List<Line>, String)? sceneSource(int n) {
     if (n <= 3 && n < tutSteps.length) return (tutSteps[n].say, '그날 밤 · ${tutSteps[n].t}');
     if (n == 21 || n == 22) return (endLines, '그날 밤');
+    if (n >= 42 && n <= 44) {
+      final c = townCases[n - 42];
+      return ([for (final l in c.x(this)) if (l != null) l], '사건 수첩 · ${c.t}');
+    }
+    if (n >= 27 && n <= 35) {
+      final r = regionOrder[(n - 27) ~/ 3], beat = (n - 27) % 3, arc = regStory[r];
+      if (arc != null) {
+        final ls = [for (var k = 0; k < arc.length; k++) if ((k < 3 ? 0 : k < 6 ? 1 : 2) == beat) ...arc[k].$1];
+        if (ls.isNotEmpty) return (ls, regions[r]?.n ?? '');
+      }
+    }
     if (n >= 36 && n <= 41) {
       final c = cases[n - 36];
       return ([for (final l in c.x(this)) if (l != null) l], '사건 수첩 · ${c.t}');

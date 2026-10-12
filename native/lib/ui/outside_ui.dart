@@ -11,6 +11,7 @@ import 'gear.dart';
 import 'people.dart';
 import 'portrait.dart';
 import 'region_ui.dart';
+import 'lines_ui.dart';
 import 'survivors.dart';
 import 'story_ui.dart';
 import 'season_ui.dart';
@@ -138,6 +139,7 @@ class _ExpBodyState extends State<ExpBody> {
             ));
           }
           out.add(ugCard(context, g));
+          out.add(lnCardWidget(context, g));
           final em = g.expMap;
           for (final e in exps) {
             if (!g.expOpen(e)) {

@@ -98,6 +98,8 @@ const T = {
     return {story:st,again:A(RS_AGAIN),nextCall:nc,nextAgain:NEXT_AGAIN.map(L),choice:tc,talk};})()`),
   regionMisc: ev('({order:RORDER,npc:NPC,pickLog:PICK_LOG,rumor:RUMOR,spotLog:SPOT_LOG,spotIco:SPOT_ICO,wayPts:WAYPTS,migNeed:MIG_NEED,roleN:ROLE_N,last:LAST,trVal:TR_VAL,trReg:TR_REG,trRole:TR_ROLE})'),
   lnTown: ev('LN_TOWN'),
+  quests: ev('QUESTS'),
+  qUnlock: ev('Q_UNLOCK'),
   lnText: ev('({roleN:LN_ROLE_N,cn:LN_CN,ic:LN_IC,w:LN_W,fat:LN_FAT,pick:LN_PICK})'),
   pets: ev('Object.fromEntries(Object.entries(PETS).map(([k,p])=>[k,{n:p.n,def:p.def,snd:p.snd,eff:p.eff,v:p.v,ed:[1,1.25,1.5,1.75,2].map(m=>p.ed(m)),edHalf:[1,1.25,1.5,1.75,2].map(m=>p.ed(m*.5)),act:p.act,ug:p.ug,ugd:p.ugd,exp:p.exp,expd:p.expd,pair:p.pair,pairN:p.pairN,story:p.story,hidden:!!p.hidden,region:p.region||null,how:p.how||null}]))'),
 };

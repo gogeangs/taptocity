@@ -396,7 +396,7 @@ extension Story on Game {
     }
   }
 
-  bool get uiBusy => uiModal || uiSheet || defn != null || ug != null;
+  bool get uiBusy => uiModal || uiSheet || defn != null || ug != null || ln != null;
 
   // ================= 받기 (웹 claim 2019) =================
   void claimMission() {
@@ -522,6 +522,7 @@ extension Story on Game {
 
   void tickStorySec() {
     _tickAch();
+    _tickQuests();
     if (tickTut()) return;
     _tickSeasonSec();
     tickRegionSec();

@@ -197,6 +197,9 @@ extension Outside on Game {
     final got = give(scaleCost(e.loot, c.mult * (1 + (S.lv - 1) * .3)));
     give({'batt': team.length});
     if (rnd.nextDouble() < .2 && findRelic() != null) sum.add('유물 발견');
+    for (final id in team) {
+      if (qStep(id)?['k'] == 'exp') Future.delayed(const Duration(milliseconds: 300), () => qAdvance(id));
+    }
     sum.add('건전지 +${team.length}');
     if (rnd.nextDouble() < (e.key == 'mall' ? .25 : .4)) {
       final t = dropGear(e.key == 'plant' ? 2 : e.key == 'mall' ? 0 : 1);

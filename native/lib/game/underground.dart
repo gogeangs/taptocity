@@ -37,7 +37,7 @@ class UgCell {
   UgCell(this.hp);
   String c = 'empty';
   bool rev = false, hit = false, fresh = false, used = false, open = false;
-  int hp, fhp = 0, did = -1;
+  int hp, fhp = 0, did = -1, qid = -1;
   String? hz;
 }
 
@@ -50,6 +50,7 @@ class UgRun {
   final Map<String, int> carry = {};
   final List<String> gear = [];
   final List<int> hurt = [];
+  final List<int> found = [];
   String msg;
   List<UgCell> cells = [];
   bool medicUsed = false, shop = false, dPlaced = false, mtrace = false;
@@ -199,6 +200,10 @@ extension Underground on Game {
     if (f >= 15 && !hasSv(13) && !u.mtrace) put('who');
     if (f >= 6 && f <= 9 && !pets.containsKey('turtle') && u.petFound == null && rnd.nextDouble() < .4) put('pet');
     if (rnd.nextDouble() < .22 + f * .03) put('gear');
+    for (final id in u.team) {
+      final st = qStep(id);
+      if (st != null && st['k'] == 'find' && f >= (st['f'] as num) && !u.found.contains(id)) put('quest').qid = id;
+    }
     u.cells = cells;
     u.medicUsed = false;
     u.shop = false;
@@ -340,6 +345,13 @@ extension Underground on Game {
       case 'pet':
         u.petFound = 'turtle';
         u.msg = '물웅덩이 속 바위가 움직였다. 이끼 낀 늙은 거북이 천천히 눈을 떴다. 함께 올라가요!';
+      case 'quest':
+        if (c.qid >= 0 && !u.found.contains(c.qid)) {
+          u.found.add(c.qid);
+          final qs = qStep(c.qid);
+          u.msg = '${survivors[c.qid].name}: “찾았어요… ${qs?['item'] ?? ''}!”${qs?['note'] != null ? ' ${qs!['note']}' : ''}';
+          qAdvance(c.qid);
+        }
       case 'who':
         u.mtrace = true;
         u.msg = '발전소 쪽으로 난 철문. 그 너머는 재가 벽처럼 막고 있다. 문 앞에 직원용 비상식량 깡통이 가지런히 비어 있고, 벽에 분필 글씨가 남아 있다. “아직 여기 있어요. 위에서 불빛이 보이면 갈게요. — 탁”';

@@ -105,7 +105,7 @@ void showUgPrep(BuildContext context, Game g) {
           else
             Wrap(spacing: 6, runSpacing: 6, children: [
               for (final id in free)
-                _ugMem(g, id,
+                ugMem(g, id,
                     on: t.contains(id),
                     rec: pick.contains(id),
                     why: why[id],
@@ -193,7 +193,7 @@ void showUgPrep(BuildContext context, Game g) {
       }));
 }
 
-Widget _ugMem(Game g, int id, {required bool on, required bool rec, String? why, VoidCallback? onTap}) {
+Widget ugMem(Game g, int id, {required bool on, required bool rec, String? why, VoidCallback? onTap}) {
   final rl = [for (final r in g.roleOf(id)) if (ugRoleShort[r] != null) ugRoleShort[r]!];
   return GestureDetector(
     onTap: onTap,

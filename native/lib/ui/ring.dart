@@ -9,6 +9,7 @@ import 'icons.dart';
 import 'map_view.dart';
 import 'story_ui.dart';
 import 'theme.dart';
+import 'lines_ui.dart';
 import 'widgets.dart';
 
 String _ri(String p) => '<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">$p</svg>';
@@ -84,7 +85,10 @@ class RingMenu extends StatelessWidget {
             g.restoreLm(tile);
           }, poor: !g.canPay(c)));
         } else if (info.key == 'station') {
-          toks.add(_Tok('line', '노선 탐사', () => toast('끊긴 노선 탐사는 6단계에서 옮겨요')));
+          toks.add(_Tok('line', '노선 탐사', () {
+            onClose();
+            showLnPrep(context, g);
+          }));
         }
       } else if (m != null) {
         final d = mods[m.id]!, slot = g.modAt[tile]!, id = S.asg[tile], wk = id != null && g.hasSv(id) ? survivors[id] : null;

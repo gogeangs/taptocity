@@ -110,7 +110,7 @@ Widget _copt(String b, String small, VoidCallback? onTap, {bool hi = false}) => 
       ),
     );
 
-/// 사건 그림 (story-5 36~41번)
+/// 사건 그림 (story-5 36~41번, 동네 사건 42~44번)
 Widget _caseArt(Game g, int k) {
   final n = 36 + k;
   g.markArt(n);
@@ -143,7 +143,7 @@ Future<void> _casePage(BuildContext context, Widget Function(BuildContext ctx) b
 
 // ======================= 사건 창 (웹 openCase · pickCase) =======================
 Future<void> showCase(BuildContext context, Game g, int k) async {
-  final c = cases[k];
+  final c = caseOf(k);
   String? picked;
   await _casePage(context, (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         _caseArt(g, k),
@@ -379,14 +379,14 @@ void showEggPage(BuildContext context, Game g) {
 // ======================= 일지 · 사건 탭 (웹 renderCases · renderOdd) =======================
 List<Widget> casesTab(BuildContext context, Game g) {
   if (g.S.rest['caseNew'] != null) g.S.rest.remove('caseNew');
-  final ks = [for (var k = 0; k < cases.length; k++) k];
+  final ks = g.caseKeys;
   final sol = ks.where((k) => g.caseRec(k)?['solved'] != null).length;
   final out = <Widget>[
     sec('사건 수첩', '풀린 사건 $sol / ${ks.length}'),
     Padding(padding: const EdgeInsets.only(bottom: 8), child: descText('쉘터에서 일어난 일을 적어 두는 수첩이에요. 단서는 사람을 추궁할 때만 모여요.')),
   ];
   for (final k in ks) {
-    final c = cases[k], R = g.caseRec(k);
+    final c = caseOf(k), R = g.caseRec(k);
     if (R == null || R['p'] == null) {
       final gone = g.S.gen != 0 || g.mi >= steps.length;
       out.add(Opacity(opacity: .45, child: _entry('사건 ${k + 1} · ???', gone ? '이 쉘터에서는 적히지 않은 페이지예요.' : '${c.ch}에 무슨 일이 생길지도 몰라요.')));

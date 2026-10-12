@@ -383,6 +383,7 @@ void showSurvPage(BuildContext context, Game g, int id0, {void Function(int id, 
               onGear(id, sl);
             }),
           'story' => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              questBox(g, id),
               for (var k = 0; k < s.story.length; k++)
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 8),

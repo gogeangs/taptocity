@@ -879,3 +879,47 @@ List<Widget> radioRegion(BuildContext context, Game g, {VoidCallback? onRoute}) 
   }
   return out;
 }
+
+// ======================= 개인 이야기 (웹 questHtml 3467) =======================
+Widget questBox(Game g, int id) {
+  final Q = quests[id];
+  if (Q == null) return const SizedBox.shrink();
+  final q = g.qOf(id);
+  Widget box(List<Widget> kids, {bool lock = false, bool done = false}) => Opacity(
+        opacity: lock ? .7 : 1,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.fromLTRB(11, 9, 11, 9),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF3E7CB),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: done ? const Color(0xFF6F8F4A) : const Color(0x59B0452A), width: 1.5),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: kids),
+        ),
+      );
+  if (q == null) {
+    return box([_sec2('개인 이야기 · ???'), _d('신뢰도 $qUnlock이 되면 ${survivors[id].name}의 이야기가 열려요')], lock: true);
+  }
+  if (q['done'] == true) {
+    return box([_sec2('개인 이야기 · ${Q.t} ✓'), _d(Q.end.last.t)], done: true);
+  }
+  final s = ((q['s'] as num?) ?? 0).toInt(), st = Q.steps[math.min(s, Q.steps.length - 1)];
+  final c = g.qCost(st);
+  return box([
+    _sec2('개인 이야기 · ${Q.t}', '${s + 1}/${Q.steps.length}'),
+    Padding(padding: const EdgeInsets.fromLTRB(0, 2, 0, 6), child: Text('${st['say']}', style: Ttc.serif(16, color: const Color(0xFF5A3F24), height: 1.45))),
+    Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Text.rich(TextSpan(children: [TextSpan(text: '할 일 ', style: Ttc.t(13, color: Ttc.rust, weight: FontWeight.w700)), TextSpan(text: g.qStepTxt(st))]),
+          style: Ttc.t(13, color: Ttc.sepia, height: 1.5)),
+    ),
+    if (st['k'] == 'give') ...[
+      needList(g, c),
+      const SizedBox(height: 8),
+      Row(children: [pageBtn('건네기', g.canPay(c) ? () => g.qGive(id) : null, alt: true)]),
+      const SizedBox(height: 6),
+    ],
+    _d('완결 보상: 전용 장비 ‘${gear[Q.gear]?.n ?? Q.gear}’'),
+  ]);
+}

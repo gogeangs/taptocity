@@ -12,6 +12,7 @@ import 'life_ui.dart';
 import 'season_ui.dart';
 import 'story_ui.dart';
 import 'region_ui.dart';
+import 'lines_ui.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -433,7 +434,7 @@ Widget landmarkBody(Game g, int tile) {
         Expanded(child: BuyButton('복구하기', width: double.infinity, why: g.canPay(c) ? null : '자재 부족', onTap: g.canPay(c) ? () => g.restoreLm(tile) : null)),
       ]),
     ],
-    if (l.ok && info.key == 'station') ...[const SizedBox(height: 12), Text('끊긴 노선 탐사는 6단계에서 옮겨요', style: Ttc.t(12.5, color: Ttc.sepia2))],
+    if (l.ok && info.key == 'station') ...[const SizedBox(height: 12), Builder(builder: (context) => lnCardWidget(context, g))],
   ]);
 }
 
