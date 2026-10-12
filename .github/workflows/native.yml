@@ -33,7 +33,7 @@ jobs:
           python-version: '3.12'
       - run: pip install fonttools brotli
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -55,16 +55,22 @@ jobs:
           sed -i 's/android:label="[^"]*"/android:label="탭투시티"/' android/app/src/main/AndroidManifest.xml
           sed -i 's#<title>[^<]*</title>#<title>탭투시티 · 네이티브 미리보기</title>#' web/index.html
 
+      # 실패하면 마지막 출력을 주석(annotation)으로 남겨, 로그를 못 여는 곳에서도 원인을 볼 수 있게 한다
       - name: 검사
         run: |
           flutter pub get
-          flutter analyze --no-fatal-infos
+          flutter analyze --no-fatal-infos 2>&1 | tee ../out.txt; s=${PIPESTATUS[0]}
+          if [ $s -ne 0 ]; then m=$(grep -E "error|warning" ../out.txt | head -60 | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}'); echo "::error title=analyze::$m"; exit $s; fi
 
       - name: 테스트 (웹 버전과 같은 결과인지)
-        run: flutter test
+        run: |
+          flutter test 2>&1 | tee ../out.txt; s=${PIPESTATUS[0]}
+          if [ $s -ne 0 ]; then m=$(grep -vE "^\s*$" ../out.txt | grep -B2 -A12 -E "FAILED|Expected|Error|error" | head -120 | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}'); echo "::error title=test::$m"; exit $s; fi
 
       - name: 안드로이드 APK
-        run: flutter build apk --release
+        run: |
+          flutter build apk --release 2>&1 | tee ../out.txt; s=${PIPESTATUS[0]}
+          if [ $s -ne 0 ]; then m=$(tail -60 ../out.txt | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}'); echo "::error title=apk::$m"; exit $s; fi
 
       - uses: actions/upload-artifact@v4
         with:
@@ -73,7 +79,9 @@ jobs:
           retention-days: 30
 
       - name: 웹 미리보기
-        run: flutter build web --release --base-href /taptocity/native-play/ --pwa-strategy=none
+        run: |
+          flutter build web --release --base-href /taptocity/native-play/ --pwa-strategy=none 2>&1 | tee ../out.txt; s=${PIPESTATUS[0]}
+          if [ $s -ne 0 ]; then m=$(tail -60 ../out.txt | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}'); echo "::error title=web::$m"; exit $s; fi
 
       - name: 미리보기 올리기 (native-play/)
         if: github.ref == 'refs/heads/main'
