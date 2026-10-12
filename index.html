@@ -1351,7 +1351,7 @@ const LMS=[
 // 동네마다 다른 랜드마크: 역할(효과·재료·복구비)은 같고, 이름과 모습 글이 그 동네의 것이 된다. 첫 동네는 원래 이름 그대로.
 const LM_REG={
  desert:{school:['모래 언덕 기숙학교','모래가 교실 문턱까지 차올랐다. 칠판에 마지막 수업 날짜가 남아 있다.','모래를 쓸어낸 교실에 아이들 목소리가 울린다.'],
-  tower:['해수 담수장','바닷물을 걸러 마시던 설비. 필터만 갈면 다시 돌 것 같다.','짠물이 맑은 물이 되어 떨어진다. 텃밭까지 물길이 생겼다.'],
+  tower:['해수 담수장','바닷물을 걸러 마시던 설비. 필터가 모래에 꽉 막혔다.','필터를 갈자 짠물이 한 방울씩 걸러진다. 하루에 겨우 한 동이, 텃밭이 숨을 쉰다.'],
   gas:['급유탑','줄지어 선 급유탑 하나에 아직 등유가 남아 있다.','급유탑 밸브가 열렸다. 랜턴이 더 밝게 탄다.'],
   library:['간척 기록관','간척지 설계도와 공사 일지가 모래 속에 묻혀 있다.','기록관 창가에 누군가 지도를 펼쳐 두었다.'],
   station:['모래언덕역','모래에 반쯤 묻힌 순환선 역. 플랫폼 아래로 바람이 빨려 들어간다.','선로의 모래를 걷어내자 순환선 터널이 열렸다.']},
@@ -4809,7 +4809,7 @@ const PETS={
   story:['하수도 가장 깊은 물웅덩이에서, 이끼 낀 등껍질의 거북이 눈을 떴다.','등껍질에 칼로 새긴 글씨. “1987 · 한강 · 무사히”.','재가 내리기 훨씬 전부터 살아온 거북이다. 서두르는 법이 없다.','거북이 곁에 있으면, 모두 조금씩 느긋해진다.','천천히, 그러나 멈추지 않고. 이 쉘터가 배운 방식이다.']},
  owl:{n:'부엉이',hidden:1,def:'책갈피',snd:'부엉',eff:'craft',v:.08,ed:m=>`가공 보너스 +${pc(.08*m)}%`,act:'밤이면 귀한 물건을 물어 와요',ug:'scout',ugd:'지하에서 옆 칸의 위험을 알려 줘요',exp:{t:.75},expd:'원정 시간 -25%',pair:10,pairN:'심야의 청취자',
   how:'책이 남은 랜드마크(도서관·기록관·우체국…)를 복구하면, 어느 밤 그쪽에서 부엉 소리가 들려요',
-  story:['복구한 도서관 서가 꼭대기에서, 부엉이의 두 눈이 반짝였다.','둥지는 오래된 백과사전 사이에 있었다. 책갈피 끈으로 엮여 있었다.','밤새 쉘터를 내려다보다가, 낯선 소리가 나면 부엉 운다.','가끔 책갈피 끈을 물고 와 책을 펼쳐 둔다. 늘 지도 페이지다.','밤이 길어도, 깨어 있는 눈이 하나 더 있다는 건 든든하다.']}};
+  story:['복구한 건물 맨 위 선반에서, 부엉이의 두 눈이 반짝였다.','둥지는 오래된 백과사전 사이에 있었다. 책갈피 끈으로 엮여 있었다.','밤새 쉘터를 내려다보다가, 낯선 소리가 나면 부엉 운다.','가끔 책갈피 끈을 물고 와 책을 펼쳐 둔다. 늘 지도 페이지다.','밤이 길어도, 깨어 있는 눈이 하나 더 있다는 건 든든하다.']}};
 // regional hidden pets: each only shows up in its own town
 Object.assign(PETS,{
  fennec:{n:'사막여우',hidden:1,region:'desert',def:'모래알',snd:'캥',eff:'scav',v:.1,ed:m=>`뒤지기 수확 +${pc(.1*m)}%`,act:'모래 속에 묻힌 연료통을 파내요',ug:'scout',ugd:'지하에서 옆 칸의 위험을 알려 줘요',exp:{t:.85},expd:'원정 시간 -15%',pair:14,pairN:'사막의 약상자',
@@ -4921,7 +4921,7 @@ function strayTile(k){if(k==='owl'){for(const i in S.lm)if(LMS[S.lm[i].k].key===
   return c.length?c[(Math.random()*c.length)|0]:-1;}
 function straySpawn(){const k=strayPick();if(!k)return false;const i=strayTile(k);if(i<0)return false;
   S.stray={k,i,n:0,need:k==='fox'||k==='owl'?2:3,t:0};const[x,y]=tileC(i,8);ringFx(x,y,6,50,'255,230,190',.5);
-  note({h:k==='fox'?'재 위에 은빛 발자국이 이어져 있어요':k==='owl'?'도서관 쪽에서 부엉, 부엉 소리가 들려요':`어디선가 ‘${PETS[k].snd}’ 소리가 들려요`,t:'<small>지도에 찍힌 발자국을 찾아가 눌러 봐요</small>',kind:'story',ms:6000});return true;}
+  note({h:k==='fox'?'재 위에 은빛 발자국이 이어져 있어요':k==='owl'?`${LMS[3].name} 쪽에서 부엉, 부엉 소리가 들려요`:`어디선가 ‘${PETS[k].snd}’ 소리가 들려요`,t:'<small>지도에 찍힌 발자국을 찾아가 눌러 봐요</small>',kind:'story',ms:6000});return true;}
 function strayDraw(time){const s=S.stray;if(!s||!strayVis())return;const[x,y]=tileC(s.i,0),a=.35+.6*Math.min(1,s.n/(s.need-1||1));
   ctx.fillStyle=s.k==='fox'?'rgba(215,230,255,.8)':'rgba(60,40,25,.55)';for(let q=0;q<5;q++){const px=x-30+q*7,py=y+10-q*2.5+(q%2?2:-1);ctx.beginPath();ctx.ellipse(px,py,1.6,1,0,0,7);ctx.fill();ctx.beginPath();ctx.ellipse(px-1.4,py-1.8,.6,.5,0,0,7);ctx.ellipse(px+1.4,py-1.8,.6,.5,0,0,7);ctx.fill();}
   ctx.save();ctx.globalAlpha=a;ctx.translate(x+4,y+4);ctx.scale(-1.25,1.25);petShape(ctx,s.k,time,false,'#8a7a64',s.k==='fox');ctx.restore();
