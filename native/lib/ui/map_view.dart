@@ -13,6 +13,7 @@ import '../game/data.dart';
 import '../game/engine.dart';
 import '../game/rng.dart';
 import 'atlas.dart';
+import 'people.dart';
 import 'theme.dart';
 
 class Camera extends ChangeNotifier {
@@ -286,6 +287,7 @@ class _MapViewState extends State<MapView> {
         },
         child: ClipRect(child: Stack(fit: StackFit.expand, children: [
           RepaintBoundary(child: CustomPaint(painter: MapPainter(g, cam, Listenable.merge([g.mapVersion, cam])))),
+          RepaintBoundary(child: PeopleLayer(game: g, camera: cam)),
           RepaintBoundary(child: FxLayer(controller: widget.fxLayer, camera: cam)),
         ])),
       );

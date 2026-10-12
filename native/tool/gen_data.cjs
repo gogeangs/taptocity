@@ -37,7 +37,7 @@ const T = {
         else if(t2.includes(String(n))){const j=t1.indexOf(String(Math.round(n/100)));if(j>=0)t1=t1.slice(0,j)+'{'+k+':r}'+t1.slice(j+String(Math.round(n/100)).length);}});
       tpl=t1;}
     return {id:s.id,name:s.name,age:s.age||0,job:s.job,src:s.src,d:s.d||0,region:s.region||null,hidden:!!s.hidden,alias:s.alias||null,hint:s.hint||null,
-      hope:s.hope||0,need:s.need==null?null:s.need,match:s.match||[],eff:s.eff||{},grade:s.grade==null?0:s.grade,story:s.story||[],trait:tpl};})`),
+      hope:s.hope||0,need:s.need==null?null:s.need,look:s.look||null,match:s.match||[],eff:s.eff||{},grade:s.grade==null?0:s.grade,story:s.story||[],trait:tpl};})`),
   rescue: ev('Object.fromEntries(Object.entries(RESCUE).map(([k,r])=>[k,{need:r.need,why:r.why}]))'),
   bonds: ev('BONDS.map(b=>({ids:b.ids,name:b.name,txt:b.txt,eff:b.eff,d:b.d}))'),
   trust: ev('TRUST'),
@@ -49,6 +49,9 @@ const T = {
   gear: ev('Object.fromEntries(Object.entries(GEAR).map(([k,G])=>[k,{n:G.n,slot:G.slot,g:G.g,ic:G.ic||null,eff:G.eff,fit:G.fit||[],cost:G.cost||null,wb:G.wb||0,d:G.d||"",sig:!!G.sig,line:!!G.line,ug:!!G.ug}]))'),
   gearCell: ev(`(()=>{const o={};['lever','hammer','welder','binoc','axe','toolbox','shovel','wrench','light','saw','medkit','steth','hoe','ladle','tape2','rope2','meter','mic','rope3','loupe','mpick'].forEach((k,i)=>o[k]=['tools',i]);['coverall','mask','gloves','firesuit','coat','armor','boots','raincoat','helmet','apron','parka','drvglove','herbbag','wmask','mhelm'].forEach((k,i)=>o[k]=['wear',i]);['photo','coin','harmonica','seeds','watch','brooch','tape','bell','compass','notebook','ring','bag','umbrella','sketch','vane','ckey','feather','mlamp'].forEach((k,i)=>o[k]=['keep',i]);for(const k in LNI)o[k]=['line',LNI[k]];return o;})()`),
   gup: ev('GUP'),
+  small: ev('Object.fromEntries(Object.entries(SMALL).map(([k,v])=>[k,v]))'),
+  pairs: ev('PAIRS'),
+  nightLine: ev('NIGHTLINE'),
 };
 
 const dartStr = s => "'" + String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\$/g, '\\$').replace(/\n/g, '\\n') + "'";
