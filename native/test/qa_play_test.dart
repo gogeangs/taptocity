@@ -184,9 +184,11 @@ void autoStep(Game g, Qa qa, math.Random r) {
   }
   if (r.nextDouble() < .1) {
     safe('exp', () {
+      // 등불 탑 5층(불 켜기)은 모두 쉘터에 있어야 해서 그 앞에선 새로 보내지 않는다
+      final hold = g.towerOpen && g.towerN == 4;
       for (final e in exps) {
         g.claimExp(e.key, quiet: true);
-        if (g.expOpen(e) && g.expMap[e.key] == null) {
+        if (!hold && g.expOpen(e) && g.expMap[e.key] == null) {
           final t = g.autoTeam(e);
           if (t != null && t.isNotEmpty) g.sendExp(e.key, t);
         }
@@ -329,7 +331,7 @@ void main() {
       simMs = 0;
       final qa = Qa();
       final g = Game(Game.fresh(seed: seed * 101));
-      run(g, qa, 6 * 60, seed);
+      run(g, qa, 24 * 60, seed);
       out
         ..add('===== 새 게임 시드 $seed =====')
         ..addAll(qa.log)
