@@ -8,6 +8,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../game/data.dart';
 import '../game/engine.dart';
 import '../game/storage.dart';
+import 'gear.dart';
 import 'icons.dart';
 import 'map_view.dart';
 import 'sheets.dart';
@@ -228,6 +229,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     }
   }
 
+  void _survPage(int id) => showSurvPage(context, g, id, onGear: (id, slot) => _open(SheetSpec('gear', arg: '$id:$slot')));
+
   void _flyTo(int tile) {
     final w = tileC(tile);
     setState(() => sheet = null);
@@ -281,7 +284,29 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             }));
       case 'surv':
         final n = g.S.sv.length, total = survivors.where((x) => x.src != 'town' || g.S.gen != 0 || g.hasSv(x.id)).length;
-        return SheetPanel(icon: Ico.surv, title: '생존자 수첩 $n/$total', onClose: _close, child: SurvBody(g, onOpen: (id) => showSurvPage(context, g, id), onFly: _flyTo));
+        return SheetPanel(
+            icon: Ico.surv,
+            title: '생존자 수첩 $n/$total',
+            onClose: _close,
+            child: SurvBody(g,
+                onOpen: _survPage,
+                onFly: _flyTo,
+                onBag: () => _open(const SheetSpec('gear')),
+                onRadio: () => _open(const SheetSpec('radio')),
+                toast: fxc.toast));
+      case 'party':
+        return SheetPanel(icon: Ico.surv, title: '스킬 바에 데려갈 3명', onClose: _close, child: partyBody(g));
+      case 'gear':
+        final a = s.arg?.split(':');
+        final gid = a == null ? null : int.parse(a[0]), gsl = a?[1];
+        return SheetPanel(
+            icon: Ico.surv,
+            title: gid != null ? '${survivors[gid].name} · ${slotName[gsl]}' : '장비 가방 ${g.inv.length}/${Game.bagMax}',
+            onClose: _close,
+            child: BagBody(g, key: ValueKey(s.arg), id: gid, slot: gsl, toast: fxc.toast, onBack: () {
+              setState(() => sheet = null);
+              if (gid != null) _survPage(gid);
+            }));
       case 'exp':
         return SheetPanel(icon: Ico.exp, title: '원정', onClose: _close, child: comingBody('원정', '4단계'));
       default:
@@ -344,6 +369,28 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                     child: sheet == null
                         ? const SizedBox.shrink()
                         : KeyedSubtree(key: ValueKey(sheet), child: AnimatedBuilder(animation: g, builder: (c, _) => _sheetFor(sheet!))),
+                  ),
+                ),
+                // 스킬 바 (시트가 열리면 숨김)
+                Positioned(
+                  left: 94,
+                  bottom: bottom + 84,
+                  child: IgnorePointer(
+                    ignoring: sheet != null,
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 150),
+                      opacity: sheet != null ? 0 : 1,
+                      child: AnimatedBuilder(
+                        animation: g,
+                        builder: (c, _) => SkillBar(g, toast: fxc.toast, onEmpty: () {
+                          if (g.S.sv.isEmpty) {
+                            fxc.toast('구조 신호를 따라가 생존자를 먼저 만나요');
+                          } else {
+                            _open(const SheetSpec('party'));
+                          }
+                        }),
+                      ),
+                    ),
                   ),
                 ),
                 // 랜턴

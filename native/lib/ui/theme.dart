@@ -64,6 +64,10 @@ abstract final class Ttc {
         leadingDistribution: TextLeadingDistribution.even,
       );
 
+  /// 이야기 글꼴 (고운바탕)
+  static TextStyle serif(double size, {Color color = hudText, FontWeight weight = FontWeight.w400, double height = 1.3}) =>
+      TextStyle(fontFamily: 'GowunBatang', fontSize: size, color: color, fontWeight: weight, height: height, leadingDistribution: TextLeadingDistribution.even);
+
   static ThemeData theme() => ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: body,

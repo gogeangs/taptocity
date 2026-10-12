@@ -42,7 +42,16 @@ Game _demo() {
   g.assign(tiles[0], 0);
   g.assign(tiles[2], 1);
   g.rec(0)!['xp'] = 180;
-  g.S.m.addAll({'wood': 140, 'scrap': 90, 'cloth': 40, 'food': 60});
+  g.S.m.addAll({'wood': 140, 'scrap': 90, 'cloth': 40, 'food': 60, 'parts': 30, 'batt': 3});
+  // 스킬 바 둘, 한 명은 대기 중
+  g.party = [0, 3];
+  g.S.rest['cd'] = {'3': 20};
+  // 장비 몇 개
+  for (final t in ['shovel', 'coverall', 'photo', 'shovel', 'hammer']) {
+    g.addGear(t);
+  }
+  final shovel = g.inv.first['u'];
+  g.equip(0, 'tool', shovel);
   g.takeFx();
   return g;
 }
@@ -87,6 +96,42 @@ void main() {
       }
       await tester.tap(find.text(survivors[0].name).first);
     });
+    await _shot(tester, g, '08-survivor-grow', act: () async {
+      await tester.tap(find.text('생존자').last);
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.tap(find.text(survivors[0].name).first);
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.tap(find.text('성장').last);
+    });
+    await _shot(tester, g, '09-survivor-gear', act: () async {
+      await tester.tap(find.text('생존자').last);
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.tap(find.text(survivors[0].name).first);
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.tap(find.text('장비').last);
+    });
+    await _shot(tester, g, '10-bag', act: () async {
+      await tester.tap(find.text('생존자').last);
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.tap(find.text('장비').first);
+    });
+    await _shot(tester, g, '11-party', act: () async {
+      g.party = [0];
+      g.poke();
+      await tester.pump(const Duration(milliseconds: 60));
+      await tester.tap(find.text('+').first);
+    });
+    g.party = [0, 3];
     await _shot(tester, g, '07-ring', act: () async {
       final r = tester.getRect(find.byType(MapView));
       final z = (r.width / (TW * 4.2)).clamp(.6, 2.2).toDouble();

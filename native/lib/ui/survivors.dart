@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../game/data.dart';
 import '../game/engine.dart';
+import 'gear.dart';
 import 'icons.dart';
 import 'portrait.dart';
 import 'theme.dart';
@@ -59,17 +60,117 @@ Widget faceBox(Game g, int id, {double w = 54, double h = 63, bool locked = fals
 
 // ======================= 생존자 수첩 =======================
 class SurvBody extends StatefulWidget {
-  const SurvBody(this.g, {super.key, required this.onOpen, required this.onFly});
+  const SurvBody(this.g, {super.key, required this.onOpen, required this.onFly, required this.onBag, required this.onRadio, required this.toast});
   final Game g;
   final void Function(int id) onOpen;
   final void Function(int tile) onFly;
+  final VoidCallback onBag, onRadio;
+  final void Function(String) toast;
   @override
   State<SurvBody> createState() => _SurvBodyState();
 }
 
 class _SurvBodyState extends State<SurvBody> {
   static String filter = 'all';
+  static String? tool;
   Game get g => widget.g;
+
+  List<int> get idleIds => [for (final id in g.svIds) if (g.atOf(id) < 0 && !g.busy(id) && !(((g.rec(id)?['hurt'] as num?) ?? 0) > 0)) id];
+
+  Widget _svt(String? svg, String label, {String? count, bool on = false, bool onx = false, String? res, required VoidCallback onTap}) => GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+          decoration: BoxDecoration(
+            color: on ? Ttc.sepia : Colors.transparent,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: on ? Ttc.sepia : const Color(0xFFB9C2BC)),
+          ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            if (res != null) ResIcon(res, size: 17) else if (svg != null) SvgIcon(svg, size: 18, color: on ? const Color(0xFFF1E5C6) : Ttc.sepia),
+            const SizedBox(width: 5),
+            Text(label, style: Ttc.t(13, color: on ? const Color(0xFFF1E5C6) : Ttc.sepia, weight: FontWeight.w600, height: 1.2)),
+            if (count != null) ...[const SizedBox(width: 5), Text(count, style: Ttc.t(13, color: on ? const Color(0xFFFFD98A) : Ttc.no, weight: FontWeight.w700, height: 1.2))],
+            if (onx) ...[
+              const SizedBox(width: 5),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                decoration: BoxDecoration(color: Ttc.ok, borderRadius: BorderRadius.circular(6)),
+                child: Text('켬', style: Ttc.t(11, color: Colors.white, weight: FontWeight.w700, height: 1.2)),
+              ),
+            ],
+          ]),
+        ),
+      );
+
+  static String _ti(String p) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">$p</svg>';
+
+  List<Widget> _tools() {
+    final idle = idleIds, autoOn = g.S.rest['autoAsg'] == true;
+    final bt = <Widget>[
+      _svt(null, '라디오', res: 'batt', count: '${g.have('batt').toInt()}', onTap: widget.onRadio),
+      _svt(_ti('<path d="M5 8h14l-1 12H6zM9 8V5a3 3 0 0 1 6 0v3"/>'), '장비', count: '${g.inv.length}', onTap: widget.onBag),
+      if (g.autoOpen)
+        _svt(_ti('<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>'), '자동',
+            on: tool == 'auto', onx: autoOn, onTap: () => setState(() => tool = tool == 'auto' ? null : 'auto')),
+      if (idle.isNotEmpty)
+        _svt(_ti('<path d="M4 20h16M7 20V10l5-5 5 5v10"/><path d="M10 20v-5h4v5"/>'), '쉬는 사람', count: '${idle.length}', on: tool == 'duty', onTap: () => setState(() => tool = tool == 'duty' ? null : 'duty')),
+    ];
+    final out = <Widget>[Padding(padding: const EdgeInsets.only(bottom: 10), child: Wrap(spacing: 6, runSpacing: 6, children: bt))];
+    if (tool == 'auto' && g.autoOpen) {
+      final tiles = g.modAt.length, used = g.S.asg.length;
+      out.add(autoBox(
+        title: '⚙ 자동 배치',
+        sub: '일터 $used/$tiles · 딱 맞는 사람을 먼저 앉혀요',
+        button: BuyButton('지금 맞추기', width: 84, onTap: () {
+          final r = g.autoAssign(true);
+          widget.toast(r.n == 0 ? '앉힐 사람이나 빈 일터가 없어요' : '${r.n}명 배치 · 딱 맞는 자리 ${r.fit}명');
+        }),
+        trailing: toggle(autoOn, () {
+          g.S.rest['autoAsg'] = !autoOn;
+          g.dirty = true;
+          widget.toast(!autoOn ? '빈 일터를 자동으로 채워요' : '자동 채우기를 껐어요');
+          if (!autoOn) g.autoAssign(false);
+          g.poke();
+        }),
+      ));
+      out.add(autoGearBox(g, widget.toast));
+    } else if (tool == 'duty' && idle.isNotEmpty) {
+      final cnt = <String, int>{};
+      for (final id in idle) {
+        cnt[g.dutyOf(id)] = (cnt[g.dutyOf(id)] ?? 0) + 1;
+      }
+      out.add(Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(color: const Color(0x0D3B2A1A), borderRadius: BorderRadius.circular(12)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('쉬는 ${idle.length}명 · ${cnt.entries.map((e) => '${duties[e.key]!.$3}${e.value}').join(' ')}', style: Ttc.t(12.5, color: Ttc.sepia2, weight: FontWeight.w600)),
+          const SizedBox(height: 6),
+          Wrap(spacing: 6, runSpacing: 6, children: [
+            for (final e in duties.entries)
+              GestureDetector(
+                onTap: () {
+                  for (final id in idle) {
+                    g.rec(id)!['duty'] = e.key;
+                  }
+                  g.dirty = true;
+                  widget.toast('쉬는 생존자 모두 ${e.value.$1}');
+                  g.poke();
+                },
+                child: Container(
+                  constraints: const BoxConstraints(minHeight: 30),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(color: Ttc.surface, borderRadius: BorderRadius.circular(7), border: Border.all(color: Ttc.line)),
+                  child: Text('${e.value.$3} ${e.value.$1}', style: Ttc.t(12, color: Ttc.sepia, weight: FontWeight.w500)),
+                ),
+              ),
+          ]),
+        ]),
+      ));
+    }
+    return out;
+  }
 
   int? signalTile(int id) {
     for (final e in g.S.camp.entries) {
@@ -90,9 +191,11 @@ class _SurvBodyState extends State<SurvBody> {
       'all': ((_) => true, '전체'),
       'work': ((id) => g.atOf(id) >= 0 && !g.busy(id), '일하는 중'),
       'rest': ((id) => g.atOf(id) < 0 && !g.busy(id), '쉬는 사람'),
+      'up': ((id) => g.canPromote(id), '강화 가능'),
     };
     final list = met.where(fl[filter]!.$1).toList();
     return ListView(padding: const EdgeInsets.fromLTRB(14, 14, 14, 20), children: [
+      ..._tools(),
       SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(children: [
@@ -152,6 +255,13 @@ class _SurvBodyState extends State<SurvBody> {
               Text(g.statusOf(id), style: Ttc.t(12, color: hurt ? Ttc.no : Ttc.ok, weight: FontWeight.w600, height: 1.4)),
             ]),
           ),
+          if (g.canPromote(id))
+            Container(
+              margin: const EdgeInsets.only(right: 6),
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(color: const Color(0xFFE7EDE3), borderRadius: BorderRadius.circular(4), border: Border.all(color: const Color(0xFFB7C6BC))),
+              child: Text('강화 가능', style: Ttc.t(9, color: const Color(0xFF4E6A5B), weight: FontWeight.w600, height: 1)),
+            ),
           Text('›', style: Ttc.t(22, color: Ttc.sepia2)),
         ]),
       ),
@@ -242,77 +352,336 @@ Widget _head(Game g, int id, {bool base = false, String? tag}) {
   ]);
 }
 
-/// 생존자 상세 (웹 openSurv 4604)
-void showSurvPage(BuildContext context, Game g, int id) => showPageOf(context, g, (ctx) {
-      final s = survivors[id];
-      if (!g.hasSv(id)) return const SizedBox();
-      final xp = g.xpOf(id), tl = Game.trustLv(xp), nx = tl < 5 ? trustXp[tl] : 0, pv = trustXp[tl - 1], gc = g.giftCost(id), at = g.atOf(id);
-      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        _head(g, id),
-        const SizedBox(height: 8),
-        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          for (var k = 1; k <= 5; k++)
-            Container(
-              width: 9,
-              height: 9,
-              margin: const EdgeInsets.symmetric(horizontal: 1.5),
-              decoration: BoxDecoration(shape: BoxShape.circle, color: k <= tl ? Ttc.amber : null, border: Border.all(color: k <= tl ? Ttc.amber : const Color(0xFFC98A2C), width: 1.5)),
-            ),
-        ]),
-        Container(
-          height: 5,
-          margin: const EdgeInsets.fromLTRB(0, 4, 0, 10),
-          decoration: BoxDecoration(color: const Color(0x263B2A1A), borderRadius: BorderRadius.circular(3)),
-          alignment: Alignment.centerLeft,
-          child: FractionallySizedBox(widthFactor: tl < 5 ? ((xp - pv) / (nx - pv)).clamp(0, 1).toDouble() : 1, child: Container(color: Ttc.amber)),
-        ),
-        Text.rich(
-          TextSpan(children: [
-            TextSpan(text: '특기: ${g.traitOf(id)} (일터에 있을 때)\n'),
-            TextSpan(text: '딱 맞는 일터: ${s.match.map((b) => mods[b]!.n).join(', ')}\n'),
-            TextSpan(text: at >= 0 ? '지금 ${g.workName(at)}에서 일하는 중' : '지금은 쉬는 중이에요. 쉘터 모듈을 눌러 배치해 주세요.'),
-          ]),
-          style: Ttc.t(13, color: Ttc.ok, height: 1.5),
-        ),
-        const SizedBox(height: 12),
-        Text('쉴 때 할 일', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
-        const SizedBox(height: 6),
-        Wrap(spacing: 6, runSpacing: 6, children: [
-          for (final e in duties.entries)
-            GestureDetector(
-              onTap: () {
-                g.rec(id)!['duty'] = e.key;
-                g.dirty = true;
-                g.poke();
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                decoration: BoxDecoration(
-                  color: g.dutyOf(id) == e.key ? const Color(0xFFEDD6A6) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(7),
-                  border: Border.all(color: g.dutyOf(id) == e.key ? const Color(0xFFB58B49) : Ttc.line),
+/// 생존자 상세 (웹 openSurv 4604): 머리 + 정보·성장·장비·이야기 탭
+String survTab = 'info';
+String _pct(({double m, double w, double cd}) p) => '특기 효과 ×${p.m.toStringAsFixed(2)} · 딱 맞는 일터 ×${(2 + p.w).toStringAsFixed(2)} · 스킬 대기 -${((1 - p.cd) * 100).round()}%';
+
+void showSurvPage(BuildContext context, Game g, int id0, {void Function(int id, String slot)? onGear}) {
+  var id = id0;
+  showPageOf(context, g, (ctx) => StatefulBuilder(builder: (ctx, set) {
+        if (!g.hasSv(id)) return const SizedBox();
+        final s = survivors[id], r = g.rec(id)!;
+        final xp = g.xpOf(id), tl = Game.trustLv(xp), nx = tl < 5 ? trustXp[tl] : 0, pv = trustXp[tl - 1], gc = g.giftCost(id), at = g.atOf(id), p = g.pw(id);
+        final hurt = ((r['hurt'] as num?) ?? 0) > 0;
+        final where = r['away'] == true ? '원정 중' : hurt ? '치료 중' : at >= 0 ? '${g.workName(at)}에서 일하는 중' : duties[g.dutyOf(id)]!.$2;
+        final narrow = MediaQuery.of(ctx).size.width < 381;
+        final pfW = narrow ? 104.0 : 116.0;
+        final ids = g.svIds.toList();
+        final tabs = [('info', '정보', false), ('grow', '성장', g.canPromote(id)), ('gear', '장비', false), ('story', '이야기', false)];
+        final Widget body = switch (survTab) {
+          'grow' => _growTab(g, id, p, ctx),
+          'gear' => _gearTab(g, id, onGear == null ? null : (sl) {
+              Navigator.pop(ctx);
+              onGear(id, sl);
+            }),
+          'story' => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              for (var k = 0; k < s.story.length; k++)
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Ttc.line))),
+                  child: k < tl
+                      ? Text(s.story[k], style: Ttc.serif(14.5, color: const Color(0xFF4A3320), height: 1.6))
+                      : Text('신뢰도 ${k + 1}에 열려요', style: Ttc.t(12.5, color: const Color(0xFFA8977A))),
                 ),
-                child: Text('${e.value.$3} ${e.value.$1}', style: Ttc.t(12, color: g.dutyOf(id) == e.key ? Ttc.sepia : Ttc.sepia2, weight: FontWeight.w600)),
-              ),
+            ]),
+          _ => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              _sline('특기', g.traitOf(id)),
+              _sline('일터', s.match.map((b) => mods[b]!.n).join(', ')),
+              _sline('스킬', '${skills[id].n} · ${skills[id].d}'),
+              _dutyBox(g, id, set),
+            ]),
+        };
+        return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+            Container(
+              width: pfW,
+              height: pfW * 1.17,
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), border: Border.all(color: Ttc.line)),
+              clipBehavior: Clip.antiAlias,
+              child: faceBox(g, id, w: pfW, h: pfW * 1.17),
             ),
-        ]),
-        Padding(padding: const EdgeInsets.only(top: 4), child: Text(duties[g.dutyOf(id)]!.$4, style: Ttc.t(11.5, color: Ttc.sepia2))),
-        const SizedBox(height: 12),
-        for (var k = 0; k < s.story.length; k++)
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0x385A4628)))),
-            child: k < tl
-                ? Text(s.story[k], style: Ttc.t(14.5, color: const Color(0xFF4A3320), height: 1.5))
-                : Text('신뢰도 ${k + 1}에 열려요', style: Ttc.t(12.5, color: const Color(0xFFA8977A))),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(s.name, style: Ttc.t(narrow ? 22 : 24, color: Ttc.sepia, weight: FontWeight.w700, height: 1.15)),
+                const SizedBox(height: 6),
+                gradeTag(g, id),
+                const SizedBox(height: 3),
+                Text('${s.age}세 · ${s.job}', style: Ttc.t(12, color: Ttc.sepia2, height: 1.5)),
+                const SizedBox(height: 3),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(color: const Color(0x0F252E36), borderRadius: BorderRadius.circular(5)),
+                  child: Text(where, style: Ttc.t(11, color: at >= 0 && r['away'] != true ? Ttc.ok : Ttc.sepia2, weight: FontWeight.w600, height: 1)),
+                ),
+                const SizedBox(height: 8),
+                Row(children: [
+                  for (var k = 1; k <= 5; k++)
+                    Container(
+                      width: 9,
+                      height: 9,
+                      margin: const EdgeInsets.only(right: 3),
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: k <= tl ? Ttc.amber : null, border: Border.all(color: k <= tl ? const Color(0xFFB28540) : const Color(0xFF9A824E))),
+                    ),
+                  const SizedBox(width: 5),
+                  Expanded(
+                    child: Container(
+                      height: 4,
+                      decoration: BoxDecoration(color: const Color(0x1A252E36), borderRadius: BorderRadius.circular(3)),
+                      alignment: Alignment.centerLeft,
+                      child: FractionallySizedBox(widthFactor: tl < 5 ? ((xp - pv) / (nx - pv)).clamp(0, 1).toDouble() : 1, child: Container(color: Ttc.amber)),
+                    ),
+                  ),
+                ]),
+                const SizedBox(height: 2),
+                Text('신뢰도 $tl/5', style: Ttc.t(11, color: Ttc.sepia2)),
+              ]),
+            ),
+          ]),
+          if (ids.length > 1)
+            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+              for (final d in const [-1, 1])
+                GestureDetector(
+                  onTap: () => set(() => id = ids[(ids.indexOf(id) + d + ids.length) % ids.length]),
+                  child: Container(
+                    width: 36,
+                    height: 32,
+                    margin: const EdgeInsets.only(left: 4),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: const Color(0x333B2A1A), width: 1.5)),
+                    child: Text(d < 0 ? '‹' : '›', style: Ttc.t(17, color: Ttc.sepia, weight: FontWeight.w700, height: 1)),
+                  ),
+                ),
+            ])
+          else
+            const SizedBox(height: 14),
+          const SizedBox(height: 4),
+          Segs(
+            items: [for (final t in tabs) t.$3 ? '${t.$2} •' : t.$2],
+            on: tabs.indexWhere((t) => t.$1 == survTab).clamp(0, 3),
+            onTap: (k) => set(() => survTab = tabs[k].$1),
           ),
-        const SizedBox(height: 14),
-        Row(children: [
-          if (tl < 5) ...[pageBtn('선물하기 · 식량 ${gc['food']}', g.canPay(gc) ? () => g.gift(id) : null, alt: true), const SizedBox(width: 8)],
-          pageBtn('닫기', () => Navigator.pop(ctx)),
+          body,
+          const SizedBox(height: 12),
+          Row(children: [
+            pageBtn(g.party.contains(id) ? '스킬 바 빼기' : '스킬 바에 넣기', () {
+              if (!g.party.contains(id) && g.party.length >= 3) {
+                g.fx.add(const FxToast('스킬 바는 3명까지예요'));
+                g.poke();
+                return;
+              }
+              g.toggleParty(id);
+            }, alt: true),
+            if (tl < 5) ...[const SizedBox(width: 8), pageBtn('선물 · 식량 ${gc['food']}', g.canPay(gc) ? () => g.gift(id) : null)],
+          ]),
+        ]);
+      }));
+}
+
+Widget _sline(String b, String t) => Container(
+      padding: const EdgeInsets.symmetric(vertical: 11),
+      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Ttc.line))),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        SizedBox(width: 38, child: Text(b, style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700, height: 1.5))),
+        const SizedBox(width: 12),
+        Expanded(child: Text(t, style: Ttc.t(13, color: Ttc.sepia2, height: 1.6))),
+      ]),
+    );
+
+Widget _dutyBox(Game g, int id, StateSetter set) {
+  final cur = g.dutyOf(id), idle = g.atOf(id) < 0 && !g.busy(id);
+  return Padding(
+    padding: const EdgeInsets.only(top: 11),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        SizedBox(width: 38, child: Padding(padding: const EdgeInsets.only(top: 9), child: Text('쉴 때', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)))),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Wrap(spacing: 5, runSpacing: 5, children: [
+            for (final e in duties.entries)
+              GestureDetector(
+                onTap: () {
+                  g.rec(id)!['duty'] = e.key;
+                  g.dirty = true;
+                  set(() {});
+                  g.poke();
+                },
+                child: Container(
+                  constraints: const BoxConstraints(minHeight: 38),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: cur == e.key ? const Color(0xFFD9E3DB) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(7),
+                    border: Border.all(color: cur == e.key ? const Color(0xFF5D7667) : Ttc.line),
+                  ),
+                  child: Text('${e.value.$3} ${e.value.$1}', style: Ttc.t(12.5, color: cur == e.key ? const Color(0xFF2E4438) : Ttc.sepia2, weight: FontWeight.w600)),
+                ),
+              ),
+          ]),
+        ),
+      ]),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(50, 4, 0, 0),
+        child: Text('${duties[cur]!.$4}${idle ? ' · 지금 하는 중' : ''}', style: Ttc.t(12, color: Ttc.sepia2, height: 1.4)),
+      ),
+    ]),
+  );
+}
+
+/// 웹 needHtml: 모자란 자재는 한 줄씩, 넉넉한 자재는 한 줄로
+Widget needList(Game g, Cost c) {
+  final no = c.entries.where((e) => g.have(e.key) < e.value).toList(), ok = c.entries.where((e) => g.have(e.key) >= e.value).toList();
+  return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+    for (final e in no)
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 1),
+        child: Row(children: [
+          ResIcon(e.key, size: 13),
+          const SizedBox(width: 4),
+          Text(matOf[e.key]?.n ?? e.key, style: Ttc.t(12.5, color: Ttc.no, weight: FontWeight.w700, height: 1.5)),
+          Text(' ${fmt(g.have(e.key))}/${fmt(e.value)}', style: Ttc.t(12.5, color: Ttc.sepia, height: 1.5)),
+          const Spacer(),
+          Text(matOf[e.key]?.s2 ?? '', style: Ttc.t(11, color: Ttc.sepia2)),
         ]),
-      ]);
-    });
+      ),
+    if (ok.isNotEmpty)
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 1),
+        child: Wrap(crossAxisAlignment: WrapCrossAlignment.center, children: [
+          for (var k = 0; k < ok.length; k++) ...[
+            if (k > 0) Text(' · ', style: Ttc.t(12, color: Ttc.ok)),
+            ResIcon(ok[k].key, size: 13),
+            Text('${matOf[ok[k].key]?.n ?? ok[k].key} ${fmt(ok[k].value)}', style: Ttc.t(12, color: Ttc.ok)),
+          ],
+          Text(' ✓', style: Ttc.t(12, color: Ttc.ok)),
+        ]),
+      ),
+  ]);
+}
+
+Widget _growTab(Game g, int id, ({double m, double w, double cd}) p, BuildContext ctx) {
+  final gr = g.gradeOf(id), mg = g.maxGrade(id), n = g.nextStep(id), tl = Game.trustLv(g.xpOf(id));
+  Widget tile(String b, String s) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+          decoration: BoxDecoration(color: Ttc.surface, borderRadius: BorderRadius.circular(7), border: Border.all(color: Ttc.line)),
+          child: Column(children: [
+            Text(b, style: Ttc.serif(17, color: Ttc.sepia, weight: FontWeight.w700, height: 1.1)),
+            const SizedBox(height: 2),
+            Text(s, style: Ttc.t(11, color: Ttc.sepia2)),
+          ]),
+        ),
+      );
+  return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+    const SizedBox(height: 4),
+    Row(children: [
+      tile('×${p.m.toStringAsFixed(2)}', '특기 효과'),
+      const SizedBox(width: 6),
+      tile('×${(2 + p.w).toStringAsFixed(2)}', '딱 맞는 일터'),
+      const SizedBox(width: 6),
+      tile('-${((1 - p.cd) * 100).round()}%', '스킬 대기'),
+    ]),
+    const SizedBox(height: 12),
+    Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(color: Ttc.surface, borderRadius: BorderRadius.circular(10), border: Border.all(color: Ttc.line)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [gradeTag(g, id), const Spacer(), Text('최대 ${grades[mg].n} 5성', style: Ttc.t(12, color: Ttc.sepia2))]),
+        if (n == null)
+          Padding(padding: const EdgeInsets.only(top: 4), child: Text('${grades[mg].n} 5성, 더 오를 곳이 없어요', style: Ttc.t(12.5, color: Ttc.sepia2)))
+        else
+          Container(
+            margin: const EdgeInsets.only(top: 6),
+            padding: const EdgeInsets.only(top: 6),
+            decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(0x4D3B2A1A)))),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Text(n.$4, style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700, height: 1.4)),
+              const SizedBox(height: 2),
+              Text('→ ${_pct(n.$1 == 'star' ? g.pwAt(gr, g.starOf(id) + 1) : g.pwAt(gr + 1, 1))}', style: Ttc.t(12, color: Ttc.sepia2, height: 1.45)),
+              const SizedBox(height: 4),
+              Row(children: [
+                Text('신뢰도', style: Ttc.t(12.5, color: tl >= n.$2 ? Ttc.ok : Ttc.no, weight: FontWeight.w700, height: 1.5)),
+                Text(' $tl/${n.$2}${tl >= n.$2 ? ' ✓' : ''}', style: Ttc.t(12.5, color: tl >= n.$2 ? Ttc.ok : Ttc.sepia, height: 1.5)),
+                const Spacer(),
+                if (tl < n.$2) Text('일터에 배치하거나 선물해요', style: Ttc.t(11, color: Ttc.sepia2)),
+              ]),
+              needList(g, n.$3),
+              const SizedBox(height: 8),
+              Row(children: [
+                pageBtn(n.$1 == 'star' ? '성급 올리기' : '등급 올리기', g.canPromote(id)
+                    ? () {
+                        if (g.promote(id) == 'grade') showGradeUp(ctx, g, id);
+                      }
+                    : null, alt: true),
+              ]),
+            ]),
+          ),
+      ]),
+    ),
+  ]);
+}
+
+void showGradeUp(BuildContext context, Game g, int id) {
+  final s = survivors[id], gr = g.gradeOf(id);
+  const lines = ['“이 정도면 믿고 맡겨도 되겠죠?” {n}의 눈빛이 달라졌어요.', '{n}은(는) 이제 쉘터에 없어서는 안 될 사람이 됐어요.', '{n}의 이야기는 이제 쉘터의 전설이 됐어요.'];
+  showPageOf(context, g, (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text('등급 승급', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+        const SizedBox(height: 6),
+        Center(child: faceBox(g, id, w: 116, h: 135)),
+        const SizedBox(height: 8),
+        Wrap(alignment: WrapAlignment.center, crossAxisAlignment: WrapCrossAlignment.center, spacing: 6, children: [
+          Text(s.name, style: Ttc.t(22, color: Ttc.sepia, weight: FontWeight.w700)),
+          gradeTag(g, id),
+        ]),
+        const SizedBox(height: 8),
+        Text(lines[(gr - 1).clamp(0, 2)].replaceAll('{n}', s.name), textAlign: TextAlign.center, style: Ttc.serif(15, color: Ttc.sepia, height: 1.6)),
+        const SizedBox(height: 8),
+        Text(_pct(g.pw(id)), textAlign: TextAlign.center, style: Ttc.t(12.5, color: Ttc.ok, weight: FontWeight.w600, height: 1.5)),
+        const SizedBox(height: 14),
+        Row(children: [pageBtn('좋아요', () => Navigator.pop(ctx))]),
+      ]));
+}
+
+Widget _gearTab(Game g, int id, void Function(String slot)? onSlot) {
+  final q = g.eqOf(id);
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+    decoration: BoxDecoration(color: Ttc.surface, borderRadius: BorderRadius.circular(10), border: Border.all(color: Ttc.line)),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Text.rich(TextSpan(children: [
+        const TextSpan(text: '장비 '),
+        TextSpan(text: ' 일터에 있을 때 효과가 나요', style: Ttc.t(11, color: Ttc.sepia2)),
+      ]), style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700, height: 1.4)),
+      const SizedBox(height: 4),
+      for (final sl in slotKeys)
+        () {
+          final it = g.itemAt(q[sl]);
+          final G = it == null ? null : gear[it['t']];
+          final fit = G != null && G.fit.contains(id);
+          return GestureDetector(
+            onTap: onSlot == null ? null : () => onSlot(sl),
+            child: Container(
+              margin: const EdgeInsets.only(top: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              decoration: BoxDecoration(color: const Color(0xFFF8F3E6), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0x2926333B))),
+              child: Row(children: [
+                G == null ? const GearIcon(null, size: 30) : GearIcon(it!['t'] as String, size: 30),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(G?.n ?? slotName[sl]!, style: Ttc.t(13.5, color: Ttc.sepia, weight: FontWeight.w700)),
+                    Text(G == null ? '비어 있음' : '${effText({for (final e in G.eff.entries) e.key: e.value * (fit ? 1.5 : 1)})}${fit ? ' · 잘 맞음' : ''}',
+                        style: Ttc.t(11.5, color: const Color(0xFF56646A), height: 1.4)),
+                  ]),
+                ),
+                Text('›', style: Ttc.t(18, color: Ttc.sepia2)),
+              ]),
+            ),
+          );
+        }(),
+    ]),
+  );
+}
 
 /// 구조 대기·손님 (웹 openCamp 3087)
 void showCampPage(BuildContext context, Game g, int tile) => showPageOf(context, g, (ctx) {

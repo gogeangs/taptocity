@@ -613,6 +613,19 @@ class MapPainter extends CustomPainter {
       _fill.color = fr ? fogTop1 : fogTop0;
       canvas.drawOval(_FogShape.top.shift(o), _fill);
     }
+    // 구름 속 발견물 반짝임 (웹 drawHint): 밝힌 땅 가까이, 또는 지도 스케치(hintT) 동안 전부
+    final t = S.ter[i];
+    if (t >= T.car && t <= T.lm && ((S.rest['hintT'] as num?) ?? 0) > 0 || (t >= T.car && t < T.lm && _nearRev(i))) {
+      final p = P(i, .5, .5, 22), a = .45 + .5 * speck[i];
+      final col = t == T.crate ? const Color(0xFFFFC86E) : t == T.trace ? const Color(0xFFFFE678) : t == T.lm ? const Color(0xFFFFD24A) : const Color(0xFFDCEBF5);
+      final r = 4 + a * 3;
+      _line
+        ..color = col.withValues(alpha: a)
+        ..strokeWidth = 1.6;
+      canvas.drawLine(p.translate(-r, 0), p.translate(r, 0), _line);
+      canvas.drawLine(p.translate(0, -r), p.translate(0, r), _line);
+      _glows.add((p, 14.0, col, a * .6));
+    }
     // 구조 신호: 하늘로 솟는 빛줄기
     if (S.sig.containsKey(i)) {
       final p = P(i, .5, .5, 18);

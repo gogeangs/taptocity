@@ -13,13 +13,14 @@ import 'widgets.dart';
 
 /// 열린 시트의 종류
 class SheetSpec {
-  const SheetSpec(this.kind, {this.tile = -1});
-  final String kind; // shelter, module, landmark, camp, diary, settings, surv, exp, radio
+  const SheetSpec(this.kind, {this.tile = -1, this.arg});
+  final String kind; // shelter, module, landmark, camp, diary, settings, surv, exp, radio, party, gear
   final int tile;
+  final String? arg;
   @override
-  bool operator ==(Object o) => o is SheetSpec && o.kind == kind && o.tile == tile;
+  bool operator ==(Object o) => o is SheetSpec && o.kind == kind && o.tile == tile && o.arg == arg;
   @override
-  int get hashCode => Object.hash(kind, tile);
+  int get hashCode => Object.hash(kind, tile, arg);
 }
 
 class SheetPanel extends StatelessWidget {
