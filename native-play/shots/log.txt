@@ -1,0 +1,105 @@
+
+
+Warning: A call to tap() with finder "Found 1 widget with text "쉘터" (ignoring all but last): [
+  Text("쉘터", inherit: true, color: Color(alpha: 1.0000, red: 0.8353, green: 0.8510, blue: 0.8275, colorSpace: ColorSpace.sRGB), family: TTCSans, familyFallback: [Noto Sans KR, sans-serif], size: 10.0, weight: 500, height: 1.0x, leadingDistribution: even, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+]" derived an Offset (Offset(287.3, 776.5)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#bd60f relayoutBoundary=up6 NEEDS-PAINT
+The hit test result at that offset is: HitTestResult(_RenderInkFeatures#dbb91@Offset(287.3, 776.5), RenderPhysicalModel#b0b5a@Offset(287.3, 776.5), RenderSemanticsAnnotations#35f19@Offset(287.3, 776.5), RenderRepaintBoundary#d95a2@Offset(287.3, 776.5), RenderIgnorePointer#fee5a@Offset(287.3, 776.5), RenderAnimatedOpacity#a8966@Offset(287.3, 776.5), RenderAnimatedOpacity#4df51@Offset(287.3, 776.5), _RenderColoredBox#3e2d9@Offset(287.3, 776.5), RenderAnimatedOpacity#59bcf@Offset(287.3, 776.5), RenderIgnorePointer#4b945@Offset(287.3, 776.5), RenderAnimatedOpacity#febc3@Offset(287.3, 776.5), RenderRepaintBoundary#00105@Offset(287.3, 776.5), RenderSemanticsAnnotations#95585@Offset(287.3, 776.5), RenderOffstage#38055@Offset(287.3, 776.5), RenderSemanticsAnnotations#f2d9b@Offset(287.3, 776.5), _RenderTheater#2f5f3@Offset(287.3, 776.5), RenderAbsorbPointer#d6162@Offset(287.3, 776.5), RenderPointerListener#2b8dc@Offset(287.3, 776.5), RenderSemanticsAnnotations#a3e30@Offset(287.3, 776.5), RenderSemanticsAnnotations#d1a14@Offset(287.3, 776.5), RenderSemanticsAnnotations#18e90@Offset(287.3, 776.5), RenderSemanticsAnnotations#1f778@Offset(287.3, 776.5), RenderTapRegionSurface#531ed@Offset(287.3, 776.5), RenderSemanticsAnnotations#836b6@Offset(287.3, 776.5), RenderSemanticsAnnotations#48654@Offset(287.3, 776.5), HitTestEntry<HitTestTarget>#e37f2(_ReusableRenderView#38db0), HitTestEntry<HitTestTarget>#09e48(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure>.<anonymous closure> (file:///home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart:87:20)
+#4      _shot (file:///home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart:64:29)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart:86:5)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#8      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+
+Warning: A call to tap() with finder "Found 1 widget with text "생존자" (ignoring all but last): [
+  Text("생존자", inherit: true, color: Color(alpha: 1.0000, red: 0.8353, green: 0.8510, blue: 0.8275, colorSpace: ColorSpace.sRGB), family: TTCSans, familyFallback: [Noto Sans KR, sans-serif], size: 10.0, weight: 500, height: 1.0x, leadingDistribution: even, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+]" derived an Offset (Offset(285.3, 776.5)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#6b4ba relayoutBoundary=up6 NEEDS-PAINT
+The hit test result at that offset is: HitTestResult(_RenderInkFeatures#bc82e@Offset(285.3, 776.5), RenderPhysicalModel#39d11@Offset(285.3, 776.5), RenderSemanticsAnnotations#4ae65@Offset(285.3, 776.5), RenderRepaintBoundary#0d2bc@Offset(285.3, 776.5), RenderIgnorePointer#0a506@Offset(285.3, 776.5), RenderAnimatedOpacity#cb6dd@Offset(285.3, 776.5), RenderAnimatedOpacity#97ebd@Offset(285.3, 776.5), _RenderColoredBox#cd25b@Offset(285.3, 776.5), RenderAnimatedOpacity#bc78c@Offset(285.3, 776.5), RenderIgnorePointer#04321@Offset(285.3, 776.5), RenderAnimatedOpacity#6bb00@Offset(285.3, 776.5), RenderRepaintBoundary#727ea@Offset(285.3, 776.5), RenderSemanticsAnnotations#43090@Offset(285.3, 776.5), RenderOffstage#759fc@Offset(285.3, 776.5), RenderSemanticsAnnotations#2a46c@Offset(285.3, 776.5), _RenderTheater#00656@Offset(285.3, 776.5), RenderAbsorbPointer#adddc@Offset(285.3, 776.5), RenderPointerListener#f610d@Offset(285.3, 776.5), RenderSemanticsAnnotations#63f9e@Offset(285.3, 776.5), RenderSemanticsAnnotations#74b9d@Offset(285.3, 776.5), RenderSemanticsAnnotations#b89a1@Offset(285.3, 776.5), RenderSemanticsAnnotations#727f4@Offset(285.3, 776.5), RenderTapRegionSurface#18abd@Offset(285.3, 776.5), RenderSemanticsAnnotations#99f68@Offset(285.3, 776.5), RenderSemanticsAnnotations#923ef@Offset(285.3, 776.5), HitTestEntry<HitTestTarget>#1c3ab(_ReusableRenderView#38db0), HitTestEntry<HitTestTarget>#792b3(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure>.<anonymous closure> (file:///home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart:90:20)
+#4      _shot (file:///home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart:64:29)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart:89:5)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#8      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+
+Warning: A call to tap() with finder "Found 1 widget with text "생존자" (ignoring all but last): [
+  Text("생존자", inherit: true, color: Color(alpha: 1.0000, red: 0.8353, green: 0.8510, blue: 0.8275, colorSpace: ColorSpace.sRGB), family: TTCSans, familyFallback: [Noto Sans KR, sans-serif], size: 10.0, weight: 500, height: 1.0x, leadingDistribution: even, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+]" derived an Offset (Offset(285.3, 776.5)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#71b72 relayoutBoundary=up6 NEEDS-PAINT
+The hit test result at that offset is: HitTestResult(_RenderInkFeatures#48e11@Offset(285.3, 776.5), RenderPhysicalModel#2be7c@Offset(285.3, 776.5), RenderSemanticsAnnotations#a0dca@Offset(285.3, 776.5), RenderRepaintBoundary#dd03a@Offset(285.3, 776.5), RenderIgnorePointer#a7a26@Offset(285.3, 776.5), RenderAnimatedOpacity#823a9@Offset(285.3, 776.5), RenderAnimatedOpacity#c60cd@Offset(285.3, 776.5), _RenderColoredBox#fbf71@Offset(285.3, 776.5), RenderAnimatedOpacity#9fc8f@Offset(285.3, 776.5), RenderIgnorePointer#ae51c@Offset(285.3, 776.5), RenderAnimatedOpacity#4d52f@Offset(285.3, 776.5), RenderRepaintBoundary#bd794@Offset(285.3, 776.5), RenderSemanticsAnnotations#11ce8@Offset(285.3, 776.5), RenderOffstage#ce7f7@Offset(285.3, 776.5), RenderSemanticsAnnotations#71ca0@Offset(285.3, 776.5), _RenderTheater#029dc@Offset(285.3, 776.5), RenderAbsorbPointer#430ab@Offset(285.3, 776.5), RenderPointerListener#13032@Offset(285.3, 776.5), RenderSemanticsAnnotations#5a22c@Offset(285.3, 776.5), RenderSemanticsAnnotations#76025@Offset(285.3, 776.5), RenderSemanticsAnnotations#79635@Offset(285.3, 776.5), RenderSemanticsAnnotations#9f2fa@Offset(285.3, 776.5), RenderTapRegionSurface#aebb4@Offset(285.3, 776.5), RenderSemanticsAnnotations#0dd1b@Offset(285.3, 776.5), RenderSemanticsAnnotations#4919f@Offset(285.3, 776.5), HitTestEntry<HitTestTarget>#0bed3(_ReusableRenderView#38db0), HitTestEntry<HitTestTarget>#f5009(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure>.<anonymous closure> (file:///home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart:93:20)
+#4      _shot (file:///home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart:64:29)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart:92:5)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#8      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following StateError was thrown running a test:
+Bad state: No element
+
+When the exception was thrown, this was the stack:
+#0      Iterable.first (dart:core/iterable.dart:663:7)
+#1      _FirstFinderMixin.filter (package:flutter_test/src/finders.dart:1383:28)
+#3      _AncestorFinderMixin.allCandidates (package:flutter_test/src/finders.dart:1857:49)
+#4      FinderBase.evaluate (package:flutter_test/src/finders.dart:1030:76)
+#5      WidgetController.widgetList (package:flutter_test/src/controller.dart:848:19)
+#6      WidgetController._maybeViewOf (package:flutter_test/src/controller.dart:795:34)
+#7      WidgetController.tap (package:flutter_test/src/controller.dart:1078:31)
+#8      main.<anonymous closure>.<anonymous closure> (file:///home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart:97:20)
+<asynchronous suspension>
+#9      _shot (file:///home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart:64:20)
+<asynchronous suspension>
+#10     main.<anonymous closure> (file:///home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart:92:5)
+<asynchronous suspension>
+#11     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#12     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 2 frames from dart:async-patch and package:stack_trace)
+
+The test description was:
+  화면 사진
+════════════════════════════════════════════════════════════════════════════════════════════════════
+Test failed. See exception logs above.
+The test description was: 화면 사진
+
+
