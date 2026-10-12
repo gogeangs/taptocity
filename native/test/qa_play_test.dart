@@ -139,7 +139,8 @@ void autoStep(Game g, Qa qa, math.Random r) {
       final saving = want.isNotEmpty;
       final need = {for (final id in want) ...g.modBuildCost(id).keys};
       for (final k in g.S.mods.keys.toList()) {
-        if (!saving && r.nextDouble() < .2) g.upMod(k);
+        // 전선은 작업대 2단계부터 → 전선이 필요하면 작업대는 올린다
+        if ((!saving || (need.contains('wire') && g.S.mods[k]!.id == 1 && g.wbL < 2)) && r.nextDouble() < .2) g.upMod(k);
       }
       g.upShelter();
       g.upWalls();
