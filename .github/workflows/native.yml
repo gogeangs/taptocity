@@ -74,7 +74,7 @@ jobs:
         run: |
           set +e +o pipefail
           flutter test test_screens --update-goldens 2>&1 | tee ../out.txt; s=${PIPESTATUS[0]}
-          if [ $s -ne 0 ]; then m=$(grep -vE "^\s*$|✅" ../out.txt | grep -v "^::" | tail -60 | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}'); echo "::warning title=shots::$m"; fi
+          if [ $s -ne 0 ]; then m=$(grep -vE "^\s*$|✅" ../out.txt | grep -v "^::" | grep -A25 -m1 "EXCEPTION CAUGHT" | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}'); echo "::warning title=shots::$m"; fi
           ls test_screens/shots 2>/dev/null
 
       - name: 안드로이드 APK
