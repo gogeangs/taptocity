@@ -80,7 +80,11 @@ jobs:
           xcrun simctl boot "$UDID"; xcrun simctl bootstatus "$UDID" -b > /dev/null
           mkdir -p ios-shots
           flutter drive --driver test_driver/integration_test.dart --target integration_test/device_smoke_test.dart -d "$UDID" 2>&1 | tee ../drive.txt; s=${PIPESTATUS[0]}
-          cp build/integration_response_data.json ios-shots/report.json 2>/dev/null
+          # 결과 파일에는 사진 바이트도 들어 있어 아주 크다 → 오류·기록만 남긴다
+          python3 -c "
+          import json
+          d=json.load(open('build/integration_response_data.json'))
+          json.dump({k:d.get(k) for k in ('errors','log')}, open('ios-shots/report.json','w'), ensure_ascii=False, indent=1)" 2>/dev/null
           grep -v '^\s*$' ../drive.txt | tail -60 > ios-shots/drive-log.txt
           grep -E '▶|✓|✗' ../drive.txt > ios-shots/steps.txt
           xcrun simctl spawn "$UDID" log show --last 10m --predicate 'process == "Runner" AND messageType == fault' --style compact 2>/dev/null | tail -30 > ios-shots/faults.txt
