@@ -60,7 +60,7 @@ Order left to right, top to bottom (1–12 match residents.webp in the same orde
 13 a small boy about 7, patched jacket, too-big boots.
 14 a small girl about 7, braid, oversized sweater.
 15 a crow raider scout: black long coat, black scarf over the face, crow feather on the hood.
-16 the wandering cart trader woman from guests.webp: bandana, goggles on forehead, pack frame with pots.
+16 the wandering pack trader woman from guests.webp (not 노친네; no cart): bandana, goggles on forehead, wooden pack frame with pots.
 17 Nochinne (노친네), the elderly peddler from peddler.webp: flat cloth cap, patched brown coat, pulling a small two-wheeled cart.
 18 a refugee couple standing close under one grey blanket.
 
