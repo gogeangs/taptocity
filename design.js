@@ -22,9 +22,11 @@
   const RS={file:'residents.webp',w:2744,h:2292,cols:4,rows:3},rsImg=ttcLazy(base+RS.file);
   // 전용 도구를 든 초상: survivors-signature-1/2.webp, 3x3 each, cells 387x452, ids 0..8 and 9..17 in reading order
   const SG=[{file:'survivors-signature-1.webp',w:1161,h:1356,cols:3,rows:3},{file:'survivors-signature-2.webp',w:1161,h:1356,cols:3,rows:3}],sgImg=SG.map(a=>ttcLazy(base+a.file));
+  // 칸 크기가 고르지 않아(가운데 열이 넓음) 균등 분할하면 옆 칸 테두리가 선으로 비친다 — 실제 칸 안쪽 좌표
+  const SGF=[[[10,9,371,427],[397,9,366,427],[779,9,371,427],[10,452,371,413],[397,452,366,413],[779,452,371,413],[10,883,371,461],[397,883,366,461],[779,883,371,461]],[[12,9,354,429],[384,9,394,429],[795,9,356,429],[12,456,354,428],[384,456,394,428],[795,456,356,428],[12,903,354,441],[384,903,394,441],[795,903,356,441]]];
   function sigPortrait(s){const id=s&&s.id;if(!(id>=0&&id<18))return null;const k=id<9?0:1,n=id<9?id:id-9,A=SG[k],im=sgImg[k];if(!(im.complete&&im.naturalWidth))return null;
-    const w=A.w/A.cols,h=A.h/A.rows,x=n%A.cols*w,y=Math.floor(n/A.cols)*h;
-    return '<svg class="illustrated-portrait sig" viewBox="0 0 120 140" role="img" aria-label="'+escape(s.name)+' 초상화"><svg width="120" height="140" viewBox="'+[x+4,y+4,w-8,h-10].join(' ')+'" preserveAspectRatio="xMidYMin slice"><image href="'+base+A.file+'" width="'+A.w+'" height="'+A.h+'" preserveAspectRatio="none"/></svg></svg>';}
+    const f=SGF[k][n];
+    return '<svg class="illustrated-portrait sig" viewBox="0 0 120 140" role="img" aria-label="'+escape(s.name)+' 초상화"><svg width="120" height="140" viewBox="'+f.join(' ')+'" preserveAspectRatio="xMidYMin slice"><image href="'+base+A.file+'" width="'+A.w+'" height="'+A.h+'" preserveAspectRatio="none"/></svg></svg>';}
   function portrait(s,sig){
     if(sig){const r=sigPortrait(s);if(r)return r;}
     if(s&&s.src==='town'&&s.id>=18&&s.id<30){if(!(rsImg.complete&&rsImg.naturalWidth))return null;const n=s.id-18,w=RS.w/RS.cols,h=RS.h/RS.rows,x=n%RS.cols*w,y=Math.floor(n/RS.cols)*h;

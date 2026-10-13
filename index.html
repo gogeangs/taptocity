@@ -1279,10 +1279,10 @@ window.ttcLazy=function(src){const im=new Image();im.decoding='async';let go=fal
   const kick=()=>{if(!go){go=true;im.src=src;}};try{Object.defineProperty(im,'complete',{get(){kick();return dc.get.call(im);}});Object.defineProperty(im,'naturalWidth',{get(){kick();return dn.get.call(im);}});}catch(e){kick();}
   im.addEventListener('load',()=>{try{dispatchEvent(new Event('ttc-img'));}catch(e){}});im.kick=kick;return im;};
 </script>
-<script src="chapter-design.js?v=20261014-line"></script>
+<script src="chapter-design.js?v=20261014-sigfix"></script>
 <script src="settlement.js?v=20261011-lazy"></script>
 <script src="people.js?v=20261013-walkers4"></script>
-<script src="design.js?v=20261014-line"></script>
+<script src="design.js?v=20261014-sigfix"></script>
 <script>
 
 (function(){
