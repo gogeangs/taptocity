@@ -72,3 +72,9 @@ Order left to right, top to bottom (1–12 match residents.webp in the same orde
 - 커밋 메시지: "지도 위 인물 그림 추가 (walkers-1, walkers-2)"
 - 끝나면 두 파일의 실제 픽셀 크기, 투명 여부, 파일 용량, 커밋 해시를 알려 줘.
 ```
+
+## walkers-3 (grown-up kids, 2026-10-13)
+
+Children raised in the shelter grow up into apprentices (KJOB: mech / farm / scout). One row of 6 cells, 256px each → 1536 x 256, transparent.
+Order: young man mechanic apprentice, young woman mechanic apprentice, young man farming apprentice, young woman farming apprentice,
+young man scout apprentice, young woman scout apprentice. Same boy/girl hash as the child cells; job null → farming cell.
