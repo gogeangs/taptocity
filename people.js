@@ -14,7 +14,23 @@ const styles=[
  ['#b39a58','scarf','bun',.9],['#4d606d','goggles','short',1.1],
  ['#a75043','pack','bob',.93],['#4d5050','scarf','short',.86]
 ];
+// 손그림 지도 인물(walkers-1: 생존자 0~17, walkers-2: 18~29·아이·손님). 칸마다 그림 테두리를 재서 발을 바닥에 세우고,
+// 걸을 때 살짝 들썩이고 흔들리며, 왼쪽으로 갈 땐 좌우를 뒤집는다. 그림이 오기 전에는 아래 먹선 인형으로 그린다.
+const WK=[0,1].map(i=>({img:window.ttcLazy?ttcLazy('assets/illustrated/walkers-'+(i+1)+'.webp'):null,box:null}));
+function wkBox(a){if(a.box)return a.box;const im=a.img;if(!im||!(im.complete&&im.naturalWidth))return null;
+  try{const cw=im.naturalWidth/6,ch=im.naturalHeight/3,c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const q=c.getContext('2d');q.drawImage(im,0,0);const d=q.getImageData(0,0,c.width,c.height).data,box=[];
+    for(let k=0;k<18;k++){const ox=(k%6)*cw,oy=(k/6|0)*ch;let x0=cw,y0=ch,x1=0,y1=0;for(let y=0;y<ch;y+=2)for(let x=0;x<cw;x+=2){if(d[((oy+y|0)*c.width+(ox+x|0))*4+3]>40){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}}
+      box.push(x1>x0?[ox+x0,oy+y0,x1-x0+2,y1-y0+2]:null);}
+    a.box=box;}catch(e){a.box=[];}return a.box;}
+function wkCell(sv){const id=sv&&sv.id;if(Number.isInteger(id)&&id>=0&&id<18)return[0,id];if(Number.isInteger(id)&&id>=18&&id<30)return[1,id-18];
+  if(sv&&sv.age<13){const n=String(sv.name||'');let h=0;for(const ch of n)h=(h*31+ch.charCodeAt(0))|0;return[1,12+(Math.abs(h)%2)];}return null;}
+function wkDraw(g,sv,x,y,time,moving,face,job,reduced){const c=wkCell(sv);if(!c)return false;const a=WK[c[0]],b=wkBox(a);if(!b||!b[c[1]])return false;
+  const[sx,sy,sw,sh]=b[c[1]],k=31/(.8*a.img.naturalHeight/3),w=sw*k,h=sh*k,ph=reduced?0:time/165+(sv.id||0)*.71;
+  const bob=moving&&!reduced?Math.abs(Math.sin(ph))*1.1:0,sway=moving&&!reduced?Math.sin(ph)*.06:(job&&!reduced?Math.sin(ph*.7)*.035:0);
+  g.save();g.translate(x,y);g.fillStyle='rgba(15,21,25,.22)';g.beginPath();g.ellipse(0,.5,w*.32,2,0,0,7);g.fill();
+  g.translate(0,-bob);g.rotate(sway);if(face<0)g.scale(-1,1);g.drawImage(a.img,sx,sy,sw,sh,-w/2,-h,w,h);g.restore();return true;}
 function person(g,sv,x,y,time,moving,face=1,job=null,reduced=false){
+ if(wkDraw(g,sv,x,y,time,moving,face,job,reduced))return;
  const L=sv.look||{},st=Number.isInteger(sv.id)?styles[sv.id]:null;
  const top=st?st[0]:(L.top||'#6e7b77'),acc=st?st[1]:(L.acc||''),hair=st?st[2]:'short';
  const child=sv.age<13,scale=child?.78:sv.age<18?.9:1,width=st?st[3]:.94;
@@ -73,5 +89,5 @@ function person(g,sv,x,y,time,moving,face=1,job=null,reduced=false){
   g.restore();}
  g.restore();return true;
 }
-window.TTCPeople={person,version:'people-20261001'};
+window.TTCPeople={person,version:'people-20261013-walkers'};
 })();

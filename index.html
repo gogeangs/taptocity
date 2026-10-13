@@ -1281,7 +1281,7 @@ window.ttcLazy=function(src){const im=new Image();im.decoding='async';let go=fal
 </script>
 <script src="chapter-design.js?v=20261012-lmreg"></script>
 <script src="settlement.js?v=20261011-lazy"></script>
-<script src="people.js?v=20261001-people"></script>
+<script src="people.js?v=20261013-walkers"></script>
 <script src="design.js?v=20261012-lmreg"></script>
 <script>
 
@@ -4028,7 +4028,7 @@ let KW=[],DOGP={x:0,y:0,tx:0,ty:0};
 function tickKidWalk(dt){const kids=(S.kids||[]).filter(k=>k.g<1||!k.job||true);while(KW.length<kids.length){const[cx,cy]=tileC(C0);KW.push({x:cx+20,y:cy+18,tx:cx,ty:cy,idle:0});}KW.length=kids.length;
   const night=isNight();for(const w of KW){const dx=w.tx-w.x,dy=w.ty-w.y,d=Math.hypot(dx,dy);if(d>2){const s=(night?20:24)*dt;w.x+=dx/d*Math.min(s,d);w.y+=dy/d*Math.min(s,d);w.face=dx>=0?1:-1;w.mv=true;}else{w.mv=false;w.idle-=dt;if(w.idle<=0){[w.tx,w.ty]=pickSpot(night);w.idle=1+Math.random()*3;}}}
   petWalk(dt);}
-function drawKids(time){(S.kids||[]).forEach((k,n)=>{const w=KW[n];if(!w)return;drawPerson({look:k.look,age:k.g<1?8:18},w.x,w.y,time,w.mv,w.face||1);});
+function drawKids(time){(S.kids||[]).forEach((k,n)=>{const w=KW[n];if(!w)return;drawPerson({look:k.look,age:k.g<1?8:18,name:k.n},w.x,w.y,time,w.mv,w.face||1);});
   petDrawMap(time);}
 
 // ================= DECORATIONS (꾸미기) =================

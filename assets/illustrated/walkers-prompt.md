@@ -1,5 +1,7 @@
 # Map walkers (2026-10-13)
 
+> 2026-10-13 연결 완료: people.js wkDraw — 생존자 0~29와 어린 아이(이름으로 남/여 칸)는 손그림, 큰 아이·손님·까마귀 칸은 아직 미연결.
+
 People on the map (survivors at work, walking, visitors) are still drawn by code (`people.js`, small ink figures).
 These two atlases replace them with hand-drawn standing figures. The code keeps the motion: a small bob and sway while walking,
 mirrored when they face left, and a light work nod at their workplace.
