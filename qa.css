@@ -495,3 +495,4 @@ body.calm .fchl{animation:none;box-shadow:0 0 0 3px rgba(243,165,58,.9)}
 .dico{display:inline-block;width:1.45em;height:1.45em;vertical-align:-.38em;margin-right:2px;background:url(assets/illustrated/duty-icons.webp) 0 0/500% 100% no-repeat}
 .th.wallart{display:grid;place-items:center}
 .th.wallart i{display:block;width:100%;aspect-ratio:1;background:url(assets/illustrated/walls.webp) 0 0/300% 100% no-repeat}
+.ugshop button small{opacity:.7;margin-left:4px;font-size:.85em}

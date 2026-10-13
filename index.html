@@ -1231,7 +1231,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261013-props">
+<link rel="stylesheet" href="qa.css?v=20261013-ugshop">
 <div id="app">
   <header>
     <div class="hud">
@@ -3759,7 +3759,7 @@ function renderUG(){if(!UG)return;const hint=ugRole(UG.team,'scout')||ugRole(UG.
     ${window.TTCFinal?TTCFinal.scene(TH.k==='plant'?'control':TH.k,'ug-scene',TH.n):`<div class="udeco">${UGDECO[TH.k](f)}</div>`}
     <div class="uoil${oilP<.25?' low':''}"><span class="ulamp"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v2h4V3M8 6h8l-1 13H9z"/><path d="M12 10c1.6 1.6 1.6 3.4 0 4.6-1.6-1.2-1.6-3 0-4.6z" fill="currentColor" stroke="none"/></svg></span><div class="ubar"><i style="width:${oilP*100}%"></i></div><b>${UG.oil}</b></div>
     <div class="umsg${foeAlive?' warn':''}">${icoTxt(UG.msg)}</div>
-    ${UG.shop?`<div class="ugshop"><button class="alt" data-act="ugb" data-arg="0" ${canPay({food:15})?'':'disabled'}>${micon('food',14)} 15 → 기름 +8</button><button class="alt" data-act="ugb" data-arg="1" ${canPay({parts:12})?'':'disabled'}>${micon('parts',14)} 12 → <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">${UGI.key}</svg> 1</button></div>`:''}
+    ${UG.shop?`<div class="ugshop"><button class="alt" data-act="ugb" data-arg="0" ${canPay({food:15})&&ugShopBuys()[0]<UG_SHOP_MAX[0]?'':'disabled'}>${micon('food',14)} 15 → 기름 +8 <small>${UG_SHOP_MAX[0]-ugShopBuys()[0]}/${UG_SHOP_MAX[0]}</small></button><button class="alt" data-act="ugb" data-arg="1" ${canPay({parts:12})&&ugShopBuys()[1]<UG_SHOP_MAX[1]?'':'disabled'}>${micon('parts',14)} 12 → <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">${UGI.key}</svg> 1 <small>${UG_SHOP_MAX[1]-ugShopBuys()[1]}/${UG_SHOP_MAX[1]}</small></button></div>`:''}
     <div class="ugrid2">${grid}</div>${(()=>{const seen=[...new Set(UG.cells.filter(c=>c.rev&&UGL[c.c]&&c.c!=='start').map(c=>c.c))];return seen.length?`<div class="uglegend">${seen.map(k=>`<span class="k-${k}"><i class="ub">${ugIcon({c:k})}</i>${UGN[k]}</span>`).join('')}</div>`:'';})()}
     <div class="ucarry"><span class="ulbl">챙긴 것</span>${carry||'<small>아직 없어요</small>'}</div>
     <button data-act="ugx" class="uexit">돌아가기 · 전리품 챙기기<small>기름이 다 떨어지면 자재 절반과 장비를 잃어요</small></button></div>`;}
@@ -3776,8 +3776,12 @@ modal.addEventListener('click',e=>{const b=e.target.closest('[data-act^="ug"]');
   else if(a==='ugf'){if(performance.now()-ugfT<600)return;ugfStep(g);}
   else if(a==='ugo')ugStart();
   else if(a==='ugs'){ugPrep.start=g;renderPrep();}
-  else if(a==='ugb'){if(g===0&&pay({food:15})){UG.oil+=8;UG.max=Math.max(UG.max,UG.oil);UG.msg='상인: “기름이라면 얼마든지.” · 기름 +8';}else if(g===1&&pay({parts:12})){UG.keys++;UG.msg='상인: “이 열쇠, 어디 문인지는 나도 몰라.” · 열쇠 +1';}sfx('get');renderUG();}
+  else if(a==='ugb'){const sb=ugShopBuys();if(sb[g]>=UG_SHOP_MAX[g]){UG.msg=g?'상인: “열쇠는 그게 마지막이야.”':'상인: “기름은 이걸로 끝이야. 나도 내려가야 하거든.”';renderUG();return;}
+    if(g===0&&pay({food:15})){sb[0]++;UG.oil+=8;UG.max=Math.max(UG.max,UG.oil);UG.msg=`상인: “아껴 써. 남은 게 많지 않아.” · 기름 +8 (${UG_SHOP_MAX[0]-sb[0]}번 남음)`;sfx('get');}else if(g===1&&pay({parts:12})){sb[1]++;UG.keys++;UG.msg='상인: “이 열쇠, 어디 문인지는 나도 몰라.” · 열쇠 +1';sfx('get');}renderUG();}
   else if(a==='ugdiary')openUGDiary();},true);
+// 지하 상인: 한 층의 상인에게서 기름은 2번, 열쇠는 1번까지 (2026-10-13)
+const UG_SHOP_MAX=[2,1];
+function ugShopBuys(){const c=(UG.cells||[]).find(x=>x&&x.c==='shop');if(!c)return[9,9];return c.buys=c.buys||[0,0];}
 function ugUse(c){const f=UG.floor;
   if(c.c==='rest'&&!c.used){c.used=1;const got=give(UG.carry);UG.carry={};for(const t of UG.gear)addGear(t);const ng=UG.gear.length;UG.gear=[];S.ug.ck=S.ug.ck||[];if(!S.ug.ck.includes(f))S.ug.ck.push(f);S.ug.ck.sort((a,b)=>a-b);UG.oil+=10;UG.max=Math.max(UG.max,UG.oil);
     UG.msg=`쉼터에서 한숨 돌렸다. 챙긴 물건을 위로 올려 보냈다${Object.keys(got).length?` · ${lootTxt(got)}`:''}${ng?` · 장비 ${ng}개`:''} · 기름 +10 · 다음엔 ${f}층에서 시작할 수 있어요`;sfx('find');save();}
