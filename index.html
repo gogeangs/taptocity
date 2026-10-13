@@ -1231,7 +1231,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261014-lnmark">
+<link rel="stylesheet" href="qa.css?v=20261014-ringfix">
 <div id="app">
   <header>
     <div class="hud">
@@ -2501,8 +2501,16 @@ function levelUp(lv){sfx('level');$('stLv').textContent='Lv.'+lv;$('stNm').textC
 // ---------- ring menu (modules and landmarks) ----------
 const ringEl=$('ring');let ringTile=-1,ringSay='';const R=96;
 let ringPan=0,camGoalY=null;
-function openRing(i){ringTile=i;sel=i;confirmKey=null;ringPan=3;camGoalY=null;const m=modAtTile(i),s=m?SAY[m.id]:null;ringSay=s?s[(Math.random()*s.length)|0]:'';buildRing();}
-function closeRing(){ringTile=-1;sel=-1;ringEl.hidden=true;ringEl.innerHTML='';$('ringLabel').hidden=true;}
+function openRing(i){ringTile=i;sel=i;confirmKey=null;ringPan=3;camGoalY=null;const m=modAtTile(i),s=m?SAY[m.id]:null;ringSay=s?s[(Math.random()*s.length)|0]:'';buildRing();
+  // bring the tile up so its buttons sit above the lantern/tab bar instead of under them
+  if(ringTile===i){const[wx,wy]=tileC(i),sy=toScreen(wx,wy).y,lim=ringBot()-ringDown;if(sy>lim&&ptrs.size===0)camGoalY=Math.max(0,Math.min((W+H)*TH/2,cam.y+(sy-lim)/cam.z));}
+  document.body.classList.toggle('ringon',ringTile>=0);}
+// lowest screen y (in the ring's own coordinates) the ring buttons may reach: above the lantern button and the tab bar
+let ringDown=R+50;
+function ringBot(){const par=(ringEl.offsetParent||ringEl.parentElement||document.body).getBoundingClientRect();let y=par.bottom;
+  for(const e of [$('lamp'),document.querySelector('.tabs')]){if(e&&!e.hidden&&e.offsetParent){const r=e.getBoundingClientRect();if(r.height&&r.top>par.top+par.height*.5)y=Math.min(y,r.top);}}
+  return y-par.top-8;}
+function closeRing(){ringTile=-1;sel=-1;ringEl.hidden=true;ringEl.innerHTML='';$('ringLabel').hidden=true;document.body.classList.remove('ringon');}
 function tok(ang,act,arg,icon,cap,cls,cost){const a=ang*Math.PI/180;return`<button class="tok ${cls}" style="left:${Math.cos(a)*R}px;top:${Math.sin(a)*R}px" data-act="${act}" data-arg="${arg}" ${cost!=null?`data-cost="${cost}"`:''}>${svg(icon)}<span class="cap">${cap}</span></button>`;}
 function angles(n){if(n===1)return[90];if(n===2)return[130,50];const span=n>=5?240:180,st=90+span/2,a=[];for(let k=0;k<n;k++)a.push(st-k*span/(n-1));return a;}
 function buildRing(){const i=ringTile;if(i<0)return;let label='',toks='';const m=modAtTile(i);
@@ -2521,9 +2529,9 @@ function buildRing(){const i=ringTile;if(i<0)return;let label='',toks='';const m
     const id=S.asg[i],n=Object.keys(S.sv).length;list.push(['asg',i,'person',id!=null?`${SURV[id].name} 교체`:(n?'생존자 배치':'생존자 없음'),n?'':'lock',null]);
     list.push(['sheet',0,'x','쉘터 화면','',null]);const an=angles(list.length);list.forEach((o,n)=>toks+=tok(an[n],...o));}
   else{closeRing();return;}
-  ringEl.style.setProperty('--R',R+'px');const rlb=$('ringLabel');rlb.innerHTML=label;rlb.hidden=false;rlb.scrollTop=0;ringEl.innerHTML=toks;ringEl.hidden=false;placeRing();}
+  {const n=(toks.match(/class="tok /g)||[]).length,an=angles(Math.max(1,n));ringDown=Math.max(...an.map(x=>Math.sin(x*Math.PI/180)))*R+30+24;}ringEl.style.setProperty('--R',R+'px');const rlb=$('ringLabel');rlb.innerHTML=label;rlb.hidden=false;rlb.scrollTop=0;ringEl.innerHTML=toks;ringEl.hidden=false;placeRing();}
 function placeRing(){if(ringTile<0)return;const[wx,wy]=tileC(ringTile),s=toScreen(wx,wy),lh=0;
-  const sx=Math.max(R+34,Math.min(cw-R-34,s.x)),sy=Math.max(R+40+lh,Math.min(ch-R-44,s.y));ringEl.style.transform=`translate(${sx}px,${sy}px)`;fitRL();}
+  const sx=Math.max(R+34,Math.min(cw-R-34,s.x)),sy=Math.max(R+40+lh,Math.min(ch-R-44,ringBot()-ringDown,s.y));ringEl.style.transform=`translate(${sx}px,${sy}px)`;fitRL();}
 // keep the info card clear of the ring buttons: put it wherever there is more room, and shrink it to fit
 function fitRL(){const l=$('ringLabel');if(l.hidden||!ringEl.children.length)return;let t=1e9,b=-1e9;for(const k of ringEl.children){const r=k.getBoundingClientRect();t=Math.min(t,r.top);b=Math.max(b,r.bottom+16);}
   const par=(l.offsetParent||document.body).getBoundingClientRect(),db=par.bottom-parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--rlb')||158);

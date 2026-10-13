@@ -503,3 +503,8 @@ body.calm .fchl{animation:none;box-shadow:0 0 0 3px rgba(243,165,58,.9)}
 .tok.lngo .cap{top:62px!important;color:#ffe2a0;font-weight:700}
 .chip.ln{background:#f0c071;color:#2c2217;border-color:#2c2217;font-weight:700;display:inline-flex;align-items:center;gap:4px}
 .chip.ln svg{width:13px;height:13px}
+/* 링 메뉴가 열려 있는 동안 생존자 얼굴 줄을 숨겨 버튼을 가리지 않게 */
+body.ringon #skills{opacity:0!important;pointer-events:none!important}
+#ring{z-index:5}
+body.ringon #toasts{z-index:4!important}
+body.ringon #toasts>*{pointer-events:none!important;opacity:.55}
