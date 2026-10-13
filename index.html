@@ -4338,7 +4338,7 @@ function featGo(k){const f=FEAT.find(x=>x.k===k),G=FEAT_GUIDE[k];closeModal();if
     if(el){if(!G.main)el.scrollIntoView({block:'center',behavior:'smooth'});el.classList.remove('fchl');void el.offsetWidth;el.classList.add('fchl');setTimeout(()=>el.classList.remove('fchl'),4200);}},350);tickFeat();save();}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="fcgo"],[data-act="fclater"]');if(!b)return;e.stopPropagation();if(b.dataset.act==='fcgo')featGo(b.dataset.arg);else closeModal();},true);
 $('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="fcopen"]');if(!b)return;e.stopImmediatePropagation();openFeatCard(b.dataset.arg,true);},true);
-const FEAT_LATER=['trade','route','fire'];
+const FEAT_LATER=['trade','route','fire','line'];
 function tickFeat(){if(!S.feat){S.feat={};for(const f of FEAT)if(f.on())S.feat[f.k]=2;}const later=(S.gen||0)>0;for(const f of FEAT){if(later&&!FEAT_LATER.includes(f.k)&&(S.feat[f.k]===1||S.feat[f.k]===3))S.feat[f.k]=2;if(S.feat[f.k])continue;if(f.on()){/* after the first town only features that are new there (trade, route map, campfire) get a card */if((S.gen||0)>0&&!FEAT_LATER.includes(f.k)){S.feat[f.k]=2;continue;}S.feat[f.k]=1;(S.featQ=S.featQ||[]).push(f.k);}}
   if(S.featQ&&S.featQ.length&&(S.playT||0)>=300&&Date.now()-(S.featAt||0)>120000&&modal.hidden){const k=S.featQ.shift(),f=FEAT.find(x=>x.k===k);if(f&&S.feat[k]===1){S.featAt=Date.now();if(!openFeatCard(k))note({h:`새 기능 · ${f.h}`,t:`<small>${f.msg}</small>`,ms:5000});}}
   const tabs={};for(const f of FEAT)if(S.feat[f.k]===1&&f.tab)tabs[f.tab]=1;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('isnew',!!tabs[b.id]));}
