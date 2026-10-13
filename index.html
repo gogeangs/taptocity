@@ -1231,7 +1231,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261014-evring">
+<link rel="stylesheet" href="qa.css?v=20261014-lnmark">
 <div id="app">
   <header>
     <div class="hud">
@@ -2507,9 +2507,10 @@ function tok(ang,act,arg,icon,cap,cls,cost){const a=ang*Math.PI/180;return`<butt
 function angles(n){if(n===1)return[90];if(n===2)return[130,50];const span=n>=5?240:180,st=90+span/2,a=[];for(let k=0;k<n;k++)a.push(st-k*span/(n-1));return a;}
 function buildRing(){const i=ringTile;if(i<0)return;let label='',toks='';const m=modAtTile(i);
   if(S.ter[i]===T.LM&&!m){const L=S.lm[i],l=LMS[L.k],s=S.site[i];
-    label=`<b>${l.name}</b><i>${L.ok?'복구 완료':'랜드마크'}</i><p>${L.ok?l.done:l.ruin}</p><div class="chips"><span class="chip g">복구하면 ${l.desc}</span>${!L.ok&&s?`<span class="chip">남은 물자 ${s.c}/${s.max}</span>`:''}</div>${!L.ok?`<div class="lmc"><div class="sec2">복구에 필요한 자재</div>${needHtml(scaleCost(l.cost,costMult()))}</div>`:''}`;
+    const isLn=l.key==='station',lnChip=isLn?`<span class="chip ln">${svg('line')}노선 미니게임 입구${L.ok?(lnState().fat?` · 보상 ${Math.round(lnMult()*100)}%`:' · 지금 최고 보상'):' · 복구하면 열려요'}</span>`:'';
+    label=`<b>${l.name}</b><i>${isLn?(L.ok?'노선 입구 · 복구 완료':'노선 입구 · 랜드마크'):(L.ok?'복구 완료':'랜드마크')}</i><p>${L.ok?l.done:l.ruin}</p><div class="chips">${lnChip}<span class="chip g">복구하면 ${l.desc}</span>${!L.ok&&s?`<span class="chip">남은 물자 ${s.c}/${s.max}</span>`:''}</div>${!L.ok?`<div class="lmc"><div class="sec2">복구에 필요한 자재</div>${needHtml(scaleCost(l.cost,costMult()))}</div>`:''}`;
     if(!L.ok){const c=scaleCost(l.cost,costMult()),list=[];if(s&&s.c>0)list.push(['aimlm',i,'person','뒤지기 조준','',null]);list.push(['lm',i,'up','복구하기',canPay(c)?'':'poor',null]);const an=angles(list.length);list.forEach((o,n)=>toks+=tok(an[n],...o));}
-    else if(l.key==='station'){const an=angles(1);toks+=tok(an[0],'line',i,'line','노선 탐사','',null);}}
+    else if(l.key==='station'){const an=angles(1);toks+=tok(an[0],'line',i,'line','노선 탐사','lngo',null);}}
   else if(m){const d=MODS[m.id],k=D.modAt.get(i),wk=S.asg[i]!=null&&S.sv[S.asg[i]]?SURV[S.asg[i]]:null,chips=[`<span class="chip g">${d.fx(m.l)}</span>`];
     if(wk)chips.unshift(`<span class="chip g">${wk.name} ×${asgMult(i).toFixed(1)}</span>`);
     if(S.ash[i]&&S.ash[i].stuck)chips.unshift('<span class="chip" style="color:#b0452a;border-color:#b0452a">재에 덮여 멈춤 · 두드려 걷어내요</span>');
@@ -6423,6 +6424,25 @@ if(window.TTCDesign){
     if(L.ok)glowPts.push([x,y-12,28,'240,192,113',.28]);
     else lmMarker(x,y-(h+14)*ZS,time,LMS[L.k].name);
   };
+  // 노선 역은 다른 건물과 구분: 바닥의 끊긴 선로, 입구에서 새는 빛, 위에 뜨는 '노선' 표식
+  const lmArtDraw=drawLandmark;drawLandmark=function(i,time){const L=S.lm[i];if(!L||LMS[L.k].key!=='station')return lmArtDraw(i,time);
+    lnRails(L.ok,time);
+    lmArtDraw(i,time);
+    const[x,y]=P(.5,.5,0),h=(art.landmarkHeight&&art.landmarkHeight(L.k,L.ok))||44;lnBadge(x,y-(h+(L.ok?10:40))*ZS,time,L.ok);};
+  function lnRails(ok,time){ctx.save();ctx.lineCap='round';
+    for(let q=0;q<7;q++){const v=.52+q*.075;if(q===6&&!ok)break;const[a,b]=P(.24,v,0),[c,d]=P(.5,v,0);ctx.strokeStyle=ok?'rgba(92,70,48,.85)':'rgba(92,84,74,.6)';ctx.lineWidth=2.2*ZS;ctx.beginPath();ctx.moveTo(a,b);ctx.lineTo(c,d);ctx.stroke();}
+    [.3,.44].forEach((u,j)=>{const end=ok?.99:(j?.86:.93);const[a,b]=P(u,.5,0),[c,d]=P(u,end,0);ctx.strokeStyle='rgba(30,24,18,.75)';ctx.lineWidth=2.4*ZS;ctx.beginPath();ctx.moveTo(a,b);ctx.lineTo(c,d);ctx.stroke();
+      ctx.strokeStyle=ok?'rgba(232,196,132,.75)':'rgba(150,144,134,.55)';ctx.lineWidth=1*ZS;ctx.beginPath();ctx.moveTo(a,b-1);ctx.lineTo(c,d-1);ctx.stroke();});
+    if(ok){const[gx,gy]=P(.37,.6,0),k=reduce?.7:.55+.45*Math.sin(time/700);glowPts.push([gx,gy,30+10*k,'255,196,110',.35+.25*k]);}
+    ctx.restore();}
+  function lnBadge(x,y,time,ok){const fresh=ok&&!lnState().fat,bob=reduce?0:Math.sin(time/320)*1.5;y+=bob;ctx.save();
+    if(fresh&&!reduce){const p=(time%1600)/1600;ctx.strokeStyle=`rgba(255,205,120,${(1-p)*.8})`;ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y,22+p*16,11+p*8,0,0,7);ctx.stroke();}
+    ctx.font='700 10px "TTC Sans","Noto Sans KR",system-ui,sans-serif';const tw=ctx.measureText('노선').width,w=tw+30,hh=18;
+    ctx.fillStyle=ok?(fresh?'#f0c071':'#c9a46a'):'#8d867a';ctx.strokeStyle='#2c2217';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect?ctx.roundRect(x-w/2,y-hh/2,w,hh,9):ctx.rect(x-w/2,y-hh/2,w,hh);ctx.fill();ctx.stroke();
+    const ix=x-w/2+11;ctx.strokeStyle='#2c2217';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(ix-3,y-5);ctx.lineTo(ix-4.5,y+5);ctx.moveTo(ix+3,y-5);ctx.lineTo(ix+4.5,y+5);for(const t of[-3,0,3]){ctx.moveTo(ix-4.2+(t+3)*-.1,y+t);ctx.lineTo(ix+4.2-(t+3)*-.1,y+t);}ctx.stroke();
+    ctx.fillStyle='#2c2217';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText('노선',ix+8,y+.5);
+    ctx.beginPath();ctx.moveTo(x-4,y+hh/2);ctx.lineTo(x,y+hh/2+5);ctx.lineTo(x+4,y+hh/2);ctx.closePath();ctx.fillStyle=ok?(fresh?'#f0c071':'#c9a46a'):'#8d867a';ctx.fill();ctx.stroke();
+    ctx.restore();}
   mkFog=function(fr,seed,S2){const w=132,h=104,c=document.createElement('canvas');c.width=Math.ceil(w*S2);c.height=Math.ceil(h*S2);const g=c.getContext('2d');g.scale(S2,S2);const r=mulberry(seed);g.fillStyle=landscape().fog[fr?1:0];for(let k=0;k<4;k++){g.beginPath();g.ellipse(34+k*21,56-r()*10,27+r()*5,23+r()*6,0,0,7);g.fill();}g.fillStyle=fr?'rgba(196,173,129,.08)':'rgba(113,131,145,.05)';g.beginPath();g.ellipse(62,39,41,21,0,0,7);g.fill();return c;};
 }
 
