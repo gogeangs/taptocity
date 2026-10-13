@@ -42,6 +42,9 @@ class Life {
   double _chatT = 8;
   Chat? chat;
 
+  /// 화면에 그린 두 사람 말풍선 자리 (눌러서 대화 열기, 웹 bubbleHit)
+  Rect? bubbleRect;
+
   List<int> _lifeTiles() {
     final S = g.S, R = S.lv + 1, o = <int>[];
     for (var y = CY - R; y <= CY + R; y++) {
@@ -114,6 +117,18 @@ class Life {
         walk[id] = Walk(c.dx, c.dy, brk: 14 + _r.nextDouble() * 10);
       }
     }
+    // 좋아하는 장식이 놓이면 그 사람이 다가가 한마디 (웹 decoReact)
+    while (g.favReact.isNotEmpty) {
+      final (id, tile, say) = g.favReact.removeAt(0);
+      final w = walk[id];
+      if (w == null) continue;
+      final p = tileC(tile, 10);
+      w
+        ..tx = p.dx + (_r.nextDouble() - .5) * 14
+        ..ty = p.dy + 8
+        ..idle = 6;
+      chat = Chat(id, id, 4, [(id, say)], solo: true);
+    }
     final c = chat;
     if (c != null) {
       c.t += dt;
@@ -153,7 +168,11 @@ class Life {
           final a = ws[_r.nextInt(ws.length)];
           final sm = _small(a);
           final nl = web.nightLine;
-          if (g.isNight) {
+          final dk = _decoNear(walk[a]!.x, walk[a]!.y);
+          final dt2 = dk == null ? null : web.decoTalk[dk] as List?;
+          if (dt2 != null && dt2.isNotEmpty && _r.nextDouble() < .6) {
+            chat = Chat(a, a, 4, [(a, dt2[_r.nextInt(math.min(2, dt2.length))] as String)], solo: true);
+          } else if (g.isNight) {
             chat = Chat(a, a, 4, [(a, nl[_r.nextInt(nl.length)])], solo: true);
           } else if (sm.isNotEmpty) {
             chat = Chat(a, a, 4, [(a, sm[_r.nextInt(sm.length)])], solo: true);
@@ -161,6 +180,23 @@ class Life {
         }
       }
     }
+  }
+
+  /// 가까운 장식 종류 (웹 decoNear: 가로 1.1칸 안)
+  String? _decoNear(double x, double y) {
+    String? best;
+    var bd = TW * 1.1;
+    for (final e in g.deco.entries) {
+      final t = int.tryParse('${e.key}');
+      if (t == null) continue;
+      final c = tileC(t);
+      final d = math.sqrt(math.pow(c.dx - x, 2) + math.pow((c.dy - y) * 2, 2));
+      if (d < bd) {
+        bd = d;
+        best = '${e.value}';
+      }
+    }
+    return best;
   }
 
   static String _pair(int a, int b) => a < b ? '$a-$b' : '$b-$a';
@@ -203,9 +239,10 @@ class Life {
     }
     petTapT += dt;
     final own = g.pets;
-    pets.removeWhere((k, _) => !g.petHere(k));
+    // 지도에는 동행 중인 펫만 (웹 2026-10-13)
+    pets.removeWhere((k, _) => !g.petHere(k) || k != g.petOn);
     for (final k in own.keys) {
-      if (!g.petHere(k)) continue;
+      if (!g.petHere(k) || k != g.petOn) continue;
       final w = pets.putIfAbsent(k, () => Walk(c.dx + (_r.nextDouble() - .5) * 50, c.dy + 14 + (_r.nextDouble() - .5) * 20)..tx = c.dx..ty = c.dy);
       var sp = 26.0;
       if (k == g.petOn) {

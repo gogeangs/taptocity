@@ -8,6 +8,7 @@ import 'icons.dart';
 import 'portrait.dart';
 import 'region_ui.dart';
 import 'season_ui.dart';
+import 'story_ui.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -236,7 +237,90 @@ class _SurvBodyState extends State<SurvBody> {
         sec('아직 만나지 못한 사람 ${unmet.length}'),
         for (final id in unmet) _unmetRow(id),
       ],
+      if (g.kids.isNotEmpty) ...[sec('아이들'), for (final k in g.kids) _kidRow(k)],
+      // 등급 표 (2026-10-14: 등급은 처음 그대로, 성급만 오른다)
+      sec('등급'),
+      Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Wrap(spacing: 12, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
+          for (var i = 0; i < 4; i++)
+            Row(mainAxisSize: MainAxisSize.min, children: [gradeChip(i), Text(' 효과 ×${grades[i].m}', style: Ttc.t(11.5, color: Ttc.sepia2))]),
+          Text('등급은 처음 그대로 · 등급마다 1~5성', style: Ttc.t(11.5, color: Ttc.sepia2)),
+        ]),
+      ),
+      sec('인연'),
+      for (final b in bonds) _bondRow(b),
     ]);
+  }
+
+  /// 웹 renderSheet 아이들 줄
+  Widget _kidRow(Map k) {
+    final gr = ((k['g'] as num?) ?? 0).toDouble(), job = k['job'] as String?, look = (k['look'] as Map?) ?? const {};
+    Color hx(Object? v, int d) => v is String && v.startsWith('#') && v.length == 7 ? Color(int.parse(v.substring(1), radix: 16) | 0xFF000000) : Color(d);
+    const kidCell = {'봄이': 2, '다온': 3, '로운': 4, '하람': 5};
+    final n = k['n'] as String? ?? '', ci = kidCell[n];
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Ttc.line))),
+      child: Row(children: [
+        Container(
+          width: 54,
+          height: 63,
+          decoration: BoxDecoration(color: hx(look['top'], 0xFF8A9A88), borderRadius: BorderRadius.circular(7), border: Border.all(color: Ttc.line)),
+          clipBehavior: Clip.antiAlias,
+          child: ci != null
+              ? CoverPic('crows-kids.webp', Rect.fromLTWH(ci % 3 * 686 + 6, ci ~/ 3 * 764 + 6, 674, 750), alignY: 0)
+              : Center(
+                  child: Transform.translate(
+                      offset: const Offset(0, -10),
+                      child: Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(color: hx(look['skin'], 0xFFE0B48C), shape: BoxShape.circle, border: Border.all(color: const Color(0xFF3B2A1A), width: 1.5))))),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(n, style: Ttc.t(15, color: Ttc.sepia, weight: FontWeight.w700)),
+            Text(
+                gr < 1
+                    ? '자라는 중 ${(gr * 100).round()}% · 희망 +2'
+                    : job != null && kidJobs.containsKey(job)
+                        ? '${kidJobs[job]!.$1} · ${kidJobs[job]!.$2}'
+                        : '무엇을 배울지 정해 주세요',
+                style: Ttc.t(12, color: Ttc.sepia2, height: 1.5)),
+            Container(
+              margin: const EdgeInsets.only(top: 2),
+              height: 4,
+              decoration: BoxDecoration(color: const Color(0x1A252E36), borderRadius: BorderRadius.circular(3)),
+              alignment: Alignment.centerLeft,
+              child: FractionallySizedBox(widthFactor: gr.clamp(0, 1).toDouble(), child: Container(decoration: BoxDecoration(color: Ttc.amber, borderRadius: BorderRadius.circular(3)))),
+            ),
+          ]),
+        ),
+      ]),
+    );
+  }
+
+  /// 웹 renderSheet 인연 줄 (모이면 열림 · 누가 떠나면 끊어짐)
+  Widget _bondRow(Bond b) {
+    final on = b.ids.every(g.hasSv);
+    final cut = b.ids.any(g.isDead) && b.ids.every((id) => g.hasSv(id) || g.isDead(id));
+    final names = b.ids.map((id) => survivors[id].name).join(' + ');
+    final head = cut ? '끊어진 인연 · ${b.name}' : on ? b.name : '???';
+    final rest = cut ? ' · $names' : on ? ' · ${b.txt} ${b.d}' : ' · ${b.ids.map((id) => g.hasSv(id) ? survivors[id].name : '???').join(' + ')} 모두 모이면 열려요';
+    return Opacity(
+      opacity: cut ? .7 : 1,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Text.rich(
+            TextSpan(children: [
+              TextSpan(text: head, style: TextStyle(fontWeight: FontWeight.w700, fontVariations: const [FontVariation('wght', 700)], color: cut ? Ttc.sepia2 : on ? const Color(0xFF4F6E2F) : Ttc.sepia)),
+              TextSpan(text: rest),
+            ]),
+            style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5)),
+      ),
+    );
   }
 
   Widget _row(int id) {
@@ -571,7 +655,7 @@ Widget needList(Game g, Cost c) {
 }
 
 Widget _growTab(Game g, int id, ({double m, double w, double cd}) p, BuildContext ctx) {
-  final gr = g.gradeOf(id), mg = g.maxGrade(id), n = g.nextStep(id), tl = Game.trustLv(g.xpOf(id));
+  final gr = g.gradeOf(id), mg = gr, n = g.nextStep(id), tl = Game.trustLv(g.xpOf(id));
   Widget tile(String b, String s) => Expanded(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),

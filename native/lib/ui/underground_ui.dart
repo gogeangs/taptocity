@@ -467,9 +467,14 @@ class _UgPageState extends State<_UgPage> {
         Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: Row(children: [
-            pageBtn('식량 15 → 기름 +8', g.canPay({'food': 15}) ? () => setState(() => g.ugBuy(0)) : null, alt: true),
+            // 웹: 한 층 상인에게서 기름 2번 · 열쇠 1번까지, 남은 횟수 표시
+            pageBtn('식량 15 → 기름 +8  ${ugShopMax[0] - g.ugShopBuys()[0]}/${ugShopMax[0]}',
+                g.canPay({'food': 15}) && g.ugShopBuys()[0] < ugShopMax[0] ? () => setState(() => g.ugBuy(0)) : null,
+                alt: true),
             const SizedBox(width: 6),
-            pageBtn('부품 12 → 🗝 1', g.canPay({'parts': 12}) ? () => setState(() => g.ugBuy(1)) : null, alt: true),
+            pageBtn('부품 12 → 열쇠 1  ${ugShopMax[1] - g.ugShopBuys()[1]}/${ugShopMax[1]}',
+                g.canPay({'parts': 12}) && g.ugShopBuys()[1] < ugShopMax[1] ? () => setState(() => g.ugBuy(1)) : null,
+                alt: true),
           ]),
         ),
       // 칸들

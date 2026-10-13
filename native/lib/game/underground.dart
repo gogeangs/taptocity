@@ -39,7 +39,13 @@ class UgCell {
   bool rev = false, hit = false, fresh = false, used = false, open = false;
   int hp, fhp = 0, did = -1, qid = -1;
   String? hz;
+
+  /// 지하 상인 칸: 이 상인에게서 산 횟수 [기름, 열쇠]
+  final List<int> buys = [0, 0];
 }
+
+/// 지하 상인: 한 층의 상인에게서 기름은 2번, 열쇠는 1번까지 (웹 UG_SHOP_MAX, 2026-10-13)
+const ugShopMax = [2, 1];
 
 class UgRun {
   UgRun(this.team, this.oil, this.floor, this.msg, this.pet) : max = oil;
@@ -439,17 +445,37 @@ extension Underground on Game {
     return false;
   }
 
-  /// 지하 상인 (0: 식량 15 → 기름 8, 1: 부품 12 → 열쇠)
+  /// 이 층 상인에게서 산 횟수 (상인이 없으면 다 산 것으로)
+  List<int> ugShopBuys() {
+    final u = ug;
+    if (u == null) return const [9, 9];
+    for (final c in u.cells) {
+      if (c.c == 'shop') return c.buys;
+    }
+    return const [9, 9];
+  }
+
+  /// 지하 상인 (0: 식량 15 → 기름 8, 1: 부품 12 → 열쇠). 웹 ugb
   void ugBuy(int k) {
     final u = ug;
     if (u == null) return;
+    final sb = ugShopBuys();
+    if (sb[k] >= ugShopMax[k]) {
+      u.msg = k == 1 ? '상인: “열쇠는 그게 마지막이야.”' : '상인: “기름은 이걸로 끝이야. 나도 내려가야 하거든.”';
+      _changed();
+      return;
+    }
     if (k == 0 && pay({'food': 15})) {
+      sb[0]++;
       u.oil += 8;
       u.max = math.max(u.max, u.oil);
-      u.msg = '상인: “기름이라면 얼마든지.” · 기름 +8';
+      u.msg = '상인: “아껴 써. 남은 게 많지 않아.” · 기름 +8 (${ugShopMax[0] - sb[0]}번 남음)';
+      sfx('get');
     } else if (k == 1 && pay({'parts': 12})) {
+      sb[1]++;
       u.keys++;
       u.msg = '상인: “이 열쇠, 어디 문인지는 나도 몰라.” · 열쇠 +1';
+      sfx('get');
     }
     _changed();
   }

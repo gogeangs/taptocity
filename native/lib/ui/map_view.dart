@@ -305,6 +305,15 @@ class _MapViewState extends State<MapView> {
         widget.onPlace!(i0);
         return;
       }
+      // 두 사람 말풍선 ▸: 대화 전체 듣기 (웹 openChat)
+      final bb = life.bubbleRect, ch = life.chat;
+      if (bb != null && ch != null && !ch.solo && bb.inflate(6).contains(p.pos)) {
+        life.chat = null;
+        life.bubbleRect = null;
+        g.openChat(ch.a, ch.b, ch.lines);
+        widget.fxLayer.pull(g);
+        return;
+      }
       // 수상한 그림자: 눌러서 쫓아가기 (웹 catchShadow)
       final sh = g.shadow;
       if (sh != null && sh.light == null && !sh.got) {
@@ -1058,7 +1067,13 @@ class FxLayerController extends ChangeNotifier {
           final c = tileC(tile, rise);
           parts.add(_Particle(c, const Offset(0, -26), color, 1.1, text: text));
         case FxToast(:final text):
-          toast(text);
+          if (!g.quietToast(text)) toast(text);
+        case FxToastLater(:final ms, :final text):
+          Future.delayed(Duration(milliseconds: ms), () {
+            if (!g.quietToast(text)) toast(text);
+          });
+        case FxNoteLater(:final wait, :final h, :final t, :final ms):
+          Future.delayed(Duration(milliseconds: wait), () => note(h, t, ms: ms));
         case FxNote(:final h, :final t, :final ms):
           note(h, t, ms: ms);
         case FxBurstAt(:final x, :final y, :final color, :final n):

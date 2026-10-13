@@ -332,7 +332,7 @@ extension Region on Game {
     final svGo = <String, Object?>{for (final id in going) '$id': old.sv['$id']};
     const keepKeys = [
       'pf', 'playT', 'pfAsk', 'qc', 'inv', 'iu', 'relics', 'ach', 'title', 'kids', 'dog', 'endSeen', 'conf', 'hook', 'tlog', 'rumor', 'sqN', 'cases', 'odd', 'dead', 'egg', 'crow',
-      'pets', 'petOn', 'stat', 'gTotal', 'gp', 'heard', 'mi', 'storyI', 'favDone', 'defWins', 'defs', 'nights', 'evDone', 'skillUses', 'expDone', 'gUses', 'art', 'artNew', 'ehEnd',
+      'pets', 'petOn', 'stat', 'gTotal', 'gp', 'heard', 'mi', 'storyI', 'favDone', 'defWins', 'defs', 'nights', 'evDone', 'skillUses', 'expDone', 'gUses', 'art', 'artNew', 'ehEnd', 'feat',
       'expTold', 'pedCrow', 'tutSeen', 'onb', 'stepV', 'line', 'lnGot', 'deathG', 'memo', 'feasts',
     ];
     final ns = Game.fresh(random: rnd);

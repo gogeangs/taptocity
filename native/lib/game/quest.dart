@@ -72,6 +72,7 @@ extension Quest on Game {
       if (Q == null || r == null) continue;
       if (r['q'] == null && Game.trustLv(xpOf(id)) >= qUnlock) {
         r['q'] = <String, Object?>{'s': 0};
+        svNew = true;
         fx.add(FxNote('${survivors[id].name}의 이야기가 열렸어요', '‘${Q.t}’ · 생존자 수첩에서 확인해요', ms: 5000));
         dirty = true;
         continue;

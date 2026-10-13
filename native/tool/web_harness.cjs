@@ -31,6 +31,8 @@ module.exports = function load({ seedRandom = 12345 } = {}) {
   w.matchMedia = () => ({ matches: false, addEventListener() {}, addListener() {} });
   w.Element.prototype.animate = () => ({ finished: Promise.resolve() });
   w.Element.prototype.scrollIntoView = () => {};
+  // 그림 늦게 받기(ttcLazy): 받지 않은 빈 그림으로
+  w.ttcLazy = () => ({ complete: false, naturalWidth: 0, kick() {}, addEventListener() {} });
   // 같은 결과가 나오도록 Math.random 고정
   let s = seedRandom >>> 0;
   w.Math.random = () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };

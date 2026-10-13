@@ -674,6 +674,7 @@ class _LivePainter extends CustomPainter {
   /// 말풍선 (웹 drawBubbles)
   void _bubble(Canvas canvas, Size size) {
     final c = life.chat;
+    life.bubbleRect = null;
     if (c == null || c.lines.isEmpty) return;
     final k = math.min(c.lines.length - 1, (c.t / (c.dur / c.lines.length)).floor());
     final (who, txt0) = c.lines[k];
@@ -694,6 +695,7 @@ class _LivePainter extends CustomPainter {
           ..color = const Color(0xFF3B2A1A));
     canvas.drawPath(Path()..moveTo(sx - 4, by + 21)..lineTo(sx, by + 28)..lineTo(sx + 4, by + 21)..close(), fill);
     tp.paint(canvas, Offset(bx + 8, by + 11.5 - tp.height / 2));
+    life.bubbleRect = c.solo ? null : Rect.fromLTWH(bx, by, tw, 28);
     if (!c.solo) {
       final ar = TextPainter(text: TextSpan(text: '▸', style: Ttc.t(12, color: Ttc.no, weight: FontWeight.w600, height: 1)), textDirection: TextDirection.ltr)..layout();
       ar.paint(canvas, Offset(bx + tw - 18, by + 11.5 - ar.height / 2));

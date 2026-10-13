@@ -21,6 +21,7 @@ import '../report.dart';
 import 'atlas.dart';
 import 'cloud_ui.dart';
 import 'crisis_ui.dart';
+import 'feat_ui.dart';
 import 'gear.dart';
 import 'icons.dart';
 import 'life_ui.dart';
@@ -73,6 +74,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     fxc.onFx = _onFx;
+    FeatNav.go = _featGo;
     Atlas.onTint = () => g.mapVersion.value++;
     onTalkLine = _endingLine;
     Game.onSfx = (k, b) {
@@ -388,6 +390,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       case FxConf():
         _pageQ.add(() => showConf(context, g));
         _pumpPages();
+      case FxFeat(:final k):
+        _pageQ.add(() => showFeatCard(context, g, k, go: _featGo));
+        _pumpPages();
       case FxPfName():
         _pageQ.add(() => showPfName(context, g, first: true));
         _pumpPages();
@@ -548,6 +553,28 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     }
   }
 
+  /// 새 기능 카드 '보러 가기' (웹 featGo): 그 화면과 칸을 연다
+  void _featGo(String k) {
+    final f = feats.where((x) => x.k == k).firstOrNull;
+    if (f == null || !mounted) return;
+    g.featSeen(k);
+    const segs = ['build', 'craft', 'research', 'store', 'deco'];
+    if (f.sheet == 'shelter') {
+      ShelterBody.tab = math.max(0, segs.indexOf(f.seg ?? 'build'));
+      g.sheetOpened('shelter', seg: f.seg ?? 'build');
+      setState(() {
+        sheet = const SheetSpec('shelter');
+        matsOpen = false;
+        _closeRing();
+      });
+    } else if (f.sheet != null) {
+      if (f.sheet == 'diary' && f.seg != null) DiaryBody.tab = f.seg!;
+      if (sheet?.kind != f.sheet) _open(SheetSpec(f.sheet!));
+    } else if (sheet != null) {
+      _close();
+    }
+  }
+
   /// 미션 띠를 누르면 할 일 쪽으로 데려간다 (웹 goMission 4449)
   void _goMission() {
     if (pageWatch.n > 0 || g.defn != null) return;
@@ -563,6 +590,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
     void toShelter(int tab) {
       ShelterBody.tab = tab;
+      g.sheetOpened('shelter', seg: const ['build', 'craft', 'research', 'store', 'deco'][tab.clamp(0, 4)]);
       setState(() {
         sheet = const SheetSpec('shelter');
         matsOpen = false;
@@ -747,6 +775,10 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         if (s.kind == 'shelter' && g.tut != null) g.tutSheet = 1;
         if (s.kind == 'radio' && sheet != s) eggRadio(context, g);
         sheet = sheet == s ? null : s;
+        // 탭 점·새 기능 표시 지우기 (웹 openSheet 감싸기)
+        if (sheet != null) {
+          g.sheetOpened(s.kind, seg: s.kind == 'shelter' ? const ['build', 'craft', 'research', 'store', 'deco'][ShelterBody.tab.clamp(0, 4)] : s.kind == 'diary' ? DiaryBody.tab : null);
+        }
         matsOpen = false;
         _closeRing();
       });
@@ -1155,7 +1187,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                     key: _kTabs,
                     animation: g,
                     builder: (c, _) => _Tabs(
-                    dot: g.achReady ? 4 : -1,
+                    dots: {...g.tabDots(Game.nowMs()), if (g.achReady) 4},
                     on: switch (sheet?.kind) {
                       'surv' => 0,
                       'exp' => 1,
@@ -1447,8 +1479,9 @@ class _Lamp extends StatelessWidget {
 }
 
 class _Tabs extends StatelessWidget {
-  const _Tabs({required this.on, required this.onTap, this.dot = -1});
-  final int on, dot;
+  const _Tabs({required this.on, required this.onTap, this.dots = const {}});
+  final int on;
+  final Set<int> dots;
   final void Function(int) onTap;
   static const items = [(Ico.surv, '생존자'), (Ico.exp, '원정'), (Ico.shelter, '쉘터'), (Ico.radio, '라디오'), (Ico.diary, '일지')];
   @override
@@ -1472,7 +1505,7 @@ class _Tabs extends StatelessWidget {
                   child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                     Stack(clipBehavior: Clip.none, children: [
                       SvgIcon(items[k].$1, size: 22, color: k == on ? Ttc.tabOnText : Ttc.tabText),
-                      if (k == dot)
+                      if (dots.contains(k))
                         Positioned(
                             right: -5,
                             top: -3,

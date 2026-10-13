@@ -19,6 +19,7 @@ part 'season.dart';
 part 'region.dart';
 part 'lines.dart';
 part 'quest.dart';
+part 'feat.dart';
 
 /// 화면 연출(떠오르는 글자·알림·창 열기)을 그림 쪽에 알려 주는 신호.
 sealed class Fx {
@@ -172,6 +173,12 @@ class Game extends ChangeNotifier {
   int panGuide = 0, misDoneAt = 0, miyT = 0, scIdle = 0;
   bool misNudged = false, confShown = false;
   UgRun? ug; // 지금 지하 탐사 중 (저장하지 않음)
+  /// 새로 온 사람·열린 사연이 있어 생존자 탭에 점 (웹 svNew, 저장하지 않음)
+  bool svNew = false;
+
+  /// 좋아하는 장식이 놓였을 때 그 사람이 걸어가 한마디 (사람 번호, 칸, 말) — 화면이 가져간다
+  final List<(int, int, String)> favReact = [];
+  int _tapRunI = -1, _tapRunN = 0, _tapRunT = 0;
   // 튜토리얼 (tutorial.dart)
   static bool tutFlag = false; // 이 기기에서 튜토리얼을 끝낸 적 있음 (웹 localStorage ttc_tut)
   int tutSheet = 0;
@@ -972,9 +979,9 @@ class Game extends ChangeNotifier {
 
   /// 다음 강화: (종류, 필요 신뢰도, 비용, 이름) 또는 null
   (String, int, Cost, String)? nextStep(int id) {
-    final g = gradeOf(id), s = starOf(id);
+    final s = starOf(id);
     if (s < 5) return ('star', s, starCost(id), '${s + 1}성으로 강화');
-    if (g < maxGrade(id)) return ('grade', 5, scaleCost(gradeUpCost[g]), '${grades[g + 1].n} 등급으로 승급');
+    // 2026-10-14 (웹과 같이): 등급 승급 기능 없앰 — 등급은 처음 정해진 그대로(예전 저장본에서 이미 오른 등급은 유지), 성급만 올린다
     return null;
   }
 
@@ -1445,6 +1452,7 @@ class Game extends ChangeNotifier {
     final party = S.rest['party'] as List;
     if (party.length < 3) party.add(id);
     recalc();
+    svNew = true;
     fx.add(FxRescue(id, via));
     _changed();
   }
@@ -1563,6 +1571,7 @@ class Game extends ChangeNotifier {
 
   /// 웹 tickDuty (4136): 쉬는 사람의 일. 훈련(신뢰 절반), 주워 오기(25초마다 기본 자재). 순찰·아이 돌보기는 3·4단계
   void _tickDuty() {
+    _tickSig();
     _dutyT++;
     final ids = svIds.where((id) => atOf(id) < 0 && !busy(id) && !(((rec(id)!['hurt'] as num?) ?? 0) > 0)).toList();
     if (ids.isEmpty) return;
@@ -1573,6 +1582,7 @@ class Game extends ChangeNotifier {
         rec(id)!['xp'] = xpOf(id) + .5 * trustM;
         final a = trustLv(xpOf(id));
         if (a > b) {
+          svNew = true;
           fx.add(FxToast('${survivors[id].name} 신뢰도 $a! 새 사연이 열렸어요'));
           recalc();
         }
@@ -1683,6 +1693,7 @@ class Game extends ChangeNotifier {
   /// 구름 칸 하나를 두드린다 (웹 dig 2459)
   void dig(int i) {
     sfx('tap');
+    holdHint(i);
     final x = i % W;
     addCombo();
     damage(i, tapPow * (fever > 0 ? 2 : 1) * wxMul('dig'), fromTap: true);
@@ -1987,6 +1998,7 @@ class Game extends ChangeNotifier {
         S.rest['hintT'] = hintT - 1;
         _mapChanged();
       }
+      _tickACraft();
       _tickAuto();
       _tickSide();
       _tickExp();
@@ -1994,6 +2006,9 @@ class Game extends ChangeNotifier {
       _tickKids();
       _tickPets();
       tickStorySec();
+      _tickFeat();
+      _tickBeats();
+      _tickDusk();
       if (S.droneLv > 0 || overT > 0) {
         final i = frontierNearest();
         if (i >= 0) {

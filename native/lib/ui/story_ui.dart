@@ -12,6 +12,7 @@ import 'atlas.dart';
 import 'portrait.dart';
 import 'profile_ui.dart';
 import 'season_ui.dart';
+import 'feat_ui.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -1014,7 +1015,7 @@ Widget _achRow({required bool on, required Widget head, required String small, d
     );
 
 // ======================= 안내서 (웹 renderGuide 4372) =======================
-List<Widget> guideTab(Game g) {
+List<Widget> guideTab(BuildContext context, Game g) {
   Widget gs(String t, List<InlineSpan> body) => Container(
         width: double.infinity,
         margin: const EdgeInsets.only(bottom: 10),
@@ -1029,6 +1030,8 @@ List<Widget> guideTab(Game g) {
   TextSpan b(String s) => TextSpan(text: s, style: const TextStyle(color: Ttc.sepia, fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)]));
   TextSpan p(String s) => TextSpan(text: s);
   return [
+    // 열린 기능 안내 (웹 renderGuide fclist)
+    ...featListSection(context, g, go: (k) => FeatNav.go?.call(k)),
     gs('기본 조작', [
       p('· 빛이 새는 구름을 두드려 땅을 밝혀요. '),
       b('꾹 누르고 있으면'),
@@ -1045,7 +1048,7 @@ List<Widget> guideTab(Game g) {
       p('· 가운데 쉘터를 누르면 건설·가공·창고·꾸미기 화면이 열려요.\n· 모듈이 일정 수 이상 있어야 증축할 수 있어요. 텃밭·고물상·창고·랜턴탑은 여러 개 지을 수 있어요.\n· 지도의 모듈을 누르면 빠른 메뉴(강화·배치)가 떠요.'),
     ]),
     gs('생존자', [
-      p('· 구조 신호를 따라가 잔해를 치우고 필요한 물자와 빈 침상이 있으면 구조해요.\n· 딱 맞는 모듈에 배치하면 효과가 커지고, 일할수록 신뢰가 쌓여 사연과 개인 이야기가 열려요.\n· 일터가 없는 사람은 ‘쉴 때 할 일’을 해요: 주워 오기(자재 조금씩 · 기본), 훈련(신뢰 절반 속도), 순찰(밤에 재 걷기), 아이 돌보기(아이가 빨리 자라고 돌보는 사람을 닮아요).\n· 쉘터 Lv.3부터 생존자 수첩의 ‘자동 배치’로 딱 맞는 사람을 한 번에 앉힐 수 있어요. 스위치를 켜 두면 빈 일터를 알아서 채워요.\n· 쉘터 Lv.4부터 원정 탭의 ‘자동 원정’을 켜면, 쉬는 사람(순찰·아이 돌보기 제외)으로 가장 효율 좋은 팀을 꾸려 보내고 돌아오면 전리품을 알아서 챙겨요. 팀을 꾸릴 때 ‘자동 팀’ 버튼도 쓸 수 있어요.\n· 등급: ${[for (var i = 0; i < 4; i++) '${grades[i].n} ×${grades[i].m}'].join(' · ')} · 등급마다 1~5성, 처음 등급보다 최대 2단계까지 올라요.'),
+      p('· 구조 신호를 따라가 잔해를 치우고 필요한 물자와 빈 침상이 있으면 구조해요.\n· 딱 맞는 모듈에 배치하면 효과가 커지고, 일할수록 신뢰가 쌓여 사연과 개인 이야기가 열려요.\n· 일터가 없는 사람은 ‘쉴 때 할 일’을 해요: 주워 오기(자재 조금씩 · 기본), 훈련(신뢰 절반 속도), 순찰(밤에 재 걷기), 아이 돌보기(아이가 빨리 자라고 돌보는 사람을 닮아요).\n· 쉘터 Lv.3부터 생존자 수첩의 ‘자동 배치’로 딱 맞는 사람을 한 번에 앉힐 수 있어요. 스위치를 켜 두면 빈 일터를 알아서 채워요.\n· 쉘터 Lv.4부터 원정 탭의 ‘자동 원정’을 켜면, 쉬는 사람(순찰·아이 돌보기 제외)으로 가장 효율 좋은 팀을 꾸려 보내고 돌아오면 전리품을 알아서 챙겨요. 팀을 꾸릴 때 ‘자동 팀’ 버튼도 쓸 수 있어요.\n· 등급: ${[for (var i = 0; i < 4; i++) '${grades[i].n} ×${grades[i].m}'].join(' · ')} · 등급은 처음 정해진 그대로이고, 신뢰와 자재로 1~5성까지 올려요.'),
     ]),
     gs('밤과 재폭풍', [
       p('· 밤마다 가장자리에 붉은 재가 쌓여요. 제때 걷어내지 않으면 땅이나 모듈을 잃어요.\n· 세 번째 밤마다(공단은 두 번째) '),

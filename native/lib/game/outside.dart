@@ -514,6 +514,9 @@ extension Visitors on Game {
     P['stock'] = _makePedStock();
     fx.add(FxNote(pedVisits == 1 ? '딸랑 — 손수레 끄는 노인이 찾아왔어요' : '딸랑 — 노친네가 수레를 끌고 왔어요',
         '${pedVisits == 1 && hasSv(0) ? '만수: “저 노친네, 뭘 팔러 왔구먼.” · ' : ''}해 지기 전까지 쉘터 앞에 있어요 · 위 띠의 ‘노친네’를 눌러요', ms: 6500));
+    if (pedVisits == 1) {
+      tlog(hasSv(0) ? '손수레 끄는 노인이 처음 찾아왔다. 만수가 “저 노친네”라고 불렀고, 그게 이름이 됐다.' : '손수레 끄는 노인이 처음 찾아왔다. 누군가 “저 노친네”라고 불렀고, 그게 이름이 됐다.');
+    }
   }
 
   void pedLeave({bool bye = false}) {
@@ -525,7 +528,9 @@ extension Visitors on Game {
     if (pedVisits == 4) {
       give({'food': 8});
       t = '수레가 섰던 자리에 통조림 몇 개가 값 없이 놓여 있었어요';
+      tlog('노친네가 떠난 자리에 통조림이 놓여 있었다. 값은 받지 않았다.');
     }
+    if (pedVisits == 5) tlog('노친네: “그날 밤 우리 가게 셔터는 안에서 내려갔어요.” 그 뒤로는 다시 장사꾼 말투였다.');
     fx.add(FxNote(bye ? '노친네가 수레를 끌고 떠났어요' : '노친네가 해 지기 전에 떠났어요', bye && pedVisits != 4 ? '“있을 때 사 두라니까요.” 며칠 뒤 다시 들른대요' : t, ms: 5200));
     _changed();
   }
@@ -556,6 +561,12 @@ extension Visitors on Game {
         addGear(x['t'] as String);
       case 'relic':
         gainRelic(x['it'] as String);
+    }
+    // 진이 검은 새 표식 통조림을 본다 (웹 pedBuy crow)
+    if (x['crow'] == 1 && hasSv(jinId) && S.rest['pedCrow'] == null) {
+      S.rest['pedCrow'] = 1;
+      fx.add(const FxNoteLater(1500, '진이 통조림의 표식을 봤어요', '한참 들여다보다가 아무 말 없이 돌아섰어요', ms: 5200));
+      tlog('노친네 수레에서 나온 검은 새 표식 통조림을 진이 한참 들여다봤다.');
     }
     _changed();
     return x['free'] == 1 ? '노친네: “하늘이 거는 됐어요.”' : '${jo(x['n'] as String, '을', '를')} 샀어요';

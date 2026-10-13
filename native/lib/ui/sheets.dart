@@ -1,5 +1,6 @@
 // 지도 위로 올라오는 시트 (웹 #sheet). 머리(아이콘·제목·닫기)는 짙은 색, 몸은 종이색.
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -114,7 +115,16 @@ class _ShelterBodyState extends State<ShelterBody> {
       ]),
       if (g.hungry) Padding(padding: const EdgeInsets.only(top: 6), child: Text('배고파서 생산이 절반으로 줄었어요 · 텃밭을 늘리거나 식량을 모아요', style: Ttc.t(12, color: Ttc.no, weight: FontWeight.w600))),
       const SizedBox(height: 12),
-      Segs(items: const ['건설', '가공', '연구', '창고', '꾸미기'], on: tab, onTap: (k) => setState(() => tab = k), hlKeys: const ['seg:0', 'seg:1']),
+      Segs(
+          items: const ['건설', '가공', '연구', '창고', '꾸미기'],
+          on: tab,
+          // 새 기능 표시 (웹 segNew: 꾸미기·가공 등)
+          dots: [for (final k in const ['build', 'craft', 'research', 'store', 'deco']) g.segNew('shelter', k)],
+          onTap: (k) => setState(() {
+                tab = k;
+                g.seeFeat('shelter', const ['build', 'craft', 'research', 'store', 'deco'][k]);
+              }),
+          hlKeys: const ['seg:0', 'seg:1']),
       ...switch (tab) {
         0 => _build(),
         1 => [..._craft(), ...feastCard(g)],
@@ -210,25 +220,30 @@ class _ShelterBodyState extends State<ShelterBody> {
     return BuyButton(label, why: dis ? why : (poor ? '자재 부족' : null), onTap: dis || poor ? null : act);
   }
 
-  int craftMax(int k) {
-    final r = recipes[k], inp = g.recipeInp(r);
-    var n = 1 << 30;
-    inp.forEach((m, v) => n = n < (g.have(m) / v).floor() ? n : (g.have(m) / v).floor());
-    return n;
-  }
-
   List<Widget> _craft() {
     final out = <Widget>[sec('작업대 가공')];
     if (g.wbL == 0) {
       out.add(emptyBox(moduleThumb(1, 0, w: 52, h: 52, gray: true), '작업대가 아직 없어요', '작업대를 세우면 고철로 철판을, 천으로 밧줄을 만들 수 있어요'));
       return out;
     }
-    out.add(Padding(padding: const EdgeInsets.only(bottom: 8), child: Text('탭하면 1개 · 꾹 누르면 계속 만들어요', style: Ttc.t(12, color: Ttc.sepia2))));
+    // 웹 craftHintHtml
+    out.add(Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Text.rich(
+            TextSpan(children: [
+              const TextSpan(text: '탭하면 1개 · 꾹 누르면 계속 만들어요'),
+              if (g.acraftOpen) ...[
+                const TextSpan(text: ' · '),
+                const TextSpan(text: '자동', style: TextStyle(color: Color(0xFF4F6E2F), fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)])),
+                const TextSpan(text: '을 켜면 남는 재료를 알아서 가공해요'),
+              ],
+            ]),
+            style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5))));
     for (var k = 0; k < recipes.length; k++) {
       final r = recipes[k], lk = g.recipeLock(r), inp = g.recipeInp(r);
       if (lk.isNotEmpty && r.lv > 0 && g.S.lv < r.lv - 1) continue;
       final m = matOf[r.out]!;
-      final full = g.have(r.out) >= g.capOf(r.out), ok = craftMax(k) >= 1 && !full;
+      final full = g.have(r.out) >= g.capOf(r.out), ok = g.craftMax(k) >= 1;
       out.add(hl('craft:$k', MCard(
         kind: lk.isNotEmpty ? CardKind.locked : CardKind.normal,
         thumb: Container(
@@ -250,21 +265,41 @@ class _ShelterBodyState extends State<ShelterBody> {
               ]),
         button: lk.isNotEmpty
             ? lockBadge(lk)
-            : GestureDetector(
-                onLongPressStart: ok
-                    ? (_) {
-                        _hold?.cancel();
-                        _hold = Timer.periodic(const Duration(milliseconds: 140), (_) {
-                          if (craftMax(k) < 1 || g.have(r.out) >= g.capOf(r.out) || g.craft(k, 1) == 0) _hold?.cancel();
-                        });
-                      }
-                    : null,
-                onLongPressEnd: (_) => _hold?.cancel(),
-                child: BuyButton('만들기', why: ok ? null : (full ? '창고 가득' : '재료 부족'), onTap: ok ? () => g.craft(k, 1) : null),
-              ),
+            : Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                CraftBtn(g, k, ok: ok, why: ok ? null : (full ? '창고 가득' : '재료 부족')),
+                if (g.acraftOpen) ...[const SizedBox(height: 6), _acrBtn(k)],
+              ]),
       ), radius: 12));
     }
     return out;
+  }
+
+  /// 자동 가공 스위치 (웹 .acr)
+  Widget _acrBtn(int k) {
+    final on = g.acraftOn(k);
+    return GestureDetector(
+      onTap: () => setState(() => g.acraftToggle(k)),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        decoration: BoxDecoration(
+          color: on ? const Color(0xFFEEF3DF) : const Color(0xFFFBF4E4),
+          borderRadius: BorderRadius.circular(99),
+          border: Border.all(color: on ? const Color(0xFF6F9646) : const Color(0x383B2A1A), width: 1.5),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
+          Container(
+            width: 24,
+            height: 14,
+            padding: const EdgeInsets.all(2),
+            alignment: on ? Alignment.centerRight : Alignment.centerLeft,
+            decoration: BoxDecoration(color: on ? const Color(0xFF6F9646) : const Color(0x403B2A1A), borderRadius: BorderRadius.circular(99)),
+            child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+          ),
+          const SizedBox(width: 6),
+          Text('자동', style: Ttc.t(12, color: on ? const Color(0xFF2F4A1A) : Ttc.sepia2, weight: FontWeight.w700, height: 1)),
+        ]),
+      ),
+    );
   }
 
   List<Widget> _research() {
@@ -483,8 +518,14 @@ class _DiaryBodyState extends State<DiaryBody> {
       Segs(
         items: [for (final t in tabs) t.$2],
         on: on < 0 ? 0 : on,
-        dots: [for (final t in tabs) (t.$1 == 'ach' && g.achReady) || (t.$1 == 'scene' && g.S.rest['artNew'] != null) || (t.$1 == 'case' && g.S.rest['caseNew'] != null)],
-        onTap: (k) => setState(() => DiaryBody.tab = tabs[k].$1),
+        dots: [
+          for (final t in tabs)
+            (t.$1 == 'ach' && g.achReady) || (t.$1 == 'scene' && g.S.rest['artNew'] != null) || (t.$1 == 'case' && g.S.rest['caseNew'] != null) || g.segNew('diary', t.$1)
+        ],
+        onTap: (k) => setState(() {
+          DiaryBody.tab = tabs[k].$1;
+          g.seeFeat('diary', tabs[k].$1);
+        }),
       ),
       ...switch (DiaryBody.tab) {
         'relic' => relicsSection(g),
@@ -492,7 +533,7 @@ class _DiaryBodyState extends State<DiaryBody> {
         'case' => casesTab(context, g),
         'towns' => routeTab(context, g),
         'ach' => achTab(g),
-        'guide' => guideTab(g),
+        'guide' => guideTab(context, g),
         _ => [...storyLog(g), ...diaryLog(g, (k) => showDiary(context, k))],
       },
     ]);
@@ -708,5 +749,102 @@ class _SettingsBodyState extends State<SettingsBody> {
         widget.onReset();
       }, warn: confirmReset)),
     ]);
+  }
+}
+
+/// 가공 버튼 (웹 craftBtn · chStep): 누르면 1개, 누르고 있으면 점점 빨리 여러 개 · '+N 만드는 중'
+class CraftBtn extends StatefulWidget {
+  const CraftBtn(this.g, this.k, {super.key, required this.ok, this.why});
+  final Game g;
+  final int k;
+  final bool ok;
+  final String? why;
+  @override
+  State<CraftBtn> createState() => _CraftBtnState();
+}
+
+class _CraftBtnState extends State<CraftBtn> {
+  Timer? _t;
+  int _n = 0, _made = 0;
+  bool _hold = false;
+  Game get g => widget.g;
+
+  void _down() {
+    final k = widget.k, out = recipes[k].out;
+    if (g.craftMax(k) < 1) {
+      g.fx.add(FxToast(g.have(out) >= g.capOf(out) ? '${matOf[out]!.n} 창고가 가득 찼어요' : '재료가 모자라요'));
+      return;
+    }
+    final r = g.craftQuiet(k, 1);
+    if (r.$1 == 0) {
+      g.fx.add(const FxToast('재료가 모자라요'));
+      return;
+    }
+    Sound.sfx('get');
+    setState(() {
+      _hold = true;
+      _n = 0;
+      _made = r.$2;
+    });
+    _t = Timer(const Duration(milliseconds: 380), _step);
+  }
+
+  void _step() {
+    if (!_hold || !mounted) return;
+    final mx = g.craftMax(widget.k);
+    if (mx < 1) return _stop();
+    _n++;
+    final batch = math.max(1, math.min(mx, math.pow(1.45, _n - 1).floor()));
+    final r = g.craftQuiet(widget.k, batch);
+    if (r.$1 == 0) return _stop();
+    setState(() => _made += r.$2);
+    if (_n % 3 == 0) Sound.sfx('get');
+    Sound.tick();
+    _t = Timer(Duration(milliseconds: _n < 3 ? 260 : 110), _step);
+  }
+
+  void _stop() {
+    _t?.cancel();
+    if (!_hold) return;
+    if (_made > 1) g.fx.add(FxToast('${matOf[recipes[widget.k].out]!.n} ${fmt(_made)}개를 만들었어요'));
+    if (mounted) setState(() => _hold = false);
+  }
+
+  @override
+  void dispose() {
+    _t?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final on = widget.ok || _hold;
+    return Listener(
+      onPointerDown: on ? (_) => _down() : null,
+      onPointerUp: (_) => _stop(),
+      onPointerCancel: (_) => _stop(),
+      child: Transform.translate(
+        offset: Offset(0, _hold ? 2 : 0),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 44, minWidth: 84),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
+          decoration: BoxDecoration(
+              color: on ? (_hold ? const Color(0xFF3A4752) : Ttc.darkBtn) : Ttc.offBtn,
+              borderRadius: BorderRadius.circular(7),
+              border: Border.all(color: on ? Ttc.darkBtn : Ttc.offBtnLine, width: .8)),
+          alignment: Alignment.center,
+          child: _hold
+              ? Column(mainAxisSize: MainAxisSize.min, children: [
+                  Text('+${fmt(_made)}', style: Ttc.t(16, color: Ttc.darkBtnText, weight: FontWeight.w800, height: 1)),
+                  const SizedBox(height: 2),
+                  Text('만드는 중', style: Ttc.t(10.5, color: Ttc.darkBtnText.withValues(alpha: .75), weight: FontWeight.w600, height: 1)),
+                ])
+              : Column(mainAxisSize: MainAxisSize.min, children: [
+                  Text('만들기', style: Ttc.t(on ? 13 : 12, color: on ? Ttc.darkBtnText : Ttc.offBtnText, weight: FontWeight.w700, height: 1.2)),
+                  if (widget.why != null) Text(widget.why!, style: Ttc.t(11, color: Ttc.offBtnText.withValues(alpha: .85), weight: FontWeight.w600, height: 1.2)),
+                ]),
+        ),
+      ),
+    );
   }
 }
