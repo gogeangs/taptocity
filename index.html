@@ -2515,7 +2515,7 @@ function tok(ang,act,arg,icon,cap,cls,cost){const a=ang*Math.PI/180;return`<butt
 function angles(n){if(n===1)return[90];if(n===2)return[130,50];const span=n>=5?240:180,st=90+span/2,a=[];for(let k=0;k<n;k++)a.push(st-k*span/(n-1));return a;}
 function buildRing(){const i=ringTile;if(i<0)return;let label='',toks='';const m=modAtTile(i);
   if(S.ter[i]===T.LM&&!m){const L=S.lm[i],l=LMS[L.k],s=S.site[i];
-    const isLn=l.key==='station',lnChip=isLn?`<span class="chip ln">${svg('line')}노선 미니게임 입구${L.ok?(lnState().fat?` · 보상 ${Math.round(lnMult()*100)}%`:' · 지금 최고 보상'):' · 복구하면 열려요'}</span>`:'';
+    const isLn=l.key==='station',lnChip=isLn?`<span class="chip ln">${svg('line')}끊긴 노선 입구${L.ok?(lnState().fat?` · 보상 ${Math.round(lnMult()*100)}%`:' · 지금 최고 보상'):' · 복구하면 열려요'}</span>`:'';
     label=`<b>${l.name}</b><i>${isLn?(L.ok?'노선 입구 · 복구 완료':'노선 입구 · 랜드마크'):(L.ok?'복구 완료':'랜드마크')}</i><p>${L.ok?l.done:l.ruin}</p><div class="chips">${lnChip}<span class="chip g">복구하면 ${l.desc}</span>${!L.ok&&s?`<span class="chip">남은 물자 ${s.c}/${s.max}</span>`:''}</div>${!L.ok?`<div class="lmc"><div class="sec2">복구에 필요한 자재</div>${needHtml(scaleCost(l.cost,costMult()))}</div>`:''}`;
     if(!L.ok){const c=scaleCost(l.cost,costMult()),list=[];if(s&&s.c>0)list.push(['aimlm',i,'person','뒤지기 조준','',null]);list.push(['lm',i,'up','복구하기',canPay(c)?'':'poor',null]);const an=angles(list.length);list.forEach((o,n)=>toks+=tok(an[n],...o));}
     else if(l.key==='station'){const an=angles(1);toks+=tok(an[0],'line',i,'line','노선 탐사','lngo',null);}}
