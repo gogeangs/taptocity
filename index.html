@@ -1231,14 +1231,14 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261013-guest">
+<link rel="stylesheet" href="qa.css?v=20261013-emoji">
 <div id="app">
   <header>
     <div class="hud">
       <div class="town"><button id="pfBtn" class="lamp" aria-label="내 프로필"></button><button class="mats" id="mats" aria-label="자재 전체 보기" aria-expanded="false"></button><button id="setBtn" aria-label="설정"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
     </div>
     <div id="matsAll" hidden></div>
-    <div class="tape" id="tape"><button class="lvchip" id="lvchip" aria-label="쉘터 증축"><b id="lv">Lv.1 텐트</b><span class="lvbar"><i id="bar"></i></span><span id="barL" hidden></span><small id="pop" hidden>생존자 0</small></button><div class="m" id="mis">…</div><button class="migchip ped" id="pedchip" hidden>🛒 노친네</button><button class="migchip fire" id="firechip" hidden>모닥불</button><button class="migchip" id="migchip" hidden>🔥 새 동네로</button><button class="claim" id="claim" hidden>받기</button></div>
+    <div class="tape" id="tape"><button class="lvchip" id="lvchip" aria-label="쉘터 증축"><b id="lv">Lv.1 텐트</b><span class="lvbar"><i id="bar"></i></span><span id="barL" hidden></span><small id="pop" hidden>생존자 0</small></button><div class="m" id="mis">…</div><button class="migchip ped" id="pedchip" hidden><i class="pedface" aria-hidden="true"></i>노친네</button><button class="migchip fire" id="firechip" hidden>모닥불</button><button class="migchip" id="migchip" hidden><span class="mi rimg" style="--rs:18px;background-position:100% 0" aria-hidden="true"></span> 새 동네로</button><button class="claim" id="claim" hidden>받기</button></div>
   </header>
   <div id="stage">
     <canvas id="cv" role="img" aria-label="쉘터 지도"></canvas>
@@ -2922,7 +2922,7 @@ const mmss=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
 const avatar=id=>`<span class="av">${portrait(SURV[id])}</span>`;
 function renderExp(){$('shTitle').textContent='원정';let h=autoExpHtml()+ugCard()+lnCard();const now=Date.now(),lockL=[];
   for(const e of EXPS){const x=S.exp[e.key];
-    if(!e.req()){lockL.push(`<span>🔒 ${e.name} · ${e.lock}</span>`);continue;}
+    if(!e.req()){lockL.push(`<span><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> ${e.name} · ${e.lock}</span>`);continue;}
     if(x){const left=Math.max(0,(x.end-now)/1000),done=left<=0;
       h+=`<div class="exp">${window.TTCFinal?TTCFinal.scene(e.key,'exp-scene'):""}<div class="top"><b>${e.name}</b><span class="meta" data-left="${e.key}">${done?'돌아왔어요!':`남은 시간 ${mmss(left)}`}</span></div><div class="team">${x.team.map(id=>`<span class="mem">${avatar(id)}${SURV[id].name}</span>`).join('')}</div>
         <div class="pbar"><i data-bar="${e.key}" style="width:${Math.min(100,(1-left/x.dur)*100)}%"></i></div>${done?`<button class="buy" data-act="xback" data-arg="${e.key}">원정 일지 보기</button>`:''}</div>`;continue;}
@@ -2930,7 +2930,7 @@ function renderExp(){$('shTitle').textContent='원정';let h=autoExpHtml()+ugCar
       h+=`<div class="exp">${window.TTCFinal?TTCFinal.scene(e.key,'exp-scene'):""}<div class="top"><b>${e.name}</b><span class="meta">최소 ${e.min}명 · 최대 3명</span></div><p>${e.desc}</p><div class="costs" style="margin:-4px 0 8px">${Object.keys(e.loot).map(k=>`<span class="cost">${micon(k,13)}${MN[k].n}</span>`).join('')}</div>
         <div class="team">${free.length?free.map(id=>`<button class="mem${expPlan.team.includes(id)?' on':''}" data-act="xmem" data-arg="${id}" ${!expPlan.team.includes(id)&&expPlan.team.length>=3?'disabled':''}>${avatar(id)}${SURV[id].name}</button>`).join(''):'<span class="meta">보낼 수 있는 생존자가 없어요</span>'}${expPetBtn()}</div>
         <div class="prev">${expPlan.team.length?`소요 ${mmss(c.t)} · 부상 위험 ${Math.round(c.risk*100)}%${c.perks.length?'<br>'+c.perks.join(' · '):''}<br>원정 중에는 일터에서 빠지고 스킬도 못 써요`:'함께 갈 사람을 골라 주세요'}</div>
-        <div class="btns">${autoExpOpen()?`<button class="buy ghost" data-act="xauto" data-arg="${e.key}">⚙ 자동 팀</button>`:''}<button class="buy ghost" data-act="xcancel">취소</button><button class="buy" data-act="xgo" ${expPlan.team.length<e.min?'disabled':''}>출발</button></div></div>`;continue;}
+        <div class="btns">${autoExpOpen()?`<button class="buy ghost" data-act="xauto" data-arg="${e.key}">⚙︎ 자동 팀</button>`:''}<button class="buy ghost" data-act="xcancel">취소</button><button class="buy" data-act="xgo" ${expPlan.team.length<e.min?'disabled':''}>출발</button></div></div>`;continue;}
     const c=expCalc(e,[]);h+=`<div class="exp slim">${window.TTCFinal?TTCFinal.scene(e.key,'exp-scene'):""}<div class="top"><b>${e.name}</b><span class="meta">${mmss(e.t)} · 위험 ${Math.round(e.risk*100)}%</span></div><div class="srow"><span class="lootic">${Object.keys(e.loot).map(k=>micon(k,16)).join('')}</span><button class="buy" data-act="xplan" data-arg="${e.key}" ${Object.keys(S.sv).length?'':'disabled'}>팀 꾸리기</button></div></div>`;}
   if(lockL.length)h+=`<div class="locklist">${lockL.join('')}</div>`;
   if(!Object.keys(S.sv).length)h='<div class="row"><div class="d">생존자를 먼저 구조해야 원정을 보낼 수 있어요.</div></div>'+h;
@@ -3747,12 +3747,12 @@ function renderUG(){if(!UG)return;const hint=ugRole(UG.team,'scout')||ugRole(UG.
   const carry=Object.entries(UG.carry).filter(([,v])=>v>0).map(([k,v])=>`<span>${micon(k,14)}<b>${v}</b></span>`).join('')+UG.gear.map(t=>`<span class="ug-g">${gicon(t,14)}</span>`).join('');
   const meter=`<div class="udep"><i style="left:${Math.min(100,(f-1)/19*100)}%"></i>${UG_CK.map(k=>`<em class="${(S.ug.ck||[]).includes(k)?'on':''}" style="left:${(k-1)/19*100}%"></em>`).join('')}${UG_TH.map(t=>`<small style="left:${(t.f-1)/19*100}%">${t.n}</small>`).join('')}</div>`;
   modal.hidden=false;modal.innerHTML=`<div class="page ug ugv2 th-${TH.k}"><div class="uhead"><div class="ufl"><span class="ubadge">B${f}</span><span><b>지하 ${f}층</b><small>${TH.n}</small></span></div>
-      <div class="uright">${UG.keys?`<span class="ukey">🗝 ${UG.keys}</span>`:''}<span class="ugteam">${UG.team.map(id=>`<span class="av${UG.hurt.includes(id)?' hurt':''}" title="${SURV[id].name}">${portrait(SURV[id])}</span>`).join('')}</span></div></div>
+      <div class="uright">${UG.keys?`<span class="ukey"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">${UGI.key}</svg> ${UG.keys}</span>`:''}<span class="ugteam">${UG.team.map(id=>`<span class="av${UG.hurt.includes(id)?' hurt':''}" title="${SURV[id].name}">${portrait(SURV[id])}</span>`).join('')}</span></div></div>
     ${meter}
     ${window.TTCFinal?TTCFinal.scene(TH.k==='plant'?'control':TH.k,'ug-scene',TH.n):`<div class="udeco">${UGDECO[TH.k](f)}</div>`}
     <div class="uoil${oilP<.25?' low':''}"><span class="ulamp"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v2h4V3M8 6h8l-1 13H9z"/><path d="M12 10c1.6 1.6 1.6 3.4 0 4.6-1.6-1.2-1.6-3 0-4.6z" fill="currentColor" stroke="none"/></svg></span><div class="ubar"><i style="width:${oilP*100}%"></i></div><b>${UG.oil}</b></div>
     <div class="umsg${foeAlive?' warn':''}">${icoTxt(UG.msg)}</div>
-    ${UG.shop?`<div class="ugshop"><button class="alt" data-act="ugb" data-arg="0" ${canPay({food:15})?'':'disabled'}>${micon('food',14)} 15 → 기름 +8</button><button class="alt" data-act="ugb" data-arg="1" ${canPay({parts:12})?'':'disabled'}>${micon('parts',14)} 12 → 🗝 1</button></div>`:''}
+    ${UG.shop?`<div class="ugshop"><button class="alt" data-act="ugb" data-arg="0" ${canPay({food:15})?'':'disabled'}>${micon('food',14)} 15 → 기름 +8</button><button class="alt" data-act="ugb" data-arg="1" ${canPay({parts:12})?'':'disabled'}>${micon('parts',14)} 12 → <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">${UGI.key}</svg> 1</button></div>`:''}
     <div class="ugrid2">${grid}</div>${(()=>{const seen=[...new Set(UG.cells.filter(c=>c.rev&&UGL[c.c]&&c.c!=='start').map(c=>c.c))];return seen.length?`<div class="uglegend">${seen.map(k=>`<span class="k-${k}"><i class="ub">${ugIcon({c:k})}</i>${UGN[k]}</span>`).join('')}</div>`:'';})()}
     <div class="ucarry"><span class="ulbl">챙긴 것</span>${carry||'<small>아직 없어요</small>'}</div>
     <button data-act="ugx" class="uexit">돌아가기 · 전리품 챙기기<small>기름이 다 떨어지면 자재 절반과 장비를 잃어요</small></button></div>`;}
@@ -3760,7 +3760,7 @@ const UGDECO={
  metro:f=>`<span class="lnum">${((f-1)%4)+2}</span><span class="stn"><b>${['시청','을지로','동대문','성수'][(f-1)%4]}</b><small>다음 역 · 지하 ${f+1}층</small></span><span class="arrow">▶</span>`,
  sewer:f=>`<span class="drip"></span><span class="drip d2"></span><span class="drip d3"></span><span class="pipe-t">하수관 ${String(f).padStart(2,'0')}구역 · 물 흐름 느림</span>`,
  bunker:f=>`<span class="stencil">B-${String(f).padStart(2,'0')} · 관계자 외 출입 금지</span><span class="lamps"><i></i><i></i><i></i></span>`,
- plant:f=>`<span class="crt">&gt; 실험로 출력 <b>${(3.14+f*.07).toFixed(2)}</b> GW · 냉각수 <b>${Math.max(4,40-f*2)}%</b></span><span class="warn">⚠</span>`};
+ plant:f=>`<span class="crt">&gt; 실험로 출력 <b>${(3.14+f*.07).toFixed(2)}</b> GW · 냉각수 <b>${Math.max(4,40-f*2)}%</b></span><span class="warn">!</span>`};
 const UGL={pet:'웅덩이',loot:'상자',rare:'귀한것',gear:'장비',oil:'기름',hazard:'위험',stairs:'계단',start:'입구',rest:'쉼터',key:'열쇠',door:'문',foe:'괴물',shop:'상인',diary:'기록',who:'흔적',quest:'이야기'};
 const UGN={pet:'물웅덩이',loot:'상자',rare:'귀한 물건',gear:'장비',oil:'기름통',hazard:'위험',stairs:'아래층 계단',start:'내려온 곳',rest:'쉼터',key:'열쇠',door:'잠긴 문',foe:'재 괴물',shop:'지하 상인',diary:'기록',who:'누군가의 흔적',quest:'이야기 물건'};
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act^="ug"]');if(!b)return;e.stopPropagation();if(b.disabled)return;const a=b.dataset.act,g=+b.dataset.arg;
@@ -3946,7 +3946,7 @@ function personAt(sx,sy,reach){let best=null,bd=(reach!=null?reach:18*cam.z+8)**
 
 // ================= WEATHER (날씨) =================
 // Rolled at every dawn. 백설화 or a 무전실 shows tomorrow's weather in advance.
-const WX={normal:{n:'흐림',ic:'☁',d:'평범한 하루예요'},clear:{n:'맑음',ic:'☀',d:'폐허 뒤지기 ×1.25 · 구름 걷기 ×1.2'},acid:{n:'산성비',ic:'☂',d:'식량 생산 절반 · 뒤지기 ×0.85'},cold:{n:'한파',ic:'❄',d:'연료 소비 ×2 · 식량 소비 ×1.3'},wind:{n:'강풍',ic:'≋',d:'랜턴 피버가 1.5배 빨리 참 · 구름 걷기 ×1.1'}};
+const WX={normal:{n:'흐림',ic:'☁\uFE0E',d:'평범한 하루예요'},clear:{n:'맑음',ic:'☀\uFE0E',d:'폐허 뒤지기 ×1.25 · 구름 걷기 ×1.2'},acid:{n:'산성비',ic:'☂\uFE0E',d:'식량 생산 절반 · 뒤지기 ×0.85'},cold:{n:'한파',ic:'❄\uFE0E',d:'연료 소비 ×2 · 식량 소비 ×1.3'},wind:{n:'강풍',ic:'≋',d:'랜턴 피버가 1.5배 빨리 참 · 구름 걷기 ×1.1'}};
 function rollWx(){const r0=REG(),w=r0&&r0.wx;if(w){let r=Math.random();for(const k in w){if(r<w[k])return k;r-=w[k];}return'normal';}const r=Math.random();return r<.4?'normal':r<.62?'clear':r<.76?'acid':r<.9?'cold':'wind';}
 const wxK=()=>(S.wx&&WX[S.wx])?S.wx:'normal';
 function wxMul(kind,k){const w=wxK();
@@ -4185,7 +4185,7 @@ function autoGearHtml(){const inv=(S.inv||[]).length;if(!inv)return'';return`<di
 $('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="autogear"]');if(!b)return;e.stopImmediatePropagation();const r=autoGear();sfx('chime');if(!r.ch)toast('이미 가장 잘 맞게 입고 있어요');else note({h:'장비 자동 맞춤 완료',t:`<small>${r.n}명 착용 · 전용 ${r.sig} · 잘맞음 ${r.fit} · 바뀐 칸 ${r.ch}</small>`,ms:4500});renderSheet();},true);
 function autoHtml(){if(!autoOpen())return'';
   const tiles=D.modAt.size,used=Object.keys(S.asg).length;
-  return`<div class="autobox"><div><b>⚙ 자동 배치</b><small>일터 ${used}/${tiles} · 딱 맞는 사람을 먼저 앉혀요</small></div><button class="buy" data-act="autoasg">지금 맞추기</button><button class="tgl${S.autoAsg?' on':''}" data-act="autotgl" role="switch" aria-checked="${!!S.autoAsg}" title="빈 일터를 항상 자동으로 채우기"><i></i></button></div>`+autoGearHtml();}
+  return`<div class="autobox"><div><b>⚙︎ 자동 배치</b><small>일터 ${used}/${tiles} · 딱 맞는 사람을 먼저 앉혀요</small></div><button class="buy" data-act="autoasg">지금 맞추기</button><button class="tgl${S.autoAsg?' on':''}" data-act="autotgl" role="switch" aria-checked="${!!S.autoAsg}" title="빈 일터를 항상 자동으로 채우기"><i></i></button></div>`+autoGearHtml();}
 $('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="autoasg"],[data-act="autotgl"]');if(!b)return;e.stopImmediatePropagation();
   if(b.dataset.act==='autotgl'){S.autoAsg=!S.autoAsg;save();toast(S.autoAsg?'빈 일터를 자동으로 채워요':'자동 채우기를 껐어요');if(S.autoAsg)autoAssign(false);renderSheet();return;}
   const r=autoAssign(true);sfx('chime');note({h:'자동 배치 완료',t:`<small>${r.n}명 배치 · 딱 맞는 일터 ${r.fit}명${idleIds().length?` · 남은 ${idleIds().length}명은 쉴 때 할 일을 해요`:''}</small>`,kind:'find'});renderSheet();},true);
@@ -4199,7 +4199,7 @@ function autoTeam(e,pool=expPool()){let best=null,bs=-1;const n=pool.length;
   for(let a=0;a<n;a++){tryT([pool[a]]);for(let b=a+1;b<n;b++){tryT([pool[a],pool[b]]);for(let c=b+1;c<n;c++)tryT([pool[a],pool[b],pool[c]]);}}return best;}
 function sendExp(key,team){const e=EXPS.find(x=>x.key===key),c=expCalc(e,team);S.exp[key]={team,end:Date.now()+c.t*1000,dur:c.t};for(const id of team)S.sv[id].away=key;recalc();renderSkills(true);save();return c;}
 function autoExpHtml(){if(!autoExpOpen())return'';
-  const pool=expPool().length;return`<div class="autobox"><div><b>⚙ 자동 원정</b><small>${S.autoExp?`켜짐 · 보낼 수 있는 사람 ${pool}명`:'쉬는 사람으로 팀을 꾸려 보내고, 돌아오면 알아서 챙겨요'}</small></div><button class="tgl${S.autoExp?' on':''}" data-act="autoexp" role="switch" aria-label="자동 원정" aria-checked="${!!S.autoExp}"><i></i></button></div>`;}
+  const pool=expPool().length;return`<div class="autobox"><div><b>⚙︎ 자동 원정</b><small>${S.autoExp?`켜짐 · 보낼 수 있는 사람 ${pool}명`:'쉬는 사람으로 팀을 꾸려 보내고, 돌아오면 알아서 챙겨요'}</small></div><button class="tgl${S.autoExp?' on':''}" data-act="autoexp" role="switch" aria-label="자동 원정" aria-checked="${!!S.autoExp}"><i></i></button></div>`;}
 $('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="autoexp"],[data-act="xauto"]');if(!b)return;e.stopImmediatePropagation();
   if(b.dataset.act==='autoexp'){S.autoExp=!S.autoExp;save();toast(S.autoExp?'자동 원정을 켰어요 · 순찰·아이 돌보기 중인 사람은 남겨 둬요':'자동 원정을 껐어요');if(S.autoExp)tickAutoExp(true);renderSheet();return;}
   const ex=EXPS.find(x=>x.key===b.dataset.arg),t=autoTeam(ex,Object.keys(S.sv).map(Number).filter(id=>!busy(id)&&!(S.sv[id].hurt>0)));if(!t){toast('보낼 수 있는 사람이 모자라요');return;}expPlan.team=t;sfx('tap');renderSheet();},true);
@@ -4673,7 +4673,7 @@ $('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act^="p
 function openPfName(first){const p=pf();if(first&&!p.set)Object.assign(p,pfRandom());const nm=p.name||'';
   openModal(`<div class="page pfsetup"><div class="tag">${first?'등불지기의 이름':'이름 바꾸기'}</div>${first?`<div class="pf pfq">${pfSVG(p)}</div><p class="d" style="text-align:center">랜턴을 든 당신을 뭐라고 부를까요?<br>초상화는 왼쪽 위 초상화를 눌러 언제든 꾸밀 수 있어요.</p>`:''}
     <input id="pfIn" class="pfin" maxlength="10" placeholder="등불지기" value="${nm.replace(/"/g,'&quot;')}" autocomplete="off">
-    ${first?'<button class="alt pfr" data-act="pfreroll">🎲 다른 모습</button>':''}
+    ${first?'<button class="alt pfr" data-act="pfreroll">다른 모습</button>':''}
     <div class="btns" style="margin-top:12px"><button class="alt">${first?'나중에':'취소'}</button><button data-act="pfok">${first?'이 이름으로':'바꾸기'}</button></div></div>`,true);
   setTimeout(()=>{const i=$('pfIn');i&&!first&&i.focus();},80);}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="pfok"],[data-act="pfreroll"]');if(!b)return;e.stopPropagation();
@@ -4977,10 +4977,10 @@ modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="strayfee
   save();},true);
 
 // ---------- sheet ----------
-function petBanner(){if(!petN()&&!S.stray)return'';return`<button class="banner petb" data-act="petsheet"><span class="pbimgs">${Object.keys(pets()).slice(0,4).map(k=>`<img src="${petImg(k,pets()[k].c,40)}" alt="">`).join('')||'🐾'}</span><span><b>펫 ${petN()}마리 →</b><br>${S.petOn?`동행 · ${petNm(S.petOn)}`:'떠돌이 동물이 근처에 있어요'}</span></button>`;}
+function petBanner(){if(!petN()&&!S.stray)return'';return`<button class="banner petb" data-act="petsheet"><span class="pbimgs">${Object.keys(pets()).slice(0,4).map(k=>`<img src="${petImg(k,pets()[k].c,40)}" alt="">`).join('')||`<img src="${petImg('dog',0,40,true)}" alt="">`}</span><span><b>펫 ${petN()}마리 →</b><br>${S.petOn?`동행 · ${petNm(S.petOn)}`:'떠돌이 동물이 근처에 있어요'}</span></button>`;}
 function renderPets(){$('shTitle').textContent='펫';let h='';const own=pets();
   if(S.stray&&strayVis())h+=`<button class="banner petb" data-act="petgo"><span class="pbimgs"><img src="${petImg(S.stray.k,null,40,true)}" alt=""></span><span><b>떠돌이 ${PETS[S.stray.k].hidden?'???':PETS[S.stray.k].n} · ${S.stray.n}/${S.stray.need}</b><br>지도에서 발자국 쪽으로 가기 →</span></button>`;
-  if(!petN())h+=emptyHtml('🐾','아직 함께하는 펫이 없어요',petsOpen()?'구름을 걷다 보면 떠돌이 동물의 발자국이 지도에 찍혀요':'판잣집이 되고 생존자가 두 명 모이면 떠돌이 동물이 나타나요');
+  if(!petN())h+=emptyHtml(`<img src="${petImg('dog',0,56,true)}" alt="" style="width:56px;opacity:.85">`,'아직 함께하는 펫이 없어요',petsOpen()?'구름을 걷다 보면 떠돌이 동물의 발자국이 지도에 찍혀요':'판잣집이 되고 생존자가 두 명 모이면 떠돌이 동물이 나타나요');
   {const hungry=PKEYS.filter(k=>own[k]&&!(((own[k].fedT||0)+120000)>Date.now())),tot={};for(const k of hungry){const c=petFeedCost(k);for(const r in c)tot[r]=(tot[r]||0)+c[r];}
    const totTxt=Object.keys(tot).map(r=>`${r==='fuel'?'연료':'식량'} ${tot[r]}`).join(' · ');
    if(petN()>1)h+=`<div class="btns" style="margin:0 0 10px"><button class="buy" data-act="feedallpets" ${!hungry.length||!canPay(tot)?'disabled':''}>${hungry.length?`모두 먹이 주기 · ${hungry.length}마리 · ${totTxt}`:'모두 배불러요'}</button></div>`;}
@@ -5338,12 +5338,12 @@ const waypts=g=>WAYPTS[regionOfGen(g-1)+'>'+regionOfGen(g)]||[];
 const bat=w=>(w.charCodeAt(w.length-1)-0xac00)%28>0;
 function wayLine(g){const w=waypts(g);if(!w.length)return'';return`${w.map((x,i)=>i<w.length-1?x+(bat(x)?'과':'와'):x).join(' ')}${bat(w[w.length-1])?'을':'를'} 지나, ${townName(g)}에 닿았다.`;}
 function routeFaces(g){const ids=g===(S.gen||0)?Object.keys(S.sv):Object.keys((S.stay||{})[g]?(S.stay[g].sv):{});return ids.slice(0,5).map(id=>`<span class="fc" title="${SURV[id].name}">${portrait(SURV[id])}</span>`).join('')+(ids.length>5?`<span class="more">+${ids.length-5}</span>`:'');}
-function renderTowns(){const G=S.gen||0;if(!G&&!(S.tlog||[]).length)return emptyHtml('🗺','아직 노선도가 없어요','새 동네로 떠나면 만수가 지나온 길을 그려 줘요');
+function renderTowns(){const G=S.gen||0;if(!G&&!(S.tlog||[]).length)return emptyHtml('<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>','아직 노선도가 없어요','새 동네로 떠나면 만수가 지나온 길을 그려 줘요');
   let h=`<div class="rmap"><div class="rhead"><b>만수의 노선도</b><small>시운전하던 밤에 달린 길 · 정류장을 누르면 그 동네 기록과 남은 사람들을 봐요</small></div>`;
   const nx=nextRegion();h+=`<div class="rstop next"><span class="dot"></span><div class="cb"><div class="t">다음 정류장 <small>안개 속</small></div><div class="d">${REGIONS[nx].n}</div></div></div>`;
   for(let g=G;g>=0;g--){const e=(S.tlog||[]).find(x=>x.g===g)||{t:[]},cur=g===G,L=e.left,stay=(S.stay||{})[g],nStay=stay?Object.keys(stay.sv).length:0;
     const w=waypts(g+1);if(g<G&&w.length)h+=`<div class="rway">${w.map(x=>`<span>· ${x}</span>`).join('')}</div>`;
-    h+=`<button class="rstop${cur?' cur':''}" data-act="rtown" data-arg="${g}"><span class="dot">${cur?'🔥':''}</span><div class="cb"><div class="t">${townName(g)}<small>${g?`${g}번째 동네`:'출발지'}${cur?' · 지금':L?` · ${L.day}일째 떠남`:''}</small></div><div class="d">${cur?`생존자 ${Object.keys(S.sv).length}명 · 등불 탑 ${S.tower||0}단계`:`${nStay?`남은 사람 ${nStay}명`:'남은 사람 없음'} · 등불 탑 ${L?L.tower:'?'}단계${L&&L.sets.length?` · ${L.sets.join('·')}`:''}`}</div><div class="faces">${routeFaces(g)}</div>${e.t.length?`<div class="d q">“${e.t[e.t.length-1]}”</div>`:''}</div></button>`;}
+    h+=`<button class="rstop${cur?' cur':''}" data-act="rtown" data-arg="${g}"><span class="dot">${cur?'<span class="mi rimg" style="--rs:18px;background-position:100% 0" aria-hidden="true"></span>':''}</span><div class="cb"><div class="t">${townName(g)}<small>${g?`${g}번째 동네`:'출발지'}${cur?' · 지금':L?` · ${L.day}일째 떠남`:''}</small></div><div class="d">${cur?`생존자 ${Object.keys(S.sv).length}명 · 등불 탑 ${S.tower||0}단계`:`${nStay?`남은 사람 ${nStay}명`:'남은 사람 없음'} · 등불 탑 ${L?L.tower:'?'}단계${L&&L.sets.length?` · ${L.sets.join('·')}`:''}`}</div><div class="faces">${routeFaces(g)}</div>${e.t.length?`<div class="d q">“${e.t[e.t.length-1]}”</div>`:''}</div></button>`;}
   return h+'</div>';}
 function openTown(g){const e=(S.tlog||[]).find(x=>x.g===g)||{t:[]},cur=g===(S.gen||0),stay=(S.stay||{})[g],ids=stay?Object.keys(stay.sv).map(Number):[];
   openModal(`<div class="page"><div class="tag">${g?`${g}번째 동네`:'출발지'}${cur?' · 지금':''}</div><h3>${townName(g)}</h3>
@@ -6408,7 +6408,7 @@ async function sendFeedback(){const t=$('fbText'),txt=(t&&t.value||'').trim();if
   const b=modal.querySelector('[data-act="fbsend"]');if(b){b.disabled=true;b.textContent='보내는 중…';}
   let r='queued';try{r=window.ttcFeedback?await window.ttcFeedback(item):(fbQueue(item),'queued');}catch(e){fbQueue(item);}
   lsSet('ttc_fb_draft',null);sfx('chime');
-  openModal(`<div class="page fbpage fbdone nox"><div class="big">✉️</div><h3>${r==='sent'?'고마워요! 잘 전했어요':'고마워요! 연결되면 보낼게요'}</h3><p class="fbnote">${r==='sent'?'보내 주신 이야기는 하나하나 읽고 게임에 반영할게요.':'지금은 인터넷에 닿지 않아요. 이 기기에 담아 두었다가 다음에 연결되면 자동으로 보내요.'}</p><div class="btns"><button data-act="fbclose">닫기</button></div></div>`,true);}
+  openModal(`<div class="page fbpage fbdone nox"><div class="big"><span class="mi rimg" style="--rs:52px;background-position:100% 0" aria-hidden="true"></span></div><h3>${r==='sent'?'고마워요! 잘 전했어요':'고마워요! 연결되면 보낼게요'}</h3><p class="fbnote">${r==='sent'?'보내 주신 이야기는 하나하나 읽고 게임에 반영할게요.':'지금은 인터넷에 닿지 않아요. 이 기기에 담아 두었다가 다음에 연결되면 자동으로 보내요.'}</p><div class="btns"><button data-act="fbclose">닫기</button></div></div>`,true);}
 function fbQueue(item){try{const q=JSON.parse(localStorage.getItem('ttc_fb_q')||'[]');if(!q.some(x=>x.id===item.id))q.push(item);localStorage.setItem('ttc_fb_q',JSON.stringify(q.slice(-20)));}catch(e){}}
 window.ttcFbQueue=fbQueue;
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act="fbopen"],[data-act="fbcat"],[data-act="fbsend"],[data-act="fbclose"]');if(!b)return;e.stopPropagation();const a=b.dataset.act;
