@@ -1,3 +1,4 @@
+Resolving dependencies...
 Downloading packages...
   app_links 6.4.1 (7.2.2 available)
   code_assets 1.2.1 (2.1.0 available)
@@ -16,45 +17,41 @@ Got dependencies!
 13 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
 Running Xcode build...                                          
-Xcode build done.                                           186.3s
-VMServiceFlutterDriver: Connecting to Flutter application at http://127.0.0.1:57242/IKvxPmTcwaY=/
-VMServiceFlutterDriver: Isolate found with number: 6886770403611879
-VMServiceFlutterDriver: Isolate 6886770403611879 is runnable.
+Xcode build done.                                           159.7s
+VMServiceFlutterDriver: Connecting to Flutter application at http://127.0.0.1:54076/-0X9SD-95Wg=/
+VMServiceFlutterDriver: Isolate found with number: 651297730051263
+VMServiceFlutterDriver: Isolate 651297730051263 is runnable.
 VMServiceFlutterDriver: Isolate is paused at start.
 VMServiceFlutterDriver: Attempting to resume isolate
 flutter: 00:00 +0: iPhone에서 앱 띄워 보기
 VMServiceFlutterDriver: Connected to Flutter application.
 flutter: ▶ 처음 켜기 (0s)
 VMServiceFlutterDriver: request_data message is taking a long time to complete...
-flutter: ▶ 첫 화면 두드리기 (16s)
-flutter: ▶ 진행 중인 저장으로 켜기 (21s)
-flutter: ▶ 지도 두드리기 (소리) (29s)
-flutter: ▶ 탭 쉘터 (34s)
-flutter: ▶ 쉘터 · 건설 (36s)
-flutter: ▶ 쉘터 · 가공 (36s)
-flutter: ▶ 쉘터 · 연구 (36s)
-flutter: ▶ 쉘터 닫기 (36s)
-flutter: ▶ 탭 일지 (38s)
-flutter: ▶ 일지 · 이야기 (41s)
-flutter: ▶ 일지 · 도감 (43s)
-flutter: ▶ 일지 닫기 (45s)
-flutter: ▶ 탭 원정 (48s)
--[WFIsolatedShortcutRunner init] Taking sandbox extensions for execution
--[WFIsolatedShortcutRunner init]_block_invoke Sandbox extensions acquired
-flutter: ▶ 원정 닫기 (55s)
-Indexing for request: <WFToolKitIndexingRequest: 0x1025c4320>, changeset: .full, priority: 31
-flutter: ▶ 탭 라디오 (58s)
-flutter: ▶ 라디오 닫기 (61s)
-flutter: ▶ 탭 생존자 (63s)
-flutter: ▶ 생존자 닫기 (66s)
-flutter: ▶ 설정 (68s)
-flutter: ▶ 설정 닫기 (72s)
-flutter: ▶ 프로필 (74s)
-Failed to index parameter type: <WFLightroomPresetPickerParameter: 0x1072fe800> in is.workflow.actions.lightroom.import: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.missingIntentDescription for locale: en
-flutter: ▶ 프로필 닫기 (79s)
-flutter: ▶ 뒤로 갔다 돌아오기 (79s)
-flutter: ▶ 저장 확인 (84s)
-flutter: ▶ 진동 채널 (84s)
-flutter: 01:25 +1: (tearDownAll)
-flutter: 01:25 +2: All tests passed!
+flutter: ▶ 첫 화면 두드리기 (12s)
+flutter: ▶ 진행 중인 저장으로 켜기 (17s)
+flutter: ▶ 지도 두드리기 (소리) (23s)
+flutter: ▶ 탭 쉘터 (28s)
+flutter: ▶ 쉘터 · 건설 (30s)
+flutter: ▶ 쉘터 · 가공 (30s)
+flutter: ▶ 쉘터 · 연구 (30s)
+flutter: ▶ 쉘터 닫기 (30s)
+flutter: ▶ 탭 일지 (32s)
+flutter: ▶ 일지 · 이야기 (33s)
+flutter: ▶ 일지 · 도감 (35s)
+flutter: ▶ 일지 닫기 (37s)
+flutter: ▶ 탭 원정 (38s)
+flutter: ▶ 원정 닫기 (40s)
+flutter: ▶ 탭 라디오 (41s)
+flutter: ▶ 라디오 닫기 (43s)
+flutter: ▶ 탭 생존자 (45s)
+flutter: ▶ 생존자 닫기 (46s)
+flutter: ▶ 설정 (48s)
+flutter: ▶ 설정 닫기 (50s)
+flutter: ▶ 프로필 (51s)
+flutter: ▶ 프로필 닫기 (53s)
+flutter: ▶ 뒤로 갔다 돌아오기 (53s)
+flutter: ▶ 저장 확인 (58s)
+flutter: ▶ 진동 채널 (58s)
+flutter: 00:58 +1: (tearDownAll)
+flutter: 01:04 +2: All tests passed!
 All tests passed.
