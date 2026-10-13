@@ -1231,7 +1231,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261012-towns">
+<link rel="stylesheet" href="qa.css?v=20261013-art">
 <div id="app">
   <header>
     <div class="hud">
@@ -1578,7 +1578,7 @@ const GIC={lever:'M4 20l9-9M14 4a4 4 0 0 0 5 5l-3 3-5-5z',hammer:'M4 20l10-10M12
  harm:'M3 9h18v6H3zM6 9v6M9 9v6M12 9v6M15 9v6M18 9v6',seed:'M8 4h8l2 5v11H6V9zM6 9h12M12 13v4',watch:'M12 6a7 7 0 1 0 .1 0zM12 9v4l3 2M10 3h4',flame:'M12 3c4 5 5 9 0 13-5-4-4-8 0-13zM8 20h8',tape:'M3 6h18v12H3zM8 12a2 2 0 1 0 .1 0M16 12a2 2 0 1 0 .1 0M8 17l2-3h4l2 3',shovel:'M12 3v10M9 3h6M8 13h8l-1 7H9z',light:'M6 9h8l6-4v14l-6-4H6zM3 11v2',wrench:'M14 4a4 4 0 0 1 5 5l-9 9-3-3 9-9zM4 20l3-3',saw:'M3 12h12l3-3 3 3-3 3H3zM6 12v3M10 12v3',medkit:'M4 7h16v13H4zM9 7V4h6v3M12 11v5M9.5 13.5h5',boots:'M6 3h6v9l6 3v5H6z',helmet:'M4 14a8 8 0 0 1 16 0v3H4zM12 6v3',apron:'M8 3h8v5l3 2v11H5V10l3-2z',rain:'M12 3l8 9H4zM8 14v6M12 14v6M16 14v6',parka:'M8 3l4 2 4-2 5 5-3 3v10H6V11L3 8zM9 7a3 3 0 0 0 6 0',compass:'M12 3a9 9 0 1 0 .1 0zM15 9l-2 5-5 2 2-5z',book:'M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2zM5 18a2 2 0 0 1 2-2h12',bell:'M12 3a6 6 0 0 1 6 6v5l2 3H4l2-3V9a6 6 0 0 1 6-6zM10 20h4',ring:'M12 7a6 6 0 1 0 .1 0zM12 7l-2-4h4z',key:'M8 14a4 4 0 1 0 .1 0M11 12l9-9M16 6l2 2M13 9l2 2',feather:'M20 4c-6 0-12 4-14 12l-3 4 4-3c8-2 12-8 13-13zM6 18l8-8',scissors:'M6 6a3 3 0 1 0 .1 0M6 18a3 3 0 1 0 .1 0M8 8l12 10M8 16l12-10',headset:'M4 14v-2a8 8 0 0 1 16 0v2M4 14h3v6H4zM17 14h3v6h-3z'};
 // 끊긴 노선 전용 물건 그림(손그림 12칸 아틀라스, assets/illustrated/line-items.webp)
 const LNI={lnTicket:0,lnLamp:1,lnMap:2,lnCanteen:3,lnGoggle:4,lnCompass:5,lnWrench:6,lnApron:7,lnPiston:8,lnMitten:9,lnKettle:10,lnBell:11};
-const gicon=(t,s=22)=>{const G=GEAR[t],c=GR[G.g].c;const art=t in LNI?`<span class="lnimg" style="background-position:${(LNI[t]/11*100).toFixed(2)}% 0"></span>`:window.TTCDesign&&TTCDesign.gear&&TTCDesign.gear(t);if(art)return`<span class="gi g${G.g} art" style="--gc:${c}">${art}</span>`;return`<span class="gi g${G.g}" style="--gc:${c}"><svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${GIC[G.ic]}"/></svg></span>`;};
+const gicon=(t,s=22)=>{const G=GEAR[t],c=GR[G.g].c;const art=t in LNI?`<span class="lnimg" style="background-position:${(LNI[t]/11*100).toFixed(2)}% 0"></span>`:window.TTCDesign&&TTCDesign.gear&&TTCDesign.gear(t);if(art)return`<span class="gi g${G.g} art" style="--gc:${c}">${art}</span>`;return`<span class="gi g${G.g}" data-gt="${t}" data-gs="${s}" style="--gc:${c}"><svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${GIC[G.ic]}"/></svg></span>`;};
 const EFFN={scav:v=>`뒤지기 수확 +${pc(v)}%`,tap:v=>`두드리는 힘 +${pc(v)}%`,thrift:v=>`식량 소비 -${pc(v)}%`,hope:v=>`희망 +${Math.round(v*10)/10}`,food:v=>`식량 생산 +${pc(v)}%`,cost:v=>`건설 자재 -${pc(v)}%`,craft:v=>`가공 보너스 +${pc(v)}%`,fever:v=>`랜턴 피버 +${v.toFixed(1)}초`,global:v=>`모든 생산 +${pc(v)}%`};
 const effTxt=o=>Object.entries(o).map(([k,v])=>EFFN[k](v)).join(' · ');
 const itemAt=uid=>S.inv&&S.inv.find(x=>x.u===uid);
@@ -2287,7 +2287,12 @@ function withFade(i,fn){const fa=bldAlpha(i);if(fa<1){ctx.save();ctx.globalAlpha
 if(window.TTCDesign)TTCDesign.regionFn=()=>S&&S.region;
 let GFLAT=0;const GC={cv:null,key:'',sig:0,last:''};
 // 늦게 받은 그림이 도착하면 땅 캐시를 다시 그리고, 열린 시트도 새로 그려 빈 썸네일을 채워요
-let imgRT=0;addEventListener('ttc-img',()=>{GC.key='';if(imgRT)return;imgRT=setTimeout(()=>{imgRT=0;try{if(sheetTab)renderSheet();}catch(e){}},250);});
+// 그림이 늦게 도착하면, 이미 열린 창·알림 속 임시 그림(장비 선 아이콘·동네 사람 약식 초상)을 진짜 그림으로 바꿔 끼운다
+function swapLateArt(){try{
+  document.querySelectorAll('.gi[data-gt]').forEach(el=>{const h=gicon(el.dataset.gt,+el.dataset.gs||22);if(!h.includes('data-gt='))el.outerHTML=h;});
+  document.querySelectorAll('svg[data-pfb]').forEach(el=>{const sv=SURV[+el.dataset.pfb];if(!sv)return;const h=portrait(sv);if(!h.includes('data-pfb='))el.outerHTML=h;});
+}catch(e){}}
+let imgRT=0;addEventListener('ttc-img',()=>{GC.key='';if(imgRT)return;imgRT=setTimeout(()=>{imgRT=0;try{if(sheetTab)renderSheet();}catch(e){}swapLateArt();},250);});
 const plainTile=(i,t,core,mod)=>!core&&!mod&&!(S.band&&S.band.tile===i)&&!(S.deco&&S.deco[i])&&!(S.camp&&S.camp[i])&&t!==T.LM&&!(S.site[i]||t===T.CAR||t===T.RUIN||t===T.CRATE||t===T.SILO);
 function edgeFade(i,x,y,Nn,E,Sx,Wn){const fe=[[x>0&&!S.rev[i-1],Nn,Wn],[x<W-1&&!S.rev[i+1],E,Sx],[y>0&&!S.rev[i-W],Nn,E],[y<H-1&&!S.rev[i+W],Wn,Sx]].filter(e=>e[0]);
     if(fe.length){ctx.save();ctx.beginPath();ctx.moveTo(...Nn);ctx.lineTo(...E);ctx.lineTo(...Sx);ctx.lineTo(...Wn);ctx.closePath();ctx.clip();ctx.lineCap='round';
@@ -2777,7 +2782,7 @@ function tickEvents(dt){if(evCur){evLeft-=dt;if(evLeft<=0){evCur=null;$('evBtn')
   const pref=list.filter(e=>e.who.length);const pick=(pref.length&&Math.random()<.8?pref:list);const e=pick[(Math.random()*pick.length)|0];
   evCur=e;evLeft=90;evSeen.push(EVENTS.indexOf(e));if(evSeen.length>5)evSeen.shift();
   const b=$('evBtn');const sv=e.who.length?SURV[e.who[0]]:null;
-  b.innerHTML=`<span class="av">${sv?portrait(sv):'<svg viewBox="0 0 26 26" width="22" fill="none" stroke="#3b2a1a" stroke-width="2"><path d="M4 20h18M6 20l2-8h10l2 8M11 12V8h4v4"/><circle cx="8" cy="22" r="2"/><circle cx="18" cy="22" r="2"/></svg>'}</span><span><b>${sv?sv.name:'손님'}</b> ${e.t}</span>`;b.hidden=false;}
+  b.innerHTML=`<span class="av">${sv?portrait(sv):EV_GUEST_ICO}</span><span><b>${sv?sv.name:'손님'}</b> ${e.t}</span>`;b.hidden=false;}
 $('evBtn').onclick=()=>{const e=evCur;if(!e)return;const sv=e.who.length?SURV[e.who[0]]:null;
   const btn=(o,k)=>{const c=evCost(o),has=Object.keys(c).length;return`<button class="${k?'alt':''}" data-act="ev" data-arg="${k}" ${canPay(c)?'':'disabled'}>${o.l}${has?` · ${lootTxt(c).replace(/\+/g,'')}`:''}</button>`;};
   openModal(`<div class="page"><div class="tag">생존자의 부탁</div>${sv?`<div class="pf" style="width:96px">${portrait(sv)}</div>`:''}<h3>${e.t}</h3><p>${e.x}</p><div class="ch">${btn(e.a,0)}${btn(e.b,1)}</div></div>`);};
@@ -5430,9 +5435,10 @@ function evFxList(o){const fx=o.fx||{},out=[];
   out.push({t:'건전지 +1'});return out;}
 const evChips=l=>l.map(x=>`<span class="rqfx${x.bad?' bad':''}">${x.k?micon(x.k,13):''}${x.t}</span>`).join('');
 function evWho(e){return e.who.length?SURV[e.who[0]]:null;}
+const EV_GUEST_ICO='<svg viewBox="0 0 26 26" width="22" fill="none" stroke="#3b2a1a" stroke-width="2"><path d="M4 20h18M6 20l2-8h10l2 8M11 12V8h4v4"/><circle cx="8" cy="22" r="2"/><circle cx="18" cy="22" r="2"/></svg>';
 function renderEvBtn(){const b=$('evBtn');if(!evCur){b.hidden=true;return;}const sv=evWho(evCur),p=Math.max(0,Math.min(1,evLeft/EV_T));
   if(b.dataset.t!==evCur.t){b.dataset.t=evCur.t;
-    b.innerHTML=`<span class="av">${sv?portrait(sv):'<svg viewBox="0 0 26 26" width="22" fill="none" stroke="#3b2a1a" stroke-width="2"><path d="M4 20h18M6 20l2-8h10l2 8M11 12V8h4v4"/><circle cx="8" cy="22" r="2"/><circle cx="18" cy="22" r="2"/></svg>'}</span><span class="rqb"><small>${sv?sv.name:'손님'}의 부탁</small><b>${evCur.t}</b></span>`;}
+    b.innerHTML=`<span class="av">${sv?portrait(sv):EV_GUEST_ICO}</span><span class="rqb"><small>${sv?sv.name:'손님'}의 부탁</small><b>${evCur.t}</b></span>`;}
   b.style.setProperty('--p',p.toFixed(3));b.classList.toggle('late',evLeft<20);b.hidden=false;}
 function tickEvents(dt){if(evCur){evLeft-=dt;if(evLeft<=0){evCur=null;evT=50;if(!modal.hidden&&modal.querySelector('.page.req'))closeModal();}renderEvBtn();if(!modal.hidden)updReqTime();return;}
   if(revCount()<14||(!S.gen&&S.mi<STEP_I('구조 신호를 따라가 생존자 구하기')))return;evT-=dt;if(evT>0)return;
@@ -5445,7 +5451,7 @@ function reqOpt(o,k){const c=evCost(o),has=Object.keys(c).length,ok=canPay(c);
     ${has?`<span class="rqcost">${ok?'':'<em>자재 부족</em>'}${costHtml(c)}</span>`:'<span class="rqcost free">비용 없음</span>'}
     <span class="rqget">${evChips(evFxList(o))}</span></button>`;}
 function openReq(){const e=evCur;if(!e)return;const sv=evWho(e);const q=e.x.match(/^([^:：]+)[:：]\s*(.*)$/);
-  openModal(`<div class="page req"><div class="rqh"><span class="rqav">${sv?portrait(sv):''}</span><div><div class="tag">${sv?sv.name:'손님'}의 부탁</div><h3>${e.t}</h3></div></div>
+  openModal(`<div class="page req"><div class="rqh"><span class="rqav${sv?'':' guest'}">${sv?portrait(sv):EV_GUEST_ICO}</span><div><div class="tag">${sv?sv.name:'손님'}의 부탁</div><h3>${e.t}</h3></div></div>
     <div class="rqtime" style="--p:${Math.max(0,evLeft/EV_T).toFixed(3)}"><i></i><b>${Math.ceil(evLeft)}초 남음</b></div>
     <p class="rqsay">${q?`“${q[2].replace(/^“|”$/g,'')}”`:e.x}</p>
     <div class="rqopts">${reqOpt(e.a,0)}${reqOpt(e.b,1)}</div></div>`);}
@@ -5461,7 +5467,7 @@ function chooseEv(k){const e=evCur;if(!e)return;const o=k?e.b:e.a,c=evCost(o);if
   if(fx.reveal){revealN(fx.reveal);sum.push({t:`어둠 ${fx.reveal}칸 걷힘`});}
   give({batt:1});sum.push({t:'건전지 +1'});S.evDone=(S.evDone||0)+1;evCur=null;$('evBtn').hidden=true;evT=70+Math.random()*60;recalc();save();sfx('chime');
   const sv=evWho(e);
-  openModal(`<div class="page req done"><div class="rqh"><span class="rqav">${sv?portrait(sv):''}</span><div><div class="tag">부탁을 들어줬어요</div><h3>${e.t}</h3></div></div>
+  openModal(`<div class="page req done"><div class="rqh"><span class="rqav${sv?'':' guest'}">${sv?portrait(sv):EV_GUEST_ICO}</span><div><div class="tag">부탁을 들어줬어요</div><h3>${e.t}</h3></div></div>
     <p class="rqsay">${o.r}</p><div class="rqget big">${evChips(sum)}</div><button class="rqok">좋아요</button></div>`,true);}
 
 // ================= 생존자 의뢰: small side jobs between story goals =================
@@ -6317,7 +6323,7 @@ function landscape(){return LANDSCAPES[S.region]||LANDSCAPES.home;}
 // Approved illustrated presentation. Mechanics and saved progress retain their original paths.
 if(window.TTCDesign){
   const art=window.TTCDesign,oldPortrait=portrait,oldCore=drawCore,oldModule=drawModule;
-  portrait=function(s,locked){if(locked){const sil=art.silhouette&&art.silhouette(s);return sil?sil.replace(/<\/svg>$/,gradeFrame(s,1)+'</svg>'):oldPortrait(s,true);}return art.portrait(s,sigWorn(s.id))||oldPortrait(s,false);};
+  portrait=function(s,locked){if(locked){const sil=art.silhouette&&art.silhouette(s);return sil?sil.replace(/<\/svg>$/,gradeFrame(s,1)+'</svg>'):oldPortrait(s,true);}const r=art.portrait(s,sigWorn(s.id));if(r)return r;const o=oldPortrait(s,false);return s&&s.id!=null?o.replace('<svg ','<svg data-pfb="'+s.id+'" '):o;};
   radioSvg=function(){return art.radio();};
   drawCore=function(time){if(!art.core(ctx,P,S.lv))return oldCore(time);const[x,y]=P(.5,.5,16);glowPts.push([x,y,42+S.lv*3,'240,192,113',.38]);};
   drawModule=function(i,m,time){if(!(window.TTCFinal&&TTCFinal.module(ctx,P,m.id,m.l,ZS))&&!art.module(ctx,P,m.id,m.l))return oldModule(i,m,time);if(m.l){const[x,y]=P(.5,.8,1);ctx.fillStyle='#efc77f';for(let k=0;k<m.l;k++)ctx.fillRect(x-3+k*4,y,2,2);}if(m.id===8||m.id===5&&S.m.fuel>0){const[x,y]=P(.5,.5,m.id===8?34:12);glowPts.push([x,y,m.id===8?34:22,'240,192,113',.42]);}};

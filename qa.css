@@ -473,3 +473,6 @@ body.calm .fchl{animation:none;box-shadow:0 0 0 3px rgba(243,165,58,.9)}
 .page.case .story-art svg{display:block;width:100%;height:100%}
 @media (max-height:640px){.page.case .story-art{max-height:22vh}}
 @media(prefers-reduced-motion:reduce){.page.case .story-art{animation:none}}
+/* 손님(이름 없는 방문자) 부탁 창: 빈 동그라미 대신 수레 그림 */
+.page.req .rqav.guest{display:grid;place-items:center}
+.page.req .rqav.guest svg{width:46%;height:46%}
