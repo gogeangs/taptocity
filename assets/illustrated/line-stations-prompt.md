@@ -60,4 +60,4 @@ GitHub 저장소 gogeangs/taptocity (브랜치 main)에 게임 그림 1장을 �
 - 끝나면 실제 픽셀 크기, 투명 여부, 파일 용량, 커밋 해시를 알려 줘.
 ```
 
-After adding: in `design.js` LS, use this file's two cells for the factory column (ruin / restored) and keep the `line-stations.webp` factory cells as the fallback while it loads.
+> 2026-10-14 연결 완료: design.js `LSF` — 공단 역은 이 두 칸(폭 94)을 우선 쓰고, 받기 전에는 line-stations.webp 공단 칸을 쓴다.
