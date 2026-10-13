@@ -1,4 +1,4 @@
-const CACHE='taptocity-story-20261014g-lsf';
+const CACHE='taptocity-story-20261014h-nogup';
 // 그림은 버전과 상관없이 따로 오래 보관하는 캐시에 둔다(배포마다 다시 받지 않게). 처음 쓸 때 받아 두고, 다음에 열 때 조용히 새것인지 확인한다.
 const IMG='taptocity-img';
 const SHELL=['./','./index.html','./chapter-design.js?v=20261014-lsf','./settlement.js?v=20261011-lazy','./people.js?v=20261013-walkers4','./manifest.webmanifest','./cloud.js?v=20261011-fb','./cloud-config.js','./fonts/ttc-sans.woff2','./icons/icon-192.png?v=2','./icons/icon-512.png?v=2','./design.css?v=20261004-anonymous','./qa.css?v=20261014-ringfix','./story-art.js?v=20261012-order','./music.js?v=20261011-cool','./design.js?v=20261014-lsf'];

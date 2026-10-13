@@ -2621,7 +2621,7 @@ function renderSheet(){if(!sheetTab)return;let h='';const st=$('shBody').scrollT
     h+=memorialHtml();
     if(unmet.length)h+=`<div class="sec">아직 만나지 못한 사람 ${unmet.length}</div>`+unmet.map(s=>{const where=signalTile(s.id),camp=where>=0&&!!S.camp[where];return`<${where>=0?`button class="svrow locked sigrow`:`div class="svrow locked`}${s.hidden?' hid':''}"${where>=0?` data-act="svsig" data-arg="${s.id}" aria-label="${s.hidden?s.alias:'구조 신호'}, 지도에서 보기"`:''}><span class="fc">${portrait(s,true)}</span><span class="mid"><b>${gradeTag(s.id,1)} ${s.hidden?s.alias:'???'}</b><small>${where>=0?(camp?'구조를 기다리고 있어요 · 눌러서 지도에서 보기 ›':'구름 속에서 신호가 와요 · 눌러서 지도에서 보기 ›'):s.hidden?(s.hint?s.hint:s.src==='deep'?'쉘터 불빛이 발전소까지 닿으면, 누군가 답할지도 몰라요':'주파수 탐색에서만 만나요'):s.src==='sig'?'구름 속 구조 신호를 따라가 보세요':s.src==='town'?(s.region===S.region?'구름 속 구조 신호를 따라가 보세요':s.hint):`희망 ${Math.ceil(s.hope*(1-D.visitDisc))} 이상이면 찾아와요${s.need!=null&&!S.sv[s.need]?' · 먼저 만나야 할 사람이 있어요':''}`}</small></span>${where>=0?'<span class="resident-side"><span class="resident-arrow" aria-hidden="true">›</span></span>':''}</${where>=0?'button':'div'}>`;}).join('');
     if((S.kids||[]).length)h+=`<div class="sec">아이들</div>`+(S.kids||[]).map(k=>`<div class="svrow kid"><span class="fc kidf" style="background:${k.look.top}">${(window.TTCDesign&&TTCDesign.kid&&TTCDesign.kid(k.n))||`<i style="background:${k.look.skin}"></i>`}</span><span class="mid"><b>${k.n}</b><small>${k.g<1?`자라는 중 ${Math.round(k.g*100)}% · 희망 +2`:k.job?`${KJOB[k.job].n} · ${KJOB[k.job].d}`:'무엇을 배울지 정해 주세요'}</small><div class="pbar"><i style="width:${k.g*100}%"></i></div></span></div>`).join('')+('');
-    h+=`<div class="sec">등급</div><div class="grl">${GR.slice(0,4).map((G,g)=>`<span><span class="gr g${g}">${G.n}</span> 효과 ×${G.m}</span>`).join('')}<span>등급마다 1~5성 · 등급은 처음보다 최대 2단계까지</span></div>`;
+    h+=`<div class="sec">등급</div><div class="grl">${GR.slice(0,4).map((G,g)=>`<span><span class="gr g${g}">${G.n}</span> 효과 ×${G.m}</span>`).join('')}<span>등급은 처음 그대로 · 등급마다 1~5성</span></div>`;
     h+='<div class="sec">인연</div>'+BONDS.map(b=>{const on=b.ids.every(id=>S.sv[id]);if(b.ids.some(id=>isDead(id))&&b.ids.every(id=>S.sv[id]||isDead(id)))return`<div class="bond cut"><b>끊어진 인연 · ${b.name}</b> · ${b.ids.map(id=>SURV[id].name).join(' + ')}</div>`;return`<div class="bond ${on?'on':''}"><b>${on?b.name:'???'}</b> · ${on?`${b.txt} ${b.d}`:b.ids.map(id=>S.sv[id]?SURV[id].name:'???').join(' + ')+' 모두 모이면 열려요'}</div>`;}).join('');}
   else if(sheetTab==='settings'){$('shTitle').textContent='설정';
     const SI={mus:'<path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',snd:'<path d="M4 10v4h4l5 4V6L8 10z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>',vib:'<rect x="8" y="3" width="8" height="18" rx="2"/><path d="M4 8v8M20 8v8"/>',calm:'<path d="M3 12h4l2-5 4 10 2-5h6"/>',big:'<path d="M4 19L9 5l5 14M6 14h6"/><path d="M15 19l3-8 3 8M16 16h4"/>',eco:'<rect x="3" y="7" width="16" height="10" rx="2"/><path d="M22 11v2"/><path d="M11 9l-2 3h4l-2 3"/>'};
@@ -3285,10 +3285,10 @@ function starCost(id){const g=gradeOf(id),s=starOf(id),k=g+1;return scaleCost({f
 const GUP=[{med:1,food:30,batt:2},{med:3,wire:2,batt:4},{med:5,wire:5,batt:6}];
 function nextStep(id){const g=gradeOf(id),s=starOf(id);
   if(s<5)return{kind:'star',need:s,cost:starCost(id),label:`${s+1}성으로 강화`};
-  if(g<maxGrade(id))return{kind:'grade',need:5,cost:scaleCost(GUP[g],1),label:`${GR[g+1].n} 등급으로 승급`};
+  // 2026-10-14: 등급 승급 기능 없앰 — 등급은 처음 정해진 그대로(예전 저장본에서 이미 오른 등급은 유지), 성급만 올린다
   return null;}
 const pctTxt=p=>`특기 효과 ×${p.m.toFixed(2)} · 딱 맞는 일터 ×${(2+p.w).toFixed(2)} · 스킬 대기 -${Math.round((1-p.cd)*100)}%`;
-function promoHtml(id){const g=gradeOf(id),mg=maxGrade(id);
+function promoHtml(id){const g=gradeOf(id),mg=g;
   let h=`<div class="grbox"><div class="grh">${gradeTag(id)}<small>최대 ${GR[mg].n} 5성</small></div><div class="d">${pctTxt(pw(id))}</div>`;
   const n=nextStep(id);
   if(n){const tl=trustLv(S.sv[id].xp),ok=tl>=n.need&&canPay(n.cost),nx=n.kind==='star'?pw(id,g,starOf(id)+1):pw(id,g+1,1);
@@ -3298,6 +3298,7 @@ function promoHtml(id){const g=gradeOf(id),mg=maxGrade(id);
   return h+'</div>';}
 function promote(id){const n=nextStep(id);if(!n||trustLv(S.sv[id].xp)<n.need||!pay(n.cost))return;const r=S.sv[id],s=SURV[id];
   if(n.kind==='star'){r.st=starOf(id)+1;recalc();renderSkills(true);renderSheet();save();toast(`${s.name} ${r.st}성!`);openSurv(id,true);const pf=modal.querySelector('.pf');pf&&pf.classList.add('starup');return;}
+  if(n.kind!=='star')return;
   r.g=gradeOf(id)+1;r.st=1;recalc();renderSkills(true);renderSheet();save();
   openModal(`<div class="page grade-up g${r.g}"><div class="tag">등급 승급</div><div class="pf">${portrait(s)}</div><h3>${s.name} ${gradeTag(id)}</h3><p>${[`“이 정도면 믿고 맡겨도 되겠죠?” ${s.name}의 눈빛이 달라졌어요.`,`${s.name}은(는) 이제 쉘터에 없어서는 안 될 사람이 됐어요.`,`${s.name}의 이야기는 이제 쉘터의 전설이 됐어요.`][r.g-1]}</p><div class="fx">${pctTxt(pw(id))}</div><button>좋아요</button></div>`,true);}
 modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="promo"]');if(!b)return;e.stopPropagation();if(!b.disabled)promote(+b.dataset.arg);},true);
@@ -4402,7 +4403,7 @@ function renderGuide(){const sec=(t,b)=>`<div class="gsec"><b>${t}</b>${b}</div>
   h+=sec('기본 조작','<p>· 빛이 새는 구름을 두드려 땅을 밝혀요. <b>꾹 누르고 있으면</b> 계속 두드려요. 화면 안에 보이는 구름까지, 한 번에 최대 30개 걷혀요. 더 걷으려면 손을 뗐다 다시 누르거나 지도를 옮겨요.<br>· 왼쪽 아래 <b>랜턴 버튼</b>은 조준한 칸(점선 원)을 두드려요.<br>· 쉬지 않고 두드리면 랜턴이 차올라 <b>피버</b>가 켜지고, 그동안 모든 수확이 두 배예요.<br>· 두 손가락으로 확대·축소, 끌어서 지도를 옮겨요.<br>· 왼쪽 위 초상화를 누르면 내 프로필이 열려요. 이름과 초상화를 바꾸고 지금까지의 기록을 볼 수 있어요.</p>');
   h+=sec('자재와 창고','<p>· 무너진 집·폐차·상점·벙커를 두드리면 자재가 나와요. 털린 곳은 시간이 지나면 다시 쌓여요.<br>· 기본 자재와 철판·밧줄은 창고 한도까지, 전선·약품은 그 1/4까지만 모여요(건전지는 한도 없음). 창고 모듈과 증축으로 늘려요.<br>· 철판·밧줄은 작업대에서 만들고, 전선·약품은 벙커·원정·지하에서 나오고, 작업대에서 조립하거나 달여 만들 수도 있어요.<br>· 남는 목재는 숯으로 구워 연료로, 남는 식량은 약초 달이기나 마을 잔치(쉘터 Lv.3)에 써요.</p>');
   h+=sec('쉘터와 모듈','<p>· 가운데 쉘터를 누르면 건설·가공·창고·꾸미기 화면이 열려요.<br>· 모듈이 일정 수 이상 있어야 증축할 수 있어요. 텃밭·고물상·창고·랜턴탑은 여러 개 지을 수 있어요.<br>· 지도의 모듈을 누르면 빠른 메뉴(강화·배치)가 떠요.</p>');
-  h+=sec('생존자','<p>· 구조 신호를 따라가 잔해를 치우고 필요한 물자와 빈 침상이 있으면 구조해요.<br>· 딱 맞는 모듈에 배치하면 효과가 커지고, 일할수록 신뢰가 쌓여 사연과 개인 이야기가 열려요.<br>· 일터가 없는 사람은 ‘쉴 때 할 일’을 해요: 주워 오기(자재 조금씩 · 기본), 훈련(신뢰 절반 속도), 순찰(밤에 재 걷기), 아이 돌보기(아이가 빨리 자라고 돌보는 사람을 닮아요).<br>· 쉘터 Lv.3부터 생존자 수첩의 ‘자동 배치’로 딱 맞는 사람을 한 번에 앉힐 수 있어요. 스위치를 켜 두면 빈 일터를 알아서 채워요.<br>· 쉘터 Lv.4부터 원정 탭의 ‘자동 원정’을 켜면, 쉬는 사람(순찰·아이 돌보기 제외)으로 가장 효율 좋은 팀을 꾸려 보내고 돌아오면 전리품을 알아서 챙겨요. 팀을 꾸릴 때 ‘자동 팀’ 버튼도 쓸 수 있어요.<br>· 등급: '+GR.slice(0,4).map(g=>`${g.n} ×${g.m}`).join(' · ')+' · 등급마다 1~5성, 처음 등급보다 최대 2단계까지 올라요.</p>');
+  h+=sec('생존자','<p>· 구조 신호를 따라가 잔해를 치우고 필요한 물자와 빈 침상이 있으면 구조해요.<br>· 딱 맞는 모듈에 배치하면 효과가 커지고, 일할수록 신뢰가 쌓여 사연과 개인 이야기가 열려요.<br>· 일터가 없는 사람은 ‘쉴 때 할 일’을 해요: 주워 오기(자재 조금씩 · 기본), 훈련(신뢰 절반 속도), 순찰(밤에 재 걷기), 아이 돌보기(아이가 빨리 자라고 돌보는 사람을 닮아요).<br>· 쉘터 Lv.3부터 생존자 수첩의 ‘자동 배치’로 딱 맞는 사람을 한 번에 앉힐 수 있어요. 스위치를 켜 두면 빈 일터를 알아서 채워요.<br>· 쉘터 Lv.4부터 원정 탭의 ‘자동 원정’을 켜면, 쉬는 사람(순찰·아이 돌보기 제외)으로 가장 효율 좋은 팀을 꾸려 보내고 돌아오면 전리품을 알아서 챙겨요. 팀을 꾸릴 때 ‘자동 팀’ 버튼도 쓸 수 있어요.<br>· 등급: '+GR.slice(0,4).map(g=>`${g.n} ×${g.m}`).join(' · ')+' · 등급은 처음 정해진 그대로이고, 신뢰와 자재로 1~5성까지 올려요.</p>');
   h+=sec('밤과 재폭풍','<p>· 밤마다 가장자리에 붉은 재가 쌓여요. 제때 걷어내지 않으면 땅이나 모듈을 잃어요.<br>· 세 번째 밤마다(공단은 두 번째) <b>대형 재폭풍</b>이 와요. 화면 어디든 두드리거나 문질러서 막아요. 랜턴탑·일하는 생존자·동맹이 함께 싸워요.</p>');
   h+=sec('날씨',`<p>${Object.values(WX).map(w=>`${w.ic} <b>${w.n}</b> ${w.d}`).join('<br>')}</p>`);
   h+=sec('원정·지하·라디오','<p>· 원정: 생존자를 보내 시간이 지나면 물자와 이야기를 가져와요.<br>· 지하: 랜턴 기름이 버티는 만큼 내려가요. 기름이 떨어지면 전리품 절반을 잃어요.<br>· 라디오: 건전지로 탐색해요. 히든 생존자는 여기서만 만나요. '+PITY+'번 안에 한 번은 반드시 나와요.</p>');
