@@ -1231,7 +1231,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261013-emoji">
+<link rel="stylesheet" href="qa.css?v=20261013-props">
 <div id="app">
   <header>
     <div class="hud">
@@ -2485,6 +2485,8 @@ function upMod(k){const m=S.mods[k];if(!m||m.l>=2)return;const c=modCost(m.id,m.
 function upShelter(){if(S.lv>=5)return;const u=SHUP[S.lv-1],c=scaleCost(u.cost,costMult());if(modCount()<u.need||!pay(c))return;S.half=false;S.lv++;anims.set(C0,0);
   const R=S.lv+1;for(let y=CY-R;y<=CY+R;y++)for(let x=CX-R;x<=CX+R;x++){const i=y*W+x;if(x>=0&&y>=0&&x<W&&y<H&&!S.rev[i])reveal(i);}
   recalc();levelUp(S.lv);renderSheet();peekSheet(C0);save();}
+// 방벽 손그림(walls.webp: 나무 울타리·모래주머니·철판 성벽)
+const wallTh=k=>`<span class="th wallart"><i style="background-position:${k*50}% 0"></i></span>`;
 function upWalls(){if(S.walls>=3)return;const c=scaleCost(WALLS[S.walls].cost,costMult());if(S.lv<2||!pay(c))return;S.half=false;S.walls++;recalc();toast(`${jo(WALLS[S.walls-1].n,'을','를')} 둘렀어요`);renderSheet();peekSheet(C0);save();}
 function craft(k,times){const r=RECIPES[k];if(!wbL()||recipeLock(r))return;let n=0,made=0;for(let q=0;q<times;q++){if((S.m[r.out]||0)>=capOf(r.out)){toast(`${MN[r.out].n} 창고가 가득 찼어요`);break;}if(!pay(r.inp()))break;n++;const extra=Math.random()<((D.E.craft||0)+craftBuff())?1:0;const got=give({[r.out]:(r.n||1)+extra});made+=got[r.out]||0;}
   if(n){sfx('get');if(n>1)toast(`${MN[r.out].n} ${fmt(made)}개를 만들었어요`);}else toast('재료가 모자라요');renderSheet();save();}
@@ -2557,8 +2559,8 @@ function renderShelter(){const L=S.lv;$('shTitle').textContent=`Lv.${L} ${LVNAME
     else if(S.lv<d.req)h+=card('b'+id,thImg(modThumb(id,0),'lock'),d.n,d.fx(0),'',lockBadge(`Lv.${d.req}`),'locked');
     else{const c=modCost(id,0);h+=card('b'+id,thImg(modThumb(id,0)),`${d.n}<span class="newtag">새로 짓기</span>`,d.fx(0),costHtml(c),btnCost('mbuild',id,'짓기',c,fs<0,'빈 자리 없음'));}}
   h+='<div class="sec">방벽</div>';
-  if(S.walls>=3)h+=card('wall',`<span class="th ico">${ICO.wall}</span>`,`${WALLS[2].n}${pips(2)}`,'밤에 쉘터를 덮치는 재를 거의 다 막아요','',doneBadge());
-  else{const c=scaleCost(WALLS[S.walls].cost,costMult());h+=card('wall',`<span class="th ico">${ICO.wall}</span>`,`${WALLS[S.walls].n}${S.walls?pips(S.walls-1):''}`,S.lv<2?'쉘터 Lv.2에 열려요':'밤마다 쉘터 모듈을 덮치는 재를 줄여요',S.lv<2?'':costHtml(c),S.lv<2?lockBadge('Lv.2'):btnCost('wall',0,'세우기',c),S.lv<2?'locked':'');}
+  if(S.walls>=3)h+=card('wall',wallTh(2),`${WALLS[2].n}${pips(2)}`,'밤에 쉘터를 덮치는 재를 거의 다 막아요','',doneBadge());
+  else{const c=scaleCost(WALLS[S.walls].cost,costMult());h+=card('wall',wallTh(S.walls),`${WALLS[S.walls].n}${S.walls?pips(S.walls-1):''}`,S.lv<2?'쉘터 Lv.2에 열려요':'밤마다 쉘터 모듈을 덮치는 재를 줄여요',S.lv<2?'':costHtml(c),S.lv<2?lockBadge('Lv.2'):btnCost('wall',0,'세우기',c),S.lv<2?'locked':'');}
   }else if(shTab==='craft'){
   h+='<div class="sec">작업대 가공</div>'+(wbL()?craftHintHtml():'');
   if(!wbL())h+=emptyHtml(`<span class="th"><img src="${modThumb(1,0)}" alt=""></span>`,'작업대가 아직 없어요','작업대를 세우면 고철로 철판을, 천으로 밧줄을 만들 수 있어요');
@@ -4125,10 +4127,10 @@ modal.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)
 
 // ---------- duties for survivors who aren't at a workstation: patrol, scavenge, train, look after the kids ----------
 const DUTY={
- gather:{n:'주워 오기',v:'주워 오는 중',ic:'🎒',d:'가까운 폐허에서 기본 자재를 조금씩 가져와요 (기본)'},
- train:{n:'훈련',v:'훈련 중',ic:'💪',d:'신뢰도가 일할 때의 절반 속도로 올라요'},
- patrol:{n:'순찰',v:'순찰 중',ic:'🔦',d:'밤마다 쉘터 둘레의 붉은 재를 알아서 걷어요'},
- care:{n:'아이 돌보기',v:'아이 돌보는 중',ic:'🧸',d:'아이들이 더 빨리 자라고, 돌보는 사람을 닮은 일을 배워요'}};
+ gather:{n:'주워 오기',v:'주워 오는 중',ic:'<i class="dico" style="background-position:0% 0" aria-hidden="true"></i>',d:'가까운 폐허에서 기본 자재를 조금씩 가져와요 (기본)'},
+ train:{n:'훈련',v:'훈련 중',ic:'<i class="dico" style="background-position:25% 0" aria-hidden="true"></i>',d:'신뢰도가 일할 때의 절반 속도로 올라요'},
+ patrol:{n:'순찰',v:'순찰 중',ic:'<i class="dico" style="background-position:50% 0" aria-hidden="true"></i>',d:'밤마다 쉘터 둘레의 붉은 재를 알아서 걷어요'},
+ care:{n:'아이 돌보기',v:'아이 돌보는 중',ic:'<i class="dico" style="background-position:75% 0" aria-hidden="true"></i>',d:'아이들이 더 빨리 자라고, 돌보는 사람을 닮은 일을 배워요'}};
 const dutyOf=id=>{const r=S.sv[id];return r&&DUTY[r.duty]?r.duty:'gather';}; // default: idle hands bring back scrap from nearby ruins
 const idleIds=()=>Object.keys(S.sv).map(Number).filter(id=>{const r=S.sv[id];return r.at<0&&!busy(id)&&!(r.hurt>0);});
 const restLabel=id=>DUTY[dutyOf(id)].v;
@@ -4186,7 +4188,7 @@ function autoGear(){const inv=(S.inv||[]).slice(),ids=Object.keys(S.sv).map(Numb
   for(const it of rest){if(used.has(it.u))continue;const sl=GEAR[it.t].slot;const who=ids.find(id=>!plan[id][sl]);if(who!=null){plan[who][sl]=it.u;used.add(it.u);}}
   let ch=0,n=0;for(const id of ids){const r=S.sv[id];r.eq=r.eq||{};for(const sl of SLOTK){const want=plan[id][sl]||null;if((r.eq[sl]||null)!==want)ch++;r.eq[sl]=want;}if(Object.values(r.eq).some(Boolean))n++;}
   if(ch){recalc();save();}return{n,sig,fit,ch};}
-function autoGearHtml(){const inv=(S.inv||[]).length;if(!inv)return'';return`<div class="autobox"><div><b>🎒 장비 자동 맞추기</b><small>전용 도구 → 잘맞는 장비 → 높은 등급 순으로 ${inv}개를 나눠 입혀요</small></div><button class="buy" data-act="autogear">지금 맞추기</button></div>`;}
+function autoGearHtml(){const inv=(S.inv||[]).length;if(!inv)return'';return`<div class="autobox"><div><b><i class="dico" style="background-position:100% 0" aria-hidden="true"></i> 장비 자동 맞추기</b><small>전용 도구 → 잘맞는 장비 → 높은 등급 순으로 ${inv}개를 나눠 입혀요</small></div><button class="buy" data-act="autogear">지금 맞추기</button></div>`;}
 $('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="autogear"]');if(!b)return;e.stopImmediatePropagation();const r=autoGear();sfx('chime');if(!r.ch)toast('이미 가장 잘 맞게 입고 있어요');else note({h:'장비 자동 맞춤 완료',t:`<small>${r.n}명 착용 · 전용 ${r.sig} · 잘맞음 ${r.fit} · 바뀐 칸 ${r.ch}</small>`,ms:4500});renderSheet();},true);
 function autoHtml(){if(!autoOpen())return'';
   const tiles=D.modAt.size,used=Object.keys(S.asg).length;
@@ -4497,6 +4499,8 @@ function groundCol(i,t,g,paved){const n=GN[i];let c;
 const waterCol=i=>{const w=landscape().water;return rgbs(lerp3(C3(w[0]),C3(w[1]),.5+GN[i]*.6));};
 // grass tufts, flowers, pebbles and cracks on empty ground
 function groundDecor(i,g){const s1=speck[i],s2=speck2[i];
+  if(g>.3&&tpBoxes()){const n=1+((s2*7)|0)%2;for(let k=0;k<n;k++){const[a,b]=P(.2+((s1*97+k*.37)%1)*.6,.2+((s2*53+k*.61)%1)*.6);tpDraw(k===0&&s2>.84&&g>.5?5:(s1+k*.3)%1<.6?4:6,a,b+1,11+((s1*13+k)%1)*4);}return;}
+  if(g<=.3&&s2>.86&&tpBoxes()){const[a,b]=P(.4+s1*.2,.55);tpDraw(7,a,b+1,9);return;}
   if(g>.3){const n=2+((s2*7)|0)%3;ctx.lineWidth=1.1;ctx.lineCap='round';
     ctx.strokeStyle=GN[i]>0?'rgba(128,134,84,.75)':'rgba(52,60,36,.6)';ctx.beginPath();
     for(let k=0;k<n;k++){const[a,b]=P(.15+((s1*97+k*.37)%1)*.7,.15+((s2*53+k*.61)%1)*.7);ctx.moveTo(a-2,b);ctx.lineTo(a-3,b-3.5);ctx.moveTo(a,b);ctx.lineTo(a,b-4.5);ctx.moveTo(a+2,b);ctx.lineTo(a+3.2,b-3.2);}ctx.stroke();
@@ -4540,7 +4544,16 @@ function drawNightLight(nt){ctx.save();ctx.setTransform(dpr,0,0,dpr,0,0);
   if(DEFN)hole(cx,cy,400,.5);
   LX.globalCompositeOperation='source-over';ctx.drawImage(LC,0,0,cw,ch);ctx.restore();}
 // nicer trees (round & pine) and softer building shadows
-function tree(u,v,s=1,kind=0){const[x,y]=P(u,v,0),z=ZS;ctx.fillStyle='rgba(10,8,5,.22)';ctx.beginPath();ctx.ellipse(x+4*s,y+1,7.5*s,3.2*s,0,0,7);ctx.fill();
+// 손그림 지도 소품(terrain-props.webp, 4x2): 0·1 활엽수, 2 소나무, 3 마른 나무, 4·5 풀포기, 6 덤불, 7 벽돌 더미. 칸마다 그림의 실제 테두리를 재서 바닥에 세운다.
+const TP={img:ttcLazy('assets/illustrated/terrain-props.webp'),box:null};
+function tpBoxes(){if(TP.box)return TP.box;const im=TP.img;if(!(im.complete&&im.naturalWidth))return null;
+  try{const cw=im.naturalWidth/4,ch=im.naturalHeight/2,c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const g=c.getContext('2d');g.drawImage(im,0,0);const d=g.getImageData(0,0,c.width,c.height).data,box=[];
+    for(let k=0;k<8;k++){const ox=(k%4)*cw,oy=(k/4|0)*ch;let x0=cw,y0=ch,x1=0,y1=0;for(let y=0;y<ch;y+=2)for(let x=0;x<cw;x+=2){if(d[((oy+y)*c.width+ox+x)*4+3]>24){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}}
+      box.push(x1>x0?[ox+x0,oy+y0,x1-x0+2,y1-y0+2]:[ox,oy,cw,ch]);}
+    TP.box=box;}catch(e){TP.box=null;return null;}return TP.box;}
+function tpDraw(k,x,y,h){const b=tpBoxes();if(!b)return false;const[sx,sy,sw,sh]=b[k],w=sw*h/sh;ctx.drawImage(TP.img,sx,sy,sw,sh,x-w/2,y-h,w,h);return true;}
+function tree(u,v,s=1,kind=0){const[x,y]=P(u,v,0),z=ZS;
+  {const hh=((u*97.13+v*41.7)%1+1)%1,k=kind?2:hh<.45?0:hh<.9?1:3;if(tpDraw(k,x,y+2*s,(k===2?34:30)*s*z))return;}ctx.fillStyle='rgba(10,8,5,.22)';ctx.beginPath();ctx.ellipse(x+4*s,y+1,7.5*s,3.2*s,0,0,7);ctx.fill();
   ctx.strokeStyle='#4f3624';ctx.lineWidth=2.2*s;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y-8*s*z);ctx.stroke();
   if(kind){const L=[[0,'#3b4a36'],[6,'#47563f'],[11,'#56644a']];ctx.strokeStyle='#231a14';ctx.lineWidth=1;ctx.lineJoin='round';for(const[o,c]of L){ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(x-(8-o*.35)*s,y-(6+o)*s*z);ctx.lineTo(x,y-(19+o)*s*z);ctx.lineTo(x+(8-o*.35)*s,y-(6+o)*s*z);ctx.closePath();ctx.fill();ctx.stroke();}
     ctx.fillStyle='rgba(255,255,220,.12)';ctx.beginPath();ctx.moveTo(x-1,y-28*s*z);ctx.lineTo(x-5*s,y-18*s*z);ctx.lineTo(x,y-18*s*z);ctx.fill();}

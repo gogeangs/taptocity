@@ -491,3 +491,7 @@ body.calm .fchl{animation:none;box-shadow:0 0 0 3px rgba(243,165,58,.9)}
 .migchip .mi.rimg{vertical-align:-3px;margin-right:3px}
 .rstop .dot .mi.rimg{--rs:16px}
 .ukey svg,.exp svg{vertical-align:-2px}
+/* 생존자 일 아이콘(duty-icons.webp 5칸) · 방벽 썸네일(walls.webp 3칸) */
+.dico{display:inline-block;width:1.45em;height:1.45em;vertical-align:-.38em;margin-right:2px;background:url(assets/illustrated/duty-icons.webp) 0 0/500% 100% no-repeat}
+.th.wallart{display:grid;place-items:center}
+.th.wallart i{display:block;width:100%;aspect-ratio:1;background:url(assets/illustrated/walls.webp) 0 0/300% 100% no-repeat}

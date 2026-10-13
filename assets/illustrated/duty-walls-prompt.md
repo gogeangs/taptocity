@@ -1,5 +1,7 @@
 # Duty icons and wall thumbnails (2026-10-13)
 
+> 2026-10-13 연결 완료: duty-icons → 생존자 쉴 때 일 버튼·장비 자동 맞추기(.dico), walls → 건설 탭 방벽(wallTh), terrain-props → 첫 동네 지도 나무·풀·덤불·벽돌 더미(tpDraw).
+
 Found by the full-screen art audit: the last places that still show system emoji or line drawings.
 
 - `duty-icons.webp`: 5 equal square cells in one row (128px each → 640 x 128), transparent background, same look as
