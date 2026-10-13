@@ -496,3 +496,5 @@ body.calm .fchl{animation:none;box-shadow:0 0 0 3px rgba(243,165,58,.9)}
 .th.wallart{display:grid;place-items:center}
 .th.wallart i{display:block;width:100%;aspect-ratio:1;background:url(assets/illustrated/walls.webp) 0 0/300% 100% no-repeat}
 .ugshop button small{opacity:.7;margin-left:4px;font-size:.85em}
+/* 손님 칩: 손그림 얼굴도 동그랗게 — 남은 시간 고리가 온전히 보이게 */
+#evBtn .av>.guestart{border-radius:50%;background-color:#e6d8b6}
