@@ -4914,7 +4914,7 @@ function petImg(k,ci=0,size=96,sil=false){const key=k+ci+size+(sil?'s':'')+(wind
 let PW={},PETTAP=null,PHEART=[];
 function petTapAt(sx,sy){const w=toWorld(sx,sy);PETTAP={x:w.x,y:w.y,t:performance.now()};}
 function petWalk(dt){const now=performance.now(),night=isNight(),[cx,cy]=tileC(C0);
-  for(const k in pets()){if(!petHere(k)){delete PW[k];continue;}let w=PW[k];if(!w){w=PW[k]={x:cx+(Math.random()-.5)*50,y:cy+14+(Math.random()-.5)*20,tx:cx,ty:cy,idle:0,f:1};}
+  for(const k in pets()){/* 지도에는 동행 중인 펫만 (2026-10-13) */if(!petHere(k)||k!==S.petOn){delete PW[k];continue;}let w=PW[k];if(!w){w=PW[k]={x:cx+(Math.random()-.5)*50,y:cy+14+(Math.random()-.5)*20,tx:cx,ty:cy,idle:0,f:1};}
     let tx,ty,sp=26;
     if(k===S.petOn){const ids=Object.keys(WALK);if(PETTAP&&now-PETTAP.t<5000){tx=PETTAP.x+16;ty=PETTAP.y+8;sp=90;}else if(ids.length){const t0=WALK[ids[0]];tx=t0.x+10;ty=t0.y+4;sp=40;}else{tx=cx+26;ty=cy+16;}
       w.tx=tx;w.ty=ty;}
