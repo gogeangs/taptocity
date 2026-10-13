@@ -10,6 +10,7 @@ import '../game/data.dart';
 import '../game/engine.dart';
 import 'atlas.dart';
 import 'map_view.dart';
+import 'sound.dart';
 
 class Walk {
   Walk(this.x, this.y, {this.idle = 0, this.brk = 0})
@@ -334,7 +335,52 @@ const _styles = [
 
 Color _hex(Object? s, Color d) => s is String && s.startsWith('#') && s.length == 7 ? Color(int.parse(s.substring(1), radix: 16) | 0xFF000000) : d;
 
-void drawPerson(Canvas g, int id, double x, double y, double time, bool moving, double face, String? job, {Map? look, int? age}) {
+// ---------- 손그림 지도 인물 (웹 people.js wkDraw, 2026-10-13) ----------
+// walkers-1: 생존자 0~17, walkers-2: 18~29·아이·손님·노친네, walkers-3: 다 자란 아이(견습 일). 칸마다 그림 테두리를 재서 발을 바닥에 세우고,
+// 걸을 때 살짝 들썩이고 흔들리며, 왼쪽으로 갈 땐 좌우를 뒤집는다. 그림을 다 재기 전에는 아래 먹선 인형으로 그린다.
+List<Rect?>? _wkBoxes(int sheet) => Atlas.boxes('walkers-${sheet + 1}.webp', 6, sheet == 2 ? 1 : 3, thr: 40);
+
+/// 사람 → (장, 칸)
+(int, int)? wkCell(int id, {String? name, int? age, String? job}) {
+  if (id >= 0 && id < 18) return (0, id);
+  if (id >= 18 && id < 30) return (1, id - 18);
+  if (id < 0 && name != null) {
+    var h = 2166136261;
+    for (final ch in name.codeUnits) {
+      h ^= ch;
+      h = (h * 16777619) & 0xFFFFFFFF;
+    }
+    final girl = (h >> 6) & 1;
+    if ((age ?? 18) < 13) return (1, 12 + girl);
+    return (2, (const {'mech': 0, 'farm': 2, 'scout': 4}[job] ?? 2) + girl);
+  }
+  return null;
+}
+
+bool _wkDraw(Canvas g, (int, int) c, int id, double x, double y, double time, bool moving, double face, bool job) {
+  final b = _wkBoxes(c.$1), im = Atlas.image('walkers-${c.$1 + 1}.webp');
+  if (b == null || im == null || c.$2 >= b.length || b[c.$2] == null) return false;
+  final src = b[c.$2]!, rows = c.$1 == 2 ? 1 : 3, k = 31 / (.8 * im.height / rows), w = src.width * k, h = src.height * k;
+  final reduced = Prefs.calm, ph = reduced ? 0.0 : time / 165 + id * .71;
+  final bob = moving && !reduced ? math.sin(ph).abs() * 1.1 : 0.0;
+  final sway = moving && !reduced ? math.sin(ph) * .06 : (job && !reduced ? math.sin(ph * .7) * .035 : 0.0);
+  g.save();
+  g.translate(x, y);
+  g.drawOval(Rect.fromCenter(center: const Offset(0, .5), width: w * .64, height: 4), Paint()..color = const Color(0x380F1519));
+  g.translate(0, -bob);
+  g.rotate(sway);
+  if (face < 0) g.scale(-1, 1);
+  g.drawImageRect(im, src, Rect.fromLTWH(-w / 2, -h, w, h), Paint()..filterQuality = FilterQuality.medium);
+  g.restore();
+  return true;
+}
+
+/// 이름 없는 인물(떠돌이 무리·노친네)을 칸 번호로 바로 (웹 figureAt)
+bool figureAt(Canvas g, (int, int) c, double x, double y, double time, {bool moving = false, double face = 1}) => _wkDraw(g, c, -1, x, y, time, moving, face, false);
+
+void drawPerson(Canvas g, int id, double x, double y, double time, bool moving, double face, String? job, {Map? look, int? age, String? name, String? kidJob}) {
+  final cell = wkCell(id, name: name, age: age, job: kidJob);
+  if (cell != null && _wkDraw(g, cell, id < 0 ? 0 : id, x, y, time, moving, face, job != null)) return;
   final svAge = age ?? survivors[id].age;
   final L = look ?? (id >= 0 && id < web.surv.length ? web.surv[id]['look'] : null) as Map? ?? const {};
   final st = look == null && id >= 0 && id < _styles.length ? _styles[id] : null;

@@ -394,7 +394,13 @@ class _LivePainter extends CustomPainter {
     final ks = g.kids;
     for (var n = 0; n < ks.length && n < life.kids.length; n++) {
       final w = life.kids[n];
-      drawPerson(canvas, -1, w.x, w.y, time, w.mv, w.face, null, look: ks[n]['look'] as Map?, age: ((ks[n]['g'] as num?) ?? 0) < 1 ? 8 : 18);
+      drawPerson(canvas, -1, w.x, w.y, time, w.mv, w.face, null,
+          look: ks[n]['look'] as Map?, age: ((ks[n]['g'] as num?) ?? 0) < 1 ? 8 : 18, name: ks[n]['n'] as String?, kidJob: ks[n]['job'] as String?);
+    }
+    // 노친네가 온 날: 수레를 세워 두고 쉘터 앞에 서 있다 (웹 pedMapDraw, walkers-2 17번 칸)
+    if (g.pedHere) {
+      final c = tileC(C0);
+      figureAt(canvas, (1, 16), c.dx + 46, c.dy + 30, time, face: -1);
     }
     // 펫
     final night = g.isNight;

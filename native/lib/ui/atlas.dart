@@ -20,7 +20,7 @@ class Atlas {
     // 2026-10-13~14 웹 손그림: 일 아이콘·방벽·연구·손님·전용 도구 초상·지도 인물·땅 질감·나무와 풀·등불 탑·노선 역
     'duty-icons.webp', 'walls.webp', 'research-icons.webp', 'guests.webp', 'survivors-signature-1.webp', 'survivors-signature-2.webp',
     'walkers-1.webp', 'walkers-2.webp', 'walkers-3.webp', 'terrain-props.webp', 'ground-tiles.webp', 'lantern-tower.webp',
-    'line-stations.webp', 'line-stations-factory.webp',
+    'line-stations.webp', 'line-stations-factory.webp', 'landmarks-desert.webp', 'landmarks-factory.webp', 'landmarks-snow.webp',
   ];
 
   static Future<void> load() => _loading ??= () async {
@@ -42,7 +42,7 @@ class Atlas {
   /// 지금 동네 (화면이 매 틱 맞춘다). 산골은 지붕마다 눈, 사막은 모래, 공단은 재와 녹
   static String? region;
   static VoidCallback? onTint;
-  static const tintFiles = {'shelters.webp', 'modules.webp', 'exploration-sites.webp', 'landmarks.webp', 'settlement-props.webp', 'module-upgrades.webp'};
+  static const tintFiles = {'shelters.webp', 'modules.webp', 'exploration-sites.webp', 'landmarks.webp', 'settlement-props.webp', 'module-upgrades.webp', 'terrain-props.webp', 'lantern-tower.webp'};
   static final Map<String, ui.Image?> _tinted = {};
   static String? _tintRegion;
 
@@ -113,6 +113,72 @@ class Atlas {
       _img[f] = (await codec.getNextFrame()).image;
       version.value++;
     } catch (_) {}
+  }
+
+  // ---------- 손그림 소품의 실제 테두리 (웹 tpBoxes · wkBox · LT.box: 칸마다 불투명한 부분만) ----------
+  static final Map<String, List<Rect?>?> _boxes = {};
+
+  /// cols × rows 칸마다 알파가 thr 넘는 부분의 테두리. 다 재기 전엔 null (재기는 한 번만, 뒤에서)
+  static List<Rect?>? boxes(String f, int cols, int rows, {int thr = 24}) {
+    final key = '$f/$cols/$rows/$thr';
+    if (_boxes.containsKey(key)) return _boxes[key];
+    final im = _img[f];
+    if (im == null) return null;
+    _boxes[key] = null;
+    () async {
+      try {
+        final bd = await im.toByteData(format: ui.ImageByteFormat.rawStraightRgba);
+        if (bd == null) return;
+        _boxes[key] = await compute(_trim, (bd.buffer.asUint8List(), im.width, im.height, cols, rows, thr));
+        version.value++;
+        onTint?.call();
+      } catch (_) {}
+    }();
+    return null;
+  }
+
+  static List<Rect?> _trim((Uint8List, int, int, int, int, int) a) {
+    final (px, w, h, cols, rows, thr) = a;
+    final cw = w / cols, ch = h / rows, out = <Rect?>[];
+    for (var k = 0; k < cols * rows; k++) {
+      final ox = (k % cols) * cw, oy = (k ~/ cols) * ch;
+      var x0 = cw, y0 = ch, x1 = 0.0, y1 = 0.0;
+      for (var y = 0.0; y < ch; y += 2) {
+        for (var x = 0.0; x < cw; x += 2) {
+          final idx = (((oy + y).floor()) * w + (ox + x).floor()) * 4 + 3;
+          if (idx < px.length && px[idx] > thr) {
+            if (x < x0) x0 = x;
+            if (x > x1) x1 = x;
+            if (y < y0) y0 = y;
+            if (y > y1) y1 = y;
+          }
+        }
+      }
+      out.add(x1 > x0 ? Rect.fromLTWH(ox + x0, oy + y0, x1 - x0 + 2, y1 - y0 + 2) : null);
+    }
+    return out;
+  }
+
+  // ---------- 땅·물 질감 (웹 gtPat: ground-tiles.webp 4×2, 256px 칸) ----------
+  static final Map<int, ui.Image?> _gt = {};
+
+  /// k번째 질감 칸 (0 흙 · 1 마른 풀 · 2 콘크리트 · 3 물 · 4 사막 · 5 공단 · 6 눈 · 7 언 물). 다 만들기 전엔 null
+  static ui.Image? groundTile(int k) {
+    if (_gt.containsKey(k)) return _gt[k];
+    final im = _img['ground-tiles.webp'];
+    if (im == null) return null;
+    _gt[k] = null;
+    () async {
+      try {
+        final cw = im.width / 4, ch = im.height / 2;
+        final rec = ui.PictureRecorder();
+        ui.Canvas(rec).drawImageRect(im, ui.Rect.fromLTWH((k % 4) * cw, (k ~/ 4) * ch, cw, ch), const ui.Rect.fromLTWH(0, 0, 256, 256), ui.Paint()..filterQuality = ui.FilterQuality.medium);
+        _gt[k] = await rec.endRecording().toImage(256, 256);
+        version.value++;
+        onTint?.call();
+      } catch (_) {}
+    }();
+    return null;
   }
 
   /// cols × rows 격자의 index번째 칸

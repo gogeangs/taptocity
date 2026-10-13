@@ -3,6 +3,7 @@
 //  - 반짝임·떠오르는 글자 같은 연출은 남아 있는 동안에만 따로 그린다. 없으면 0fps.
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/gestures.dart';
@@ -12,6 +13,7 @@ import 'package:flutter/widgets.dart';
 import '../game/data.dart';
 import '../game/engine.dart';
 import '../game/rng.dart';
+import '../game/state.dart';
 import 'atlas.dart';
 import 'live.dart';
 import 'people.dart';
@@ -453,6 +455,8 @@ class _FogShape {
 
 final List<_FogShape> _fogShapes = [for (var v = 0; v < 8; v++) _FogShape(101 + v * 17)];
 
+typedef _Land = ({List<int> bg, int v, List<int> soil, List<int> ruin, List<int> green, List<int> paving, List<int> w1, List<int> w2, List<int> fog});
+
 class MapPainter extends CustomPainter {
   MapPainter(this.g, this.cam, Listenable repaint) : super(repaint: repaint);
   final Game g;
@@ -464,12 +468,26 @@ class MapPainter extends CustomPainter {
     ..style = PaintingStyle.stroke
     ..strokeCap = StrokeCap.round;
 
-  // 첫 동네 풍경 (웹 LANDSCAPES.home)
-  static const bgTop = Color(0xFF25323F), bgBottom = Color(0xFF1B2631), voidCol = Color(0xFF1C2733);
-  static const fog0 = Color(0xFF283643), fog1 = Color(0xFF354351);
+  // 동네 풍경 (웹 LANDSCAPES — 색만 바꾼다. 2026-10-14 첫 동네 물 색을 손그림 결에 맞춤)
+  static const _lands = {
+    'home': (bg: [0xFF25323F, 0xFF1B2631], v: 0xFF1C2733, soil: [0x8A, 0x8C, 0x80], ruin: [0x76, 0x7B, 0x78], green: [0x71, 0x82, 0x72], paving: [0x9E, 0x9C, 0x8A], w1: [0x34, 0x53, 0x5C], w2: [0x41, 0x63, 0x6A], fog: [0xFF283643, 0xFF354351]),
+    'desert': (bg: [0xFF49443C, 0xFF292C2D], v: 0xFF373733, soil: [0xB7, 0xA1, 0x83], ruin: [0x9B, 0x8C, 0x77], green: [0x96, 0x91, 0x6D], paving: [0xC1, 0xB2, 0x98], w1: [0x50, 0x6F, 0x76], w2: [0x63, 0x85, 0x8A], fog: [0xFF45443E, 0xFF5A5549]),
+    'factory': (bg: [0xFF303B42, 0xFF20272E], v: 0xFF252D32, soil: [0x85, 0x8D, 0x8B], ruin: [0x73, 0x7C, 0x7C], green: [0x6D, 0x81, 0x78], paving: [0xA0, 0xA7, 0xA1], w1: [0x3A, 0x5D, 0x66], w2: [0x4B, 0x70, 0x77], fog: [0xFF303C43, 0xFF414F55]),
+    'snow': (bg: [0xFF465665, 0xFF293845], v: 0xFF354452, soil: [0xC5, 0xD1, 0xD2], ruin: [0xA8, 0xB8, 0xBF], green: [0xA4, 0xBC, 0xB5], paving: [0xD6, 0xDE, 0xD9], w1: [0x53, 0x7D, 0x94], w2: [0x77, 0x9C, 0xAF], fog: [0xFF3C5060, 0xFF526878]),
+  };
+  _Land get _L => _lands[g.S.region] ?? _lands['home']!;
+  Color get bgTop => Color(_L.bg[0]);
+  Color get bgBottom => Color(_L.bg[1]);
+  Color get voidCol => Color(_L.v);
+  Color get fog0 => Color(_L.fog[0]);
+  Color get fog1 => Color(_L.fog[1]);
   static const fogTop0 = Color(0x0D718391), fogTop1 = Color(0x14C4AD81);
-  static const soil = [0x8A, 0x8C, 0x80], ruin = [0x76, 0x7B, 0x78], green = [0x71, 0x82, 0x72], paving = [0x9E, 0x9C, 0x8A];
-  static const w1 = [0x2A, 0x66, 0x82], w2 = [0x35, 0x7D, 0x98];
+  List<int> get soil => _L.soil;
+  List<int> get ruin => _L.ruin;
+  List<int> get green => _L.green;
+  List<int> get paving => _L.paving;
+  List<int> get w1 => _L.w1;
+  List<int> get w2 => _L.w2;
 
   static List<double> _lerp(List<num> a, List<num> b, double t) => [for (var k = 0; k < 3; k++) (a[k] + (b[k] - a[k]) * t).toDouble()];
   static Color _rgb(List<num> a, [double k = 1]) => Color.fromARGB(255, math.min(255, a[0] * k).floor(), math.min(255, a[1] * k).floor(), math.min(255, a[2] * k).floor());
@@ -509,7 +527,7 @@ class MapPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
     canvas.clipRect(rect);
-    canvas.drawRect(rect, Paint()..shader = ui.Gradient.linear(Offset.zero, Offset(0, size.height), const [bgTop, bgBottom]));
+    canvas.drawRect(rect, Paint()..shader = ui.Gradient.linear(Offset.zero, Offset(0, size.height), [bgTop, bgBottom]));
     _glows.clear();
     canvas.save();
     canvas.translate(size.width / 2, size.height / 2);
@@ -518,6 +536,7 @@ class MapPainter extends CustomPainter {
     final tl = Offset(cam.x - (size.width / 2 + 80) / cam.z, cam.y - (size.height / 2 + 40) / cam.z);
     final br = Offset(cam.x + (size.width / 2 + 80) / cam.z, cam.y + (size.height / 2 + 260) / cam.z);
     final S = g.S;
+    _lnFade();
     for (var s = 0; s <= W + H - 2; s++) {
       final wy = (s + 1) * TH / 2;
       if (wy < tl.dy - 10 || wy > br.dy) continue;
@@ -542,7 +561,6 @@ class MapPainter extends CustomPainter {
         }
       }
     }
-    _tower(canvas);
     _crowMarks(canvas);
     if (g.sel >= 0) {
       final c = tileC(g.sel);
@@ -562,51 +580,6 @@ class MapPainter extends CustomPainter {
   }
 
   /// 등불 탑 (웹 towerDraw 5124): 쉘터 왼쪽의 철골 탑, 4단계부터 렌즈, 불이 켜지면 하늘로 빛줄기
-  void _tower(Canvas canvas) {
-    final n0 = g.towerN;
-    if (n0 <= 0) return;
-    final n = math.min(n0, 12), c = tileC(C0), x = c.dx - 30, y = c.dy - 4, h = 26 + n * 20.0, lit = n0 >= 5;
-    final st = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6
-      ..color = const Color(0xFF4A4A52);
-    final p = Path()
-      ..moveTo(x - 7, y)
-      ..lineTo(x - 2, y - h)
-      ..moveTo(x + 7, y)
-      ..lineTo(x + 2, y - h);
-    for (var q = 1; q < n * 3; q++) {
-      final f = q / (n * 3), a = y - h * f, w = 7 - 5 * f, f2 = (q + 1) / (n * 3), b2 = y - h * f2, w2 = 7 - 5 * f2;
-      p
-        ..moveTo(x - w, a)
-        ..lineTo(x + w2, b2)
-        ..moveTo(x + w, a)
-        ..lineTo(x - w2, b2);
-    }
-    canvas.drawPath(p, st);
-    canvas.drawRect(Rect.fromLTWH(x - 9, y - 3, 18, 4), Paint()..color = const Color(0xFF6A6A72));
-    if (n >= 4) {
-      canvas.drawCircle(Offset(x, y - h - 4), 5, Paint()..color = lit ? const Color(0xFFFFF4C8) : const Color(0xFF9AB4C8));
-      canvas.drawCircle(
-          Offset(x, y - h - 4),
-          5,
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 1
-            ..color = const Color(0xFF3B2A1A));
-    }
-    if (lit) {
-      final beam = Path()
-        ..moveTo(x - 4, y - h - 4)
-        ..lineTo(x - 26, y - h - 420)
-        ..lineTo(x + 26, y - h - 420)
-        ..lineTo(x + 4, y - h - 4)
-        ..close();
-      canvas.drawPath(beam, Paint()..shader = ui.Gradient.linear(Offset(x, y - h), Offset(x, y - h - 420), const [Color(0x8CFFECAA), Color(0x00FFECAA)]));
-      _glows.add((Offset(x, y - h - 4), 90.0, const Color(0xFFFFE6A0), .9));
-    }
-  }
-
   /// 까마귀가 남긴 검은 새 표식 (웹 towerDraw 덮어쓰기)
   void _crowMarks(Canvas canvas) {
     final p = Paint()..color = const Color(0xCC141216);
@@ -682,10 +655,45 @@ class MapPainter extends CustomPainter {
   void _landTile(Canvas canvas, int i, int x, int y) {
     final S = g.S, t = S.ter[i], c = tileC(i);
     final mod = g.modAtTile(i), core = i == C0;
+    final dia = _diamond(c, 1.02);
     _fill.color = t == T.water ? waterCol(i) : groundCol(i, t, g.green[i], core || mod != null);
-    canvas.drawPath(_diamond(c, 1.02), _fill);
-    // 구름과 맞닿은 가장자리는 그늘 (웹 edgeFade)
+    canvas.drawPath(dia, _fill);
     final n = Offset(c.dx, c.dy - TH / 2), e = Offset(c.dx + TW / 2, c.dy), s = Offset(c.dx, c.dy + TH / 2), w = Offset(c.dx - TW / 2, c.dy);
+    if (t == T.water) {
+      // 손그림 물 질감 + 물가 (웹 drawTile 2026-10-13)
+      _gtFill(canvas, S.region == 'snow' ? 7 : 3, .88, dia);
+      final shore = [
+        if (x > 0 && S.rev[i - 1] == 1 && S.ter[i - 1] != T.water) (n, w),
+        if (x < W - 1 && S.rev[i + 1] == 1 && S.ter[i + 1] != T.water) (e, s),
+        if (y > 0 && S.rev[i - W] == 1 && S.ter[i - W] != T.water) (n, e),
+        if (y < H - 1 && S.rev[i + W] == 1 && S.ter[i + W] != T.water) (w, s),
+      ];
+      if (shore.isNotEmpty) {
+        canvas.save();
+        canvas.clipPath(_diamond(c));
+        for (final (a, b) in shore) {
+          _line
+            ..color = const Color(0x59142832)
+            ..strokeWidth = 9;
+          canvas.drawLine(a, b, _line);
+          _line
+            ..color = const Color(0x73E1F0EB)
+            ..strokeWidth = 2.2;
+          canvas.drawLine(a, b, _line);
+        }
+        canvas.restore();
+      }
+    } else {
+      _line
+        ..color = const Color(0x12140E08)
+        ..strokeWidth = 1;
+      canvas.drawPath(Path()..moveTo(w.dx, w.dy)..lineTo(s.dx, s.dy)..lineTo(e.dx, e.dy), _line);
+      // 땅 질감: 쉘터·모듈 자리는 콘크리트, 그 밖은 동네 흙 (+ 첫 동네 풀밭엔 마른 풀)
+      final paved = core || mod != null;
+      final ok = _gtFill(canvas, paved ? 2 : const {'desert': 4, 'factory': 5, 'snow': 6}[S.region] ?? 0, paved ? .82 : .8, dia);
+      if (ok && !paved && S.region == null && g.green[i] > .05) _gtFill(canvas, 1, math.min(.9, g.green[i] * 1.5), dia);
+    }
+    // 구름과 맞닿은 가장자리는 그늘 (웹 edgeFade)
     final edges = [
       if (x > 0 && S.rev[i - 1] == 0) (n, w),
       if (x < W - 1 && S.rev[i + 1] == 0) (e, s),
@@ -708,8 +716,20 @@ class MapPainter extends CustomPainter {
       canvas.restore();
     }
     if (t == T.water) return;
+    _walls(canvas, i, false);
+    // 노선 역 앞을 가리는 건물은 반투명 (웹 lnFade)
+    final soft = _fadeSoft.contains(i);
+    if (soft) canvas.saveLayer(Rect.fromCenter(center: c.translate(0, -70), width: TW * 2.6, height: 220), Paint()..color = const Color(0x73000000));
+    _tileStuff(canvas, i, c, t, mod, core);
+    if (soft) canvas.restore();
+    _walls(canvas, i, true);
+  }
+
+  void _tileStuff(Canvas canvas, int i, Offset c, int t, Mod? mod, bool core) {
+    final S = g.S;
 
     if (core) {
+      _towerBody(canvas); // 등불 탑은 쉘터 뒤에 (웹 2026-10-14)
       final lv = S.lv;
       _sprite(canvas, Atlas.mapImage('shelters.webp'), Atlas.cell('shelters.webp', lv - 1, 3, 2), c, const [84.0, 84.0, 90.0, 100.0, 112.0][lv - 1], .91);
       _glows.add((P(i, .5, .5, 16), 42.0 + lv * 3, const Color(0xFFF0C071), .38));
@@ -755,6 +775,9 @@ class MapPainter extends CustomPainter {
       final tx = TextPainter(text: TextSpan(text: k == 'trader' ? '⇄' : k == 'raider' ? '!' : '?', style: const TextStyle(fontSize: 11, color: Color(0xFF3B2A1A), fontWeight: FontWeight.bold)), textDirection: TextDirection.ltr)..layout();
       tx.paint(canvas, Offset(m.dx - tx.width / 2, m.dy - tx.height / 2));
       _glows.add((P(i, .35, .62, 2), 24.0, const Color(0xFFFFAA50), .4));
+      // 무리를 이끄는 사람 (웹 drawBandTile figureAt: 장사꾼 15 · 약탈자 14 · 그 밖 17)
+      final fp2 = P(i, .42, .78);
+      figureAt(canvas, (1, k == 'trader' ? 15 : k == 'raider' ? 14 : 17), fp2.dx, fp2.dy, 0);
       return;
     }
     // 장식 (웹 drawDeco: settlement-props 8~15)
@@ -798,13 +821,17 @@ class MapPainter extends CustomPainter {
     if (t == T.lm) {
       final l = S.lm[i];
       if (l != null) {
-        final f = Atlas.fr(Atlas.landmarkFrames[l.k + (l.ok ? 5 : 0)]);
-        final h = _sprite(canvas, Atlas.mapImage('landmarks.webp'), f, c, Atlas.landmarkWidth[l.k], 1, dy: 8);
+        final (img, f, w) = _lmArt(l.k, l.ok);
+        final h = _sprite(canvas, img, f, c, w, 1, dy: 8), lh = h > 0 ? math.max(10.0, h - 16) : 44.0;
+        final station = landmarks[l.k].key == 'station';
         if (l.ok) {
           _glows.add((c.translate(0, -12), 28.0, const Color(0xFFF0C071), .28));
+          // 노선 역: 입구에서 새는 빛 (웹 drawLandmark 2026-10-14)
+          if (station) _glows.add((P(i, .42, .62), 30.0, const Color(0xFFFFC46E), .39));
         } else {
-          _lmMarker(canvas, c.dx, c.dy - (math.max(10, h - 16) + 14));
+          _lmMarker(canvas, c.dx, c.dy - (lh + 14));
         }
+        if (station) _lnBadge(canvas, c.dx, c.dy - (lh + (l.ok ? 10 : 40)), l.ok, ((g.lnState()['fat'] as num?) ?? 0) == 0);
       }
       return;
     }
@@ -827,29 +854,305 @@ class MapPainter extends CustomPainter {
       _prop(canvas, live ? 2 : 3, c);
       return;
     }
-    // 빈 땅: 쉘터 가까이 나무, 군데군데 풀·자갈 (웹 tree / groundDecor)
+    // 빈 땅: 쉘터 가까이 나무, 군데군데 풀·덤불·벽돌 (웹 tree / groundDecor, 손그림 terrain-props)
     final gr = g.green[i];
     final trees = speck2[i] > .45 ? (gr * 2.5).floor() : 0;
     for (var k = 0; k < trees; k++) {
-      _tree(canvas, P(i, .2 + ((speck[i] * 97 + k * .37) % 1) * .6, .2 + ((speck2[i] * 53 + k * .61) % 1) * .6), (k + i) % 3 == 0);
+      _tree(canvas, .2 + ((speck[i] * 97 + k * .37) % 1) * .6, .2 + ((speck2[i] * 53 + k * .61) % 1) * .6, i, (k + i) % 3 == 0);
     }
-    if ((trees == 0 || gr > .3) && speck[i] > .75) {
-      final p = P(i, .3 + speck2[i] * .4, .35 + speck[i] * .3);
-      _fill.color = gr > .2 ? const Color(0xFF6E8466) : const Color(0xFF7A7C72);
+    if (trees == 0 || gr > .3) _groundDecor(canvas, i, gr);
+  }
+
+  // ---------- 땅·물 질감 (웹 gtFill: 질감 한 장이 땅 두 칸을 덮고 칸을 넘어 이어진다) ----------
+  static final Map<int, ImageShader> _gtShader = {};
+  static final _gtM = Float64List.fromList([TW / 256, TH / 256, 0, 0, -TW / 256, TH / 256, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+  static final _gtPaint = Paint()..filterQuality = FilterQuality.medium;
+  bool _gtFill(Canvas canvas, int k, double a, Path p) {
+    if (a <= 0) return false;
+    var sh = _gtShader[k];
+    if (sh == null) {
+      final im = Atlas.groundTile(k);
+      if (im == null) return false;
+      sh = _gtShader[k] = ImageShader(im, TileMode.repeated, TileMode.repeated, _gtM, filterQuality: FilterQuality.medium);
+    }
+    _gtPaint
+      ..shader = sh
+      ..color = Color.fromRGBO(0, 0, 0, a);
+    canvas.drawPath(p, _gtPaint);
+    return true;
+  }
+
+  // ---------- 나무·풀 소품 (웹 terrain-props.webp 4×2: 0·1 활엽수 · 2 소나무 · 3 마른 나무 · 4·5 풀포기 · 6 덤불 · 7 벽돌 더미) ----------
+  bool _tp(Canvas canvas, int k, double x, double y, double h) {
+    final b = Atlas.boxes('terrain-props.webp', 4, 2), im = Atlas.mapImage('terrain-props.webp');
+    if (b == null || im == null || b[k] == null) return false;
+    final src = b[k]!, w = src.width * h / src.height;
+    canvas.drawImageRect(im, src, Rect.fromLTWH(x - w / 2, y - h, w, h), _img..color = const Color(0xFFFFFFFF));
+    return true;
+  }
+
+  /// 웹 tree(u,v,.85,kind)
+  void _tree(Canvas canvas, double u, double v, int i, bool pine) {
+    const s = .85;
+    final p = P(i, u, v), hh = ((u * 97.13 + v * 41.7) % 1 + 1) % 1, k = pine ? 2 : hh < .45 ? 0 : hh < .9 ? 1 : 3;
+    if (_tp(canvas, k, p.dx, p.dy + 2 * s, (k == 2 ? 34 : 30) * s)) return;
+    // 그림이 아직이면 단순한 나무 (손그림 결: 먹선)
+    _fill.color = const Color(0x38100C08);
+    canvas.drawOval(Rect.fromCenter(center: p.translate(4 * s, 1), width: 15 * s, height: 6.4 * s), _fill);
+    _fill.color = const Color(0xFF4F3624);
+    canvas.drawRect(Rect.fromLTWH(p.dx - 1, p.dy - 8 * s, 2.2 * s, 8 * s), _fill);
+    _fill.color = pine ? const Color(0xFF47563F) : const Color(0xFF55603F);
+    canvas.drawOval(Rect.fromCenter(center: p.translate(0, -13 * s), width: 14 * s, height: 13 * s), _fill);
+  }
+
+  /// 웹 groundDecor: 풀밭엔 풀포기·덤불, 맨땅엔 가끔 벽돌 더미
+  void _groundDecor(Canvas canvas, int i, double gr) {
+    final s1 = speck[i], s2 = speck2[i];
+    if (gr > .3) {
+      final n = 1 + ((s2 * 7).floor()) % 2;
+      for (var k = 0; k < n; k++) {
+        final p = P(i, .2 + ((s1 * 97 + k * .37) % 1) * .6, .2 + ((s2 * 53 + k * .61) % 1) * .6);
+        if (!_tp(canvas, k == 0 && s2 > .84 && gr > .5 ? 5 : (s1 + k * .3) % 1 < .6 ? 4 : 6, p.dx, p.dy + 1, 11 + ((s1 * 13 + k) % 1) * 4)) return;
+      }
+      return;
+    }
+    if (s2 > .86) {
+      final p = P(i, .4 + s1 * .2, .55);
+      if (_tp(canvas, 7, p.dx, p.dy + 1, 9)) return;
+    }
+    if (s1 > .75) {
+      final p = P(i, .3 + s2 * .4, .35 + s1 * .3);
+      _fill.color = const Color(0xFF7A7C72);
       canvas.drawOval(Rect.fromCenter(center: p, width: 6, height: 3), _fill);
       canvas.drawOval(Rect.fromCenter(center: p.translate(5, 2), width: 4, height: 2), _fill);
     }
   }
 
-  void _tree(Canvas canvas, Offset p, bool dark) {
-    _fill.color = const Color(0x40192019);
-    canvas.drawOval(Rect.fromCenter(center: p.translate(2, 1), width: 13, height: 5), _fill);
-    _fill.color = const Color(0xFF5A4433);
-    canvas.drawRect(Rect.fromLTWH(p.dx - 1, p.dy - 6, 2, 6), _fill);
-    _fill.color = dark ? const Color(0xFF4F6B4A) : const Color(0xFF5F7D55);
-    canvas.drawOval(Rect.fromCenter(center: p.translate(0, -10), width: 13, height: 12), _fill);
-    _fill.color = dark ? const Color(0xFF5F7D55) : const Color(0xFF738F62);
-    canvas.drawOval(Rect.fromCenter(center: p.translate(-1.5, -12), width: 7, height: 6), _fill);
+  // ---------- 방벽 (웹 drawWalls · wallSeg: 쉘터 둘레, 뒤쪽 두 변은 건물 앞에서, 앞쪽 두 변은 건물 뒤에) ----------
+  void _walls(Canvas canvas, int i, bool front) {
+    final S = g.S;
+    if (S.walls <= 0) return;
+    final rw = S.lv >= 3 ? 2 : 1, dx = i % W - CX, dy = i ~/ W - CY;
+    if (dx.abs() > rw || dy.abs() > rw) return;
+    if (!front) {
+      if (dx == -rw) _wallSeg(canvas, P(i, 0, 0), P(i, 0, 1), S.walls);
+      if (dy == -rw) _wallSeg(canvas, P(i, 0, 0), P(i, 1, 0), S.walls);
+    } else {
+      if (dx == rw) _wallSeg(canvas, P(i, 1, 0), P(i, 1, 1), S.walls);
+      if (dy == rw) _wallSeg(canvas, P(i, 0, 1), P(i, 1, 1), S.walls);
+    }
+  }
+
+  void _wallSeg(Canvas canvas, Offset a, Offset b, int lv) {
+    final h = const [11.0, 8.0, 17.0][lv - 1];
+    Offset at(double t, [double z = 0]) => Offset(a.dx + (b.dx - a.dx) * t, a.dy + (b.dy - a.dy) * t - z);
+    void poly(List<Offset> pts, Color f, Color st) {
+      final path = Path()..addPolygon(pts, true);
+      _fill.color = f;
+      canvas.drawPath(path, _fill);
+      _line
+        ..color = st
+        ..strokeWidth = 1
+        ..strokeJoin = StrokeJoin.round;
+      canvas.drawPath(path, _line);
+    }
+
+    void seg(Offset p, Offset q, Color c, double w) {
+      _line
+        ..color = c
+        ..strokeWidth = w;
+      canvas.drawLine(p, q, _line);
+    }
+
+    if (lv == 1) {
+      for (var q = 0; q < 7; q++) {
+        final p = at(q / 6), top = h + (q % 2) * 1.5;
+        poly([Offset(p.dx - 1.8, p.dy), Offset(p.dx + 1.8, p.dy), Offset(p.dx + 1.6, p.dy - top), Offset(p.dx - .8, p.dy - top - 1), Offset(p.dx - 1.8, p.dy - top + .5)],
+            q % 2 == 1 ? const Color(0xFF7A6450) : const Color(0xFF8D7659), const Color(0xFF231A14));
+        seg(Offset(p.dx - .2, p.dy - 2), Offset(p.dx + .2, p.dy - top + 2), const Color(0x59DFCFA9), .55);
+      }
+      for (final z in const [3.5, 8.0]) {
+        seg(at(0, z), at(1, z), const Color(0xFF534F45), 1.5);
+      }
+    } else if (lv == 2) {
+      for (var row = 0; row < 2; row++) {
+        for (var q = 0; q < 4; q++) {
+          final t0 = q / 4, t1 = (q + 1) / 4, z = row * 4.0;
+          poly([at(t0, z + 1), at(t1, z + 1), at(t1, z + 3.6), at(t1 - .025, z + 4.5), at(t0 + .025, z + 4.5), at(t0, z + 3.5)],
+              (q + row) % 2 == 1 ? const Color(0xFFAFA48A) : const Color(0xFFC2B69A), const Color(0xFF64665D));
+          final m = at((t0 + t1) / 2, z + 2.5);
+          seg(Offset(m.dx - 1.5, m.dy), Offset(m.dx + 1.5, m.dy - .3), const Color(0x73444C46), .5);
+        }
+      }
+    } else {
+      for (var q = 0; q < 4; q++) {
+        final t = q / 4, u = (q + 1) / 4, top = h + (q % 2);
+        poly([at(t), at(u), at(u, top), at(t, top - 1)], q % 2 == 1 ? const Color(0xFF5A5048) : const Color(0xFF6B5D50), const Color(0xFF231A14));
+        seg(at(t + .1, top - 2), at(t + .12, 3), const Color(0x8C96542E), 1.1);
+        seg(at(t + .04, 2), at(t + .04, top - 2), const Color(0x66D1CAAF), .65);
+        _fill.color = const Color(0xFFC0B59C);
+        for (final z in [3.0, top - 3]) {
+          final p = at(t + .035, z);
+          canvas.drawRect(Rect.fromLTWH(p.dx - .5, p.dy - .5, 1, 1), _fill);
+        }
+        final p = at(t + .13, 5 + (q % 2) * 3.0);
+        seg(p, Offset(p.dx + 2, p.dy - 3), const Color(0xFF946F50), 1);
+      }
+    }
+  }
+
+  // ---------- 랜드마크 그림 (웹 design.js landmarkMetrics: 동네별 그림 · 노선 역 손그림) ----------
+  static const _lmr = {
+    'desert': ('landmarks-desert.webp', [[17, 85, 366, 268], [427, 95, 372, 254], [862, 24, 252, 333], [1189, 66, 384, 283], [1615, 64, 353, 287], [12, 463, 375, 282], [430, 474, 369, 266], [872, 408, 243, 342], [1190, 449, 385, 289], [1616, 446, 352, 294]]),
+    'factory': ('landmarks-factory.webp', [[22, 49, 380, 340], [450, 82, 325, 305], [824, 96, 337, 277], [1211, 62, 346, 324], [1599, 95, 364, 288], [22, 403, 381, 344], [449, 427, 329, 319], [823, 450, 338, 276], [1210, 415, 349, 328], [1598, 448, 365, 292]]),
+    'snow': ('landmarks-snow.webp', [[6, 81, 412, 312], [442, 115, 363, 270], [836, 83, 335, 297], [1205, 91, 350, 298], [1587, 96, 382, 291], [11, 393, 419, 375], [446, 483, 360, 273], [831, 403, 350, 345], [1202, 417, 357, 346], [1583, 438, 388, 323]]),
+  };
+  // line-stations.webp: 4열(첫 동네·사막·공단·설원) × 2행(폐허·복구), 공단은 화물칸이 들어간 line-stations-factory 두 칸을 우선
+  static const _ls = [[15, 55, 363, 295], [396, 56, 368, 297], [782, 60, 357, 289], [1159, 58, 362, 295], [14, 432, 364, 299], [399, 432, 368, 299], [783, 436, 356, 293], [1159, 433, 362, 299]];
+  static const _lsf = [[6, 75, 378, 247], [390, 75, 372, 249]];
+
+  (ui.Image?, Rect?, double) _lmArt(int k, bool ok) {
+    final r = g.S.region;
+    if (landmarks[k].key == 'station') {
+      final col = const {'desert': 1, 'factory': 2, 'snow': 3}[r] ?? 0;
+      final f2 = Atlas.image('line-stations-factory.webp');
+      if (col == 2 && f2 != null) return (f2, Atlas.fr(_lsf[ok ? 1 : 0]), 94.0);
+      final ls = Atlas.image('line-stations.webp');
+      if (ls != null) return (ls, Atlas.fr(_ls[col + (ok ? 4 : 0)]), 88.0);
+    }
+    final R = _lmr[r];
+    final rim = R == null ? null : Atlas.image(R.$1);
+    if (R != null && rim != null) {
+      final f = R.$2[k + (ok ? 5 : 0)];
+      return (rim, Atlas.fr(f), (f[2] * .2).clamp(48.0, 80.0).toDouble());
+    }
+    return (Atlas.mapImage('landmarks.webp'), Atlas.fr(Atlas.landmarkFrames[k + (ok ? 5 : 0)]), Atlas.landmarkWidth[k]);
+  }
+
+  /// 역 위의 '노선' 표식 (웹 lnBadge)
+  void _lnBadge(Canvas canvas, double x, double y, bool ok, bool fresh) {
+    final tp = TextPainter(text: TextSpan(text: '노선', style: Ttc.t(10, color: const Color(0xFF2C2217), weight: FontWeight.w700, height: 1)), textDirection: TextDirection.ltr)..layout();
+    final w = tp.width + 30, hh = 18.0, col = ok ? (fresh ? const Color(0xFFF0C071) : const Color(0xFFC9A46A)) : const Color(0xFF8D867A);
+    final rr = RRect.fromRectAndRadius(Rect.fromLTWH(x - w / 2, y - hh / 2, w, hh), const Radius.circular(9));
+    final tri = Path()..moveTo(x - 4, y + hh / 2)..lineTo(x, y + hh / 2 + 5)..lineTo(x + 4, y + hh / 2)..close();
+    _fill.color = col;
+    canvas.drawRRect(rr, _fill);
+    _line
+      ..color = const Color(0xFF2C2217)
+      ..strokeWidth = 1.5;
+    canvas.drawRRect(rr, _line);
+    canvas.drawPath(tri, _fill);
+    canvas.drawPath(tri, _line);
+    final ix = x - w / 2 + 11;
+    _line.strokeWidth = 1.4;
+    canvas.drawLine(Offset(ix - 3, y - 5), Offset(ix - 4.5, y + 5), _line);
+    canvas.drawLine(Offset(ix + 3, y - 5), Offset(ix + 4.5, y + 5), _line);
+    for (final t in const [-3.0, 0.0, 3.0]) {
+      canvas.drawLine(Offset(ix - 4.2 - (t + 3) * .1, y + t), Offset(ix + 4.2 + (t + 3) * .1, y + t), _line);
+    }
+    tp.paint(canvas, Offset(ix + 8, y + .5 - tp.height / 2));
+  }
+
+  // ---------- 노선 역 앞을 가리는 건물 (웹 lnFade · bldH · hitCol) ----------
+  Set<int> _fadeSoft = const {};
+  double _bldH(int i) {
+    final S = g.S;
+    if (S.rev[i] == 0) return 0;
+    if (i == C0) return const [40.0, 52.0, 62.0, 74.0, 86.0][S.lv - 1];
+    if (g.modAtTile(i) != null) return 44;
+    if (g.deco.containsKey('$i')) return 22;
+    if (S.camp.containsKey(i)) return 24;
+    if (g.band != null && g.band!['tile'] == i) return 30;
+    if (S.ter[i] == T.lm) return 44;
+    if (g.siteLive(i)) return 30;
+    return 0;
+  }
+
+  bool _hitCol(int j, Offset p, double h) {
+    final c = tileC(j), dx = p.dx - c.dx;
+    if (dx.abs() > TW * .44) return false;
+    final sl = dx.abs() * (TH / TW);
+    return p.dy >= c.dy - TH / 2 - h + sl && p.dy <= c.dy + TH / 2 - sl;
+  }
+
+  void _lnFade() {
+    final out = <int>{};
+    final S = g.S;
+    for (final e in S.lm.entries) {
+      final f = e.key;
+      if (S.rev[f] == 0 || landmarks[e.value.k].key != 'station') continue;
+      final fx = f % W, fy = f ~/ W, c = tileC(f, 6);
+      final pts = [c, c.translate(-TW * .22, TH * .12), c.translate(TW * .22, TH * .12), c.translate(0, TH * .25)];
+      for (var dy = 0; dy <= 3; dy++) {
+        for (var dx = 0; dx <= 3; dx++) {
+          if (dx == 0 && dy == 0) continue;
+          final x = fx + dx, y = fy + dy;
+          if (x >= W || y >= H) continue;
+          final j = y * W + x, h = _bldH(j);
+          if (h >= 8 && pts.any((p) => _hitCol(j, p, h))) out.add(j);
+        }
+      }
+    }
+    _fadeSoft = out;
+  }
+
+  // ---------- 등불 탑 (웹 towerBody · ltDraw: 손그림 토대·기둥·전선·렌즈·점화 5칸, 쉘터 뒤에) ----------
+  double _ltDraw(Canvas canvas, int n, double x, double y) {
+    final b = Atlas.boxes('lantern-tower.webp', 5, 1, thr: 40), im = Atlas.mapImage('lantern-tower.webp');
+    if (b == null || im == null || b.length < 5 || b[4] == null) return 0;
+    final st = n >= 5 ? 4 : math.max(0, n - 1), src = b[st];
+    if (src == null) return 0;
+    final k = 130 / b[4]!.height * (n > 5 ? 1 + (math.min(n, 12) - 5) * .06 : 1), w = src.width * k, h = src.height * k;
+    canvas.drawImageRect(im, src, Rect.fromLTWH(x - w / 2, y - h, w, h), _img..color = const Color(0xFFFFFFFF));
+    return h;
+  }
+
+  void _towerBody(Canvas canvas) {
+    final n0 = g.towerN;
+    if (n0 <= 0) return;
+    final n = math.min(n0, 12), c = tileC(C0), x = c.dx - 14, y = c.dy - 30, lit = n0 >= 5;
+    final spH = _ltDraw(canvas, n0, x, y + 6), h = spH > 0 ? spH * .8 : 26 + n * 20.0;
+    if (spH <= 0) {
+      final st = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.6
+        ..color = const Color(0xFF4A4A52);
+      final p = Path()
+        ..moveTo(x - 7, y)
+        ..lineTo(x - 2, y - h)
+        ..moveTo(x + 7, y)
+        ..lineTo(x + 2, y - h);
+      for (var q = 1; q < n * 3; q++) {
+        final f = q / (n * 3), a = y - h * f, w = 7 - 5 * f, f2 = (q + 1) / (n * 3), b2 = y - h * f2, w2 = 7 - 5 * f2;
+        p
+          ..moveTo(x - w, a)
+          ..lineTo(x + w2, b2)
+          ..moveTo(x + w, a)
+          ..lineTo(x - w2, b2);
+      }
+      canvas.drawPath(p, st);
+      canvas.drawRect(Rect.fromLTWH(x - 9, y - 3, 18, 4), Paint()..color = const Color(0xFF6A6A72));
+      if (n >= 4) {
+        canvas.drawCircle(Offset(x, y - h - 4), 5, Paint()..color = lit ? const Color(0xFFFFF4C8) : const Color(0xFF9AB4C8));
+        canvas.drawCircle(
+            Offset(x, y - h - 4),
+            5,
+            Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 1
+              ..color = const Color(0xFF3B2A1A));
+      }
+    }
+    if (lit) {
+      final beam = Path()
+        ..moveTo(x - 4, y - h - 4)
+        ..lineTo(x - 26, y - h - 420)
+        ..lineTo(x + 26, y - h - 420)
+        ..lineTo(x + 4, y - h - 4)
+        ..close();
+      canvas.drawPath(beam, Paint()..shader = ui.Gradient.linear(Offset(x, y - h), Offset(x, y - h - 420), const [Color(0x8CFFECAA), Color(0x00FFECAA)]));
+      _glows.add((Offset(x, y - h - 4), 90.0, const Color(0xFFFFE6A0), .9));
+    }
   }
 
   void _lmMarker(Canvas canvas, double x, double top) {
