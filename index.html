@@ -2306,18 +2306,19 @@ function groundSig(tl,br){let h=(S.region||"h").length*7919+(S.lv||0);
 function drawTile(i,time,pulse){const x=i%W,y=i/W|0;GX=x;GY=y;ZS=1;const t=S.ter[i];
   const Nn=P(0,0),E=P(1,0),Sx=P(1,1),Wn=P(0,1);
   if(S.rev[i]){
-    if(t===T.WATER){if(GFLAT===2)return;const wc=waterCol(i);poly([Nn,E,Sx,Wn],wc,wc);
+    if(t===T.WATER){if(GFLAT===2)return;const wc=waterCol(i);poly([Nn,E,Sx,Wn],wc,wc);const wtx=gtFill(gtWater(),.88,[Nn,E,Sx,Wn]);
       const sh=[[x>0&&S.rev[i-1]&&S.ter[i-1]!==T.WATER,Nn,Wn],[x<W-1&&S.rev[i+1]&&S.ter[i+1]!==T.WATER,E,Sx],[y>0&&S.rev[i-W]&&S.ter[i-W]!==T.WATER,Nn,E],[y<H-1&&S.rev[i+W]&&S.ter[i+W]!==T.WATER,Wn,Sx]];
       ctx.save();ctx.beginPath();ctx.moveTo(...Nn);ctx.lineTo(...E);ctx.lineTo(...Sx);ctx.lineTo(...Wn);ctx.closePath();ctx.clip();ctx.lineCap='round';for(const[on,a,b]of sh){if(!on)continue;ctx.strokeStyle='rgba(20,40,50,.35)';ctx.lineWidth=9;ctx.beginPath();ctx.moveTo(...a);ctx.lineTo(...b);ctx.stroke();const fo=.35+.2*Math.sin(time/700+i);ctx.strokeStyle=`rgba(225,240,235,${fo})`;ctx.lineWidth=2.2;ctx.beginPath();ctx.moveTo(...a);ctx.lineTo(...b);ctx.stroke();}ctx.restore();
       // 물결: 먹선 잔물결 두어 줄(타일마다 위치·길이가 다름) + 아주 옅은 하이라이트 — 손그림 건물과 같은 결로
-      {const r1=speck[i],r2=speck2[i];ctx.lineCap='round';ctx.strokeStyle='rgba(16,28,32,.30)';ctx.lineWidth=1.1;ctx.beginPath();
+      if(!wtx){const r1=speck[i],r2=speck2[i];ctx.lineCap='round';ctx.strokeStyle='rgba(16,28,32,.30)';ctx.lineWidth=1.1;ctx.beginPath();
         for(let k=0;k<2;k++){const ph=time/1100+x*1.7+y+k*2.3,v=.3+k*.36+(r2-.5)*.12,u0=.12+((r1*7+k*.41)%1)*.38,len=.16+((r2*5+k*.3)%1)*.18,[a,b]=P(u0+Math.sin(ph)*.03,v),[c,d]=P(u0+len+Math.sin(ph)*.03,v);ctx.moveTo(a,b);ctx.quadraticCurveTo((a+c)/2,(b+d)/2-1.6,c,d);}ctx.stroke();
         if(r1>.55){const ph=time/900+x+y*1.3,[a,b]=P(.42+Math.sin(ph)*.04,.52),[c,d]=P(.54+Math.sin(ph)*.04,.52);ctx.strokeStyle='rgba(225,232,220,.16)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(a,b);ctx.lineTo(c,d);ctx.stroke();}}if(GFLAT===1){edgeFade(i,x,y,Nn,E,Sx,Wn);return;}}
     else{const g=D.green[i],mod=modAtTile(i),core=i===C0;
       const base=groundCol(i,t,g,core||mod);
       if(GFLAT!==2){poly([Nn,E,Sx,Wn],base,base);ctx.strokeStyle='rgba(20,14,8,.07)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(...Wn);ctx.lineTo(...Sx);ctx.lineTo(...E);ctx.stroke();
         // 땅결: 짧은 먹선 빗금 몇 개(타일마다 다르게) — 납작한 단색 바닥이 손그림 건물과 따로 놀지 않게
-        if(!core&&!mod){const r1=speck[i],r2=speck2[i],n=2+((r1*11)|0)%3;ctx.strokeStyle='rgba(28,20,12,.09)';ctx.lineWidth=.9;ctx.lineCap='round';ctx.beginPath();
+        const gtx=gtFill(core||mod?2:gtGround(),core||mod?.82:.8,[Nn,E,Sx,Wn]);if(gtx&&!(core||mod)&&!S.region&&g>.05)gtFill(1,Math.min(.9,g*1.5),[Nn,E,Sx,Wn]);
+        if(!gtx&&!core&&!mod){const r1=speck[i],r2=speck2[i],n=2+((r1*11)|0)%3;ctx.strokeStyle='rgba(28,20,12,.09)';ctx.lineWidth=.9;ctx.lineCap='round';ctx.beginPath();
           for(let k=0;k<n;k++){const u=.18+((r1*37+k*.29)%1)*.62,v=.2+((r2*29+k*.47)%1)*.6,[a,b]=P(u,v),[c,d]=P(u+.07,v-.05);ctx.moveTo(a,b);ctx.lineTo(c,d);}ctx.stroke();}}
       if(GFLAT===1){if(plainTile(i,t,core,mod)&&(!Math.floor(g*2.5*(speck2[i]>.45?1:0))||g>.3))groundDecor(i,g);edgeFade(i,x,y,Nn,E,Sx,Wn);return;}
       if(core||mod)aoAt(core?1.25:1);else if(S.site[i]&&S.site[i].c>0||t===T.CAR||t===T.RUIN)aoAt(.8);
@@ -4556,6 +4557,13 @@ function tpBoxes(){if(TP.box)return TP.box;const im=TP.img;if(!(im.complete&&im.
     for(let k=0;k<8;k++){const ox=(k%4)*cw,oy=(k/4|0)*ch;let x0=cw,y0=ch,x1=0,y1=0;for(let y=0;y<ch;y+=2)for(let x=0;x<cw;x+=2){if(d[((oy+y)*c.width+ox+x)*4+3]>24){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}}
       box.push(x1>x0?[ox+x0,oy+y0,x1-x0+2,y1-y0+2]:[ox,oy,cw,ch]);}
     TP.box=box;}catch(e){TP.box=null;return null;}return TP.box;}
+// 손그림 땅·물 질감(ground-tiles.webp: ground-textures.webp를 이음매 없이 다듬어 256px로 줄인 것, 4x2):
+// 0 재 덮인 흙 · 1 마른 풀 · 2 콘크리트 · 3 물 · 4 사막 모래 · 5 공단 그을린 땅 · 6 눈 덮인 땅 · 7 언 물. 질감 한 장이 땅 두 칸을 덮고, 칸을 넘어 이어진다.
+const GT={img:ttcLazy('assets/illustrated/ground-tiles.webp'),pat:null};
+function gtPat(k){if(!GT.pat){const im=GT.img;if(!(im.complete&&im.naturalWidth))return null;try{GT.pat=[];const m=new DOMMatrix([TW/256,TH/256,-TW/256,TH/256,0,0]);
+  for(let q=0;q<8;q++){const c=document.createElement('canvas');c.width=c.height=256;c.getContext('2d').drawImage(im,(q%4)*256,(q/4|0)*256,256,256,0,0,256,256);const pt=ctx.createPattern(c,'repeat');pt.setTransform(m);GT.pat.push(pt);}}catch(e){GT.pat=[];}}return GT.pat[k]||null;}
+function gtFill(k,a,pts){const pt=gtPat(k);if(!pt||a<=0)return false;ctx.save();ctx.globalAlpha=a;ctx.fillStyle=pt;ctx.beginPath();ctx.moveTo(...pts[0]);for(let q=1;q<pts.length;q++)ctx.lineTo(...pts[q]);ctx.closePath();ctx.fill();ctx.restore();return true;}
+const gtGround=()=>({desert:4,factory:5,snow:6}[S.region]??0),gtWater=()=>S.region==='snow'?7:3;
 function tpDraw(k,x,y,h){const b=tpBoxes();if(!b)return false;const[sx,sy,sw,sh]=b[k],w=sw*h/sh;ctx.drawImage(TP.img,sx,sy,sw,sh,x-w/2,y-h,w,h);return true;}
 function tree(u,v,s=1,kind=0){const[x,y]=P(u,v,0),z=ZS;
   {const hh=((u*97.13+v*41.7)%1+1)%1,k=kind?2:hh<.45?0:hh<.9?1:3;if(tpDraw(k,x,y+2*s,(k===2?34:30)*s*z))return;}ctx.fillStyle='rgba(10,8,5,.22)';ctx.beginPath();ctx.ellipse(x+4*s,y+1,7.5*s,3.2*s,0,0,7);ctx.fill();
