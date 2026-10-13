@@ -1279,10 +1279,10 @@ window.ttcLazy=function(src){const im=new Image();im.decoding='async';let go=fal
   const kick=()=>{if(!go){go=true;im.src=src;}};try{Object.defineProperty(im,'complete',{get(){kick();return dc.get.call(im);}});Object.defineProperty(im,'naturalWidth',{get(){kick();return dn.get.call(im);}});}catch(e){kick();}
   im.addEventListener('load',()=>{try{dispatchEvent(new Event('ttc-img'));}catch(e){}});im.kick=kick;return im;};
 </script>
-<script src="chapter-design.js?v=20261012-lmreg"></script>
+<script src="chapter-design.js?v=20261014-line"></script>
 <script src="settlement.js?v=20261011-lazy"></script>
 <script src="people.js?v=20261013-walkers4"></script>
-<script src="design.js?v=20261012-lmreg"></script>
+<script src="design.js?v=20261014-line"></script>
 <script>
 
 (function(){
@@ -6434,7 +6434,7 @@ if(window.TTCDesign){
   };
   // 노선 역은 다른 건물과 구분: 바닥의 끊긴 선로, 입구에서 새는 빛, 위에 뜨는 '노선' 표식
   const lmArtDraw=drawLandmark;drawLandmark=function(i,time){const L=S.lm[i];if(!L||LMS[L.k].key!=='station')return lmArtDraw(i,time);
-    lnRails(L.ok,time);
+    if(!(art.lineArt&&art.lineArt()))lnRails(L.ok,time);else if(L.ok){const[gx,gy]=P(.42,.62,0),k=reduce?.7:.55+.45*Math.sin(time/700);glowPts.push([gx,gy,26+8*k,'255,196,110',.25+.2*k]);}
     lmArtDraw(i,time);
     const[x,y]=P(.5,.5,0),h=(art.landmarkHeight&&art.landmarkHeight(L.k,L.ok))||44;lnBadge(x,y-(h+(L.ok?10:40))*ZS,time,L.ok);};
   function lnRails(ok,time){ctx.save();ctx.lineCap='round';

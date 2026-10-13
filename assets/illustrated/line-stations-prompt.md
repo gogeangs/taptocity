@@ -1,5 +1,7 @@
 # 노선 역 입구 (line-stations, 2026-10-14)
 
+
+> 2026-10-14 연결 완료: design.js `LS` — 역(k=4)은 동네 열(첫 동네·사막·공단·설원) × 폐허/복구 칸으로 그림. 그림이 있으면 코드 선로는 그리지 않고 입구 빛만 더함.
 The station landmark (`station`, Broken Line entrance) now uses the same atlas look as the other landmarks, so it blends in on the map.
 This atlas gives every town its own subway/rail entrance with a silhouette no other building has:
 a stairway going DOWN into the ground, a tall round sign post with a hanging ring lamp (no letters), and rail tracks running out of a tunnel mouth.
