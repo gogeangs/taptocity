@@ -1281,7 +1281,7 @@ window.ttcLazy=function(src){const im=new Image();im.decoding='async';let go=fal
 </script>
 <script src="chapter-design.js?v=20261012-lmreg"></script>
 <script src="settlement.js?v=20261011-lazy"></script>
-<script src="people.js?v=20261013-walkers3"></script>
+<script src="people.js?v=20261013-walkers4"></script>
 <script src="design.js?v=20261012-lmreg"></script>
 <script>
 
@@ -3990,6 +3990,7 @@ function tickBand(){if(!S.bandT)S.bandT=200+Math.random()*120;
   S.band={k,name:B.names[(Math.random()*B.names.length)|0],tile,t:150,offers,say:B.say[(Math.random()*B.say.length)|0],tribute:scaleCost({scrap:30,food:20},lvScale())};
   const[cx,cy]=tileC(tile,10);burst(cx,cy,'#ffd98a',16);note({h:k==='raider'?'수상한 무리가 나타났어요':'멀리서 누군가 다가와요',t:`<small>${S.band.name} · 지도의 깃발을 눌러요 (2분 30초 뒤 떠나요)</small>`,ms:5000});}
 function drawBandTile(i,time){const B=S.band,c=BANDT[B.k].flag;if(!(window.TTCSettlement&&TTCSettlement.prop(ctx,P,0,ZS,60))){tent(.15,.2,.5,.55,15,'#7a6a52','#9a8870','#5a4c3a');tent(.5,.45,.85,.8,12,'#6d5d48','#8a7a62','#4e4232');}
+  if(window.TTCPeople&&TTCPeople.figureAt){const[px,py]=P(.42,.78,0);TTCPeople.figureAt(ctx,[1,B.k==='trader'?15:B.k==='raider'?14:17],px,py,time,false,1,reduce);}
   const[fx,fy]=P(.75,.25,0),[tx,ty]=P(.75,.25,34);ctx.strokeStyle='#3b2a1a';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(fx,fy);ctx.lineTo(tx,ty);ctx.stroke();
   const wv=reduce?0:Math.sin(time/250)*2;ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(tx+14,ty+3+wv);ctx.lineTo(tx,ty+8);ctx.fill();
   const[cx,cy]=P(.5,.5,44),bob=reduce?0:Math.sin(time/300)*2;ctx.fillStyle=B.k==='raider'?'#e2644f':'#ffcf7a';ctx.strokeStyle='#3b2a1a';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(cx,cy+bob,9,0,7);ctx.fill();ctx.stroke();
@@ -4930,7 +4931,7 @@ function petDrawMap(time){const night=isNight();
     ctx.scale(w.f*1.15,1.15);petShape(ctx,k,time,w.mv,COLLAR[p.c||0],night);ctx.restore();
     if(k==='fox'&&night)glowPts.push([w.x,w.y-6,26,'200,220,255',.45]);}
   for(const h of PHEART){const a=1-h.t/1.2;ctx.fillStyle=`rgba(230,90,90,${a})`;const x=h.x+Math.sin(h.t*6+h.o)*3,y=h.y-h.t*24;ctx.beginPath();ctx.moveTo(x,y+2.5);ctx.bezierCurveTo(x-4,y-1,x-2,y-4,x,y-1.6);ctx.bezierCurveTo(x+2,y-4,x+4,y-1,x,y+2.5);ctx.fill();}
-  strayDraw(time);towerDraw(time);townDraw(time);memoDraw(time);rspotDraw(time);}
+  strayDraw(time);pedMapDraw(time);towerDraw(time);townDraw(time);memoDraw(time);rspotDraw(time);}
 function petHit(sx,sy){for(const k in PW){const w=PW[k],a=window.TTCSettlement&&TTCSettlement.petMetric(k),h=a?a.h*1.15:12,s=toScreen(w.x,w.y-h/2);if(Math.hypot(s.x-sx,s.y-sy)<Math.max(16,(h/2+4)*cam.z))return k;}
   if(S.stray&&strayVis()){const[x,y]=tileC(S.stray.i,6),s=toScreen(x,y);if(Math.hypot(s.x-sx,s.y-sy)<Math.max(22,20*cam.z))return'stray';}return null;}
 let petPatT={};
@@ -4952,6 +4953,8 @@ function strayTile(k){if(k==='owl'){for(const i in S.lm)if(LMS[S.lm[i].k].key===
 function straySpawn(){const k=strayPick();if(!k)return false;const i=strayTile(k);if(i<0)return false;
   S.stray={k,i,n:0,need:k==='fox'||k==='owl'?2:3,t:0};const[x,y]=tileC(i,8);ringFx(x,y,6,50,'255,230,190',.5);
   note({h:k==='fox'?'재 위에 은빛 발자국이 이어져 있어요':k==='owl'?`${LMS[3].name} 쪽에서 부엉, 부엉 소리가 들려요`:`어디선가 ‘${PETS[k].snd}’ 소리가 들려요`,t:'<small>지도에 찍힌 발자국을 찾아가 눌러 봐요</small>',kind:'story',ms:6000});return true;}
+// 노친네가 온 날: 수레를 세워 두고 쉘터 앞에 서 있다(walkers-2 17번 칸)
+function pedMapDraw(time){if(!window.TTCPeople||!TTCPeople.figureAt||!pedHere())return;const[cx,cy]=tileC(C0);TTCPeople.figureAt(ctx,[1,16],cx+46,cy+30,time,false,-1,reduce);}
 function strayDraw(time){const s=S.stray;if(!s||!strayVis())return;const[x,y]=tileC(s.i,0),a=.35+.6*Math.min(1,s.n/(s.need-1||1));
   ctx.fillStyle=s.k==='fox'?'rgba(215,230,255,.8)':'rgba(60,40,25,.55)';for(let q=0;q<5;q++){const px=x-30+q*7,py=y+10-q*2.5+(q%2?2:-1);ctx.beginPath();ctx.ellipse(px,py,1.6,1,0,0,7);ctx.fill();ctx.beginPath();ctx.ellipse(px-1.4,py-1.8,.6,.5,0,0,7);ctx.ellipse(px+1.4,py-1.8,.6,.5,0,0,7);ctx.fill();}
   ctx.save();ctx.globalAlpha=a;ctx.translate(x+4,y+4);ctx.scale(-1.25,1.25);petShape(ctx,s.k,time,false,'#8a7a64',s.k==='fox');ctx.restore();

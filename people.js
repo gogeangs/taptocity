@@ -25,7 +25,7 @@ function wkBox(a){if(a.box)return a.box;const im=a.img;if(!im||!(im.complete&&im
 function wkCell(sv){const id=sv&&sv.id;if(Number.isInteger(id)&&id>=0&&id<18)return[0,id];if(Number.isInteger(id)&&id>=18&&id<30)return[1,id-18];
   if(sv&&sv.name&&!Number.isInteger(sv.id)){const n=String(sv.name);let h=2166136261;for(const ch of n){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)>>>0;}const girl=(h>>>6)&1;
     if(sv.age<13)return[1,12+girl];return[2,({mech:0,farm:2,scout:4}[sv.job]??2)+girl];}return null;}
-function wkDraw(g,sv,x,y,time,moving,face,job,reduced){const c=wkCell(sv);if(!c)return false;const a=WK[c[0]],b=wkBox(a);if(!b||!b[c[1]])return false;
+function wkDraw(g,sv,x,y,time,moving,face,job,reduced,cc){const c=cc||wkCell(sv);if(!c)return false;const a=WK[c[0]],b=wkBox(a);if(!b||!b[c[1]])return false;
   const[sx,sy,sw,sh]=b[c[1]],k=31/(.8*a.img.naturalHeight/a.rows),w=sw*k,h=sh*k,ph=reduced?0:time/165+(sv.id||0)*.71;
   const bob=moving&&!reduced?Math.abs(Math.sin(ph))*1.1:0,sway=moving&&!reduced?Math.sin(ph)*.06:(job&&!reduced?Math.sin(ph*.7)*.035:0);
   g.save();g.translate(x,y);g.fillStyle='rgba(15,21,25,.22)';g.beginPath();g.ellipse(0,.5,w*.32,2,0,0,7);g.fill();
@@ -90,5 +90,7 @@ function person(g,sv,x,y,time,moving,face=1,job=null,reduced=false){
   g.restore();}
  g.restore();return true;
 }
-window.TTCPeople={person,cell:wkCell,version:'people-20261013-walkers3'};
+// 이름 없는 인물(떠돌이 무리·노친네)을 칸 번호로 바로 그린다: c = [장, 칸]
+function figureAt(g,c,x,y,time,moving,face,reduced){const a=WK[c[0]],b=wkBox(a);if(!b||!b[c[1]])return false;return wkDraw(g,{id:-1},x,y,time,moving,face,null,reduced,c);}
+window.TTCPeople={person,cell:wkCell,figureAt,version:'people-20261013-walkers4'};
 })();
