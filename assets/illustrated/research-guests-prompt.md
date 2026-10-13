@@ -2,6 +2,7 @@
 
 The last two spots that still use line-drawn placeholders instead of hand-drawn art.
 
+- (2026-10-13 연결 완료: 연구 탭 RS_ICO, 손님 부탁 GUEST_ART)
 - `research-icons.webp`: 3 equal square cells in one row, transparent background (same look as `resources.webp`).
   Order: pickaxe (곡괭이), lantern ember (랜턴 불씨), scout drone (정찰 드론). Shelter → 연구 tab.
 - `guests.webp`: 2 equal vertical portrait panels, opaque cream background (same look as `regional-npcs.webp`).

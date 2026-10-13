@@ -1231,7 +1231,7 @@ header{padding:12px 14px 0;background:radial-gradient(ellipse at 18% -40%,rgba(2
 
 <div id="rotHint" role="alert"><svg viewBox="0 0 64 64" fill="none" stroke="#f3a53a" stroke-width="3" stroke-linejoin="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div>휴대폰을 세로로 돌려 주세요</div><small>탭투시티는 세로 화면에 맞춰져 있어요</small></div>
 <link rel="stylesheet" href="design.css?v=20261004-anonymous">
-<link rel="stylesheet" href="qa.css?v=20261013-sk">
+<link rel="stylesheet" href="qa.css?v=20261013-guest">
 <div id="app">
   <header>
     <div class="hud">
@@ -2564,7 +2564,7 @@ function renderShelter(){const L=S.lv;$('shTitle').textContent=`Lv.${L} ${LVNAME
   h+='<div class="sec">연구 · 탐사 장비</div><p class="rsintro">한 번 연구하면 영구히 남아요. 작업대 단계가 오를수록 더 깊이 연구할 수 있어요.</p>';
   if(!wbL())h+=emptyHtml(`<span class="th"><img src="${modThumb(1,0)}" alt=""></span>`,'작업대가 아직 없어요','작업대를 세우면 곡괭이·랜턴·드론을 연구할 수 있어요');
   for(const k in UPG){const u=UPG[k],lv=S[u.k],mx=lv>=u.max,c=u.cost(),need=u.wb();
-    h+=card('u'+k,`<span class="th ico">${ICO[k]||ICO.tap}</span>`,`${u.name}<small>Lv.${lv}${mx?'':` / ${u.max}`}</small>`,mx?'최대 단계예요':u.d(),mx||wbL()<need?'':costHtml(c),mx?doneBadge('최대'):wbL()<need?lockBadge(`작업대 ${need}단계`):btnCost('upg',k,'연구',c),'research');}
+    h+=card('u'+k,RS_ICO[k]!=null?`<span class="th rsart"><i style="background-position:${RS_ICO[k]*50}% 0"></i></span>`:`<span class="th ico">${ICO[k]||ICO.tap}</span>`,`${u.name}<small>Lv.${lv}${mx?'':` / ${u.max}`}</small>`,mx?'최대 단계예요':u.d(),mx||wbL()<need?'':costHtml(c),mx?doneBadge('최대'):wbL()<need?lockBadge(`작업대 ${need}단계`):btnCost('upg',k,'연구',c),'research');}
   }else if(shTab==='deco'){h+=renderDecoTab();
   }else{
   h+='<div class="sec">창고</div><div class="store">'+MATS.map(m=>{const v=S.m[m.k]||0,cap=(m.tier||0)>=3?0:capOf(m.k);return`<span class="st2${cap&&v>=cap?' full':''}">${micon(m.k,18)}<span><b>${fmt(v)}</b><small>${m.n}${cap?` · ${fmt(cap)}`:''}</small>${cap?`<u style="--p:${Math.min(1,v/cap).toFixed(3)}"></u>`:''}</span></span>`;}).join('')+'</div>';
@@ -2782,7 +2782,7 @@ function tickEvents(dt){if(evCur){evLeft-=dt;if(evLeft<=0){evCur=null;$('evBtn')
   const pref=list.filter(e=>e.who.length);const pick=(pref.length&&Math.random()<.8?pref:list);const e=pick[(Math.random()*pick.length)|0];
   evCur=e;evLeft=90;evSeen.push(EVENTS.indexOf(e));if(evSeen.length>5)evSeen.shift();
   const b=$('evBtn');const sv=e.who.length?SURV[e.who[0]]:null;
-  b.innerHTML=`<span class="av">${sv?portrait(sv):EV_GUEST_ICO}</span><span><b>${sv?sv.name:'손님'}</b> ${e.t}</span>`;b.hidden=false;}
+  b.innerHTML=`<span class="av">${sv?portrait(sv):guestAv(evCur)}</span><span><b>${sv?sv.name:'손님'}</b> ${e.t}</span>`;b.hidden=false;}
 $('evBtn').onclick=()=>{const e=evCur;if(!e)return;const sv=e.who.length?SURV[e.who[0]]:null;
   const btn=(o,k)=>{const c=evCost(o),has=Object.keys(c).length;return`<button class="${k?'alt':''}" data-act="ev" data-arg="${k}" ${canPay(c)?'':'disabled'}>${o.l}${has?` · ${lootTxt(c).replace(/\+/g,'')}`:''}</button>`;};
   openModal(`<div class="page"><div class="tag">생존자의 부탁</div>${sv?`<div class="pf" style="width:96px">${portrait(sv)}</div>`:''}<h3>${e.t}</h3><p>${e.x}</p><div class="ch">${btn(e.a,0)}${btn(e.b,1)}</div></div>`);};
@@ -5436,9 +5436,12 @@ function evFxList(o){const fx=o.fx||{},out=[];
 const evChips=l=>l.map(x=>`<span class="rqfx${x.bad?' bad':''}">${x.k?micon(x.k,13):''}${x.t}</span>`).join('');
 function evWho(e){return e.who.length?SURV[e.who[0]]:null;}
 const EV_GUEST_ICO='<svg viewBox="0 0 26 26" width="22" fill="none" stroke="#3b2a1a" stroke-width="2"><path d="M4 20h18M6 20l2-8h10l2 8M11 12V8h4v4"/><circle cx="8" cy="22" r="2"/><circle cx="18" cy="22" r="2"/></svg>';
+// 손으로 그린 연구 아이콘(research-icons.webp, 3칸)과 이름 없는 손님 초상(guests.webp, 2칸)
+const RS_ICO={tap:0,splash:1,drone:2},GUEST_ART={'떠돌이 상인':0,'길 잃은 가족':1};
+const guestAv=e=>GUEST_ART[e&&e.t]!=null?`<i class="guestart" style="background-position:${GUEST_ART[e.t]*100}% 18%"></i>`:EV_GUEST_ICO;
 function renderEvBtn(){const b=$('evBtn');if(!evCur){b.hidden=true;return;}const sv=evWho(evCur),p=Math.max(0,Math.min(1,evLeft/EV_T));
   if(b.dataset.t!==evCur.t){b.dataset.t=evCur.t;
-    b.innerHTML=`<span class="av">${sv?portrait(sv):EV_GUEST_ICO}</span><span class="rqb"><small>${sv?sv.name:'손님'}의 부탁</small><b>${evCur.t}</b></span>`;}
+    b.innerHTML=`<span class="av">${sv?portrait(sv):guestAv(evCur)}</span><span class="rqb"><small>${sv?sv.name:'손님'}의 부탁</small><b>${evCur.t}</b></span>`;}
   b.style.setProperty('--p',p.toFixed(3));b.classList.toggle('late',evLeft<20);b.hidden=false;}
 function tickEvents(dt){if(evCur){evLeft-=dt;if(evLeft<=0){evCur=null;evT=50;if(!modal.hidden&&modal.querySelector('.page.req'))closeModal();}renderEvBtn();if(!modal.hidden)updReqTime();return;}
   if(revCount()<14||(!S.gen&&S.mi<STEP_I('구조 신호를 따라가 생존자 구하기')))return;evT-=dt;if(evT>0)return;
@@ -5451,7 +5454,7 @@ function reqOpt(o,k){const c=evCost(o),has=Object.keys(c).length,ok=canPay(c);
     ${has?`<span class="rqcost">${ok?'':'<em>자재 부족</em>'}${costHtml(c)}</span>`:'<span class="rqcost free">비용 없음</span>'}
     <span class="rqget">${evChips(evFxList(o))}</span></button>`;}
 function openReq(){const e=evCur;if(!e)return;const sv=evWho(e);const q=e.x.match(/^([^:：]+)[:：]\s*(.*)$/);
-  openModal(`<div class="page req"><div class="rqh"><span class="rqav${sv?'':' guest'}">${sv?portrait(sv):EV_GUEST_ICO}</span><div><div class="tag">${sv?sv.name:'손님'}의 부탁</div><h3>${e.t}</h3></div></div>
+  openModal(`<div class="page req"><div class="rqh"><span class="rqav${sv?'':' guest'}">${sv?portrait(sv):guestAv(evCur)}</span><div><div class="tag">${sv?sv.name:'손님'}의 부탁</div><h3>${e.t}</h3></div></div>
     <div class="rqtime" style="--p:${Math.max(0,evLeft/EV_T).toFixed(3)}"><i></i><b>${Math.ceil(evLeft)}초 남음</b></div>
     <p class="rqsay">${q?`“${q[2].replace(/^“|”$/g,'')}”`:e.x}</p>
     <div class="rqopts">${reqOpt(e.a,0)}${reqOpt(e.b,1)}</div></div>`);}
@@ -5467,7 +5470,7 @@ function chooseEv(k){const e=evCur;if(!e)return;const o=k?e.b:e.a,c=evCost(o);if
   if(fx.reveal){revealN(fx.reveal);sum.push({t:`어둠 ${fx.reveal}칸 걷힘`});}
   give({batt:1});sum.push({t:'건전지 +1'});S.evDone=(S.evDone||0)+1;evCur=null;$('evBtn').hidden=true;evT=70+Math.random()*60;recalc();save();sfx('chime');
   const sv=evWho(e);
-  openModal(`<div class="page req done"><div class="rqh"><span class="rqav${sv?'':' guest'}">${sv?portrait(sv):EV_GUEST_ICO}</span><div><div class="tag">부탁을 들어줬어요</div><h3>${e.t}</h3></div></div>
+  openModal(`<div class="page req done"><div class="rqh"><span class="rqav${sv?'':' guest'}">${sv?portrait(sv):guestAv(evCur)}</span><div><div class="tag">부탁을 들어줬어요</div><h3>${e.t}</h3></div></div>
     <p class="rqsay">${o.r}</p><div class="rqget big">${evChips(sum)}</div><button class="rqok">좋아요</button></div>`,true);}
 
 // ================= 생존자 의뢰: small side jobs between story goals =================
