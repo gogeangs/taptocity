@@ -2,6 +2,7 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../game/data.dart';
 import '../game/engine.dart';
@@ -74,6 +75,57 @@ class _PicPainter extends CustomPainter {
   @override
   bool shouldRepaint(_PicPainter old) => old.src != src || old.file != file || old.gray != gray;
 }
+
+// ---------- 손그림 작은 아이콘 (웹 qa.css 2026-10-13) ----------
+/// 생존자 쉴 때 할 일 아이콘 (duty-icons.webp 5칸: 주워 오기·훈련·순찰·아이 돌보기·장비)
+const dutyIcoIndex = {'gather': 0, 'train': 1, 'patrol': 2, 'care': 3, 'gear': 4};
+Widget dutyIco(String k, {double size = 18}) => AtlasPic(file: 'duty-icons.webp', src: Atlas.cell('duty-icons.webp', dutyIcoIndex[k] ?? 0, 5, 1), width: size, height: size);
+
+/// 글 안에 끼우는 할 일 아이콘
+InlineSpan dutySpan(String k, {double size = 17}) => WidgetSpan(alignment: PlaceholderAlignment.middle, child: Padding(padding: const EdgeInsets.only(right: 2), child: dutyIco(k, size: size)));
+
+/// 방벽 썸네일 (walls.webp 3칸: 나무 울타리·모래주머니·철판 성벽)
+Widget wallThumb(int k) => Container(
+      width: 78,
+      height: 88,
+      alignment: Alignment.center,
+      child: AtlasPic(file: 'walls.webp', src: Atlas.cell('walls.webp', k.clamp(0, 2), 3, 1), width: 76, height: 76),
+    );
+
+/// 연구 썸네일 (research-icons.webp 3칸: 곡괭이·랜턴 불씨·정찰 드론) — 어두운 둥근 네모
+Widget researchThumb(String k) => Container(
+      width: 64,
+      height: 64,
+      margin: const EdgeInsets.symmetric(horizontal: 7, vertical: 12),
+      decoration: BoxDecoration(color: const Color(0xFF2B3138), borderRadius: BorderRadius.circular(12)),
+      alignment: Alignment.center,
+      child: AtlasPic(file: 'research-icons.webp', src: Atlas.cell('research-icons.webp', const {'tap': 0, 'splash': 1, 'drone': 2}[k] ?? 0, 3, 1), width: 54, height: 54),
+    );
+
+/// 이름 없는 손님 초상 (guests.webp 2칸: 떠돌이 상인·길 잃은 가족), 동그랗게
+const guestArt = {'떠돌이 상인': 0, '길 잃은 가족': 1};
+Widget guestFace(String t, {double size = 40}) {
+  final k = guestArt[t];
+  final im = Atlas.image('guests.webp');
+  if (k == null || im == null) return Icon(Icons.local_shipping_outlined, size: size * .5, color: const Color(0xFF3B2A1A));
+  // 웹: background 200% auto, 위치 (k*100%, 18%) — 칸 너비만큼 정사각으로 자른 윗부분
+  final cw = im.width / 2.0, y = (im.height - cw) * .18;
+  return ClipOval(child: Container(color: const Color(0xFFE6D8B6), child: AtlasPic(file: 'guests.webp', src: Rect.fromLTWH(k * cw, y, cw, cw), width: size, height: size)));
+}
+
+/// 노친네 얼굴 (웹 .pedface: peddler.webp 50% 12% / 180%) 동그랗게
+Widget pedFace({double size = 18}) => Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: Color(0x99EFE3C4), spreadRadius: 1)]),
+      child: ClipOval(child: AtlasPic(file: 'peddler.webp', src: const Rect.fromLTWH(227.6, 116, 568.9, 568.9), width: size, height: size)),
+    );
+
+/// 웹 UGI 선 아이콘 (열쇠·자물쇠·지도)
+const keySvg = '<svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3M21 12v2"/></svg>';
+const lockSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+const mapSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.8" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>';
+Widget lineIco(String svg, double size, Color c) => SvgPicture.string(svg, width: size, height: size, colorFilter: ColorFilter.mode(c, BlendMode.srcIn));
 
 /// 모듈 그림: 1단계는 modules.webp, 2·3단계는 module-upgrades.webp (웹 chapter-design.js)
 Widget moduleThumb(int id, int l, {double w = 78, double h = 88, bool gray = false}) {

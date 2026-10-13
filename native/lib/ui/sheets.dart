@@ -199,12 +199,12 @@ class _ShelterBodyState extends State<ShelterBody> {
     }
     out.add(sec('방벽'));
     if (S.walls >= 3) {
-      out.add(MCard(thumb: icoThumb(Ico.wall), title: wallsInfo[2].$1, tags: [pips(2)], desc: descText('밤에 쉘터를 덮치는 재를 거의 다 막아요'), button: doneBadge()));
+      out.add(MCard(thumb: wallThumb(2), title: wallsInfo[2].$1, tags: [pips(2)], desc: descText('밤에 쉘터를 덮치는 재를 거의 다 막아요'), button: doneBadge()));
     } else {
       final c = g.wallCost(S.walls);
       out.add(hl('wall', MCard(
         kind: S.lv < 2 ? CardKind.locked : CardKind.normal,
-        thumb: icoThumb(Ico.wall),
+        thumb: wallThumb(S.walls),
         title: wallsInfo[S.walls].$1,
         tags: [if (S.walls > 0) pips(S.walls - 1)],
         desc: descText(S.lv < 2 ? '쉘터 Lv.2에 열려요' : '밤마다 쉘터 모듈을 덮치는 재를 줄여요'),
@@ -309,7 +309,6 @@ class _ShelterBodyState extends State<ShelterBody> {
     ];
     if (g.wbL == 0) out.add(emptyBox(moduleThumb(1, 0, w: 52, h: 52, gray: true), '작업대가 아직 없어요', '작업대를 세우면 곡괭이·랜턴·드론을 연구할 수 있어요'));
     const names = {'tap': '곡괭이', 'splash': '랜턴 불씨', 'drone': '정찰 드론'};
-    final icons = {'tap': Ico.tap, 'splash': Ico.splash, 'drone': Ico.drone};
     for (final k in const ['tap', 'splash', 'drone']) {
       final lv = g.upgLv(k), mx = lv >= Game.upgMax[k]!, c = g.upgCost(k), need = g.upgWb(k);
       final d = switch (k) {
@@ -318,7 +317,7 @@ class _ShelterBodyState extends State<ShelterBody> {
         _ => '스스로 초당 ${fmt(g.droneDmg())} → ${fmt(g.droneDmg(1))} 탐사',
       };
       out.add(MCard(
-        thumb: icoThumb(icons[k]!),
+        thumb: researchThumb(k),
         title: names[k]!,
         tags: [smallTag('Lv.$lv${mx ? '' : ' / ${Game.upgMax[k]}'}')],
         desc: descText(mx ? '최대 단계예요' : d),

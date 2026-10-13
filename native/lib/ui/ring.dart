@@ -28,15 +28,21 @@ List<double> _angles(int n) {
 }
 
 class _Tok {
-  const _Tok(this.icon, this.cap, this.onTap, {this.poor = false, this.lock = false, this.hl});
+  const _Tok(this.icon, this.cap, this.onTap, {this.poor = false, this.lock = false, this.hl, this.go = false});
   final String icon, cap;
   final String? hl; // 길잡이 강조 키
   final VoidCallback onTap;
   final bool poor, lock;
+
+  /// 노선 들어가기: 크고 호박색 (웹 .tok.lngo)
+  final bool go;
 }
 
 class RingMenu extends StatelessWidget {
-  const RingMenu({super.key, required this.g, required this.cam, required this.tile, required this.say, required this.onClose, required this.onAssign, required this.onShelter, required this.toast});
+  const RingMenu({super.key, required this.g, required this.cam, required this.tile, required this.say, required this.onClose, required this.onAssign, required this.onShelter, required this.toast, this.bottomGuard = 0});
+
+  /// 아래쪽 랜턴 버튼·탭 줄이 차지하는 높이 (버튼이 그 아래로 가지 않게, 웹 ringBot)
+  final double bottomGuard;
   final Game g;
   final Camera cam;
   final int tile;
@@ -54,11 +60,24 @@ class RingMenu extends StatelessWidget {
       if (S.ter[tile] == T.lm && m == null) {
         final l = S.lm[tile]!, t = lmText(l.k, S.region), info = landmarks[l.k], s = S.site[tile], c = g.lmCost(l.k);
         label = Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-          _title(t[0], l.ok ? '복구 완료' : '랜드마크'),
+          _title(t[0], info.key == 'station' ? (l.ok ? '노선 입구 · 복구 완료' : '노선 입구 · 랜드마크') : (l.ok ? '복구 완료' : '랜드마크')),
           const SizedBox(height: 4),
           Text(l.ok ? t[2] : t[1], style: Ttc.t(13, color: Ttc.sepia, height: 1.5)),
           const SizedBox(height: 5),
           Wrap(spacing: 4, runSpacing: 4, children: [
+            // 노선 역 표시 (웹 chip.ln: 호박색)
+            if (info.key == 'station')
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+                decoration: BoxDecoration(color: const Color(0xFFF0C071), borderRadius: BorderRadius.circular(99), border: Border.all(color: const Color(0xFF2C2217))),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  SvgIcon(_icons['line']!, size: 13, color: const Color(0xFF2C2217)),
+                  const SizedBox(width: 4),
+                  Text(
+                      '끊긴 노선 입구${l.ok ? (((g.lnState()['fat'] as num?) ?? 0) > 0 ? ' · 보상 ${(g.lnMult * 100).round()}%' : ' · 지금 최고 보상') : ' · 복구하면 열려요'}',
+                      style: Ttc.t(12, color: const Color(0xFF2C2217), weight: FontWeight.w700)),
+                ]),
+              ),
             _chip('복구하면 ${info.desc}', good: true),
             if (!l.ok && s != null) _chip('남은 물자 ${s.c}/${s.max}'),
           ]),
@@ -85,7 +104,7 @@ class RingMenu extends StatelessWidget {
             g.restoreLm(tile);
           }, poor: !g.canPay(c)));
         } else if (info.key == 'station') {
-          toks.add(_Tok('line', '노선 탐사', () {
+          toks.add(_Tok('line', '노선 탐사', go: true, () {
             onClose();
             showLnPrep(context, g);
           }));
@@ -134,8 +153,11 @@ class RingMenu extends StatelessWidget {
       // 건물 화면 위치 (가장자리에서 떨어지게)
       final w = tileC(tile);
       final sx = ((w.dx - cam.x) * cam.z + box.maxWidth / 2).clamp(R + 34, math.max(R + 34, box.maxWidth - R - 34)).toDouble();
-      final sy = ((w.dy - cam.y) * cam.z + box.maxHeight / 2).clamp(R + 40, math.max(R + 40, box.maxHeight - R - 44)).toDouble();
       final an = _angles(toks.length);
+      // 버튼이 랜턴 버튼·탭 줄 위에 오도록 (웹 ringBot - ringDown)
+      final ringDown = an.map((x) => math.sin(x * math.pi / 180)).reduce(math.max) * R + 30 + 24;
+      final lowest = math.min(box.maxHeight - R - 44, box.maxHeight - bottomGuard - ringDown);
+      final sy = ((w.dy - cam.y) * cam.z + box.maxHeight / 2).clamp(R + 40, math.max(R + 40, lowest)).toDouble();
       final labelW = math.min(300.0, box.maxWidth - 140);
       final ringTop = sy - R - 30;
       final low = ringTop - 58 < 140; // 위에 자리가 모자라면 카드는 아래로
@@ -162,7 +184,7 @@ class RingMenu extends StatelessWidget {
         for (var k = 0; k < toks.length; k++)
           Positioned(
             left: sx + math.cos(an[k] * math.pi / 180) * R - 40,
-            top: sy + math.sin(an[k] * math.pi / 180) * R - 24,
+            top: sy + math.sin(an[k] * math.pi / 180) * R - (toks[k].go ? 30 : 24),
             width: 80,
             child: toks[k].hl == null ? _TokBtn(toks[k]) : hl(toks[k].hl!, _TokBtn(toks[k]), radius: 99),
           ),
@@ -193,21 +215,23 @@ class _TokBtn extends StatelessWidget {
         onTap: t.onTap,
         child: Column(children: [
           Container(
-            width: 48,
-            height: 48,
+            width: t.go ? 60 : 48,
+            height: t.go ? 60 : 48,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: t.lock ? const Color(0xFF6B5D49) : t.poor ? const Color(0xFFCBBD9B) : Ttc.paper,
-              border: Border.all(color: t.lock ? const Color(0xFF4A3D2C) : Ttc.sepia, width: 2),
-              boxShadow: const [BoxShadow(color: Color(0x73000000), blurRadius: 12, offset: Offset(0, 5))],
+              color: t.go ? const Color(0xFFF0C071) : t.lock ? const Color(0xFF6B5D49) : t.poor ? const Color(0xFFCBBD9B) : Ttc.paper,
+              border: Border.all(color: t.go ? const Color(0xFF2C2217) : t.lock ? const Color(0xFF4A3D2C) : Ttc.sepia, width: 2),
+              boxShadow: t.go
+                  ? const [BoxShadow(color: Color(0x59F0C071), spreadRadius: 3), BoxShadow(color: Color(0x8CFFC86E), blurRadius: 16)]
+                  : const [BoxShadow(color: Color(0x73000000), blurRadius: 12, offset: Offset(0, 5))],
             ),
             alignment: Alignment.center,
-            child: SvgIcon(_icons[t.icon]!, size: 26, color: t.lock ? const Color(0xFF3A2F22) : Ttc.sepia),
+            child: SvgIcon(_icons[t.icon]!, size: t.go ? 30 : 26, color: t.go ? const Color(0xFF2C2217) : t.lock ? const Color(0xFF3A2F22) : Ttc.sepia),
           ),
           const SizedBox(height: 4),
           Text(t.cap,
               textAlign: TextAlign.center,
-              style: Ttc.t(12, color: t.lock ? const Color(0xFFBFAE8F) : t.poor ? const Color(0xFFF0A898) : Ttc.paper, weight: FontWeight.w700, height: 1)
+              style: Ttc.t(12, color: t.go ? const Color(0xFFFFE2A0) : t.lock ? const Color(0xFFBFAE8F) : t.poor ? const Color(0xFFF0A898) : Ttc.paper, weight: FontWeight.w700, height: 1)
                   .copyWith(shadows: const [Shadow(color: Colors.black, blurRadius: 3, offset: Offset(0, 1)), Shadow(color: Colors.black, blurRadius: 6)])),
         ]),
       );

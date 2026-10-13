@@ -126,7 +126,7 @@ class _SurvBodyState extends State<SurvBody> {
     if (tool == 'auto' && g.autoOpen) {
       final tiles = g.modAt.length, used = g.S.asg.length;
       out.add(autoBox(
-        title: '⚙ 자동 배치',
+        title: '⚙\uFE0E 자동 배치',
         sub: '일터 $used/$tiles · 딱 맞는 사람을 먼저 앉혀요',
         button: BuyButton('지금 맞추기', width: 84, onTap: () {
           final r = g.autoAssign(true);
@@ -151,7 +151,12 @@ class _SurvBodyState extends State<SurvBody> {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(color: const Color(0x0D3B2A1A), borderRadius: BorderRadius.circular(12)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('쉬는 ${idle.length}명 · ${cnt.entries.map((e) => '${duties[e.key]!.$3}${e.value}').join(' ')}', style: Ttc.t(12.5, color: Ttc.sepia2, weight: FontWeight.w600)),
+          Text.rich(
+              TextSpan(children: [
+                TextSpan(text: '쉬는 ${idle.length}명 · '),
+                for (final e in cnt.entries) ...[dutySpan(e.key), TextSpan(text: '${e.value} ')],
+              ]),
+              style: Ttc.t(12.5, color: Ttc.sepia2, weight: FontWeight.w600)),
           const SizedBox(height: 6),
           Wrap(spacing: 6, runSpacing: 6, children: [
             for (final e in duties.entries)
@@ -168,7 +173,7 @@ class _SurvBodyState extends State<SurvBody> {
                   constraints: const BoxConstraints(minHeight: 30),
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(color: Ttc.surface, borderRadius: BorderRadius.circular(7), border: Border.all(color: Ttc.line)),
-                  child: Text('${e.value.$3} ${e.value.$1}', style: Ttc.t(12, color: Ttc.sepia, weight: FontWeight.w500)),
+                  child: Text.rich(TextSpan(children: [dutySpan(e.key), TextSpan(text: ' ${e.value.$1}')]), style: Ttc.t(12, color: Ttc.sepia, weight: FontWeight.w500)),
                 ),
               ),
           ]),
@@ -609,7 +614,8 @@ Widget _dutyBox(Game g, int id, StateSetter set) {
                     borderRadius: BorderRadius.circular(7),
                     border: Border.all(color: cur == e.key ? const Color(0xFF5D7667) : Ttc.line),
                   ),
-                  child: Text('${e.value.$3} ${e.value.$1}', style: Ttc.t(12.5, color: cur == e.key ? const Color(0xFF2E4438) : Ttc.sepia2, weight: FontWeight.w600)),
+                  child: Text.rich(TextSpan(children: [dutySpan(e.key), TextSpan(text: ' ${e.value.$1}')]),
+                      style: Ttc.t(12.5, color: cur == e.key ? const Color(0xFF2E4438) : Ttc.sepia2, weight: FontWeight.w600)),
                 ),
               ),
           ]),

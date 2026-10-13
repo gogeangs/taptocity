@@ -29,6 +29,7 @@ import 'map_view.dart';
 import 'outside_ui.dart';
 import 'season_ui.dart';
 import 'sheets.dart';
+import 'portrait.dart';
 import 'profile_ui.dart';
 import 'sound.dart';
 import 'story_ui.dart';
@@ -75,6 +76,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     fxc.onFx = _onFx;
     FeatNav.go = _featGo;
+    Portrait.sigWorn = g.sigWorn;
     Atlas.onTint = () => g.mapVersion.value++;
     onTalkLine = _endingLine;
     Game.onSfx = (k, b) {
@@ -802,6 +804,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       g.sel = tile;
       ringSay = says == null || says.isEmpty ? '' : says[DateTime.now().millisecond % says.length];
     });
+    // 건물을 위로 올려 버튼이 랜턴·탭 줄 위에 오게 (웹 openRing camGoalY)
+    if (_stageSize != Size.zero) {
+      final w = tileC(tile), sy = (w.dy - cam.y) * cam.z + _stageSize.height / 2;
+      final lim = _stageSize.height - (MediaQuery.of(context).padding.bottom + 10 + 86) - (RingMenu.R + 54);
+      if (sy > lim) cam.set(cam.x, math.max(0, math.min((W + H) * TH / 2, cam.y + (sy - lim) / cam.z)));
+    }
     g.mapVersion.value++;
   }
 
@@ -1148,11 +1156,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                 Positioned(
                   left: 94,
                   bottom: bottom + 84,
+                  // 링 메뉴가 열려 있어도 숨겨 버튼을 가리지 않게 (웹 body.ringon #skills)
                   child: IgnorePointer(
-                    ignoring: sheet != null,
+                    ignoring: sheet != null || ringTile >= 0,
                     child: AnimatedOpacity(
                       duration: const Duration(milliseconds: 150),
-                      opacity: sheet != null ? 0 : 1,
+                      opacity: sheet != null || ringTile >= 0 ? 0 : 1,
                       child: AnimatedBuilder(
                         animation: g,
                         builder: (c, _) => SkillBar(g, toast: fxc.toast, onEmpty: () {
@@ -1231,6 +1240,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                         cam: cam,
                         tile: ringTile,
                         say: ringSay,
+                        bottomGuard: bottom + 86,
                         toast: fxc.toast,
                         onClose: _close,
                         onAssign: () {

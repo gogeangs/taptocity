@@ -135,7 +135,7 @@ Future<void> showFeedback(BuildContext context, Game g) async {
   await showPageOf(context, g, (ctx) => StatefulBuilder(builder: (ctx, set) {
         if (done != null) {
           return Column(mainAxisSize: MainAxisSize.min, children: [
-            const Text('✉️', style: TextStyle(fontSize: 40)),
+            const ResIcon('hope', size: 52),
             const SizedBox(height: 10),
             Text(done == 'sent' ? '고마워요! 잘 전했어요' : '고마워요! 연결되면 보낼게요', style: Ttc.t(19, color: Ttc.sepia, weight: FontWeight.w700)),
             const SizedBox(height: 8),

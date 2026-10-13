@@ -601,7 +601,7 @@ Widget _dot({bool cur = false, bool next = false}) => Container(
         border: Border.all(color: cur ? const Color(0xFF8A5A12) : const Color(0xFF3B2A1A).withValues(alpha: next ? .6 : 1), width: 2),
         boxShadow: cur ? const [BoxShadow(color: Color(0x47E0B441), spreadRadius: 4), BoxShadow(color: Color(0x8CE0B441), blurRadius: 14)] : null,
       ),
-      child: cur ? const Text('🔥', style: TextStyle(fontSize: 11)) : null,
+      child: cur ? const ResIcon('hope', size: 18) : null,
     );
 
 Widget _stop(Widget body, {bool cur = false, bool next = false, bool first = false, bool last = false, VoidCallback? onTap}) => GestureDetector(
@@ -645,7 +645,7 @@ Widget _stopT(String t, String small) => Text.rich(TextSpan(children: [TextSpan(
 List<Widget> routeTab(BuildContext context, Game g) {
   final G = g.S.gen;
   if (G == 0 && g.tlogList.isEmpty) {
-    return [emptyBox(const Text('🗺', style: TextStyle(fontSize: 26)), '아직 노선도가 없어요', '새 동네로 떠나면 만수가 지나온 길을 그려 줘요')];
+    return [emptyBox(lineIco(mapSvg, 28, Ttc.sepia2), '아직 노선도가 없어요', '새 동네로 떠나면 만수가 지나온 길을 그려 줘요')];
   }
   final out = <Widget>[
     Padding(

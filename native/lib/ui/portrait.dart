@@ -34,19 +34,28 @@ _Src? _srcFor(int id) {
   return null;
 }
 
+/// 전용 도구를 든 초상 (웹 design.js sigPortrait, 2026-10-14 칸 좌표): survivors-signature-1/2.webp 3×3, 칸 크기가 고르지 않아 실제 칸 안쪽 좌표로 자른다
+const _sgf = [
+  [[10, 9, 371, 427], [397, 9, 366, 427], [779, 9, 371, 427], [10, 452, 371, 413], [397, 452, 366, 413], [779, 452, 371, 413], [10, 883, 371, 461], [397, 883, 366, 461], [779, 883, 371, 461]],
+  [[12, 9, 354, 429], [384, 9, 394, 429], [795, 9, 356, 429], [12, 456, 354, 428], [384, 456, 394, 428], [795, 456, 356, 428], [12, 903, 354, 441], [384, 903, 394, 441], [795, 903, 356, 441]],
+];
+
 class Portrait extends StatelessWidget {
   const Portrait(this.id, {super.key, this.width = 54, this.height = 63, this.locked = false});
+
+  /// 그 사람이 전용 도구를 끼고 있나 (게임 화면이 정해 준다, 웹 sigWorn)
+  static bool Function(int id)? sigWorn;
   final int id;
   final double width, height;
   final bool locked;
   @override
-  Widget build(BuildContext context) => SizedBox(width: width, height: height, child: CustomPaint(painter: _PortraitPainter(id, locked)));
+  Widget build(BuildContext context) => SizedBox(width: width, height: height, child: CustomPaint(painter: _PortraitPainter(id, locked, !locked && id >= 0 && id < 18 && (Portrait.sigWorn?.call(id) ?? false))));
 }
 
 class _PortraitPainter extends CustomPainter {
-  _PortraitPainter(this.id, this.locked);
+  _PortraitPainter(this.id, this.locked, this.sig);
   final int id;
-  final bool locked;
+  final bool locked, sig;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -58,6 +67,14 @@ class _PortraitPainter extends CustomPainter {
       final src = Atlas.cell('survivors-silhouettes.webp', id, 6, 5);
       if (img != null && src != null && id < 30) _cover(canvas, img, src, Rect.fromLTWH(0, size.height * .03, size.width, size.height * .97), .86);
       return;
+    }
+    if (sig) {
+      final k = id < 9 ? 0 : 1, f = _sgf[k][id % 9], file = 'survivors-signature-${k + 1}.webp';
+      final img = Atlas.image(file);
+      if (img != null) {
+        _cover(canvas, img, Rect.fromLTWH(f[0].toDouble(), f[1].toDouble(), f[2].toDouble(), f[3].toDouble()), box, 1);
+        return;
+      }
     }
     final s = _srcFor(id);
     if (s == null) return;
@@ -82,5 +99,5 @@ class _PortraitPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_PortraitPainter old) => old.id != id || old.locked != locked;
+  bool shouldRepaint(_PortraitPainter old) => old.id != id || old.locked != locked || old.sig != sig;
 }

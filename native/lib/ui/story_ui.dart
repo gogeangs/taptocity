@@ -199,11 +199,11 @@ class _MissionTapeState extends State<MissionTape> {
                 ),
             ]),
           ),
-          if (g.pedHere) _chip('🛒 노친네', widget.onPed, const [Color(0xFF4A3A2A), Color(0xFF7A5A33)], const Color(0xFFF3E2B8)),
+          if (g.pedHere) _chip('노친네', widget.onPed, const [Color(0xFF4A3A2A), Color(0xFF7A5A33)], const Color(0xFFF3E2B8), lead: pedFace()),
           if (g.fireOn && g.warm != null)
             _chip('모닥불 ${g.warm!.round()}%', () => g.feedFire(), g.warmTier == 0 ? const [Color(0xFF2D3A45), Color(0xFF4B5D6B)] : const [Color(0xFF6B2F17), Color(0xFFC4652A)],
                 g.warmTier == 0 ? const Color(0xFFDFE8EF) : const Color(0xFFFFE9C7)),
-          if (m.eg && !done && g.canMigrate) _chip('🔥 새 동네로', widget.onMig, const [Color(0xFF6B3A1A), Color(0xFFB0452A)], const Color(0xFFFFE2A0)),
+          if (m.eg && !done && g.canMigrate) _chip('새 동네로', widget.onMig, const [Color(0xFF6B3A1A), Color(0xFFB0452A)], const Color(0xFFFFE2A0), lead: const ResIcon('hope', size: 18)),
           if (done)
             Padding(
               padding: const EdgeInsets.only(left: 8),
@@ -239,7 +239,7 @@ class _MissionTapeState extends State<MissionTape> {
   }
 }
 
-Widget _chip(String t, VoidCallback onTap, List<Color> bg, Color fg) => GestureDetector(
+Widget _chip(String t, VoidCallback onTap, List<Color> bg, Color fg, {Widget? lead}) => GestureDetector(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(left: 8),
@@ -249,7 +249,10 @@ Widget _chip(String t, VoidCallback onTap, List<Color> bg, Color fg) => GestureD
           gradient: LinearGradient(colors: bg),
           boxShadow: const [BoxShadow(color: Color(0x66B0452A), blurRadius: 8, offset: Offset(0, 2))],
         ),
-        child: Text(t, style: Ttc.t(12.5, color: fg, weight: FontWeight.w700, height: 1)),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          if (lead != null) ...[lead, const SizedBox(width: 5)],
+          Text(t, style: Ttc.t(12.5, color: fg, weight: FontWeight.w700, height: 1)),
+        ]),
       ),
     );
 

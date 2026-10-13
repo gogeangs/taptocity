@@ -403,7 +403,11 @@ class _UgPageState extends State<_UgPage> {
             margin: const EdgeInsets.only(right: 6),
             padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
             decoration: BoxDecoration(color: const Color(0x24FFCF7A), borderRadius: BorderRadius.circular(99)),
-            child: Text('🗝 ${u.keys}', style: Ttc.t(12.5, color: const Color(0xFFFFD98A), weight: FontWeight.w700)),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              lineIco(keySvg, 13, const Color(0xFFFFD98A)),
+              const SizedBox(width: 4),
+              Text('${u.keys}', style: Ttc.t(12.5, color: const Color(0xFFFFD98A), weight: FontWeight.w700)),
+            ]),
           ),
         for (final id in u.team)
           Padding(

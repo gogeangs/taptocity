@@ -281,7 +281,7 @@ Future<void> showPfName(BuildContext context, Game g, {required bool first}) {
           if (first) ...[
             const SizedBox(height: 8),
             Row(children: [
-              pageBtn('🎲 다른 모습', () => set(() {
+              pageBtn('다른 모습', () => set(() {
                     g.pf['portrait'] = g.pfRandom();
                     Sound.sfx('tap');
                   }), alt: true),

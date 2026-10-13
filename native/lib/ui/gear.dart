@@ -236,14 +236,14 @@ Widget _lockBtn(bool on, VoidCallback onTap) => GestureDetector(
       ),
     );
 
-Widget autoBox({required String title, required String sub, required Widget button, Widget? trailing}) => Container(
+Widget autoBox({required String title, required String sub, required Widget button, Widget? trailing, Widget? lead}) => Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(color: const Color(0xFFDCE4DE), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFB9C8BD))),
       child: Row(children: [
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(title, style: Ttc.t(13.5, color: const Color(0xFF354D44), weight: FontWeight.w700)),
+            Row(children: [if (lead != null) ...[lead, const SizedBox(width: 4)], Flexible(child: Text(title, style: Ttc.t(13.5, color: const Color(0xFF354D44), weight: FontWeight.w700)))]),
             Text(sub, style: Ttc.t(11.5, color: Ttc.sepia2, height: 1.35)),
           ]),
         ),
@@ -278,7 +278,8 @@ Widget autoGearBox(Game g, void Function(String) toast) {
   final n = g.inv.length;
   if (n == 0) return const SizedBox.shrink();
   return autoBox(
-    title: '🎒 장비 자동 맞추기',
+    title: '장비 자동 맞추기',
+    lead: dutyIco('gear', size: 20),
     sub: '전용 도구 → 잘맞는 장비 → 높은 등급 순으로 $n개를 나눠 입혀요',
     button: BuyButton('지금 맞추기', width: 84, onTap: () {
       final ch = g.autoGear();

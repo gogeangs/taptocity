@@ -485,7 +485,7 @@ class PetsBody extends StatelessWidget {
       ));
     }
     if (own.isEmpty) {
-      out.add(emptyBox(Text('🐾', style: Ttc.t(26)), '아직 함께하는 펫이 없어요',
+      out.add(emptyBox(const Opacity(opacity: .85, child: PetPic('dog', size: 56, silhouette: true)), '아직 함께하는 펫이 없어요',
           g.petsOpen ? '구름을 걷다 보면 떠돌이 동물의 발자국이 지도에 찍혀요' : '판잣집이 되고 생존자가 두 명 모이면 떠돌이 동물이 나타나요'));
     }
     if (own.length > 1) {

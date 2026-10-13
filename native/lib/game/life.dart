@@ -114,14 +114,14 @@ extension Living on Game {
     for (final id in decoFans(k)) {
       if (!hasSv(id) || fav['$id'] == 1) continue;
       fav['$id'] = 1;
-      final tb = trustLv(xpOf(id));
+      final tb = Game.trustLv(xpOf(id));
       rec(id)!['xp'] = xpOf(id) + 30 * trustM;
-      if (trustLv(xpOf(id)) > tb) {
+      if (Game.trustLv(xpOf(id)) > tb) {
         svNew = true;
-        fx.add(FxToastLater(1600, '${survivors[id].name} 신뢰도 ${trustLv(xpOf(id))}! 새 사연이 열렸어요'));
+        fx.add(FxToastLater(1600, '${survivors[id].name} 신뢰도 ${Game.trustLv(xpOf(id))}! 새 사연이 열렸어요'));
       }
       // 그 사람이 장식 앞으로 걸어가 한마디 (웹 decoReact → WALK·CHAT)
-      favReact.add((id, i, (web.favSay['$id'] as String?) ?? '좋네요.'));
+      favReact.add((id, i, web.favSay['$id'] ?? '좋네요.'));
       fx.add(FxToast('${jo(survivors[id].name, '이', '가')} ${jo(web.deco[k]!['n'] as String, '을', '를')} 좋아해요 · 신뢰 +30'));
     }
     final seen = S.rest['setsSeen'] is Map ? S.rest['setsSeen'] as Map : (S.rest['setsSeen'] = <String, Object?>{});

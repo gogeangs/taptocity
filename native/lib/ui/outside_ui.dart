@@ -122,12 +122,12 @@ class _ExpBodyState extends State<ExpBody> {
     return Every(
         g: g,
         builder: (context) {
-          final now = DateTime.now().millisecondsSinceEpoch, out = <Widget>[], locks = <String>[];
+          final now = DateTime.now().millisecondsSinceEpoch, out = <Widget>[], locks = <String>[]; // 잠긴 원정 (앞에 자물쇠 선 아이콘)
           if (g.S.sv.isEmpty) out.add(Padding(padding: const EdgeInsets.only(bottom: 10), child: descText('생존자를 먼저 구조해야 원정을 보낼 수 있어요.')));
           if (g.autoExpOpen) {
             final on = g.S.rest['autoExp'] == true;
             out.add(autoBox(
-              title: '⚙ 자동 원정',
+              title: '⚙\uFE0E 자동 원정',
               sub: on ? '켜짐 · 보낼 수 있는 사람 ${g.expPool.length}명' : '쉬는 사람으로 팀을 꾸려 보내고, 돌아오면 알아서 챙겨요',
               button: const SizedBox.shrink(),
               trailing: toggle(on, () {
@@ -143,7 +143,7 @@ class _ExpBodyState extends State<ExpBody> {
           final em = g.expMap;
           for (final e in exps) {
             if (!g.expOpen(e)) {
-              locks.add('🔒 ${e.name} · ${e.lock}');
+              locks.add('${e.name} · ${e.lock}');
               continue;
             }
             final x = em[e.key];
@@ -225,7 +225,7 @@ class _ExpBodyState extends State<ExpBody> {
                 ),
                 Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                   if (g.autoExpOpen) ...[
-                    ghostBtn('⚙ 자동 팀', () {
+                    ghostBtn('⚙\uFE0E 자동 팀', () {
                       final t = g.autoTeam(e, [for (final id in g.svIds) if (!g.busy(id) && !(((g.rec(id)!['hurt'] as num?) ?? 0) > 0)) id]);
                       if (t == null) {
                         widget.toast('보낼 수 있는 사람이 모자라요');
@@ -268,7 +268,15 @@ class _ExpBodyState extends State<ExpBody> {
               padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
               decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0x333B2A1A), width: 1.5)),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                for (final l in locks) Padding(padding: const EdgeInsets.symmetric(vertical: 2), child: Text(l, style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.4))),
+                for (final l in locks)
+                  Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Text.rich(
+                          TextSpan(children: [
+                            WidgetSpan(alignment: PlaceholderAlignment.middle, child: Padding(padding: const EdgeInsets.only(right: 4), child: lineIco(lockSvg, 12, Ttc.sepia2))),
+                            TextSpan(text: l),
+                          ]),
+                          style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.4))),
               ]),
             ));
           }

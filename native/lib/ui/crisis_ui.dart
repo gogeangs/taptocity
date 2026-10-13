@@ -128,7 +128,8 @@ Widget eventButton(Game g, VoidCallback onTap) {
               child: ClipOval(
                 child: Container(
                   color: const Color(0xFFE6D8B6),
-                  child: who != null ? Portrait(who, width: 34, height: 40) : const Icon(Icons.local_shipping_outlined, size: 20, color: Color(0xFF3B2A1A)),
+                  // 이름 없는 손님은 손그림 초상 (웹 guestAv, guests.webp)
+                  child: who != null ? Portrait(who, width: 34, height: 40) : guestFace(e['t'] as String, size: 34),
                 ),
               ),
             ),
@@ -180,7 +181,7 @@ Widget _reqHead(Game g, int ev, String tag) {
         height: 58,
         decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xFFE6D8B6), border: Border.all(color: const Color(0x403B2A1A), width: 2)),
         clipBehavior: Clip.antiAlias,
-        child: who != null ? Portrait(who, width: 58, height: 68) : null,
+        child: who != null ? Portrait(who, width: 58, height: 68) : Center(child: guestFace(web.events[ev]['t'] as String, size: 54)),
       ),
       const SizedBox(width: 12),
       Expanded(

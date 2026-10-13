@@ -17,6 +17,10 @@ class Atlas {
     'survivors-founders.webp', 'survivors-neighbors.webp', 'survivors-signals.webp', 'survivors-frontier.webp', 'survivors-scouts.webp',
     'residents.webp', 'survivors-silhouettes.webp', 'gear-tools.webp', 'gear-wear.webp', 'gear-keep.webp', 'line-items.webp',
     'world-panorama.webp', 'radio.webp', 'companions.webp', 'peddler.webp',
+    // 2026-10-13~14 웹 손그림: 일 아이콘·방벽·연구·손님·전용 도구 초상·지도 인물·땅 질감·나무와 풀·등불 탑·노선 역
+    'duty-icons.webp', 'walls.webp', 'research-icons.webp', 'guests.webp', 'survivors-signature-1.webp', 'survivors-signature-2.webp',
+    'walkers-1.webp', 'walkers-2.webp', 'walkers-3.webp', 'terrain-props.webp', 'ground-tiles.webp', 'lantern-tower.webp',
+    'line-stations.webp', 'line-stations-factory.webp',
   ];
 
   static Future<void> load() => _loading ??= () async {
