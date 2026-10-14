@@ -382,6 +382,11 @@ class _LivePainter extends CustomPainter {
       drawPerson(canvas, id, p.dx, p.dy, time, false, 1, jobs[m.id] ?? 'repair');
     }
     final glows = [...MapPainter.glows];
+    // 노선 역 입구 빛: 숨 쉬듯 (웹 k=.55+.45·sin(t/700) → 반지름 26+8k, 세기 .25+.2k)
+    final lk = Prefs.calm ? .7 : .55 + .45 * math.sin(time / 700);
+    for (final p in MapPainter.stationGlows) {
+      glows.add((p, 26 + 8 * lk, const Color(0xFFFFC46E), .25 + .2 * lk));
+    }
     final list = life.walk.entries.toList()..sort((a, b) => a.value.y.compareTo(b.value.y));
     if (g.isNight && list.isNotEmpty) {
       final c = tileC(C0);
@@ -453,6 +458,10 @@ class _LivePainter extends CustomPainter {
       final tp = TextPainter(text: TextSpan(text: n > 0 ? '♥' : '?', style: Ttc.t(10, color: Ttc.no, weight: FontWeight.w700, height: 1)), textDirection: TextDirection.ltr)..layout();
       tp.paint(canvas, Offset(c.dx + 4 - tp.width / 2, by - tp.height / 2));
       if (k == 'fox') glows.add((Offset(c.dx, c.dy - 6), 30.0, const Color(0xFFC8DCFF), .4));
+    }
+    // 노선 역 '노선' 표식 (웹 lnBadge — 지도 그림과 같이 밤 어둠 아래)
+    for (final b in MapPainter.badges) {
+      MapPainter.lnBadge(canvas, b.$1, b.$2, time, b.$3, b.$4, calm: Prefs.calm);
     }
     _odd(canvas, time, glows);
     _region(canvas, time, glows);

@@ -99,7 +99,7 @@ Widget _grid(List<Widget> kids) => LayoutBuilder(
 Widget? migrateBanner(Game g, VoidCallback onTap) {
   if (!g.canMigrate) return null;
   final nr = regions[g.nextRegion]!, n = g.S.gen + 1, nc = g.nextCaller;
-  return GestureDetector(
+  return hl('migrate', GestureDetector(
     onTap: onTap,
     child: Container(
       width: double.infinity,
@@ -114,7 +114,7 @@ Widget? migrateBanner(Game g, VoidCallback onTap) {
         style: Ttc.t(12.5, color: Ttc.paper, height: 1.45),
       ),
     ),
-  );
+  ), radius: 6);
 }
 
 List<int>? _migPick;
@@ -790,7 +790,7 @@ List<Widget> radioRegion(BuildContext context, Game g, {VoidCallback? onRoute}) 
   if (L.isNotEmpty) {
     final T = g.trState(), used = ((T['used'] as num?) ?? 0).toInt(), offers = T['offers'] as List, pend = T['pend'] as List? ?? const [];
     out
-      ..add(sec('무전 거래 · 남은 사람들', '오늘 $used/$trMax'))
+      ..add(hl('sec:trade', sec('무전 거래 · 남은 사람들', '오늘 $used/$trMax')))
       ..add(Padding(padding: const EdgeInsets.only(bottom: 6), child: descText('이전 동네에 남은 사람들이 그 동네에 남는 걸 보내 줘요. 내 자재는 바로 나가고, 물건은 다음 새벽에 길을 건너와요.')));
     for (final p in pend) {
       final id = ((p as Map)['id'] as num).toInt();

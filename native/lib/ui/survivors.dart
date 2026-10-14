@@ -113,12 +113,12 @@ class _SurvBodyState extends State<SurvBody> {
     final idle = idleIds, autoOn = g.S.rest['autoAsg'] == true;
     final bt = <Widget>[
       _svt(null, '라디오', res: 'batt', count: '${g.have('batt').toInt()}', onTap: widget.onRadio),
-      _svt(_ti('<path d="M5 8h14l-1 12H6zM9 8V5a3 3 0 0 1 6 0v3"/>'), '장비', count: '${g.inv.length}', onTap: widget.onBag),
+      hl('bag', _svt(_ti('<path d="M5 8h14l-1 12H6zM9 8V5a3 3 0 0 1 6 0v3"/>'), '장비', count: '${g.inv.length}', onTap: widget.onBag)),
       if (g.pets.isNotEmpty || g.stray != null)
         _svt(_ti('<circle cx="7" cy="9" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="17" cy="9" r="2"/><path d="M8 17c0-3 2-5 4-5s4 2 4 5c0 2-2 3-4 3s-4-1-4-3z"/>'), '펫', count: '${g.pets.length}', onTap: widget.onPets ?? () {}),
       if (g.autoOpen)
-        _svt(_ti('<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>'), '자동',
-            on: tool == 'auto', onx: autoOn, onTap: () => setState(() => tool = tool == 'auto' ? null : 'auto')),
+        hl('svtool:auto', _svt(_ti('<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>'), '자동',
+            on: tool == 'auto', onx: autoOn, onTap: () => setState(() => tool = tool == 'auto' ? null : 'auto'))),
       if (idle.isNotEmpty)
         _svt(_ti('<path d="M4 20h16M7 20V10l5-5 5 5v10"/><path d="M10 20v-5h4v5"/>'), '쉬는 사람', count: '${idle.length}', on: tool == 'duty', onTap: () => setState(() => tool = tool == 'duty' ? null : 'duty')),
     ];
@@ -249,7 +249,7 @@ class _SurvBodyState extends State<SurvBody> {
         padding: const EdgeInsets.only(bottom: 10),
         child: Wrap(spacing: 12, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
           for (var i = 0; i < 4; i++)
-            Row(mainAxisSize: MainAxisSize.min, children: [gradeChip(i), Text(' 효과 ×${grades[i].m}', style: Ttc.t(11.5, color: Ttc.sepia2))]),
+            Row(mainAxisSize: MainAxisSize.min, children: [gradeChip(i), Text(' 효과 ×${fmtX(grades[i].m)}', style: Ttc.t(11.5, color: Ttc.sepia2))]),
           Text('등급은 처음 그대로 · 등급마다 1~5성', style: Ttc.t(11.5, color: Ttc.sepia2)),
         ]),
       ),
@@ -893,3 +893,6 @@ Widget assignBody(Game g, int tile, {required VoidCallback onDone}) {
       }(),
   ]);
 }
+
+/// 1.0 → '1', 1.5 → '1.5' (웹 숫자 표기)
+String fmtX(num v) => v == v.roundToDouble() ? '${v.round()}' : '$v';

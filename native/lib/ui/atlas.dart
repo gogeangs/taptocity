@@ -18,10 +18,15 @@ class Atlas {
     'residents.webp', 'survivors-silhouettes.webp', 'gear-tools.webp', 'gear-wear.webp', 'gear-keep.webp', 'line-items.webp',
     'world-panorama.webp', 'radio.webp', 'companions.webp', 'peddler.webp',
     // 2026-10-13~14 웹 손그림: 일 아이콘·방벽·연구·손님·전용 도구 초상·지도 인물·땅 질감·나무와 풀·등불 탑·노선 역
-    'duty-icons.webp', 'walls.webp', 'research-icons.webp', 'guests.webp', 'survivors-signature-1.webp', 'survivors-signature-2.webp',
+    'duty-icons.webp', 'walls.webp', 'research-icons.webp',
     'walkers-1.webp', 'walkers-2.webp', 'walkers-3.webp', 'terrain-props.webp', 'ground-tiles.webp', 'lantern-tower.webp',
-    'line-stations.webp', 'line-stations-factory.webp', 'landmarks-desert.webp', 'landmarks-factory.webp', 'landmarks-snow.webp',
   ];
+
+  /// 크고 가끔(또는 한 동네에서만) 쓰는 그림: 처음 필요할 때 불러온다 (웹 ttcLazy). 한꺼번에 풀면 메모리를 60MB 넘게 쓴다
+  static const lazyFiles = {
+    'guests.webp', 'survivors-signature-1.webp', 'survivors-signature-2.webp',
+    'line-stations.webp', 'line-stations-factory.webp', 'landmarks-desert.webp', 'landmarks-factory.webp', 'landmarks-snow.webp',
+  };
 
   static Future<void> load() => _loading ??= () async {
         // 한꺼번에 받아 첫 화면을 빨리 띄운다
@@ -36,13 +41,17 @@ class Atlas {
         }));
       }();
 
-  static ui.Image? image(String f) => _img[f];
+  static ui.Image? image(String f) {
+    final im = _img[f];
+    if (im == null && lazyFiles.contains(f)) return lazy(f);
+    return im;
+  }
 
   // ---------- 동네의 결: 지도 그림을 동네 색으로 (웹 WEATHER·makeSnowy 2114) ----------
   /// 지금 동네 (화면이 매 틱 맞춘다). 산골은 지붕마다 눈, 사막은 모래, 공단은 재와 녹
   static String? region;
   static VoidCallback? onTint;
-  static const tintFiles = {'shelters.webp', 'modules.webp', 'exploration-sites.webp', 'landmarks.webp', 'settlement-props.webp', 'module-upgrades.webp', 'terrain-props.webp', 'lantern-tower.webp'};
+  static const tintFiles = {'shelters.webp', 'modules.webp', 'exploration-sites.webp', 'landmarks.webp', 'settlement-props.webp', 'module-upgrades.webp'}; // 웹 SNOW_FILES와 같게
   static final Map<String, ui.Image?> _tinted = {};
   static String? _tintRegion;
 

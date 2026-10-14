@@ -318,6 +318,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _clock?.cancel();
+    _camEase?.cancel();
     _cloudT?.cancel();
     _linkSub?.cancel();
     _lampHold?.cancel();
@@ -575,6 +576,16 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     } else if (sheet != null) {
       _close();
     }
+    // 화면이 열린 뒤 그 버튼을 4.2초 깜빡이며 보이게 (웹 featGo: 350ms 뒤 .fchl)
+    final hk = featHlOf[k];
+    if (hk != null) {
+      Timer(const Duration(milliseconds: 350), () {
+        featHlKey.value = hk;
+        Timer(const Duration(milliseconds: 4200), () {
+          if (featHlKey.value == hk) featHlKey.value = null;
+        });
+      });
+    }
   }
 
   /// 미션 띠를 누르면 할 일 쪽으로 데려간다 (웹 goMission 4449)
@@ -794,6 +805,24 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     g.sel = -1;
   }
 
+  /// 카메라를 부드럽게 위아래로 (웹 camGoalY: 매 프레임 남은 거리 × min(1, dt·9)). 손가락이 닿으면 멈춘다
+  Timer? _camEase;
+  void _camEaseTo(double goal) {
+    _camEase?.cancel();
+    var last = DateTime.now();
+    _camEase = Timer.periodic(const Duration(milliseconds: 16), (t) {
+      final now = DateTime.now(), dt = now.difference(last).inMicroseconds / 1e6;
+      last = now;
+      final df = goal - cam.y;
+      if (!mounted || df.abs() < .5) {
+        if (mounted) cam.set(cam.x, goal);
+        t.cancel();
+        return;
+      }
+      cam.set(cam.x, cam.y + df * math.min(1, dt * 9));
+    });
+  }
+
   void _openRing(int tile) {
     final m = g.modAtTile(tile);
     final says = m == null ? null : modSay[m.id];
@@ -808,12 +837,13 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     if (_stageSize != Size.zero) {
       final w = tileC(tile), sy = (w.dy - cam.y) * cam.z + _stageSize.height / 2;
       final lim = _stageSize.height - (MediaQuery.of(context).padding.bottom + 10 + 86) - (RingMenu.R + 54);
-      if (sy > lim) cam.set(cam.x, math.max(0, math.min((W + H) * TH / 2, cam.y + (sy - lim) / cam.z)));
+      if (sy > lim) _camEaseTo(math.max(0, math.min((W + H) * TH / 2, cam.y + (sy - lim) / cam.z)));
     }
     g.mapVersion.value++;
   }
 
   void _close() {
+    _camEase?.cancel(); // 손가락이 닿으면 카메라 미끄러짐을 멈춘다 (웹 ptrs.size)
     _ringClosedAt = ringTile;
     if (sheet != null || matsOpen || ringTile >= 0) {
       setState(() {

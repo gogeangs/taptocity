@@ -52,21 +52,45 @@ String? hlOf(String? sel) {
   return sel.startsWith('#ring') ? 'ring:$a' : (arg == null ? a : '$a:$arg');
 }
 
-Widget hl(String key, Widget child, {double radius = 8}) => ValueListenableBuilder<String?>(
-      valueListenable: hlKey,
-      builder: (c, k, _) => k == key ? _Pulse(radius: radius, child: child) : child,
+/// 새 기능 카드 '보러 가기'가 가리키는 버튼 (웹 featGo .fchl, 4.2초). 보이게 스크롤도 한다
+final ValueNotifier<String?> featHlKey = ValueNotifier(null);
+
+/// 새 기능 → 강조할 버튼 키 (웹 FEAT_GUIDE sel/txt)
+const featHlOf = {
+  'radio': 'pull:1', 'bag': 'bag', 'ug': 'ugprep', 'auto': 'svtool:auto', 'autoexp': 'autoexp', 'acraft': 'acr',
+  'trade': 'sec:trade', 'migrate': 'migrate', 'line': 'lnprep', 'fire': 'firechip',
+};
+
+Widget hl(String key, Widget child, {double radius = 8}) => AnimatedBuilder(
+      animation: Listenable.merge([hlKey, featHlKey]),
+      builder: (c, _) => featHlKey.value == key
+          ? _Pulse(radius: radius, scroll: true, child: child)
+          : hlKey.value == key
+              ? _Pulse(radius: radius, child: child)
+              : child,
     );
 
 class _Pulse extends StatefulWidget {
-  const _Pulse({required this.child, required this.radius});
+  const _Pulse({required this.child, required this.radius, this.scroll = false});
   final Widget child;
   final double radius;
+  final bool scroll; // 새 기능 안내: 화면 가운데로 굴려 보여 준다 (웹 scrollIntoView center)
   @override
   State<_Pulse> createState() => _PulseState();
 }
 
 class _PulseState extends State<_Pulse> with SingleTickerProviderStateMixin {
   late final AnimationController a = AnimationController(vsync: this, duration: const Duration(milliseconds: 1000))..repeat();
+  @override
+  void initState() {
+    super.initState();
+    if (widget.scroll) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Scrollable.ensureVisible(context, alignment: .5, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+      });
+    }
+  }
+
   @override
   void dispose() {
     a.dispose();
@@ -201,8 +225,8 @@ class _MissionTapeState extends State<MissionTape> {
           ),
           if (g.pedHere) _chip('노친네', widget.onPed, const [Color(0xFF4A3A2A), Color(0xFF7A5A33)], const Color(0xFFF3E2B8), lead: pedFace()),
           if (g.fireOn && g.warm != null)
-            _chip('모닥불 ${g.warm!.round()}%', () => g.feedFire(), g.warmTier == 0 ? const [Color(0xFF2D3A45), Color(0xFF4B5D6B)] : const [Color(0xFF6B2F17), Color(0xFFC4652A)],
-                g.warmTier == 0 ? const Color(0xFFDFE8EF) : const Color(0xFFFFE9C7)),
+            hl('firechip', _chip('모닥불 ${g.warm!.round()}%', () => g.feedFire(), g.warmTier == 0 ? const [Color(0xFF2D3A45), Color(0xFF4B5D6B)] : const [Color(0xFF6B2F17), Color(0xFFC4652A)],
+                g.warmTier == 0 ? const Color(0xFFDFE8EF) : const Color(0xFFFFE9C7)), radius: 14),
           if (m.eg && !done && g.canMigrate) _chip('새 동네로', widget.onMig, const [Color(0xFF6B3A1A), Color(0xFFB0452A)], const Color(0xFFFFE2A0), lead: const ResIcon('hope', size: 18)),
           if (done)
             Padding(

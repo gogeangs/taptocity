@@ -12,6 +12,7 @@ import 'survivors.dart';
 import 'sound.dart';
 import 'theme.dart';
 import 'underground_ui.dart';
+import 'story_ui.dart';
 import 'widgets.dart';
 
 /// 원정 화면의 노선 카드 (웹 lnCard)
@@ -63,7 +64,7 @@ Widget lnCardWidget(BuildContext context, Game g) {
           ]),
           style: Ttc.t(13, color: Ttc.sepia2, height: 1.6)),
       const SizedBox(height: 8),
-      Row(children: [BuyButton('노선 들어가기', width: 104, onTap: g.S.sv.isEmpty ? null : () => showLnPrep(context, g))]),
+      Row(children: [hl('lnprep', BuyButton('노선 들어가기', width: 104, onTap: g.S.sv.isEmpty ? null : () => showLnPrep(context, g)))]),
     ]),
   );
 }

@@ -103,6 +103,7 @@ extension FeatExt on Game {
     if (sheet == 'radio') ack['rdAt'] = math.max(5, have('batt').toInt());
     seeTab(sheet);
     seeFeat(sheet, seg);
+    _changed();
   }
 
   /// 짓거나 증축할 수 있는 게 있음
@@ -132,8 +133,16 @@ extension FeatExt on Game {
   }
 
   // ---------------- 새 기능 안내 (웹 tickFeat · seeFeat · seeTab) ----------------
+  /// 처음 읽을 때(이 기능이 생기기 전 저장) 이미 열린 기능은 '봄'(2)으로 채운다 (웹 tickFeat의 !S.feat).
+  /// 아래 탭 점이 첫 틱보다 먼저 읽어도 옛 기능이 전부 '새것'으로 뜨지 않게, 읽는 곳 어디서든 같은 씨앗을 쓴다.
   Map get featMap {
-    if (S.rest['feat'] is! Map) S.rest['feat'] = <String, Object?>{};
+    if (S.rest['feat'] is! Map) {
+      final m = <String, Object?>{};
+      for (final f in feats) {
+        if (f.on(this)) m[f.k] = 2;
+      }
+      S.rest['feat'] = m;
+    }
     return S.rest['feat'] as Map;
   }
 
@@ -144,13 +153,6 @@ extension FeatExt on Game {
   bool segNew(String sheet, String seg) => feats.any((f) => (featOf(f.k) == 1 || featOf(f.k) == 3) && f.sheet == sheet && f.seg == seg);
 
   void _tickFeat() {
-    if (S.rest['feat'] is! Map) {
-      final m = <String, Object?>{};
-      for (final f in feats) {
-        if (f.on(this)) m[f.k] = 2;
-      }
-      S.rest['feat'] = m;
-    }
     final F = featMap, later = S.gen > 0;
     if (S.rest['featQ'] is! List) S.rest['featQ'] = <Object?>[];
     final q = S.rest['featQ'] as List;

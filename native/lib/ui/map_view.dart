@@ -162,6 +162,17 @@ class _MapViewState extends State<MapView> {
       pinchZ = cam.z;
       return;
     }
+    // 두 사람 말풍선 ▸: 대화 전체 듣기 (웹 openChat). 웹처럼 누르는 순간 먼저 본다 —
+    // 말풍선이 구름·폐허 위에 떠 있어도 그 칸을 두드리지 않고 대화가 열리게
+    final bb = life.bubbleRect, ch = life.chat;
+    if (widget.onPlace == null && bb != null && ch != null && !ch.solo && bb.inflate(6).contains(p.pos)) {
+      p.acted = true;
+      life.chat = null;
+      life.bubbleRect = null;
+      g.openChat(ch.a, ch.b, ch.lines);
+      widget.fxLayer.pull(g);
+      return;
+    }
     // 대형 재폭풍: 두드리면 가까운 괴물, 누르고 있으면 연타, 문지르면 베기
     if (g.defn != null) {
       p.acted = true;
@@ -305,15 +316,6 @@ class _MapViewState extends State<MapView> {
       final w0 = toWorld(p.pos), i0 = pickTile(w0);
       if (widget.onPlace != null) {
         widget.onPlace!(i0);
-        return;
-      }
-      // 두 사람 말풍선 ▸: 대화 전체 듣기 (웹 openChat)
-      final bb = life.bubbleRect, ch = life.chat;
-      if (bb != null && ch != null && !ch.solo && bb.inflate(6).contains(p.pos)) {
-        life.chat = null;
-        life.bubbleRect = null;
-        g.openChat(ch.a, ch.b, ch.lines);
-        widget.fxLayer.pull(g);
         return;
       }
       // 수상한 그림자: 눌러서 쫓아가기 (웹 catchShadow)
@@ -502,6 +504,10 @@ class MapPainter extends CustomPainter {
 
   /// 불빛 자리 (웹 glowPts). 그리기는 위층(LiveLayer)이 밤 어둠을 덮은 뒤에 한다.
   static final List<(Offset, double, Color, double)> glows = [];
+
+  /// 노선 역 '노선' 표식 (x, y, 복구됨, 아직 안 가 본 노선)과 역 입구 빛 — 움직이므로 위층(LiveLayer)이 그린다
+  static final List<(double, double, bool, bool)> badges = [];
+  static final List<Offset> stationGlows = [];
   List<(Offset, double, Color, double)> get _glows => glows;
 
   bool _nearRev(int i) {
@@ -529,6 +535,8 @@ class MapPainter extends CustomPainter {
     canvas.clipRect(rect);
     canvas.drawRect(rect, Paint()..shader = ui.Gradient.linear(Offset.zero, Offset(0, size.height), [bgTop, bgBottom]));
     _glows.clear();
+    badges.clear();
+    stationGlows.clear();
     canvas.save();
     canvas.translate(size.width / 2, size.height / 2);
     canvas.scale(cam.z);
@@ -687,7 +695,8 @@ class MapPainter extends CustomPainter {
       _line
         ..color = const Color(0x12140E08)
         ..strokeWidth = 1;
-      canvas.drawPath(Path()..moveTo(w.dx, w.dy)..lineTo(s.dx, s.dy)..lineTo(e.dx, e.dy), _line);
+      canvas.drawLine(w, s, _line);
+      canvas.drawLine(s, e, _line);
       // 땅 질감: 쉘터·모듈 자리는 콘크리트, 그 밖은 동네 흙 (+ 첫 동네 풀밭엔 마른 풀)
       final paved = core || mod != null;
       final ok = _gtFill(canvas, paved ? 2 : const {'desert': 4, 'factory': 5, 'snow': 6}[S.region] ?? 0, paved ? .82 : .8, dia);
@@ -718,6 +727,8 @@ class MapPainter extends CustomPainter {
     if (t == T.water) return;
     _walls(canvas, i, false);
     // 노선 역 앞을 가리는 건물은 반투명 (웹 lnFade)
+    // 등불 탑은 쉘터 뒤에 (웹 2026-10-14) — 노선 역 반투명 층 밖에서 그린다 (웹 towerBody는 withFade 밖: 잘리지도 흐려지지도 않음)
+    if (core) _towerBody(canvas);
     final soft = _fadeSoft.contains(i);
     if (soft) canvas.saveLayer(Rect.fromCenter(center: c.translate(0, -70), width: TW * 2.6, height: 220), Paint()..color = const Color(0x73000000));
     _tileStuff(canvas, i, c, t, mod, core);
@@ -729,7 +740,6 @@ class MapPainter extends CustomPainter {
     final S = g.S;
 
     if (core) {
-      _towerBody(canvas); // 등불 탑은 쉘터 뒤에 (웹 2026-10-14)
       final lv = S.lv;
       _sprite(canvas, Atlas.mapImage('shelters.webp'), Atlas.cell('shelters.webp', lv - 1, 3, 2), c, const [84.0, 84.0, 90.0, 100.0, 112.0][lv - 1], .91);
       _glows.add((P(i, .5, .5, 16), 42.0 + lv * 3, const Color(0xFFF0C071), .38));
@@ -827,11 +837,11 @@ class MapPainter extends CustomPainter {
         if (l.ok) {
           _glows.add((c.translate(0, -12), 28.0, const Color(0xFFF0C071), .28));
           // 노선 역: 입구에서 새는 빛 (웹 drawLandmark 2026-10-14)
-          if (station) _glows.add((P(i, .42, .62), 30.0, const Color(0xFFFFC46E), .39));
+          if (station) stationGlows.add(P(i, .42, .62)); // 숨 쉬듯 밝아졌다 어두워짐 → 매 프레임 그리는 위층(LiveLayer)에서
         } else {
           _lmMarker(canvas, c.dx, c.dy - (lh + 14));
         }
-        if (station) _lnBadge(canvas, c.dx, c.dy - (lh + (l.ok ? 10 : 40)), l.ok, ((g.lnState()['fat'] as num?) ?? 0) == 0);
+        if (station) badges.add((c.dx, c.dy - (lh + (l.ok ? 10 : 40)), l.ok, l.ok && ((g.lnState()['fat'] as num?) ?? 0) == 0)); // 위아래로 흔들림 → 위층에서
       }
       return;
     }
@@ -884,7 +894,7 @@ class MapPainter extends CustomPainter {
 
   // ---------- 나무·풀 소품 (웹 terrain-props.webp 4×2: 0·1 활엽수 · 2 소나무 · 3 마른 나무 · 4·5 풀포기 · 6 덤불 · 7 벽돌 더미) ----------
   bool _tp(Canvas canvas, int k, double x, double y, double h) {
-    final b = Atlas.boxes('terrain-props.webp', 4, 2), im = Atlas.mapImage('terrain-props.webp');
+    final b = Atlas.boxes('terrain-props.webp', 4, 2), im = Atlas.image('terrain-props.webp'); // 웹 SNOW_FILES에 없음: 동네 색을 입히지 않는다
     if (b == null || im == null || b[k] == null) return false;
     final src = b[k]!, w = src.width * h / src.height;
     canvas.drawImageRect(im, src, Rect.fromLTWH(x - w / 2, y - h, w, h), _img..color = const Color(0xFFFFFFFF));
@@ -906,27 +916,87 @@ class MapPainter extends CustomPainter {
   }
 
   /// 웹 groundDecor: 풀밭엔 풀포기·덤불, 맨땅엔 가끔 벽돌 더미
+  /// 빈 땅 꾸밈 (웹 groundDecor 6392 재정의): 첫 동네는 네 칸에 한 칸쯤(speck>.75)만 풀·꽃·돌·금,
+  /// 다른 동네는 가는 땅결 한 줄(눈 위 흰 줄 · 모래 곡선 · 공단 회색)
   void _groundDecor(Canvas canvas, int i, double gr) {
+    final r = g.S.region;
+    if (r != null) {
+      if (speck[i] < .72) return;
+      final a = P(i, .18, .62, 0), b = P(i, .68, .62, 0), c = P(i, .8, .44, 0);
+      _line
+        ..color = r == 'snow' ? const Color.fromRGBO(245, 249, 244, .55) : r == 'desert' ? const Color.fromRGBO(107, 87, 61, .24) : const Color.fromRGBO(58, 69, 70, .28)
+        ..strokeWidth = .7;
+      final path = Path()..moveTo(a.dx, a.dy);
+      if (r == 'desert') {
+        path.quadraticBezierTo(b.dx, b.dy - 3, c.dx, c.dy);
+      } else {
+        path
+          ..lineTo(b.dx, b.dy)
+          ..lineTo(c.dx, c.dy);
+      }
+      canvas.drawPath(path, _line);
+      return;
+    }
+    if (speck[i] > .75) _groundDecor0(canvas, i, gr);
+  }
+
+  /// 웹 groundDecor 4521 (원래 것): 손그림 풀·덤불 → 없으면 먹선 풀포기·꽃 / 맨땅엔 자갈과 금
+  void _groundDecor0(Canvas canvas, int i, double gr) {
     final s1 = speck[i], s2 = speck2[i];
-    if (gr > .3) {
+    final tpOk = Atlas.boxes('terrain-props.webp', 4, 2) != null && Atlas.image('terrain-props.webp') != null;
+    if (gr > .3 && tpOk) {
       final n = 1 + ((s2 * 7).floor()) % 2;
       for (var k = 0; k < n; k++) {
         final p = P(i, .2 + ((s1 * 97 + k * .37) % 1) * .6, .2 + ((s2 * 53 + k * .61) % 1) * .6);
-        if (!_tp(canvas, k == 0 && s2 > .84 && gr > .5 ? 5 : (s1 + k * .3) % 1 < .6 ? 4 : 6, p.dx, p.dy + 1, 11 + ((s1 * 13 + k) % 1) * 4)) return;
+        _tp(canvas, k == 0 && s2 > .84 && gr > .5 ? 5 : (s1 + k * .3) % 1 < .6 ? 4 : 6, p.dx, p.dy + 1, 11 + ((s1 * 13 + k) % 1) * 4);
       }
       return;
     }
-    if (s2 > .86) {
+    if (gr <= .3 && s2 > .86 && tpOk) {
       final p = P(i, .4 + s1 * .2, .55);
-      if (_tp(canvas, 7, p.dx, p.dy + 1, 9)) return;
+      _tp(canvas, 7, p.dx, p.dy + 1, 9);
+      return;
     }
-    if (s1 > .75) {
-      final p = P(i, .3 + s2 * .4, .35 + s1 * .3);
-      _fill.color = const Color(0xFF7A7C72);
-      canvas.drawOval(Rect.fromCenter(center: p, width: 6, height: 3), _fill);
-      canvas.drawOval(Rect.fromCenter(center: p.translate(5, 2), width: 4, height: 2), _fill);
+    if (gr > .3) {
+      // 손그림을 아직 못 쟀을 때: 먹선 풀포기
+      final n = 2 + ((s2 * 7).floor()) % 3;
+      _line
+        ..color = groundNoise[i] > 0 ? const Color.fromRGBO(128, 134, 84, .75) : const Color.fromRGBO(52, 60, 36, .6)
+        ..strokeWidth = 1.1;
+      for (var k = 0; k < n; k++) {
+        final p = P(i, .15 + ((s1 * 97 + k * .37) % 1) * .7, .15 + ((s2 * 53 + k * .61) % 1) * .7);
+        canvas.drawLine(Offset(p.dx - 2, p.dy), Offset(p.dx - 3, p.dy - 3.5), _line);
+        canvas.drawLine(p, Offset(p.dx, p.dy - 4.5), _line);
+        canvas.drawLine(Offset(p.dx + 2, p.dy), Offset(p.dx + 3.2, p.dy - 3.2), _line);
+      }
+      if (s2 > .84 && gr > .5) {
+        const cols = [Color(0xFFF2D06B), Color(0xFFEFE6D0), Color(0xFFD9745A)];
+        for (var k = 0; k < 3; k++) {
+          final p = P(i, .25 + ((s1 * 31 + k * .29) % 1) * .5, .25 + ((s2 * 17 + k * .47) % 1) * .5);
+          _fill.color = cols[(k + (s1 * 3).floor()) % 3];
+          canvas.drawCircle(p.translate(0, -1), 1.4, _fill);
+        }
+      }
+      return;
+    }
+    // 맨땅: 그늘 진 자갈 1~3개, 가끔 금
+    for (var k = 0; k < 1 + ((s1 * 5).floor()) % 3; k++) {
+      final p = P(i, .18 + ((s1 * 7 + k * .3) % 1) * .64, .18 + ((s2 * 5 + k * .43) % 1) * .64), rr = 1.2 + ((s1 * 13 + k) % 1) * 1.6;
+      _fill.color = const Color.fromRGBO(28, 20, 12, .35);
+      canvas.drawOval(Rect.fromCenter(center: p.translate(.6, .6), width: rr * 2.6, height: rr * 1.6), _fill);
+      _fill.color = k.isOdd ? const Color(0xFF7A6C57) : const Color(0xFF857660);
+      canvas.drawOval(Rect.fromCenter(center: p, width: rr * 2.6, height: rr * 1.6), _fill);
+    }
+    if (s2 < .3) {
+      _line
+        ..color = const Color.fromRGBO(30, 22, 14, .22)
+        ..strokeWidth = .8;
+      final a = P(i, .36 + s1 * .15, .4), b = P(i, .46, .5 + s2 * .15), c = P(i, .58, .56);
+      canvas.drawLine(a, b, _line);
+      canvas.drawLine(b, c, _line);
     }
   }
+
 
   // ---------- 방벽 (웹 drawWalls · wallSeg: 쉘터 둘레, 뒤쪽 두 변은 건물 앞에서, 앞쪽 두 변은 건물 뒤에) ----------
   void _walls(Canvas canvas, int i, bool front) {
@@ -1030,8 +1100,19 @@ class MapPainter extends CustomPainter {
   }
 
   /// 역 위의 '노선' 표식 (웹 lnBadge)
-  void _lnBadge(Canvas canvas, double x, double y, bool ok, bool fresh) {
-    final tp = TextPainter(text: TextSpan(text: '노선', style: Ttc.t(10, color: const Color(0xFF2C2217), weight: FontWeight.w700, height: 1)), textDirection: TextDirection.ltr)..layout();
+  static TextPainter? _lnText;
+
+  /// '노선' 표식 (웹 lnBadge 6451): 위아래로 살짝 흔들리고, 아직 안 가 본 노선이면 둥근 물결
+  static void lnBadge(Canvas canvas, double x, double y, double time, bool ok, bool fresh, {bool calm = false}) {
+    y += calm ? 0 : math.sin(time / 320) * 1.5;
+    if (fresh && !calm) {
+      final p = (time % 1600) / 1600;
+      _line
+        ..color = Color.fromRGBO(255, 205, 120, (1 - p) * .8)
+        ..strokeWidth = 2;
+      canvas.drawOval(Rect.fromCenter(center: Offset(x, y), width: (22 + p * 16) * 2, height: (11 + p * 8) * 2), _line);
+    }
+    final tp = _lnText ??= TextPainter(text: TextSpan(text: '노선', style: Ttc.t(10, color: const Color(0xFF2C2217), weight: FontWeight.w700, height: 1)), textDirection: TextDirection.ltr)..layout();
     final w = tp.width + 30, hh = 18.0, col = ok ? (fresh ? const Color(0xFFF0C071) : const Color(0xFFC9A46A)) : const Color(0xFF8D867A);
     final rr = RRect.fromRectAndRadius(Rect.fromLTWH(x - w / 2, y - hh / 2, w, hh), const Radius.circular(9));
     final tri = Path()..moveTo(x - 4, y + hh / 2)..lineTo(x, y + hh / 2 + 5)..lineTo(x + 4, y + hh / 2)..close();
@@ -1053,20 +1134,53 @@ class MapPainter extends CustomPainter {
     tp.paint(canvas, Offset(ix + 8, y + .5 - tp.height / 2));
   }
 
+
   // ---------- 노선 역 앞을 가리는 건물 (웹 lnFade · bldH · hitCol) ----------
   Set<int> _fadeSoft = const {};
+  /// 그림의 실제 높이 (웹 TTCFinal·TTCDesign·TTCSettlement 의 *Height): 그리는 폭 × 칸 세로/가로
+  static double _artH(Rect? f, double w, {double k = 1, double sub = 0, double min = 10}) => f == null || f.width <= 0 ? 0 : math.max(min, w * f.height / f.width * k - sub);
+  static double _propH(int id) => _artH(Atlas.fr(Atlas.propFrames[id]), Atlas.propWidth[id], sub: 13, min: 0);
+
+  /// 칸 위 건물 높이 (웹 bldH 3005): 노선 역 앞을 가리는지 판단할 때 쓴다
   double _bldH(int i) {
     final S = g.S;
     if (S.rev[i] == 0) return 0;
-    if (i == C0) return const [40.0, 52.0, 62.0, 74.0, 86.0][S.lv - 1];
-    if (g.modAtTile(i) != null) return 44;
-    if (g.deco.containsKey('$i')) return 22;
-    if (S.camp.containsKey(i)) return 24;
-    if (g.band != null && g.band!['tile'] == i) return 30;
-    if (S.ter[i] == T.lm) return 44;
-    if (g.siteLive(i)) return 30;
+    if (i == C0) return const [22.0, 30.0, 40.0, 64.0, 110.0][S.lv - 1]; // 웹 SHELTER[].h
+    final m = g.modAtTile(i);
+    if (m != null) {
+      final idx = modOrder.indexOf(m.id);
+      if (idx < 0) return 0;
+      if (m.l >= 1 && Atlas.image('module-upgrades.webp') != null) {
+        final w = m.id == 8 ? 40.0 + m.l * 4 : m.id == 7 ? 78.0 + m.l * 3 : 76.0 + m.l * 3;
+        return _artH(Atlas.fr(Atlas.moduleUpFrames[idx * 2 + math.min(1, m.l - 1)]), w, sub: 16);
+      }
+      final h = _artH(Atlas.cell('modules.webp', idx, 3, 3), (m.id == 8 || m.id == 7 ? 94.0 : 78.0) + m.l * 3, k: .9, sub: 14);
+      return h > 0 ? h : 44;
+    }
+    const decoIds = {'pot': 8, 'flag': 9, 'bench': 10, 'lamp': 11, 'chime': 12, 'string': 13, 'mural': 14, 'statue': 15};
+    final dk = g.deco['$i'];
+    if (dk != null && decoIds[dk] != null) return _propH(decoIds[dk]!);
+    final camp = S.camp[i];
+    if (camp != null) return _propH(((camp['hp'] as num?) ?? 0) > 0 ? 1 : 0);
+    if (g.band != null && g.band!['tile'] == i) return _propH(0);
+    if (S.ter[i] == T.silo && g.siteLive(i)) return _propH(4 + (((speck[i] * 7.31 + speck2[i] * 3.17) % 1) * 3).floor());
+    if (S.ter[i] == T.lm) {
+      final l = S.lm[i];
+      if (l == null) return 44;
+      final (_, f, w) = _lmArt(l.k, l.ok);
+      final h = _artH(f, w, sub: 16);
+      return h > 0 ? h : 44;
+    }
+    if (g.siteLive(i)) {
+      final t = S.ter[i], kind = t == T.car ? 0 : t == T.ruin ? 1 : t == T.crate ? 2 : -1;
+      if (kind >= 0) {
+        final v = (((speck[i] * 7.31 + speck2[i] * 3.17) % 1) * 5).floor();
+        return _artH(Atlas.fr(Atlas.siteFrames[kind * 6 + math.min(4, v)]), kind == 0 ? 60 : 62, sub: 16);
+      }
+    }
     return 0;
   }
+
 
   bool _hitCol(int j, Offset p, double h) {
     final c = tileC(j), dx = p.dx - c.dx;
@@ -1098,7 +1212,7 @@ class MapPainter extends CustomPainter {
 
   // ---------- 등불 탑 (웹 towerBody · ltDraw: 손그림 토대·기둥·전선·렌즈·점화 5칸, 쉘터 뒤에) ----------
   double _ltDraw(Canvas canvas, int n, double x, double y) {
-    final b = Atlas.boxes('lantern-tower.webp', 5, 1, thr: 40), im = Atlas.mapImage('lantern-tower.webp');
+    final b = Atlas.boxes('lantern-tower.webp', 5, 1, thr: 40), im = Atlas.image('lantern-tower.webp'); // 웹 SNOW_FILES에 없음
     if (b == null || im == null || b.length < 5 || b[4] == null) return 0;
     final st = n >= 5 ? 4 : math.max(0, n - 1), src = b[st];
     if (src == null) return 0;

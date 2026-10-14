@@ -1560,6 +1560,7 @@ class Game extends ChangeNotifier {
       final a = trustLv(xpOf(id));
       if (a > b) {
         ch = true;
+        svNew = true; // 웹 tickSurv: 새 사연 → 생존자 탭 점
         fx.add(FxToast('${survivors[id].name} 신뢰도 $a! 새 사연이 열렸어요'));
       }
     }

@@ -53,7 +53,7 @@ class Portrait extends StatelessWidget {
 }
 
 class _PortraitPainter extends CustomPainter {
-  _PortraitPainter(this.id, this.locked, this.sig);
+  _PortraitPainter(this.id, this.locked, this.sig) : super(repaint: Atlas.version); // 전용 도구 초상은 늦게 불러온다
   final int id;
   final bool locked, sig;
 

@@ -154,8 +154,8 @@ class RingMenu extends StatelessWidget {
       final w = tileC(tile);
       final sx = ((w.dx - cam.x) * cam.z + box.maxWidth / 2).clamp(R + 34, math.max(R + 34, box.maxWidth - R - 34)).toDouble();
       final an = _angles(toks.length);
-      // 버튼이 랜턴 버튼·탭 줄 위에 오도록 (웹 ringBot - ringDown)
-      final ringDown = an.map((x) => math.sin(x * math.pi / 180)).reduce(math.max) * R + 30 + 24;
+      // 버튼이 랜턴 버튼·탭 줄 위에 오도록 (웹 ringBot - ringDown). 버튼이 없는 링(복구한 랜드마크)도 있다 → 웹 angles(max(1,n))
+      final ringDown = _angles(math.max(1, toks.length)).map((x) => math.sin(x * math.pi / 180)).reduce(math.max) * R + 30 + 24;
       final lowest = math.min(box.maxHeight - R - 44, box.maxHeight - bottomGuard - ringDown);
       final sy = ((w.dy - cam.y) * cam.z + box.maxHeight / 2).clamp(R + 40, math.max(R + 40, lowest)).toDouble();
       final labelW = math.min(300.0, box.maxWidth - 140);

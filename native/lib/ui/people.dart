@@ -344,7 +344,7 @@ List<Rect?>? _wkBoxes(int sheet) => Atlas.boxes('walkers-${sheet + 1}.webp', 6, 
 (int, int)? wkCell(int id, {String? name, int? age, String? job}) {
   if (id >= 0 && id < 18) return (0, id);
   if (id >= 18 && id < 30) return (1, id - 18);
-  if (id < 0 && name != null) {
+  if (id < 0 && name != null && name.isNotEmpty) { // 웹: 빈 이름은 거짓 → 잉크 인물
     var h = 2166136261;
     for (final ch in name.codeUnits) {
       h ^= ch;
@@ -366,14 +366,18 @@ bool _wkDraw(Canvas g, (int, int) c, int id, double x, double y, double time, bo
   final sway = moving && !reduced ? math.sin(ph) * .06 : (job && !reduced ? math.sin(ph * .7) * .035 : 0.0);
   g.save();
   g.translate(x, y);
-  g.drawOval(Rect.fromCenter(center: const Offset(0, .5), width: w * .64, height: 4), Paint()..color = const Color(0x380F1519));
+  g.drawOval(Rect.fromCenter(center: const Offset(0, .5), width: w * .64, height: 4), _wkShadow);
   g.translate(0, -bob);
   g.rotate(sway);
   if (face < 0) g.scale(-1, 1);
-  g.drawImageRect(im, src, Rect.fromLTWH(-w / 2, -h, w, h), Paint()..filterQuality = FilterQuality.medium);
+  g.drawImageRect(im, src, Rect.fromLTWH(-w / 2, -h, w, h), _wkPaint);
   g.restore();
   return true;
 }
+
+// 사람마다 매 프레임 새로 만들지 않게 (지도 인물은 수십 명이 매 프레임 그려진다)
+final _wkShadow = Paint()..color = const Color(0x380F1519);
+final _wkPaint = Paint()..filterQuality = FilterQuality.medium;
 
 /// 이름 없는 인물(떠돌이 무리·노친네)을 칸 번호로 바로 (웹 figureAt)
 bool figureAt(Canvas g, (int, int) c, double x, double y, double time, {bool moving = false, double face = 1}) => _wkDraw(g, c, -1, x, y, time, moving, face, false);

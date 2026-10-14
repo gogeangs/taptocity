@@ -265,10 +265,13 @@ class _ShelterBodyState extends State<ShelterBody> {
               ]),
         button: lk.isNotEmpty
             ? lockBadge(lk)
-            : Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                CraftBtn(g, k, ok: ok, why: ok ? null : (full ? '창고 가득' : '재료 부족')),
-                if (g.acraftOpen) ...[const SizedBox(height: 6), _acrBtn(k)],
-              ]),
+            // 카드의 버튼 자리는 폭 제한이 없는 Row 안이라, 두 버튼 폭을 맞출 때는 IntrinsicWidth로 감싼다
+            : IntrinsicWidth(
+                child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  CraftBtn(g, k, ok: ok, why: ok ? null : (full ? '창고 가득' : '재료 부족')),
+                  if (g.acraftOpen) ...[const SizedBox(height: 6), k == 0 ? hl('acr', _acrBtn(k)) : _acrBtn(k)], // 웹: 첫 스위치만 강조
+                ]),
+              ),
       ), radius: 12));
     }
     return out;

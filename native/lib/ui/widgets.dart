@@ -57,7 +57,7 @@ class AtlasPic extends StatelessWidget {
 }
 
 class _PicPainter extends CustomPainter {
-  _PicPainter(this.file, this.src, this.gray);
+  _PicPainter(this.file, this.src, this.gray) : super(repaint: Atlas.version); // 늦게 불러온 그림이 오면 다시 그림
   final String file;
   final Rect? src;
   final bool gray;

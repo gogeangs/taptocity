@@ -126,7 +126,7 @@ class _ExpBodyState extends State<ExpBody> {
           if (g.S.sv.isEmpty) out.add(Padding(padding: const EdgeInsets.only(bottom: 10), child: descText('생존자를 먼저 구조해야 원정을 보낼 수 있어요.')));
           if (g.autoExpOpen) {
             final on = g.S.rest['autoExp'] == true;
-            out.add(autoBox(
+            out.add(hl('autoexp', autoBox(
               title: '⚙\uFE0E 자동 원정',
               sub: on ? '켜짐 · 보낼 수 있는 사람 ${g.expPool.length}명' : '쉬는 사람으로 팀을 꾸려 보내고, 돌아오면 알아서 챙겨요',
               button: const SizedBox.shrink(),
@@ -136,7 +136,7 @@ class _ExpBodyState extends State<ExpBody> {
                 widget.toast(!on ? '자동 원정을 켰어요 · 순찰·아이 돌보기 중인 사람은 남겨 둬요' : '자동 원정을 껐어요');
                 g.poke();
               }),
-            ));
+            )));
           }
           out.add(ugCard(context, g));
           out.add(lnCardWidget(context, g));

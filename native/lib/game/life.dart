@@ -111,9 +111,11 @@ extension Living on Game {
     sfx('get');
     fx.add(FxBurst(i, 0xFFFFD98A, 12));
     final fav = S.rest['favDone'] is Map ? S.rest['favDone'] as Map : (S.rest['favDone'] = <String, Object?>{});
+    var n = 0;
     for (final id in decoFans(k)) {
       if (!hasSv(id) || fav['$id'] == 1) continue;
       fav['$id'] = 1;
+      n++;
       final tb = Game.trustLv(xpOf(id));
       rec(id)!['xp'] = xpOf(id) + 30 * trustM;
       if (Game.trustLv(xpOf(id)) > tb) {
@@ -122,7 +124,8 @@ extension Living on Game {
       }
       // 그 사람이 장식 앞으로 걸어가 한마디 (웹 decoReact → WALK·CHAT)
       favReact.add((id, i, web.favSay['$id'] ?? '좋네요.'));
-      fx.add(FxToast('${jo(survivors[id].name, '이', '가')} ${jo(web.deco[k]!['n'] as String, '을', '를')} 좋아해요 · 신뢰 +30'));
+      // 좋아하는 사람이 여럿이면 0.4초씩 차례로 (웹 400*n)
+      fx.add(FxToastLater(400 * n, '${jo(survivors[id].name, '이', '가')} ${jo(web.deco[k]!['n'] as String, '을', '를')} 좋아해요 · 신뢰 +30'));
     }
     final seen = S.rest['setsSeen'] is Map ? S.rest['setsSeen'] as Map : (S.rest['setsSeen'] = <String, Object?>{});
     for (final q in decoSets().keys) {
