@@ -221,7 +221,7 @@ void main() {
       await tester.tap(find.text('꾸미기').last);
     });
     await _shot(tester, g, '21-ped', act: () async {
-      await tester.tap(find.text('🛒 노친네'));
+      await tester.tap(find.text('노친네').first); // 2026-10-14: 칩 이모지가 손그림 얼굴로 바뀜
     });
     await _shot(tester, g, '07-ring', act: () async {
       final r = tester.getRect(find.byType(MapView));
