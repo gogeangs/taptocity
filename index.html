@@ -3309,8 +3309,11 @@ modal.addEventListener('click',e=>{const b=e.target.closest('[data-act="promo"]'
 
 // ---------- equipment: getting, equipping, crafting ----------
 const BAGMAX=40;
+// 가방 칸 수는 착용 중인 장비를 빼고 센다(2026-10-15)
+const wornSet=()=>new Set(Object.values(S.sv).flatMap(r=>Object.values(r.eq||{})));
+const bagCount=()=>{const w=wornSet();return(S.inv||[]).filter(x=>!w.has(x.u)).length;};
 function addGear(t,src){if(!S.inv)S.inv=[];S.iu=(S.iu||0)+1;const it={u:S.iu,t};S.inv.push(it);
-  if(S.inv.length>BAGMAX){const worn=new Set(Object.values(S.sv).flatMap(r=>Object.values(r.eq||{})));const cand=S.inv.filter(x=>x!==it&&!worn.has(x.u)&&!GEAR[x.t].sig&&!GEAR[x.t].line&&!x.lk).sort((a,b)=>GEAR[a.t].g-GEAR[b.t].g)[0];if(cand){S.inv=S.inv.filter(x=>x!==cand);const G=GEAR[cand.t];give(G.cost?scaleCost(G.cost,.5):{parts:4*(G.g+1)});toast(`가방이 가득 차 ${G.n}을(를) 분해했어요`);}}if(src)toast(`${src} ${GEAR[t].n}!`);if(sheetTab==='gear')renderSheet();return it;}
+  if(bagCount()>BAGMAX){const worn=wornSet();const cand=S.inv.filter(x=>x!==it&&!worn.has(x.u)&&!GEAR[x.t].sig&&!GEAR[x.t].line&&!x.lk).sort((a,b)=>GEAR[a.t].g-GEAR[b.t].g)[0];if(cand){S.inv=S.inv.filter(x=>x!==cand);const G=GEAR[cand.t];give(G.cost?scaleCost(G.cost,.5):{parts:4*(G.g+1)});toast(`가방이 가득 차 ${G.n}을(를) 분해했어요`);}}if(src)toast(`${src} ${GEAR[t].n}!`);if(sheetTab==='gear')renderSheet();return it;}
 function dropGear(g){const pool=Object.keys(GEAR).filter(k=>GEAR[k].g===g&&!GEAR[k].sig&&!GEAR[k].ug&&!GEAR[k].line);return addGear(pool[(Math.random()*pool.length)|0]);}
 let gearCtx={id:null,slot:null};
 function openGear(id,slot){gearCtx={id,slot};closeModal();openSheet('gear');}
@@ -3360,7 +3363,7 @@ function renderGear(){const{id,slot}=gearCtx;let h='';
     h+=`<div class="sec">가방 속 ${SLOTN[slot]} ${list.length}개</div>`;
     if(!list.length)h+=emptyHtml(`<span class="ei2">${SLOTSVG[slot]}</span>`,`${SLOTN[slot]}이 아직 없어요`,'아래에서 만들거나 폐허·원정·주파수 탐색에서 찾아요');
     for(const it of list)h+=itemRow(it,(x,w)=>x.u===cur?'<button class="buy ghost" data-act="guneq">빼기</button>':`<button class="buy" data-act="geq" data-arg="${x.u}">${w!=null?'가져오기':'장착'}</button>`);}
-  else{$('shTitle').textContent=`장비 가방 ${(S.inv||[]).length}/${BAGMAX}`;
+  else{$('shTitle').textContent=`장비 가방 ${bagCount()}/${BAGMAX}`;
     h+=autoGearHtml();h+=tidyHtml();
     const fb=[['all','전체'],...SLOTK.map(k=>[k,SLOTN[k]])].map(([k,n])=>`<button class="bchip${bagF===k?' on':''}" data-act="bagf" data-arg="${k}" aria-pressed="${bagF===k}">${n} ${k==='all'?(S.inv||[]).length:(S.inv||[]).filter(x=>GEAR[x.t].slot===k).length}</button>`).join('');
     const sb=[['grade','등급순'],['new','새로 얻은 순'],['name','이름순']].map(([k,n])=>`<button class="bchip s${bagSort===k?' on':''}" data-act="bags" data-arg="${k}" aria-pressed="${bagSort===k}">${n}</button>`).join('');
