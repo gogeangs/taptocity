@@ -1,31 +1,12 @@
-  objective_c 9.5.0 (9.6.2 available)
-  petitparser 7.0.2 (7.1.0 available)
-  record_use 0.6.0 (1.1.1 available)
-  test_api 0.7.12 (0.7.15 available)
-  vector_math 2.4.0 (2.4.3 available)
-  xml 7.0.1 (7.1.0 available)
-Got dependencies!
-13 packages have newer versions incompatible with dependency constraints.
-Try `flutter pub outdated` for more information.
-Running Xcode build...                                          
-Xcode build done.                                           223.4s
-VMServiceFlutterDriver: Connecting to Flutter application at http://127.0.0.1:56670/pfNf1uIACzs=/
-VMServiceFlutterDriver: Isolate found with number: 6997963311074619
-VMServiceFlutterDriver: Isolate 6997963311074619 is runnable.
-VMServiceFlutterDriver: Isolate is paused at start.
-VMServiceFlutterDriver: Attempting to resume isolate
-flutter: 00:00 +0: iPhone에서 앱 띄워 보기
-VMServiceFlutterDriver: Connected to Flutter application.
-flutter: ▶ 처음 켜기 (0s)
 VMServiceFlutterDriver: request_data message is taking a long time to complete...
 flutter: ▶ 첫 화면 두드리기 (15s)
 flutter: ▶ 진행 중인 저장으로 켜기 (20s)
-flutter: ▶ 지도 두드리기 (소리) (27s)
-flutter: ▶ 탭 쉘터 (32s)
-flutter: ▶ 쉘터 · 건설 (34s)
-flutter: ▶ 쉘터 · 가공 (34s)
-flutter: ▶ 쉘터 · 연구 (34s)
-flutter: ▶ 쉘터 닫기 (34s)
+flutter: ▶ 지도 두드리기 (소리) (26s)
+flutter: ▶ 탭 쉘터 (31s)
+flutter: ▶ 쉘터 · 건설 (33s)
+flutter: ▶ 쉘터 · 가공 (33s)
+flutter: ▶ 쉘터 · 연구 (33s)
+flutter: ▶ 쉘터 닫기 (33s)
 flutter: ▶ 탭 일지 (35s)
 flutter: ▶ 일지 · 이야기 (37s)
 flutter: ▶ 일지 · 도감 (39s)
@@ -33,28 +14,47 @@ flutter: ▶ 일지 닫기 (40s)
 flutter: ▶ 탭 원정 (42s)
 flutter: ▶ 원정 닫기 (44s)
 flutter: ▶ 탭 라디오 (45s)
-flutter: ▶ 라디오 닫기 (50s)
-flutter: ▶ 탭 생존자 (53s)
-flutter: ▶ 생존자 닫기 (55s)
-flutter: ▶ 설정 (58s)
-flutter: ▶ 설정 닫기 (61s)
-flutter: ▶ 프로필 (62s)
--[WFIsolatedShortcutRunner init] Taking sandbox extensions for execution
--[WFIsolatedShortcutRunner init]_block_invoke Sandbox extensions acquired
-Indexing for request: <WFToolKitIndexingRequest: 0x102db8320>, changeset: .full, priority: 31
-flutter: ▶ 프로필 닫기 (65s)
-flutter: ▶ 뒤로 갔다 돌아오기 (65s)
-flutter: ▶ 저장 확인 (69s)
-flutter: ▶ 진동 채널 (69s)
-flutter: 01:10 +1: (tearDownAll)
-Failed to index parameter type: <WFTagFieldParameter: 0x107b40380> in is.workflow.actions.addnewreminder: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFTagFieldParameter) for locale: en
-flutter: 01:21 +2: All tests passed!
-Failed to index parameter type: <WFLightroomPresetPickerParameter: 0x107eed900> in is.workflow.actions.lightroom.import: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.missingIntentDescription for locale: en
-Failed to index parameter type: <WFPosterPickerParameter: 0x106cb9500> in is.workflow.actions.wallpaper.set: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFPosterPickerParameter) for locale: en
-Failed to index parameter type: <WFHomeAccessoryPickerParameter: 0x108313300> in is.workflow.actions.homeaccessory: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFHomeAccessoryPickerParameter) for locale: en
-Skipping: <WFUnionParameter: 0x109011000> in com.apple.mobilecal.CreateEventIntent because union values themselves are not treated as a type
-Skipping: <WFUnionParameter: 0x109011200> in com.apple.mobilecal.CreateEventIntent because union values themselves are not treated as a type
-Failed to index parameter type: <WFContentArrayParameter: 0x1083a32c0> in is.workflow.actions.list: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFContentArrayParameter) for locale: en
-Failed to index parameter type: <WFSystemShortcutPickerParameter: 0x10920ccc0> in com.apple.shortcuts.RunShortcutIntent: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFSystemShortcutPickerParameter) for locale: en
-Failed to index parameter type: <WFEvernoteTagsTagFieldParameter: 0x109214e00> in is.workflow.actions.evernote.new: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFEvernoteTagsTagFieldParameter) for locale: en
+flutter: ▶ 라디오 닫기 (47s)
+flutter: ▶ 탭 생존자 (48s)
+flutter: ▶ 생존자 닫기 (50s)
+flutter: ▶ 설정 (52s)
+flutter: ▶ 설정 닫기 (54s)
+flutter: ▶ 프로필 (55s)
+flutter: ▶ 프로필 닫기 (57s)
+flutter: ▶ 뒤로 갔다 돌아오기 (57s)
+flutter: ▶ 저장 확인 (62s)
+flutter: ▶ 진동 채널 (62s)
+flutter: 01:02 +1: (tearDownAll)
+flutter: 01:09 +2: All tests passed!
+Failed to index parameter type: <WFExpandingParameter: 0x10d439b20> in is.workflow.actions.encodemedia: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFExpandingParameter) for locale: en
+Failed to index parameter type: <WFPhotoItemCollectionParameter: 0x10d43aa00> in com.apple.mobileslideshow.PLPhotosReliveWidgetConfigurationIntent: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFPhotoItemCollectionParameter) for locale: en
+Failed to index parameter type: <WFMailSenderPickerParameter: 0x10d4e9380> in is.workflow.actions.sendemail: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.missingIntentDescription for locale: en
+Failed to index parameter type: <WFContentArrayParameter: 0x10d500540> in is.workflow.actions.list: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFContentArrayParameter) for locale: en
+Skipping: <WFUnionParameter: 0x10d52f500> in com.apple.mobilecal.EditEventIntent because union values themselves are not treated as a type
+Skipping: <WFUnionParameter: 0x10d52f700> in com.apple.mobilecal.EditEventIntent because union values themselves are not treated as a type
+Failed to index parameter type: <WFEvernoteTagsTagFieldParameter: 0x10d596100> in is.workflow.actions.evernote.new: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFEvernoteTagsTagFieldParameter) for locale: en
+Failed to index parameter type: <WFSystemShortcutPickerParameter: 0x10d573240> in com.apple.shortcuts.RunShortcutIntent: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFSystemShortcutPickerParameter) for locale: en
+Failed to index parameter type: <WFSpotlightSearchResultTypePickerParameter: 0x10d61d500> in is.workflow.actions.spotlightsearch: ActionKit.(unknown context at $106552880).WFParameterStateToolKitConversionError.unknownParameterState(WFMultipleValueParameterState) for locale: en
+Failed to index parameter type: <WFSystemShortcutPickerParameter: 0x10d6600c0> in com.apple.shortcuts.RunShortcutConfigurationIntent: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFSystemShortcutPickerParameter) for locale: en
+Skipping: <WFUnionParameter: 0x10d627900> in com.apple.MobileSMS.SendMessageReactionIntent because union values themselves are not treated as a type
+Failed to index parameter type: <WFEvernoteTagsTagFieldParameter: 0x10d731b00> in is.workflow.actions.evernote.get: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFEvernoteTagsTagFieldParameter) for locale: en
+Failed to index parameter type: <WFHomeServicePickerParameter: 0x10d790600> in is.workflow.actions.gethomeaccessorystate: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFHomeServicePickerParameter) for locale: en
+Failed to index parameter type: <WFLightroomPresetPickerParameter: 0x10d45e440> in is.workflow.actions.lightroom.import: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.missingIntentDescription for locale: en
+Failed to index action parameter: <WFFontPickerParameter: 0x10bf7bcc0> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFFontPickerParameter)
+Failed to index action parameter: <WFPosterPickerParameter: 0x10cc9e880> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFPosterPickerParameter)
+Failed to check availability in Spotlight for action is.workflow.actions.workout.end: Error Domain=NSOSStatusErrorDomain Code=-10814 "(null)" UserInfo={_LSLine=156, _LSFunction=+[LSBundleRecord bundleRecordWithBundleIdentifier:allowPlaceholder:error:], _LSFile=LSBundleRecord.mm, NSUnderlyingError=0x10f31f240 {Error Domain=NSOSStatusErrorDomain Code=-10814 "Unable to find this application extension record in the Launch Services database." UserInfo={_LSLine=652, _LSFunction=_LSPluginFindWithPlatformInfo, _LSFile=LSPluginBundle.mm, NSDebugDescription=Unable to find this application extension record in the Launch Services database., SK=com.apple.SessionTrackerApp, IS=false}}}
+Failed to index action parameter: <WFTagFieldParameter: 0x10cfe0380> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFTagFieldParameter)
+Failed to index action parameter: <WFSSHKeyParameter: 0x10acb52c0> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFSSHKeyParameter)
+Failed to index action parameter: <WFDynamicTagFieldParameter: 0x10d078400> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFDynamicTagFieldParameter)
+Failed to index action parameter: <WFDynamicTagFieldParameter: 0x10d078500> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFDynamicTagFieldParameter)
+is.workflow.actions.conditional WFConditionalAction: Skipped because: [control flow]
+Failed to index action parameter: <WFInputTypeParameter: 0x10d159200> due to ActionKit.(unknown context at $106552880).WFParameterStateToolKitConversionError.unknownParameterState(WFMultipleValueParameterState)
+Failed to index action parameter: <WFInputSurfaceParameter: 0x10acdb3c0> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFInputSurfaceParameter)
+Failed to index action parameter: <WFHomeAccessoryPickerParameter: 0x10d1b1a40> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFHomeAccessoryPickerParameter)
+Failed to index action parameter: <WFMediaPickerParameter: 0x10d1b3c00> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFMediaPickerParameter)
+Failed to index action parameter: <WFPosterPickerParameter: 0x10d254540> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFPosterPickerParameter)
+Failed to check availability in Spotlight for action is.workflow.actions.workout.start: Error Domain=NSOSStatusErrorDomain Code=-10814 "(null)" UserInfo={_LSLine=156, _LSFunction=+[LSBundleRecord bundleRecordWithBundleIdentifier:allowPlaceholder:error:], _LSFile=LSBundleRecord.mm, NSUnderlyingError=0x10f482160 {Error Domain=NSOSStatusErrorDomain Code=-10814 "Unable to find this application extension record in the Launch Services database." UserInfo={_LSLine=652, _LSFunction=_LSPluginFindWithPlatformInfo, _LSFile=LSPluginBundle.mm, NSDebugDescription=Unable to find this application extension record in the Launch Services database., SK=com.apple.SessionTrackerApp, IS=false}}}
+Failed to index action parameter: <WFSystemShortcutPickerParameter: 0x10d256e80> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFSystemShortcutPickerParameter)
+is.workflow.actions.repeat.each WFForEachRepeatAction: Skipped because: [control flow]
+Failed to index action parameter: <WFSystemShortcutPickerParameter: 0x10d450000> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFSystemShortcutPickerParameter)
 All tests passed.
