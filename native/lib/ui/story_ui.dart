@@ -669,11 +669,48 @@ class GuideTarget {
   final double z;
 }
 
+/// 이 걸음에서 지을 모듈·증축 비용 중 모자란 기본 자재 (웹 stepLack · LACK_RAW)
+String? _stepLack(Game g, String? hl) {
+  if (hl == null) return null;
+  Cost? c;
+  final mb = RegExp(r'mbuild"\]\[data-arg="(\d+)"').firstMatch(hl);
+  if (mb != null) {
+    final id = int.parse(mb.group(1)!);
+    if (g.hasMod(id) || mods[id] == null) return null;
+    c = g.modBuildCost(id);
+  } else if (hl.contains('"shup"') && g.S.lv < 5) {
+    c = g.shelterUpCost;
+  }
+  if (c == null || g.canPay(c)) return null;
+  const raw = ['wood', 'scrap', 'cloth', 'food', 'parts', 'fuel'];
+  for (final k in c.keys) {
+    if (raw.contains(k) && g.have(k) < (c[k] ?? 0)) return k;
+  }
+  return null;
+}
+
 GuideTarget? guideTarget(Game g) {
   if (g.tut != null) return _tutTarget(g);
   final m = g.mission();
   if (m.done || m.step == null || m.step!.focus == null) return null;
   final st = m.step!, f = st.focus!, S = g.S;
+  // 지어야 할 것의 자재가 모자라면 쉘터 대신 자재를 모을 곳을 가리킨다 (웹 stepLack 2026-10-15)
+  final lk = _stepLack(g, st.hl);
+  if (lk != null) {
+    final t = '${matOf[lk]?.n ?? '자재'} 모으기';
+    var bi = -1;
+    var bd = 1e9;
+    for (var j = 0; j < N; j++) {
+      if (g.siteLive(j) && S.rev[j] == 1) {
+        final d = dist(j);
+        if (d < bd) {
+          bd = d;
+          bi = j;
+        }
+      }
+    }
+    return bi >= 0 ? GuideTarget(tile: bi, label: t) : GuideTarget(el: 'lamp', label: t);
+  }
   switch (f) {
     case 'lamp':
       return const GuideTarget(el: 'lamp', label: '랜턴으로 땅 밝히기');
@@ -775,8 +812,9 @@ GuideTarget? _tutTarget(Game g) {
 
 /// 화살표 (웹 #guide: 호박색 말풍선 + 아래 삼각형, 위아래로 까딱)
 class GuideArrow extends StatefulWidget {
-  const GuideArrow(this.label, {super.key, this.x = 0, this.screenW = 0});
+  const GuideArrow(this.label, {super.key, this.x = 0, this.screenW = 0, this.onTap});
   final String label;
+  final VoidCallback? onTap; // 화면 밖을 가리킬 때만: 누르면 그쪽으로 (웹 #guide.off)
   final double x, screenW; // 말풍선이 화면 밖으로 나가지 않게 옆으로 민다 (꼬리는 그대로)
   @override
   State<GuideArrow> createState() => _GuideArrowState();
@@ -799,7 +837,8 @@ class _GuideArrowState extends State<GuideArrow> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) => IgnorePointer(
-        child: AnimatedBuilder(
+        ignoring: widget.onTap == null,
+        child: GestureDetector(onTap: widget.onTap, child: AnimatedBuilder(
           animation: a,
           builder: (c, child) => Transform.translate(offset: Offset(0, -8 * math.sin(a.value * math.pi)), child: child),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -820,7 +859,7 @@ class _GuideArrowState extends State<GuideArrow> with SingleTickerProviderStateM
               ),
             CustomPaint(size: const Size(20, 13), painter: _Tri()),
           ]),
-        ),
+        )),
       );
 }
 

@@ -1007,7 +1007,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         final gid = a == null ? null : int.parse(a[0]), gsl = a?[1];
         return SheetPanel(
             icon: Ico.surv,
-            title: gid != null ? '${survivors[gid].name} · ${slotName[gsl]}' : '장비 가방 ${g.inv.length}/${Game.bagMax}',
+            title: gid != null ? '${survivors[gid].name} · ${slotName[gsl]}' : '장비 가방 ${g.bagCount}/${Game.bagMax}',
             onClose: _close,
             child: BagBody(g, key: ValueKey(s.arg), id: gid, slot: gsl, toast: fxc.toast, onBack: () {
               setState(() => sheet = null);
@@ -1247,8 +1247,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                         final tg = _guide!, p0 = _guidePos(tg, bottom);
                         if (p0 == null) return const SizedBox.shrink();
                         var label = tg.label;
+                        var off = false;
                         if (tg.tile >= 0) {
-                          final off = p0.dx < 50 || p0.dx > box.maxWidth - 50 || p0.dy < 110 || p0.dy > box.maxHeight - 190;
+                          off = p0.dx < 50 || p0.dx > box.maxWidth - 50 || p0.dy < 110 || p0.dy > box.maxHeight - 190;
                           if (off) {
                             final dx = p0.dx - box.maxWidth / 2, dy = p0.dy - box.maxHeight / 2;
                             label += ' ${dx.abs() > dy.abs() * 1.3 ? (dx > 0 ? '→' : '←') : (dy > 0 ? '↓' : '↑')}';
@@ -1256,7 +1257,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                         }
                         final x = p0.dx.clamp(40.0, math.max(40.0, box.maxWidth - 40)), y = p0.dy.clamp(40.0, math.max(40.0, box.maxHeight - 8));
                         return Stack(children: [
-                          Positioned(left: x.toDouble(), top: y.toDouble(), child: FractionalTranslation(translation: const Offset(-.5, -1), child: GuideArrow(label, x: x.toDouble(), screenW: box.maxWidth))),
+                          Positioned(left: x.toDouble(), top: y.toDouble(), child: FractionalTranslation(translation: const Offset(-.5, -1), child: GuideArrow(label, x: x.toDouble(), screenW: box.maxWidth,
+                                  // 화면 밖을 가리키는 안내(쉘터 ← 등)는 눌러서 그쪽으로 (웹 2026-10-15)
+                                  onTap: off ? () => g.panGuide = DateTime.now().millisecondsSinceEpoch : null))),
                         ]);
                       },
                     ),

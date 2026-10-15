@@ -756,6 +756,22 @@ class Game extends ChangeNotifier {
 
   // ================= 장비 (웹 1554–1591, 3283–3352, 4168) =================
   static const bagMax = 40;
+
+  /// 누군가 입고 있는 장비 번호들 (웹 wornSet)
+  Set<Object?> get wornSet {
+    final worn = <Object?>{};
+    for (final id in svIds) {
+      final q = rec(id)?['eq'];
+      if (q is Map) worn.addAll(q.values);
+    }
+    return worn;
+  }
+
+  /// 가방 칸 수: 입고 있는 장비는 빼고 센다 (웹 bagCount 2026-10-15)
+  int get bagCount {
+    final w = wornSet;
+    return inv.where((x) => !w.contains(x['u'])).length;
+  }
   List<Map> get inv {
     if (S.rest['inv'] is! List) S.rest['inv'] = <Object?>[];
     return (S.rest['inv'] as List).whereType<Map>().toList();
@@ -811,12 +827,8 @@ class Game extends ChangeNotifier {
     S.rest['iu'] = u;
     final it = <String, Object?>{'u': u, 't': t};
     list.add(it);
-    if (list.length > bagMax) {
-      final worn = <Object?>{};
-      for (final id in svIds) {
-        final q = rec(id)?['eq'];
-        if (q is Map) worn.addAll(q.values);
-      }
+    if (bagCount > bagMax) {
+      final worn = wornSet;
       final cand = list.whereType<Map>().where((x) => x != it && !worn.contains(x['u']) && !(gear[x['t']]?.sig ?? true) && !(gear[x['t']]?.line ?? true) && x['lk'] != 1).toList()
         ..sort((a, b) => gear[a['t']]!.g - gear[b['t']]!.g);
       if (cand.isNotEmpty) {
