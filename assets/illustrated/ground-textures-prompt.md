@@ -8,3 +8,5 @@ each isometric diamond tile, then lightly tinted by the code so greenness, regio
   4 desert sand, 5 factory soot ground, 6 snow over ash, 7 frozen water.
 - Each square must tile seamlessly with itself (left edge matches right, top matches bottom). After receiving the file the edges are
   blended once more in code so tiling seams do not show.
+
+> 2026-10-15: 게임에 쓰지 않는 원본 `ground-textures.webp`는 저장소에서 삭제. 게임은 다듬은 `ground-tiles.webp`만 쓴다(원본은 git 이력에 남아 있음).

@@ -4574,7 +4574,7 @@ function tpBoxes(){if(TP.box)return TP.box;const im=TP.img;if(!(im.complete&&im.
     for(let k=0;k<8;k++){const ox=(k%4)*cw,oy=(k/4|0)*ch;let x0=cw,y0=ch,x1=0,y1=0;for(let y=0;y<ch;y+=2)for(let x=0;x<cw;x+=2){if(d[((oy+y)*c.width+ox+x)*4+3]>24){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}}
       box.push(x1>x0?[ox+x0,oy+y0,x1-x0+2,y1-y0+2]:[ox,oy,cw,ch]);}
     TP.box=box;}catch(e){TP.box=null;return null;}return TP.box;}
-// 손그림 땅·물 질감(ground-tiles.webp: ground-textures.webp를 이음매 없이 다듬어 256px로 줄인 것, 4x2):
+// 손그림 땅·물 질감(ground-tiles.webp: 지피티 원본 ground-textures를 이음매 없이 다듬어 256px로 줄인 것, 4x2 · 원본은 2026-10-15 삭제):
 // 0 재 덮인 흙 · 1 마른 풀 · 2 콘크리트 · 3 물 · 4 사막 모래 · 5 공단 그을린 땅 · 6 눈 덮인 땅 · 7 언 물. 질감 한 장이 땅 두 칸을 덮고, 칸을 넘어 이어진다.
 const GT={img:ttcLazy('assets/illustrated/ground-tiles.webp'),pat:null};
 function gtPat(k){if(!GT.pat){const im=GT.img;if(!(im.complete&&im.naturalWidth))return null;try{GT.pat=[];const m=new DOMMatrix([TW/256,TH/256,-TW/256,TH/256,0,0]);
