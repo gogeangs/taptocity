@@ -5531,7 +5531,7 @@ function chooseEv(k){const e=evCur;if(!e)return;const o=k?e.b:e.a,c=evCost(o);if
   if(fx.reveal){revealN(fx.reveal);sum.push({t:`어둠 ${fx.reveal}칸 걷힘`});}
   give({batt:1});sum.push({t:'건전지 +1'});S.evDone=(S.evDone||0)+1;evCur=null;$('evBtn').hidden=true;evT=70+Math.random()*60;recalc();save();sfx('chime');
   const sv=evWho(e);
-  openModal(`<div class="page req done"><div class="rqh"><span class="rqav${sv?'':' guest'}">${sv?portrait(sv):guestAv(evCur)}</span><div><div class="tag">부탁을 들어줬어요</div><h3>${e.t}</h3></div></div>
+  openModal(`<div class="page req done"><div class="rqh"><span class="rqav${sv?'':' guest'}">${sv?portrait(sv):guestAv(e)}</span><div><div class="tag">부탁을 들어줬어요</div><h3>${e.t}</h3></div></div>
     <p class="rqsay">${o.r}</p><div class="rqget big">${evChips(sum)}</div><button class="rqok">좋아요</button></div>`,true);}
 
 // ================= 생존자 의뢰: small side jobs between story goals =================
