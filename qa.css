@@ -508,3 +508,7 @@ body.ringon #skills{opacity:0!important;pointer-events:none!important}
 #ring{z-index:5}
 body.ringon #toasts{z-index:4!important}
 body.ringon #toasts>*{pointer-events:none!important;opacity:.55}
+
+/* 설정 → 클라우드 저장 줄: 아이콘 칸이 없어서 글이 36px 칸에 갇혀 한 단어씩 줄바꿈되던 문제 */
+.row.setrow.cloudrow{grid-template-columns:1fr auto!important}
+.row.setrow.cloudrow>div:first-child{min-width:0}

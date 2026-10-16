@@ -13,7 +13,7 @@ function ui(){const box=$('ttcCloud');if(!box)return;const u=st.user;
   if(!st.ok)h=`<div class="d">${st.offline?'지금은 인터넷에 닿지 않아 클라우드 저장이 쉬고 있어요. 진행은 이 기기에 그대로 저장되고, 다음에 온라인으로 열면 다시 백업돼요.':'클라우드 저장을 준비하고 있어요.'}</div>`;
   else if(!u)h=`<div class="d">연결하는 중…</div>`;
   else{const g=!u.isAnonymous,em=g&&(u.email||u.displayName)||'';
-    h=`<div class="row setrow"><div><div class="t">${g?'구글 계정에 저장 중':'이 기기로 자동 저장 중'}</div><div class="d">${g?`${em} · 다른 기기에서 같은 계정으로 로그인하면 이어서 할 수 있어요`:IOS?'진행이 서버에도 자동으로 백업돼요':'구글 계정을 연결하면 휴대폰을 바꿔도 진행이 이어져요'}${st.last?`<br>마지막 저장 ${when(st.last)}`:''}${st.msg?`<br><b>${st.msg}</b>`:''}</div></div></div>
+    h=`<div class="row setrow cloudrow"><div><div class="t">${g?'구글 계정에 저장 중':'이 기기로 자동 저장 중'}</div><div class="d">${g?`${em} · 다른 기기에서 같은 계정으로 로그인하면 이어서 할 수 있어요`:IOS?'진행이 서버에도 자동으로 백업돼요':'구글 계정을 연결하면 휴대폰을 바꿔도 진행이 이어져요'}${st.last?`<br>마지막 저장 ${when(st.last)}`:''}${st.msg?`<br><b>${st.msg}</b>`:''}</div></div></div>
       <div class="btns" style="gap:8px">${g?`<button class="buy ghost" data-cloud="now">지금 저장</button><button class="buy ghost" data-cloud="out">로그아웃</button>`:`${IOS?'':'<button class="buy" data-cloud="google">구글 계정 연결</button>'}<button class="buy ghost" data-cloud="now">지금 저장</button>`}</div>
       <div class="d" style="margin-top:8px"><button class="buy ghost" data-cloud="delete" style="font-size:12px;padding:6px 10px">클라우드 데이터 삭제</button> · 서버에 저장된 진행과 계정 연결을 지워요. 이 기기의 진행은 남아요.</div>`;}
   box.innerHTML=h;}
