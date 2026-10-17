@@ -1,58 +1,60 @@
-Resolving dependencies...
-Downloading packages...
-  app_links 6.4.1 (7.2.2 available)
-  code_assets 1.2.1 (2.1.0 available)
-  flutter_lints 5.0.0 (6.0.0 available)
-  hooks 2.0.2 (2.2.0 available)
-  lints 5.1.1 (6.1.0 available)
-  material_color_utilities 0.13.0 (0.13.1 available)
-  meta 1.18.3 (1.19.0 available)
-  objective_c 9.5.0 (9.6.2 available)
-  petitparser 7.0.2 (7.1.0 available)
-  record_use 0.6.0 (1.1.1 available)
-  shared_preferences_foundation 2.5.7 (2.6.0 available)
-  test_api 0.7.12 (0.7.15 available)
-  vector_math 2.4.0 (2.4.3 available)
-  xml 7.0.1 (7.1.0 available)
-Got dependencies!
-14 packages have newer versions incompatible with dependency constraints.
-Try `flutter pub outdated` for more information.
-Running Xcode build...                                          
-Xcode build done.                                           184.9s
-VMServiceFlutterDriver: Connecting to Flutter application at http://127.0.0.1:57632/aRgcnjX5E-o=/
-VMServiceFlutterDriver: Isolate found with number: 2458175940380891
-VMServiceFlutterDriver: Isolate 2458175940380891 is runnable.
-VMServiceFlutterDriver: Isolate is paused at start.
-VMServiceFlutterDriver: Attempting to resume isolate
-flutter: 00:00 +0: iPhone에서 앱 띄워 보기
-flutter: ▶ 처음 켜기 (0s)
-VMServiceFlutterDriver: Connected to Flutter application.
-VMServiceFlutterDriver: request_data message is taking a long time to complete...
-flutter: ▶ 첫 화면 두드리기 (18s)
-flutter: ▶ 진행 중인 저장으로 켜기 (23s)
-flutter: ▶ 지도 두드리기 (소리) (29s)
-flutter: ▶ 탭 쉘터 (34s)
-flutter: ▶ 쉘터 · 건설 (36s)
-flutter: ▶ 쉘터 · 가공 (36s)
-flutter: ▶ 쉘터 · 연구 (36s)
-flutter: ▶ 쉘터 닫기 (36s)
-flutter: ▶ 탭 일지 (38s)
-flutter: ▶ 일지 · 이야기 (41s)
-flutter: ▶ 일지 · 도감 (42s)
-flutter: ▶ 일지 닫기 (44s)
-flutter: ▶ 탭 원정 (46s)
-flutter: ▶ 원정 닫기 (47s)
-flutter: ▶ 탭 라디오 (49s)
-flutter: ▶ 라디오 닫기 (51s)
-flutter: ▶ 탭 생존자 (52s)
-flutter: ▶ 생존자 닫기 (54s)
-flutter: ▶ 설정 (55s)
-flutter: ▶ 설정 닫기 (57s)
-flutter: ▶ 프로필 (58s)
-flutter: ▶ 프로필 닫기 (61s)
-flutter: ▶ 뒤로 갔다 돌아오기 (61s)
-flutter: ▶ 저장 확인 (66s)
-flutter: ▶ 진동 채널 (66s)
-flutter: 01:06 +1: (tearDownAll)
-flutter: 01:14 +2: All tests passed!
+Failed to index action parameter: <WFSystemShortcutPickerParameter: 0x1094dccc0> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFSystemShortcutPickerParameter)
+Failed to index action parameter: <WFHomeAccessoryPickerParameter: 0x10b4b5080> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFHomeAccessoryPickerParameter)
+is.workflow.actions.choosefrommenu WFChooseFromMenuAction: Skipped because: [control flow]
+flutter: ▶ 진행 중인 저장으로 켜기 (17s)
+Failed to index action parameter: <WFEvernoteTagsTagFieldParameter: 0x10b6ccf00> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFEvernoteTagsTagFieldParameter)
+is.workflow.actions.repeat.each WFForEachRepeatAction: Skipped because: [control flow]
+Failed to check availability in Spotlight for action is.workflow.actions.workout.start: Error Domain=NSOSStatusErrorDomain Code=-10814 "(null)" UserInfo={_LSLine=156, _LSFunction=+[LSBundleRecord bundleRecordWithBundleIdentifier:allowPlaceholder:error:], _LSFile=LSBundleRecord.mm, NSUnderlyingError=0x10d822cd0 {Error Domain=NSOSStatusErrorDomain Code=-10814 "Unable to find this application extension record in the Launch Services database." UserInfo={_LSLine=652, _LSFunction=_LSPluginFindWithPlatformInfo, _LSFile=LSPluginBundle.mm, NSDebugDescription=Unable to find this application extension record in the Launch Services database., SK=com.apple.SessionTrackerApp, IS=false}}}
+Failed to index action parameter: <WFInputTypeParameter: 0x10c4eae80> due to ActionKit.(unknown context at $104aee880).WFParameterStateToolKitConversionError.unknownParameterState(WFMultipleValueParameterState)
+Failed to index action parameter: <WFInputSurfaceParameter: 0x10c510900> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFInputSurfaceParameter)
+Failed to index action parameter: <WFSSHKeyParameter: 0x10c511b00> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFSSHKeyParameter)
+Failed to index action parameter: <WFHomeServicePickerParameter: 0x10c511ec0> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFHomeServicePickerParameter)
+Failed to index action parameter: <WFPhotoItemCollectionParameter: 0x10c555dc0> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFPhotoItemCollectionParameter)
+is.workflow.actions.repeat.count WFFiniteRepeatAction: Skipped because: [control flow]
+is.workflow.actions.conditional WFConditionalAction: Skipped because: [control flow]
+Failed to index action parameter: <WFFontPickerParameter: 0x10d04ccc0> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFFontPickerParameter)
+Failed to index action parameter: <WFMediaPickerParameter: 0x10d12ccc0> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFMediaPickerParameter)
+Failed to index action parameter: <WFPosterPickerParameter: 0x10d16c000> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFPosterPickerParameter)
+Failed to index action parameter: <WFSystemShortcutPickerParameter: 0x10d16c600> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFSystemShortcutPickerParameter)
+Failed to index action parameter: <WFDynamicTagFieldParameter: 0x10d1c7100> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFDynamicTagFieldParameter)
+Failed to index action parameter: <WFDynamicTagFieldParameter: 0x10d1c7200> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFDynamicTagFieldParameter)
+Failed to index action parameter: <WFTagFieldParameter: 0x10d19f9c0> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFTagFieldParameter)
+Failed to index action parameter: <WFSpotlightSearchResultTypePickerParameter: 0x10d303180> due to ActionKit.(unknown context at $104aee880).WFParameterStateToolKitConversionError.unknownParameterState(WFMultipleValueParameterState)
+Failed to index action parameter: <WFMailSenderPickerParameter: 0x10d303c00> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.missingIntentDescription
+Failed to check availability in Spotlight for action is.workflow.actions.sendemail: Error Domain=NSOSStatusErrorDomain Code=-10814 "(null)" UserInfo={_LSLine=156, _LSFunction=+[LSBundleRecord bundleRecordWithBundleIdentifier:allowPlaceholder:error:], _LSFile=LSBundleRecord.mm, NSUnderlyingError=0x10d981950 {Error Domain=NSOSStatusErrorDomain Code=-10814 "Unable to find this application extension record in the Launch Services database." UserInfo={_LSLine=652, _LSFunction=_LSPluginFindWithPlatformInfo, _LSFile=LSPluginBundle.mm, NSDebugDescription=Unable to find this application extension record in the Launch Services database., SK=com.apple.mobilemail, IS=false}}}
+is.workflow.actions.useractivity.open WFOpenUserActivityAction: Skipped because: [donation-based action]
+Failed to index action parameter: <WFEvernoteTagsTagFieldParameter: 0x10d484f00> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFEvernoteTagsTagFieldParameter)
+is.workflow.actions.sirikit.donation.handle WFHandleDonatedIntentAction: Skipped because: [donation-based action]
+Indexed: 1097
+Errored: 0
+Skipped: [donation-based action: 2, control flow: 4]
+   donation-based action: 2
+   control flow: 4
+Finished in 87.360852s
+-[WFIsolatedShortcutRunner unaliveProcess] Releasing sandbox extensions
+flutter: ▶ 지도 두드리기 (소리) (23s)
+flutter: ▶ 탭 쉘터 (28s)
+flutter: ▶ 쉘터 · 건설 (30s)
+flutter: ▶ 쉘터 · 가공 (30s)
+flutter: ▶ 쉘터 · 연구 (30s)
+flutter: ▶ 쉘터 닫기 (30s)
+flutter: ▶ 탭 일지 (31s)
+flutter: ▶ 일지 · 이야기 (33s)
+flutter: ▶ 일지 · 도감 (34s)
+flutter: ▶ 일지 닫기 (36s)
+flutter: ▶ 탭 원정 (37s)
+flutter: ▶ 원정 닫기 (39s)
+flutter: ▶ 탭 라디오 (40s)
+flutter: ▶ 라디오 닫기 (42s)
+flutter: ▶ 탭 생존자 (43s)
+flutter: ▶ 생존자 닫기 (45s)
+flutter: ▶ 설정 (46s)
+flutter: ▶ 설정 닫기 (48s)
+flutter: ▶ 프로필 (49s)
+flutter: ▶ 프로필 닫기 (52s)
+flutter: ▶ 뒤로 갔다 돌아오기 (52s)
+flutter: ▶ 저장 확인 (56s)
+flutter: ▶ 진동 채널 (56s)
+flutter: 00:56 +1: (tearDownAll)
+flutter: 01:01 +2: All tests passed!
 All tests passed.
