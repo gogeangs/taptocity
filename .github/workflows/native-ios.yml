@@ -67,6 +67,7 @@ jobs:
           if [ $s -ne 0 ]; then m=$(tail -60 ../out.txt | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}'); echo "::error title=ios::$m"; exit $s; fi
 
       - name: iPhone 시뮬레이터에서 띄워 보기
+        timeout-minutes: 28
         run: |
           set +e +o pipefail
           UDID=$(xcrun simctl list devices available -j | python3 -c "
@@ -96,6 +97,10 @@ jobs:
         if: always()
         run: |
           set +e
+          mkdir -p ios-shots
+          # 시뮬레이터 단계가 시간 초과로 끊겨도 어디서 멈췄는지 남긴다
+          [ -s ios-shots/steps.txt ] || grep -E '▶|✓|✗' ../drive.txt > ios-shots/steps.txt 2>/dev/null
+          [ -s ios-shots/drive-log.txt ] || grep -v '^\s*$' ../drive.txt 2>/dev/null | tail -60 > ios-shots/drive-log.txt
           echo "::notice title=ios-shots::$(ls ios-shots 2>&1 | tr '\n' ' ')"
           [ -f ios-shots/report.json ] && echo "::notice title=report::$(head -c 3000 ios-shots/report.json | sed 's/%/%25/g')"
           [ -s ios-shots/faults.txt ] && echo "::warning title=faults::$(head -c 3000 ios-shots/faults.txt | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}')"
