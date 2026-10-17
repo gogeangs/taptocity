@@ -27,6 +27,12 @@ extension Quest on Game {
     return s < Q.steps.length ? Q.steps[s] : null;
   }
 
+  /// 걸음 문구: 상황에 따라 바뀌는 문구가 있으면 그쪽 (웹 qSay — 말순: 철호가 이미 있으면)
+  String qSay(Map st) {
+    final a = st['alt'] as Map?;
+    return a != null && hasSv((a['sv'] as num).toInt()) ? a['say'] as String : '${st['say']}';
+  }
+
   String qStepTxt(Map st) => switch (st['k']) {
         'find' => '지하 ${st['f']}층 이상에서 ‘${st['item']}’ 찾기 (함께 내려가요)',
         'ug' => '함께 지하 ${st['f']}층까지 내려가기',
@@ -53,7 +59,7 @@ extension Quest on Game {
       _changed();
       return;
     }
-    fx.add(FxNote('${survivors[id].name} · ${Q.t} ${s + 1}/${Q.steps.length}', '${Q.steps[s]['say']}', ms: 5200));
+    fx.add(FxNote('${survivors[id].name} · ${Q.t} ${s + 1}/${Q.steps.length}', qSay(Q.steps[s]), ms: 5200));
     _changed();
   }
 

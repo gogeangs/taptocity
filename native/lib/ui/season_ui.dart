@@ -199,7 +199,7 @@ Future<void> showCrowMeet(BuildContext context, Game g) async {
         caseLines(g, const [
           Line('me', '원정대가 돌아오는 길목을 검은 옷의 무리가 막아섰다. 벽에서 보던 검은 새가 그들 팔에 그려져 있었다.'),
           Line('npc:crow', '이 길은 우리 길이오. 지나가려면 몫을 내시오.'),
-          Line('npc:jin', '…대장, 저 사람들이 그 랜턴 가진 쪽이에요.'),
+          Line('npc:jin', '…대장, 저 사람들이 그 랜턴 가진 쪽이야.'),
         ]),
         Text('어떻게 할까요?', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
         const SizedBox(height: 8),

@@ -911,7 +911,7 @@ Widget questBox(Game g, int id) {
   final c = g.qCost(st);
   return box([
     _sec2('개인 이야기 · ${Q.t}', '${s + 1}/${Q.steps.length}'),
-    Padding(padding: const EdgeInsets.fromLTRB(0, 2, 0, 6), child: Text('${st['say']}', style: Ttc.serif(16, color: const Color(0xFF5A3F24), height: 1.45))),
+    Padding(padding: const EdgeInsets.fromLTRB(0, 2, 0, 6), child: Text(g.qSay(st), style: Ttc.serif(16, color: const Color(0xFF5A3F24), height: 1.45))),
     Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Text.rich(TextSpan(children: [TextSpan(text: '할 일 ', style: Ttc.t(13, color: Ttc.rust, weight: FontWeight.w700)), TextSpan(text: g.qStepTxt(st))]),

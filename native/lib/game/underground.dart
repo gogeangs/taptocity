@@ -359,7 +359,7 @@ extension Underground on Game {
         if (c.qid >= 0 && !u.found.contains(c.qid)) {
           u.found.add(c.qid);
           final qs = qStep(c.qid);
-          u.msg = '${survivors[c.qid].name}: “찾았어요… ${qs?['item'] ?? ''}!”${qs?['note'] != null ? ' ${qs!['note']}' : ''}';
+          u.msg = '${survivors[c.qid].name}: “${const {4: '찾았데이…', 12: '찾았구먼…'}[c.qid] ?? '찾았어요…'} ${qs?['item'] ?? ''}!”${qs?['note'] != null ? ' ${qs!['note']}' : ''}';
           qAdvance(c.qid);
         }
       case 'who':

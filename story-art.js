@@ -30,7 +30,7 @@ function indexTowns(){if(doneR||typeof window.TTC_SDATA!=='function')return;let 
     for(const l of (D.NEXT_CALL&&D.NEXT_CALL[r])||[])putL(l,b);
     const C=D.TOWN_CHOICE&&D.TOWN_CHOICE[r];if(C)for(const x of ['a','b'])for(const l of (C[x]&&C[x].r)||[])putL(l,b+1);}}
 function index(STEPS,TUT){
-  if(STEPS&&!doneS){doneS=1;STEPS.forEach((s,i)=>{const a=STEPART[i];if(!a)return;for(const l of s.intro||[])TALK[l[1]]=TALK[l[1]]??a[0];for(const l of s.outro||[])TALK[l[1]]=TALK[l[1]]??a[1];});}
+  if(STEPS&&!doneS){doneS=1;STEPS.forEach((s,i)=>{const a=STEPART[i];if(!a)return;for(const l of s.intro||[])putL(l,a[0]);for(const l of s.outro||[])putL(l,a[1]);});}
   if(TUT&&!doneT){doneT=1;TUT.forEach((T,i)=>{for(const l of T.say||[])TALK[l[1]]=[0,1,2,3][i];});}
   Object.assign(TALK,{'라디오에서는 심야 방송이 흐르고 있었다. 누군가 신청한 옛 노래.':2,'재는 밤새 그치지 않았다.':3,'그날 밤에도 심야 방송이 흘렀다.':22});
   // single lines that deserve their own picture inside a longer talk

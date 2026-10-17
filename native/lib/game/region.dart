@@ -393,7 +393,7 @@ extension Region on Game {
     S.rest['rsI'] = 0;
     // 지어 본 설계를 기억한다는 걸 사람이 말해 준다 (만수 → 철호 → 나)
     final (bw, bt) = hasSv(0)
-        ? ('박만수', '“손은 기억하는 법이여. 한 번 지어 본 건 두 번째가 빠르구먼.”')
+        ? ('박만수', '“손은 기억하는 법이지. 한 번 지어 본 건 두 번째가 빠르구먼.”')
         : hasSv(6)
             ? ('장철호', '“한 번 세워 봤잖아. 이번엔 반나절이면 돼.”')
             : (pfSet ? pfName : '나', '한 번 지어 본 것들은 손이 먼저 기억했다.');
@@ -684,9 +684,17 @@ extension Region on Game {
     final nm = survivors[id].name, G = matOf[gk]!.n, W0 = matOf[wk]!.n;
     String nj(int n, String a, String b) => '$n${'013678'.contains('$n'.substring('$n'.length - 1)) ? a : b}';
     String nro(int n) => '$n${'036'.contains('$n'.substring('$n'.length - 1)) ? '으로' : '로'}';
-    final txt = urgent
+    var txt = urgent
         ? '${jo(W0, '이', '가')} 급해요. $G ${nro(gn)} 갚을게요.'
         : ['$G $gn 보낼게요. $W0 $wn 주실 수 있어요?', '여긴 ${jo(G, '이', '가')} 남아요. $W0 ${nj(wn, '이랑', '랑')} 바꿔요.', '$G $gn, 길 건너 보낼게요. $W0 $wn만 챙겨 줘요.'][rnd.nextInt(3)];
+    // 말투가 뚜렷한 사람은 자기 말로 (웹 trMake)
+    final tv = <int, List<String>>{
+      4: ['${jo(W0, '이', '가')} 급하데이. $G ${nro(gn)} 갚으꾸마.', '$G $gn 보내꾸마. $W0 $wn 좀 주겠나?'],
+      12: ['${jo(W0, '이', '가')} 급하네. $G ${nro(gn)} 갚겠네.', '$G $gn 보내겠네. $W0 $wn 좀 주겠나?'],
+      15: ['$W0 급해. $G ${nro(gn)} 갚을게.', '$G $gn 보낸다. $W0 $wn 줘.'],
+      17: ['$W0 급해. $G ${nro(gn)} 갚을게.', '$G $gn 보낼게. $W0 $wn 줄 수 있어?'],
+    }[id];
+    if (tv != null) txt = tv[urgent ? 0 : 1];
     return {'id': id, 'gen': gen, 'give': {gk: gn}, 'want': {wk: wn}, 'f': f, 'urgent': urgent, 'txt': '$nm: “$txt”'};
   }
 

@@ -97,9 +97,9 @@ final List<CaseInfo> cases = [
       const Line(_me, '다이얼 손잡이에서 희미하게 기름 냄새가 났다. 그날 밤 나는 일찍 잠들었는데… 깨어 보니 새벽 3시 20분이었다.'),
     ],
     alibi: '은호: “그 시간엔 방송 중이었어요.”',
-    a: CaseOpt((g) => '하늘이를 불러 묻는다', (g) => const [Line(3, '나 아니야! 그 시간엔 자고 있었단 말이야!'), Line(_me, '다이얼을 다시 봤다. 손잡이에 남은 손자국은 아이 손보다 훨씬 컸다.')],
+    a: CaseOpt((g) => '하늘이를 불러 묻는다', (g) => const [Line(3, '저 아니에요! 그 시간엔 자고 있었단 말이에요!'), Line(_me, '다이얼을 다시 봤다. 손잡이에 남은 손자국은 아이 손보다 훨씬 컸다.')],
         clue: '다이얼에 남은 손자국은 아이 손이 아니라 어른 손이었다. 기름 냄새가 났다.'),
-    b: CaseOpt((g) => '하늘이 편을 든다', (g) => const [Line(3, '…믿어 줘서 고마워요. 진짜 나 아니에요.')]),
+    b: CaseOpt((g) => '하늘이 편을 든다', (g) => const [Line(3, '…믿어 줘서 고마워요. 진짜 저 아니에요.')]),
     c: CaseOpt((g) => '주파수만 다시 맞춰 둔다', (g) => const [Line(_me, '다이얼을 되돌려 놓았다. 누가 돌렸는지는 모른 채로.')]),
   ),
   CaseInfo(
@@ -143,12 +143,12 @@ final List<CaseInfo> cases = [
     a: CaseOpt(
         (g) => g.hasSv(6) ? '철호를 불러 묻는다' : '안테나를 샅샅이 살핀다',
         (g) => [
-              g.hasSv(6) ? const Line(6, '공구는 방벽 고치러 들고 나간 거요. 전선은 내 일이 아니오.') : const Line(_me, '안테나 아래에는 발자국 하나 없었다.'),
+              g.hasSv(6) ? const Line(6, '공구는 방벽 고치려고 들고 나간 거야. 전선은 내 일 아니야.') : const Line(_me, '안테나 아래에는 발자국 하나 없었다.'),
               const Line(_me, '잘린 전선 끝을 만져 봤다. 둥글게 눌린 화상 자국이 있었다. 철호의 인두, 은호의 납땜기… 쉘터엔 뜨거운 걸 다루는 손이 여럿이다.'),
             ],
         clue: '잘린 전선 끝에 둥글게 눌린 화상 자국이 남아 있었다.'),
     b: CaseOpt((g) => g.hasSv(6) ? '철호를 믿는다' : '모두를 믿기로 한다',
-        (g) => [g.hasSv(6) ? const Line(6, '…고맙소. 선은 내가 다시 이어 두지.') : const Line(_me, '아무도 의심하지 않기로 했다.')]),
+        (g) => [g.hasSv(6) ? const Line(6, '…고맙다. 선은 내가 다시 이어 둘게.') : const Line(_me, '아무도 의심하지 않기로 했다.')]),
     c: CaseOpt((g) => '까마귀 짓이라고 해 둔다', (g) => const [Line(_me, '까마귀가 무전을 막으려 한 거라고, 다들 그렇게 믿었다.')]),
   ),
   CaseInfo(
@@ -215,7 +215,7 @@ final List<CaseInfo> townCases = [
     x: (g) => [
       const Line(_dN, '급유탑 무전기가 죽었소. 누가 진공관을 쏙 빼 갔어. 당신들을 부른 바로 그 무전기요.'),
       const Line(_dN, '새벽 3시쯤이었소. 우리 마을 사람들은 그 시간에 탱크 밑에서 자고 있었는데.'),
-      if (g.hasSv(10)) const Line(10, '저는 그 시간에 방송 중이었어요. 사막에서도 잘 들렸다면서요?'),
+      if (g.hasSv(10)) const Line(10, '저는 그 시간에 방송 중이었어요. 여기 무전실에서요.'),
     ],
     alibi: '은호: “그 시간엔 방송 중이었어요.”',
     a: CaseOpt(
@@ -251,7 +251,7 @@ final List<CaseInfo> townCases = [
             ],
         clue: '확성기 선은 용접이 아니라 둥글고 뜨거운 것으로 녹여 끊겨 있었다.'),
     b: CaseOpt((g) => g.hasSv(15) ? '도진을 믿는다' : '공단 사람들을 믿는다',
-        (g) => [g.hasSv(15) ? const Line(15, '…말없이 다시 이어 두지.') : const Line(_fN, '…믿어 줘서 고맙다.')]),
+        (g) => [g.hasSv(15) ? const Line(15, '…다시 이어 두지.') : const Line(_fN, '…믿어 줘서 고맙다.')]),
     c: CaseOpt((g) => '재 괴물 탓이라고 해 둔다', (g) => const [Line(_me, '재 괴물이 선을 갉아 먹었다고, 다들 그렇게 믿기로 했다.')]),
   ),
   CaseInfo(
@@ -316,7 +316,7 @@ const oddAt = dayLen + 31;
 const _oddItems = ['녹은 납 부스러기', '구겨진 신청곡 쪽지', '이어폰 한 짝', '손때 묻은 카세트 라벨'];
 const _prsT = [
   ('light', '재구름 너머에서 불빛 하나가 켜졌다가, 누가 손으로 가린 것처럼 꺼졌다.'),
-  ('steps', '텐트 뒤에서 자갈 밟는 소리. 돌아보니 아무도 없다.'),
+  ('steps', '쉘터 뒤에서 자갈 밟는 소리. 돌아보니 아무도 없다.'),
   ('dog', '멀리서 짖던 개가 갑자기 조용해졌다. 바람도 같이 멎었다.'),
   ('lamp', '랜턴 불꽃이 저절로 낮게 줄었다가 돌아왔다. 기름은 충분한데.'),
   ('breath', '재 너머에서 누가 숨을 고르는 소리가 났다. …내 숨이었나.'),
@@ -507,7 +507,7 @@ extension Season on Game {
         if (hasSv(jinId)) const Line(jinId, '…대장.'),
         Line('npc:crow', rel == 'deal' ? '통행료 낸 사이니 오늘은 손대지 않겠소.' : rel == 'fight' ? '그날 빚은 잊지 않았소. 하지만 오늘은 싸우러 온 게 아니오.' : '그때 길을 비켜 줘서 여기까지 왔지.'),
         const Line('npc:crow', '불 잘 켰더군. 하나만 알아 두시오.'),
-        const Line('npc:crow', '빛은 우리만 부르는 게 아니야.'),
+        const Line('npc:crow', '빛은 우리만 부르는 게 아니오.'),
         const Line(_me, '그는 싸우지 않고 돌아섰다. 멀어지면서, 오래된 라디오 시그널 음악을 흥얼거렸다.'),
         if (hasSv(10)) const Line(_me, '그 가락에 은호가 잠깐 멈춰 섰다. 아무 말도 하지 않았다.'),
       ], tag: '까마귀 · 대치');
@@ -546,7 +546,7 @@ extension Season on Game {
       final got = give(scaleCost({'parts': 10, 'scrap': 25}, lvScale));
       out.add(lootText(got));
       C['jinDue'] = 1;
-      ls = const [Line(_me, '한바탕 몸싸움 끝에 그들이 물러났다. 도망치다 넘어진 아이 하나가 남았다.'), Line('npc:jin', '…때리지 마요. 따라갈게요.')];
+      ls = const [Line(_me, '한바탕 몸싸움 끝에 그들이 물러났다. 도망치다 넘어진 아이 하나가 남았다.'), Line('npc:jin', '…때리지 마. 따라갈게.')];
     } else {
       C['rel'] = 'avoid';
       ls = const [Line(_me, '원정대는 먼 길로 돌아왔다. 하루가 더 걸렸지만, 아무도 다치지 않았다.'), Line(_g, '저놈들, 우리가 어디 사는지 알아냈을 거야.')];
@@ -577,7 +577,7 @@ extension Season on Game {
       if (C['rel'] == 'deal') const Line(_g, '통행료 낸 사이라고 조금만 가져간 모양이야. 웃기는 놈들이지.'),
       if (lost.isNotEmpty) Line(_me, '창고에서 사라진 것: ${lootText(lost)}'),
       if (!hasSv(jinId)) const Line(_me, '창고 구석에 아이 하나가 웅크리고 있었다. 무리가 두고 간 거였다.'),
-      if (!hasSv(jinId)) const Line('npc:jin', '…버려진 거예요, 저. 여기 있게 해 주세요.'),
+      if (!hasSv(jinId)) const Line('npc:jin', '…버려졌어, 나. 여기 있게 해 줘.'),
     ], tag: '까마귀 · 습격');
     if (!hasSv(jinId)) C['jinDue'] = 1;
     dirty = true;
@@ -681,8 +681,11 @@ extension Season on Game {
         if (hasSv(10)) oddDawn = const FxNote('아침 · 은호', '“무전실이요? 전 그 시간에 방송 중이었어요.” 무전실 문 앞엔 내 랜턴이 놓여 있었다. 내가 두고 왔던가?', ms: 6000);
         _oddLog(k, '아무도 없어야 할 무전실에 불이 켜졌다 꺼졌다. 아침에 보니 내 랜턴이 무전실 문 앞에 있었다.');
       case 'knock':
-        fx.add(const FxNote('새벽 3시 · 창고', '창고 문에서 노크 소리. 세 번, 한 번, 한 번. 나가 보니 아무도 없어요.', ms: 5500));
-        _oddLog(k, '누가 창고 문을 세 번, 한 번, 한 번 두드리고 멈췄다. 아무도 없었다.');
+        // 낮의 '나'는 듣지 못했다: 아침에 다른 사람이 전한다 (웹 runOdd knock)
+        oddDawn = hasSv(5)
+            ? const FxNote('아침 · 말순', '“새벽에 누가 창고 문을 세 번, 한 번, 한 번 두드렸대. 나가 보니 아무도 없었다더라.”', ms: 5500)
+            : const FxNote('아침 · 창고', '새벽에 누가 창고 문을 세 번, 한 번, 한 번 두드렸다고 했다. 나가 본 사람은 아무도 없었다.', ms: 5500);
+        _oddLog(k, '새벽에 누가 창고 문을 세 번, 한 번, 한 번 두드리고 멈췄다고 했다. 나는 듣지 못했다.');
       case 'missing':
         final c = [('batt', 1), ('wire', 1), ('rope', 2), ('med', 1), ('fuel', 3)].where((x) => have(x.$1) > x.$2 + 1).toList();
         final (m, q) = c.isNotEmpty ? c[rnd.nextInt(c.length)] : ('food', 3);
@@ -772,7 +775,7 @@ extension Season on Game {
 
   void _runPresence(String k, String t) {
     if (k == 'mud') {
-      prsDawn = const FxNote('아침 · 장화', '장화 밑창에 젖은 흙이 묻어 있다. 어젯밤엔 텐트 밖으로 나간 적이 없는데.', ms: 5500);
+      prsDawn = const FxNote('아침 · 장화', '장화 밑창에 젖은 흙이 묻어 있다. 어젯밤엔 쉘터 밖으로 나간 적이 없는데.', ms: 5500);
       return;
     }
     if (k == 'light') {
