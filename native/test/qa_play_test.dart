@@ -149,7 +149,14 @@ void autoStep(Game g, Qa qa, math.Random r) {
       g.upShelter();
       g.upWalls();
       for (var k = 0; k < recipes.length; k++) {
-        if ((!saving || k < 2 || need.contains(recipes[k].out)) && r.nextDouble() < .3) g.craft(k, 3);
+        // 사람처럼: 다음에 지을 것(증축·새 모듈·방벽)에 드는 만큼만, 없으면 조금만 쌓아 둔다 (재료를 다 갈아 넣지 않게)
+        final out = recipes[k].out;
+        var want2 = 12.0;
+        for (final c in [g.shelterUpCost, for (final id in want) g.modBuildCost(id), if (g.S.walls < 3) g.wallCost(g.S.walls)]) {
+          if (c != null && c[out] != null) want2 = math.max(want2, c[out]!.toDouble());
+        }
+        if (g.have(out) >= want2) continue;
+        if ((!saving || k < 2 || need.contains(out)) && r.nextDouble() < .3) g.craft(k, 3);
       }
       for (final k in const ['tap', 'splash', 'drone']) {
         if (!saving && r.nextDouble() < .2) g.buyUp(k);
@@ -204,7 +211,11 @@ void autoStep(Game g, Qa qa, math.Random r) {
   if (g.sqDone) safe('sq', g.claimSq);
   if (r.nextDouble() < .02) safe('feast', () => g.holdFeast());
   if (r.nextDouble() < .02 && g.ugOpen && g.S.sv.length >= 2) {
-    safe('ugStart', () => g.ugStart(g.svIds.take(3).toList(), math.min(10, g.have('fuel').toInt()), 1));
+    // 사람처럼: 지난번 멈춘 층부터, 들고 갈 수 있는 만큼 연료를 챙겨 내려간다
+    safe('ugStart', () {
+      final t = g.svIds.where((id) => !g.busy(id)).take(3).toList();
+      g.ugStart(t, math.min(g.ugFuelMax(t), g.have('fuel').toInt()), g.ugLast);
+    });
   }
   if (r.nextDouble() < .01 && g.lnOpen && g.S.sv.length >= 2) safe('lnStart', () => g.lnStart(g.svIds.take(2).toList()));
   // 동네 일
