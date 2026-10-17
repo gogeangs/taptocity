@@ -2,6 +2,7 @@
 // 회상 갤러리(.scene-grid), 엔딩 카드(#endcard), 기척 화면 효과. 웹 index.html 1182–1228, 5744–6003, qa.css 36–59.
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
@@ -17,17 +18,28 @@ import 'theme.dart';
 import 'widgets.dart';
 
 // ======================= 사건 대사 줄 (웹 caseLines) =======================
-Widget caseLines(Game g, List<Line> ls) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      for (final l in g.talkLines(ls))
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            _csAv(g, l.who),
-            const SizedBox(width: 9),
-            Expanded(child: _csP(g, l)),
-          ]),
-        ),
-    ]);
+/// 같은 사람이 잇달아 한 말은 말풍선 하나로 묶는다 (얼굴·이름은 한 번)
+Widget caseLines(Game g, List<Line> ls) {
+  final groups = <List<Line>>[];
+  for (final l in g.talkLines(ls)) {
+    if (groups.isNotEmpty && groups.last.first.who == l.who) {
+      groups.last.add(l);
+    } else {
+      groups.add([l]);
+    }
+  }
+  return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+    for (final gr in groups)
+      Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          _csAv(g, gr.first.who),
+          const SizedBox(width: 9),
+          Expanded(child: _csP(g, gr)),
+        ]),
+      ),
+  ]);
+}
 
 Widget _csAv(Game g, Object who) {
   final id = who is String && who.startsWith('npc:') ? null : g.speakerId(who);
@@ -51,17 +63,26 @@ Widget npcFace(String who) {
   return const SizedBox.shrink();
 }
 
-Widget _csP(Game g, Line l) {
-  final me = l.who == 'me';
-  final name = l.who is String && (l.who as String).startsWith('npc:') ? npcName[(l.who as String).substring(4)]?.$1 ?? '' : g.speakerName(l.who);
-  if (me) return Padding(padding: const EdgeInsets.only(top: 7), child: Text(l.t, style: Ttc.t(14.5, color: Ttc.sepia, height: 1.55).copyWith(fontStyle: FontStyle.italic)));
+Widget _csP(Game g, List<Line> ls) {
+  final who = ls.first.who;
+  final me = who == 'me';
+  final name = who is String && who.startsWith('npc:') ? npcName[who.substring(4)]?.$1 ?? '' : g.speakerName(who);
+  List<Widget> lines(TextStyle st) => [
+        for (var i = 0; i < ls.length; i++) Padding(padding: EdgeInsets.only(top: i == 0 ? 0 : 6), child: Text(ls[i].t, style: st)),
+      ];
+  if (me) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 7),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: lines(Ttc.t(14.5, color: Ttc.sepia, height: 1.55).copyWith(fontStyle: FontStyle.italic))),
+    );
+  }
   return Container(
     padding: const EdgeInsets.fromLTRB(10, 7, 10, 7),
     decoration: const BoxDecoration(color: Color(0x66FFFFFF), borderRadius: BorderRadius.only(topLeft: Radius.circular(4), topRight: Radius.circular(12), bottomLeft: Radius.circular(12), bottomRight: Radius.circular(12))),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(name, style: Ttc.t(11.5, color: const Color(0xFFB0452A), weight: FontWeight.w700, height: 1.2)),
       const SizedBox(height: 2),
-      Text(l.t, style: Ttc.t(14.5, color: const Color(0xFF4A3320), height: 1.55)),
+      ...lines(Ttc.t(14.5, color: const Color(0xFF4A3320), height: 1.55)),
     ]),
   );
 }
@@ -110,20 +131,50 @@ Widget _copt(String b, String small, VoidCallback? onTap, {bool hi = false}) => 
       ),
     );
 
-/// 사건 그림 (story-5 36~41번, 동네 사건 42~44번)
-Widget _caseArt(Game g, int k) {
+/// 사건 그림 (story-5 36~41번, 동네 사건 42~44번).
+/// 풀리기 전(clue)에는 그림이 답을 보여 주지 않게 어둡게 흐린 '단서' 그림으로 (앱 2026-10-18)
+Widget _caseArt(Game g, int k, {bool clue = false}) {
+  g.markArt(36 + k);
+  return Padding(padding: const EdgeInsets.only(bottom: 12), child: caseArtBox(k, clue: clue));
+}
+
+Widget caseArtBox(int k, {required bool clue, double aspect = 1.5, bool small = false}) {
   final n = 36 + k;
-  g.markArt(n);
   return ValueListenableBuilder<int>(
     valueListenable: Atlas.version,
     builder: (c, _, __) {
       final r = storyRect(n);
       if (r == null) return const SizedBox.shrink();
+      final pic = CoverPic(storyFile(n), r);
       return Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(color: const Color(0xFF35404A), borderRadius: BorderRadius.circular(10)),
+        decoration: BoxDecoration(color: const Color(0xFF35404A), borderRadius: BorderRadius.circular(small ? 8 : 10)),
         clipBehavior: Clip.antiAlias,
-        child: AspectRatio(aspectRatio: 1.5, child: CoverPic(storyFile(n), r)),
+        child: AspectRatio(
+          aspectRatio: aspect,
+          child: !clue
+              ? pic
+              : Stack(fit: StackFit.expand, children: [
+                  // 가장자리가 비어 보이지 않게 조금 키워서 흐린다
+                  ImageFiltered(
+                    imageFilter: ui.ImageFilter.blur(sigmaX: small ? 8 : 14, sigmaY: small ? 8 : 14),
+                    child: Transform.scale(scale: 1.18, child: pic),
+                  ),
+                  const DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(radius: .9, colors: [Color(0x8C10151B), Color(0xD910151B)]),
+                    ),
+                  ),
+                  Center(
+                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                      Text('?', style: Ttc.t(small ? 22 : 40, color: const Color(0xFFF3D9A0), weight: FontWeight.w700, height: 1)),
+                      if (!small) ...[
+                        const SizedBox(height: 8),
+                        Text('무슨 일이 있었을까', style: Ttc.t(13, color: const Color(0xE6F3E6C6), weight: FontWeight.w600, height: 1.2)),
+                      ],
+                    ]),
+                  ),
+                ]),
+        ),
       );
     },
   );
@@ -146,7 +197,7 @@ Future<void> showCase(BuildContext context, Game g, int k) async {
   final c = caseOf(k);
   String? picked;
   await _casePage(context, (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        _caseArt(g, k),
+        _caseArt(g, k, clue: g.caseRec(k)?['solved'] == null),
         Text('사건 ${k + 1} · ${c.ch}', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
         Padding(padding: const EdgeInsets.fromLTRB(0, 2, 0, 6), child: Text(c.t, style: Ttc.t(19, color: Ttc.sepia, weight: FontWeight.w700))),
         Padding(
@@ -176,7 +227,8 @@ Future<void> showCase(BuildContext context, Game g, int k) async {
   final (ls, fx) = g.pickCase(k, picked!);
   Sound.buzzMid();
   await _casePage(context, (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        _caseArt(g, k),
+        // 풀린 사건이면 이제 그림을 그대로 보여 준다
+        _caseArt(g, k, clue: g.caseRec(k)?['solved'] == null),
         Text('사건 ${k + 1} · ${c.ch}', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
         Padding(padding: const EdgeInsets.fromLTRB(0, 2, 0, 10), child: Text(c.t, style: Ttc.t(19, color: Ttc.sepia, weight: FontWeight.w700))),
         caseLines(g, ls),
@@ -451,7 +503,10 @@ List<Widget> casesTab(BuildContext context, Game g) {
               TextSpan(text: '사건 ${k + 1} · ${c.t} '),
               TextSpan(text: c.ch, style: Ttc.t(12, color: Ttc.sepia2)),
             ]), style: Ttc.t(14, color: Ttc.sepia, weight: FontWeight.w700, height: 1.45)),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
+            // 사건 그림: 풀렸으면 그대로, 아니면 흐린 단서 그림
+            caseArtBox(k, clue: !solved, aspect: 2.4, small: true),
+            const SizedBox(height: 8),
             cst('때', c.when),
             cst('의심', c.sus != null ? survivors[c.sus!].name : c.susN),
             if (c.alibi != null) cst('증언', c.alibi!),

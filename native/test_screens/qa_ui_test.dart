@@ -12,6 +12,7 @@ import 'package:taptocity/game/engine.dart';
 import 'package:taptocity/ui/atlas.dart';
 import 'package:taptocity/ui/game_screen.dart';
 import 'package:taptocity/ui/season_ui.dart';
+import 'package:taptocity/ui/story_ui.dart';
 import 'package:taptocity/ui/theme.dart';
 
 final _bad = RegExp(r'\bnull\b|NaN|Infinity|undefined|\[object|Instance of|\$\{');
@@ -222,6 +223,35 @@ void main() {
             });
           }
           g.S.rest['choice'] = null;
+        }
+        if (stage == 'mid' && town == 'home') {
+          // 대사 창: 한 줄씩 넘기기(창 두드리기) · 건너뛰기 · 마지막 줄의 행동 버튼
+          await visit('$tag · 대사 창', () async {
+            await home();
+            showTalk(
+                tester.element(find.byType(GameScreen)),
+                g,
+                const FxTalk([
+                  Line('me', '판잣집 불빛이 멀리서도 보이는 모양이다. 누군가 이쪽을 살피고 있다.'),
+                  Line(0, '누가 오는 것 같구먼. 랜턴을 너무 높이 들지 말게.'),
+                  Line(0, '조심해서 나쁠 건 없지.'),
+                  Line('me', '나는 랜턴 심지를 조금 낮췄다.'),
+                ], tag: '3장 · 모여드는 사람들', goal: '생존자 3명 모으기'));
+            await settle();
+            await tapText('탭해서 계속 ▸');
+            await tapText('건너뛰기');
+          });
+          // 스킬 바: 다친 사람(붉은 테·남은 시간) · 스킬 대기 배지
+          final p0 = List<int>.of(g.party), cd0 = g.S.rest['cd'];
+          await visit('$tag · 지도 · 다친 사람', () async {
+            g.party = [0, 1];
+            g.rec(1)!['hurt'] = 150.0;
+            g.S.rest['cd'] = <String, Object?>{'0': 20.0};
+            await home();
+          });
+          g.rec(1)!['hurt'] = 0;
+          g.party = p0;
+          g.S.rest['cd'] = cd0;
         }
         for (final t in const ['프로필', '꾸미기']) {
           await visit('$tag · 프로필 · $t', () async {

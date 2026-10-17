@@ -662,7 +662,11 @@ extension Crisis on Game {
     defn = Defense(S.rest['raid'] as String?);
     S.rest['raid'] = null;
     if (defn!.raid != null) fx.add(FxToast('${defn!.raid}이(가) 쳐들어와요!'));
-    if (num_('defs') == 0) fx.add(const FxNote('대형 재폭풍이 몰려와요!', '두드리면 가까운 괴물을, 문지르면 한꺼번에 베어요. 랜턴 버튼은 쉘터 옆부터 쳐요', ms: 6000));
+    // 처음 한 번만 (앱 전용 hintDef1: 첫 방어를 끝내지 못하고 껐다 켜도 다시 안 띄운다)
+    if (num_('defs') == 0 && S.rest['hintDef1'] == null) {
+      S.rest['hintDef1'] = 1;
+      fx.add(const FxNote('대형 재폭풍이 몰려와요!', '두드리면 가까운 괴물, 문지르면 한꺼번에 베기 · 랜턴 버튼은 쉘터 옆부터', ms: 6000));
+    }
     fx.add(const FxDefense(true));
     _changed();
   }

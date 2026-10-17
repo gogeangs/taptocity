@@ -657,11 +657,13 @@ class SkillBar extends StatelessWidget {
       );
     }
     final off = g.busy(id), left = g.cdLeft(id), tot = g.skillCd(id), ready = left <= 0 && !off;
-    final away = g.rec(id)?['away'] == true;
+    final away = g.rec(id)?['away'] == true, hurtT = away ? null : hurtLeft(g, id), hurt = hurtT != null;
+    const red = Color(0xFFD0533A);
+    const txtShadow = [Shadow(color: Colors.black, blurRadius: 3, offset: Offset(0, 1))];
     return GestureDetector(
       onTap: () {
         if (off) {
-          toast(away ? '${survivors[id].name}은(는) 원정 중이에요' : '${survivors[id].name}은(는) 다쳐서 쉬는 중이에요');
+          toast(away ? '${survivors[id].name}은(는) 원정 중이에요' : '${survivors[id].name}은(는) 다쳐서 쉬는 중이에요${hurt ? ' · $hurtT 남음' : ''}');
           return;
         }
         if (left > 0) {
@@ -673,50 +675,81 @@ class SkillBar extends StatelessWidget {
       child: SizedBox(
         width: 44,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Stack(clipBehavior: Clip.none, children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFFE6D8B6),
-                border: Border.all(color: ready ? Ttc.amber : const Color(0xFFD2B987)),
-                boxShadow: ready ? const [BoxShadow(color: Color(0x26DFA54B), spreadRadius: 2)] : null,
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Stack(children: [
-                ColorFiltered(
-                  colorFilter: off ? const ColorFilter.matrix([.18, .35, .07, 0, 0, .18, .35, .07, 0, 0, .18, .35, .07, 0, 0, 0, 0, 0, 1, 0]) : const ColorFilter.mode(Colors.transparent, BlendMode.dst),
-                  child: Portrait(id, width: 40, height: 47),
+          Opacity(
+            // 원정 간 사람은 흐리게 (여기 없음)
+            opacity: away ? .45 : 1,
+            child: Stack(clipBehavior: Clip.none, children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFFE6D8B6),
+                  border: Border.all(color: hurt ? red : ready ? Ttc.amber : const Color(0xFFD2B987), width: hurt ? 2 : 1),
+                  boxShadow: hurt
+                      ? const [BoxShadow(color: Color(0x66D0533A), spreadRadius: 2)]
+                      : ready
+                          ? const [BoxShadow(color: Color(0x26DFA54B), spreadRadius: 2)]
+                          : null,
                 ),
-                if (left > 0)
-                  Positioned.fill(
-                    child: CustomPaint(
-                      painter: _CdPainter((left / tot).clamp(0, 1).toDouble()),
-                      child: Center(
-                        child: Text('${left.ceil()}',
-                            style: Ttc.serif(14, color: Ttc.paper, weight: FontWeight.w700).copyWith(shadows: const [Shadow(color: Color(0xD9000000), blurRadius: 2, offset: Offset(0, 1)), Shadow(color: Color(0x99000000), blurRadius: 6)])),
-                      ),
-                    ),
+                clipBehavior: Clip.antiAlias,
+                child: Stack(children: [
+                  ColorFiltered(
+                    colorFilter: off ? const ColorFilter.matrix([.18, .35, .07, 0, 0, .18, .35, .07, 0, 0, .18, .35, .07, 0, 0, 0, 0, 0, 1, 0]) : const ColorFilter.mode(Colors.transparent, BlendMode.dst),
+                    child: Portrait(id, width: 40, height: 47),
                   ),
-              ]),
-            ),
-            if (sub != null)
-              Positioned(
-                top: -4,
-                right: -4,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
-                  decoration: BoxDecoration(color: const Color(0xFF3F8A7E), borderRadius: BorderRadius.circular(99)),
-                  child: Text('대신', style: Ttc.t(10, color: Colors.white, weight: FontWeight.w700, height: 1)),
-                ),
+                  // 다친 사람: 얼굴에 붉은 기운
+                  if (hurt) const Positioned.fill(child: ColoredBox(color: Color(0x33D0533A))),
+                  // 스킬 대기: 얼굴을 덮는 숫자 대신 옅은 시계 바늘 그림자만 (숫자는 오른쪽 아래 배지)
+                  if (left > 0 && !off) Positioned.fill(child: CustomPaint(painter: _CdPainter((left / tot).clamp(0, 1).toDouble()))),
+                ]),
               ),
-          ]),
+              if (sub != null)
+                Positioned(
+                  top: -4,
+                  right: -4,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+                    decoration: BoxDecoration(color: const Color(0xFF3F8A7E), borderRadius: BorderRadius.circular(99)),
+                    child: Text('대신', style: Ttc.t(10, color: Colors.white, weight: FontWeight.w700, height: 1)),
+                  ),
+                ),
+              // 다침 배지: 붉은 동그라미 속 흰 십자 (왼쪽 위)
+              if (hurt)
+                Positioned(
+                  top: -3,
+                  left: -3,
+                  child: Container(
+                    width: 16,
+                    height: 16,
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: red, border: Border.all(color: Ttc.paper, width: 1.5)),
+                    alignment: Alignment.center,
+                    child: Stack(alignment: Alignment.center, children: [
+                      Container(width: 8, height: 2.4, color: Colors.white),
+                      Container(width: 2.4, height: 8, color: Colors.white),
+                    ]),
+                  ),
+                ),
+              // 스킬 대기 초: 오른쪽 아래 작은 배지
+              if (left > 0 && !off)
+                Positioned(
+                  right: -5,
+                  bottom: -3,
+                  child: Container(
+                    constraints: const BoxConstraints(minWidth: 18),
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    decoration: BoxDecoration(color: const Color(0xF0202932), borderRadius: BorderRadius.circular(99), border: Border.all(color: const Color(0xFFD2B987), width: 1)),
+                    child: Text('${left.ceil()}', textAlign: TextAlign.center, style: Ttc.t(10, color: Ttc.paper, weight: FontWeight.w700, height: 1)),
+                  ),
+                ),
+            ]),
+          ),
           if (off)
             Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Text(away ? '원정 중' : '부상',
-                  style: Ttc.t(10, color: Ttc.paper, weight: FontWeight.w500, height: 1.2).copyWith(shadows: const [Shadow(color: Colors.black, blurRadius: 3, offset: Offset(0, 1))])),
+              padding: const EdgeInsets.only(top: 3),
+              child: Text(away ? '원정 중' : (hurtT ?? '부상'),
+                  maxLines: 1,
+                  style: Ttc.t(10, color: hurt ? const Color(0xFFFFB4A3) : Ttc.paper, weight: hurt ? FontWeight.w700 : FontWeight.w500, height: 1.2).copyWith(shadows: txtShadow)),
             ),
         ]),
       ),
@@ -730,7 +763,7 @@ class _CdPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final r = Offset.zero & size;
-    canvas.drawArc(r, -math.pi / 2, math.pi * 2 * p, true, Paint()..color = const Color(0xBD0D0B08));
+    canvas.drawArc(r, -math.pi / 2, math.pi * 2 * p, true, Paint()..color = const Color(0x8C0D0B08));
   }
 
   @override

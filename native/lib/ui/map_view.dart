@@ -1454,6 +1454,9 @@ class FxLayerController extends ChangeNotifier {
   final math.Random _r = math.Random();
   void Function(Fx fx)? onFx;
 
+  /// 대형 재폭풍 중: 알림을 괴물이 나오는 지도 가운데가 아니라 스킬 바 바로 위에 작게 띄운다
+  bool low = false;
+
   void toast(String t) {
     toasts.add(Toast(null, t, 2.6));
     if (toasts.length > 3) toasts.removeAt(0);
@@ -1472,6 +1475,7 @@ class FxLayerController extends ChangeNotifier {
 
   /// 게임에서 나온 연출 신호를 받아 파티클로 바꾼다.
   void pull(Game g) {
+    low = g.defn != null;
     for (final f in g.takeFx()) {
       switch (f) {
         case FxBurst(:final tile, :final color, :final n):
@@ -1575,10 +1579,11 @@ class _FxLayerState extends State<FxLayer> with SingleTickerProviderStateMixin {
         Positioned(
           left: 0,
           right: 0,
-          bottom: 196,
+          // 방어 중에는 스킬 바(아래 메뉴 위 84 + 얼굴 줄) 바로 위로 내린다
+          bottom: c.low ? 154 + MediaQuery.of(context).padding.bottom : 196,
           child: Center(
             child: SizedBox(
-              width: math.min(340, math.max(0, MediaQuery.of(context).size.width - 110)).toDouble(),
+              width: math.min(c.low ? 300 : 340, math.max(0, MediaQuery.of(context).size.width - (c.low ? 40 : 110))).toDouble(),
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 for (final t in c.toasts)
                   Opacity(
@@ -1586,7 +1591,7 @@ class _FxLayerState extends State<FxLayer> with SingleTickerProviderStateMixin {
                     child: Container(
                       width: t.h != null ? double.infinity : null,
                       margin: const EdgeInsets.only(top: 6),
-                      padding: t.h != null ? const EdgeInsets.fromLTRB(8, 6, 11, 6) : const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      padding: t.h != null ? (c.low ? const EdgeInsets.fromLTRB(9, 5, 10, 5) : const EdgeInsets.fromLTRB(8, 6, 11, 6)) : const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                       decoration: BoxDecoration(
                         color: const Color(0xFFEEE5D3),
                         borderRadius: BorderRadius.circular(9),
@@ -1596,9 +1601,9 @@ class _FxLayerState extends State<FxLayer> with SingleTickerProviderStateMixin {
                       child: t.h == null
                           ? Text(t.t, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: Ttc.t(13, color: Ttc.sepia, height: 1.4))
                           : Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                              Text(t.h!, style: Ttc.serif(13.5, color: Ttc.sepia, weight: FontWeight.w700, height: 1.3)),
+                              Text(t.h!, style: Ttc.serif(c.low ? 12.5 : 13.5, color: Ttc.sepia, weight: FontWeight.w700, height: 1.3)),
                               if (t.t.isNotEmpty)
-                                Text(t.t, maxLines: 3, overflow: TextOverflow.ellipsis, style: Ttc.t(12, color: Ttc.sepia2, height: 1.5)),
+                                Text(t.t, maxLines: c.low ? 2 : 3, overflow: TextOverflow.ellipsis, style: Ttc.t(c.low ? 11.5 : 12, color: Ttc.sepia2, height: c.low ? 1.4 : 1.5)),
                             ]),
                     ),
                   ),

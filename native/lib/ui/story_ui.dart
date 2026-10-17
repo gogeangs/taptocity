@@ -158,8 +158,13 @@ class _MissionTapeState extends State<MissionTape> {
         padding: done ? const EdgeInsets.symmetric(horizontal: 7, vertical: 4) : const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(color: ready ? Ttc.amberBtn : Ttc.lvchip, borderRadius: BorderRadius.circular(7)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-          Text(done ? 'Lv.${S.lv}' : 'Lv.${S.lv} ${shelterName[S.lv - 1]}',
-              maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(11.5, color: ready ? const Color(0xFF243039) : Ttc.lvText, weight: FontWeight.w700, height: 1)),
+          // 짧은 이름만 ('판잣집 쉘터' → '판잣집'), 그래도 길면 글자를 줄인다 (말줄임 없이)
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(done ? 'Lv.${S.lv}' : 'Lv.${S.lv} ${shelterName[S.lv - 1].replaceAll(RegExp(r'\s*쉘터$'), '')}',
+                maxLines: 1, style: Ttc.t(11.5, color: ready ? const Color(0xFF243039) : Ttc.lvText, weight: FontWeight.w700, height: 1)),
+          ),
           const SizedBox(height: 3),
           if (ready)
             Text('증축 가능 ›', style: Ttc.t(10, color: const Color(0xFF243039), weight: FontWeight.w700, height: 1))
@@ -453,6 +458,43 @@ class _TalkPageState extends State<_TalkPage> {
   @override
   Widget build(BuildContext context) => PopScope(canPop: false, child: _page(context));
 
+  /// 마지막으로 줄을 넘긴 때: 연달아 두드린 손가락이 막 나타난 버튼을 누르지 않게
+  int _advAt = 0;
+  void _next() {
+    if (k >= t.lines.length - 1) return;
+    _advAt = DateTime.now().millisecondsSinceEpoch;
+    setState(() => k++);
+  }
+
+  void _skip() {
+    _advAt = DateTime.now().millisecondsSinceEpoch;
+    setState(() => k = t.lines.length - 1);
+  }
+
+  /// 말하는 사람 작은 얼굴 (52px 동그라미). 나는 초상화가 없으면 작은 랜턴 배지
+  Widget _avatar(Line l) {
+    const sz = 52.0;
+    final who = l.who;
+    final npc = who is String && who.startsWith('npc:');
+    final me = !npc && g.speakerId(who) == null;
+    if (me && !g.pfSet) {
+      return Container(
+        width: sz,
+        height: sz,
+        decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xFF3A2618), border: Border.all(color: const Color(0x403B2A1A), width: 1.5)),
+        alignment: Alignment.center,
+        child: SvgPicture.string(_meSvg, width: 30, height: 30),
+      );
+    }
+    return Container(
+      width: sz,
+      height: sz,
+      decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xFFE6D8B6), border: Border.all(color: const Color(0x403B2A1A), width: 1.5)),
+      clipBehavior: Clip.antiAlias,
+      child: talkFace(g, who, l.t, l.mood, w: sz, h: sz),
+    );
+  }
+
   Widget _page(BuildContext context) {
     final lines = t.lines, l = lines[k], last = k == lines.length - 1, n = lines.length;
     if (_said != k) {
@@ -465,114 +507,124 @@ class _TalkPageState extends State<_TalkPage> {
     final rect = art == null ? null : storyRect(art);
     final card = t.card != null && k == 0;
     final scr = MediaQuery.of(context).size;
+    final small = scr.height <= 700;
+    final canSkip = !last && n > 2 && !t.noskip;
     return Dialog(
       backgroundColor: Ttc.paper,
       insetPadding: const EdgeInsets.all(16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Color(0x66EEE5D3))),
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: 460, maxHeight: scr.height - 32),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
-            if (art != null)
-              ValueListenableBuilder<int>(
-                valueListenable: Atlas.version,
-                builder: (c, _, __) {
-                  final r = storyRect(art) ?? rect;
-                  if (r == null) return card ? Padding(padding: const EdgeInsets.only(bottom: 16), child: sceneArt(t.scene ?? 'shelter')) : const SizedBox.shrink();
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    constraints: BoxConstraints(maxHeight: scr.height * (scr.height <= 640 ? .26 : .34)),
-                    decoration: BoxDecoration(color: const Color(0xFF35404A), borderRadius: BorderRadius.circular(10)),
-                    clipBehavior: Clip.antiAlias,
-                    child: AspectRatio(aspectRatio: 1.5, child: CoverPic(storyFile(art), r)),
-                  );
-                },
-              )
-            else if (card)
-              Padding(padding: const EdgeInsets.only(bottom: 16), child: sceneArt(t.scene ?? 'shelter')),
-            if (card)
-              Container(
-                padding: const EdgeInsets.only(bottom: 14),
-                margin: const EdgeInsets.only(bottom: 4),
-                decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Ttc.line))),
-                child: Column(children: [
-                  Text(t.card!.$1, style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
-                  const SizedBox(height: 4),
-                  Text(t.card!.$2, textAlign: TextAlign.center, style: Ttc.t(23, color: Ttc.sepia, weight: FontWeight.w700)),
-                ]),
-              )
-            else if (t.tag != null)
-              Text(t.tag!, style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600, height: 1.4)),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 12, 0, 18),
-              child: Row(children: [
-                talkFace(g, l.who, l.t, l.mood, w: scr.height <= 700 ? 54 : 84, h: scr.height <= 700 ? 63 : 98),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(_name(l.who), style: Ttc.t(18, color: Ttc.sepia, weight: FontWeight.w700)),
-                    Text(_speakerSub(g, l.who), style: Ttc.t(12, color: Ttc.sepia2, height: 1.5)),
+        // 창 어디를 두드려도 다음 줄로 (마지막 줄에서는 아래 버튼으로만 닫는다)
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: last ? null : _next,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
+              if (art != null)
+                ValueListenableBuilder<int>(
+                  valueListenable: Atlas.version,
+                  builder: (c, _, __) {
+                    final r = storyRect(art) ?? rect;
+                    if (r == null) return card ? Padding(padding: const EdgeInsets.only(bottom: 16), child: sceneArt(t.scene ?? 'shelter')) : const SizedBox.shrink();
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      constraints: BoxConstraints(maxHeight: scr.height * (scr.height <= 640 ? .26 : .34)),
+                      decoration: BoxDecoration(color: const Color(0xFF35404A), borderRadius: BorderRadius.circular(10)),
+                      clipBehavior: Clip.antiAlias,
+                      child: AspectRatio(aspectRatio: 1.5, child: CoverPic(storyFile(art), r)),
+                    );
+                  },
+                )
+              else if (card)
+                Padding(padding: const EdgeInsets.only(bottom: 16), child: sceneArt(t.scene ?? 'shelter')),
+              if (card)
+                Container(
+                  padding: const EdgeInsets.only(bottom: 14),
+                  margin: const EdgeInsets.only(bottom: 4),
+                  decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Ttc.line))),
+                  child: Column(children: [
+                    Text(t.card!.$1, style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+                    const SizedBox(height: 4),
+                    Text(t.card!.$2, textAlign: TextAlign.center, style: Ttc.t(23, color: Ttc.sepia, weight: FontWeight.w700)),
                   ]),
-                ),
-              ]),
-            ),
-            ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 78),
-              child: Text(l.t, style: Ttc.t(scr.height <= 700 ? 16 : 16, color: Ttc.sepia, height: 1.85)),
-            ),
-            SizedBox(height: scr.height <= 700 ? 16 : 24),
-            if (last && t.reward != null && t.reward!.isNotEmpty) _box(Text('보상 · ${g.lootText(t.reward!)}', style: Ttc.t(13, color: Ttc.sepia, height: 1.6))),
-            if (last && t.goal != null)
-              _box(Text.rich(TextSpan(children: [
-                const TextSpan(text: '할 일 ', style: TextStyle(fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)])),
-                TextSpan(text: t.goal),
-              ]), style: Ttc.t(13, color: Ttc.sepia, height: 1.6))),
-            // 진행 막대 (웹 .talk-progress)
-            Container(
-              height: 3,
-              margin: const EdgeInsets.only(top: 14),
-              decoration: BoxDecoration(color: const Color(0xFFD8D1C4), borderRadius: BorderRadius.circular(3)),
-              alignment: Alignment.centerLeft,
-              child: FractionallySizedBox(widthFactor: (k + 1) / n, child: Container(decoration: BoxDecoration(color: const Color(0xFF9F783F), borderRadius: BorderRadius.circular(3)))),
-            ),
-            Container(
-              margin: const EdgeInsets.only(top: 14),
-              padding: const EdgeInsets.only(top: 14),
-              decoration: const BoxDecoration(border: Border(top: BorderSide(color: Ttc.line))),
-              child: Row(children: [
-                Text(n > 1 ? '${k + 1} / $n' : '', style: Ttc.t(12, color: Ttc.sepia2)),
-                const Spacer(),
-                if (!last && n > 2 && !t.noskip) ...[
-                  GestureDetector(
-                    onTap: () => setState(() => k = n - 1),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0x4D3B2A1A), width: 1.5)),
-                      child: Text('건너뛰기', style: Ttc.t(13, color: Ttc.sepia2, weight: FontWeight.w600)),
+                )
+              else if (t.tag != null)
+                Text(t.tag!, style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600, height: 1.4)),
+              // 말하는 사람: 작은 얼굴 + 이름 · 하는 일 한 줄
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 10, 0, 12),
+                child: Row(children: [
+                  _avatar(l),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(children: [
+                        TextSpan(text: _name(l.who), style: Ttc.t(17, color: Ttc.sepia, weight: FontWeight.w700, height: 1.3)),
+                        TextSpan(text: '  ${_speakerSub(g, l.who)}', style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.3)),
+                      ]),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                ],
-                GestureDetector(
-                  onTap: () {
-                    if (!last) {
-                      setState(() => k++);
-                    } else {
-                      widget.onDone();
-                    }
-                  },
-                  child: Container(
-                    constraints: const BoxConstraints(minWidth: 90, minHeight: 44),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(color: Ttc.amberBtn, borderRadius: BorderRadius.circular(8), border: Border.all(color: Ttc.amberBtnLine)),
-                    child: Text(last ? (t.goal != null ? '해 보자' : '계속') : '다음', style: Ttc.t(14, color: const Color(0xFF243039), weight: FontWeight.w700)),
-                  ),
+                ]),
+              ),
+              ConstrainedBox(
+                constraints: BoxConstraints(minHeight: small ? 64 : 84),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  layoutBuilder: (cur, prev) => Stack(alignment: Alignment.topLeft, children: [...prev, if (cur != null) cur]),
+                  child: Text(l.t, key: ValueKey(k), style: Ttc.t(small ? 18 : 20, color: Ttc.sepia, height: 1.6)),
                 ),
-              ]),
-            ),
-          ]),
+              ),
+              SizedBox(height: small ? 12 : 18),
+              if (last && t.reward != null && t.reward!.isNotEmpty) _box(Text('보상 · ${g.lootText(t.reward!)}', style: Ttc.t(13, color: Ttc.sepia, height: 1.6))),
+              if (last && t.goal != null)
+                _box(Text.rich(TextSpan(children: [
+                  const TextSpan(text: '할 일 ', style: TextStyle(fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)])),
+                  TextSpan(text: t.goal),
+                ]), style: Ttc.t(13, color: Ttc.sepia, height: 1.6))),
+              // 아래 줄: 옅은 선 하나 + (넘기는 중) 몇 번째 줄 · 탭해서 계속 · 건너뛰기 / (마지막) 행동 버튼
+              Container(
+                margin: const EdgeInsets.only(top: 6),
+                padding: const EdgeInsets.only(top: 12),
+                decoration: const BoxDecoration(border: Border(top: BorderSide(color: Ttc.line))),
+                child: Row(children: [
+                  if (n > 1) Text('${k + 1} / $n', style: Ttc.t(12, color: Ttc.sepia2)),
+                  if (!last) ...[
+                    const SizedBox(width: 10),
+                    Expanded(child: Text('탭해서 계속 ▸', maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(12.5, color: const Color(0xFF9F783F), weight: FontWeight.w600))),
+                  ] else
+                    const Spacer(),
+                  if (canSkip)
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _skip,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+                        child: Text('건너뛰기', style: Ttc.t(13, color: Ttc.sepia2, weight: FontWeight.w600).copyWith(decoration: TextDecoration.underline, decorationColor: Ttc.sepia2)),
+                      ),
+                    ),
+                  if (last)
+                    GestureDetector(
+                      onTap: () {
+                        // 넘기던 손가락이 막 생긴 버튼을 바로 누르지 않게 잠깐 기다린다
+                        if (DateTime.now().millisecondsSinceEpoch - _advAt < 350) return;
+                        widget.onDone();
+                      },
+                      child: Container(
+                        constraints: const BoxConstraints(minWidth: 90, minHeight: 44),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(color: Ttc.amberBtn, borderRadius: BorderRadius.circular(8), border: Border.all(color: Ttc.amberBtnLine)),
+                        child: Text(t.goal != null ? '해 보자' : '계속', style: Ttc.t(14, color: const Color(0xFF243039), weight: FontWeight.w700)),
+                      ),
+                    ),
+                ]),
+              ),
+            ]),
+          ),
         ),
       ),
     );

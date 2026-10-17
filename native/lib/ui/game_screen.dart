@@ -1144,16 +1144,18 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                   left: 10,
                   top: 12,
                   right: 116,
-                  child: Align(alignment: Alignment.centerLeft, child: KeyedSubtree(key: _kClock, child: Every(g: g, builder: (c) => clockChip(g)))),
+                  // 대형 재폭풍 동안은 숨긴다: 아래 방어 막대가 같은 말을 하는 머리가 된다
+                  child: Align(alignment: Alignment.centerLeft, child: KeyedSubtree(key: _kClock, child: Every(g: g, builder: (c) => g.defn != null ? const SizedBox.shrink() : clockChip(g)))),
                 ),
-                // 대형 재폭풍 막대 · 생존자 의뢰 · 부탁
+                // 대형 재폭풍 막대 (시계 자리, 오른쪽 위 버튼은 비켜서) · 생존자 의뢰 · 부탁
                 Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 56,
-                  child: Center(
-                    child: SizedBox(
-                      width: math.min(350, box.maxWidth - 20),
+                  left: 10,
+                  right: 64,
+                  top: 12,
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 350),
                       child: Every(g: g, ms: 250, builder: (c) => defenseBar(g)),
                     ),
                   ),
@@ -1426,7 +1428,22 @@ class _MatTile extends StatelessWidget {
   final String k;
   @override
   Widget build(BuildContext context) {
-    final v = g.have(k), zero = v <= 0, full = v >= g.capOf(k);
+    final v = g.have(k), zero = v <= 0, full = v >= g.capOf(k), m = matOf[k];
+    // 꾹 누르면 이름·수량·한도 (그림만으로는 무슨 자재인지 모를 수 있어서)
+    return Tooltip(
+      message: '${m?.n ?? k} ${fmt(v)}${m != null && m.tier < 3 ? ' · 보관 한도 ${fmt(g.capOf(k))}' : ''}',
+      triggerMode: TooltipTriggerMode.longPress,
+      preferBelow: true,
+      verticalOffset: 28,
+      waitDuration: Duration.zero,
+      showDuration: const Duration(milliseconds: 1800),
+      decoration: BoxDecoration(color: const Color(0xF2141A21), borderRadius: BorderRadius.circular(7), border: Border.all(color: Ttc.line25, width: .8)),
+      textStyle: Ttc.t(12.5, color: Ttc.matText, weight: FontWeight.w600),
+      child: _tile(v, zero, full),
+    );
+  }
+
+  Widget _tile(num v, bool zero, bool full) {
     return Opacity(
       opacity: zero ? .7 : 1,
       child: Container(

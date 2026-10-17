@@ -124,7 +124,8 @@ class _ShelterBodyState extends State<ShelterBody> {
                 tab = k;
                 g.seeFeat('shelter', const ['build', 'craft', 'research', 'store', 'deco'][k]);
               }),
-          hlKeys: const ['seg:0', 'seg:1']),
+          hlKeys: const ['seg:0', 'seg:1'],
+          oneRow: true),
       ...switch (tab) {
         0 => _build(),
         1 => [..._craft(), ...feastCard(g)],
@@ -146,7 +147,7 @@ class _ShelterBodyState extends State<ShelterBody> {
         tags: [smallTag('Lv.${L + 1}')],
         desc: descText('빈 자리 +${slotsByLv[L] - slotsByLv[L - 1]} · 침상 +${const [1, 3, 5, 8, 12][L] - const [1, 3, 5, 8, 12][L - 1]} · 랜턴 빛이 더 멀리 닿아요'),
         costs: costWrap(g, c, lead: [CostChip(label: '모듈', have: S.mods.length, need: need)]),
-        button: BuyButton('증축', hero: true, why: !ok ? '모듈 부족' : (!g.canPay(c) ? '자재 부족' : null), onTap: ok && g.canPay(c) ? () => g.upShelter() : null),
+        button: BuyButton('증축', hero: true, why: !ok ? '모듈 ${need - S.mods.length}개 더 필요' : (!g.canPay(c) ? (lackText(g, c) ?? '자재 부족') : null), onTap: ok && g.canPay(c) ? () => g.upShelter() : null),
       ), radius: 12));
     }
     final fs = g.freeSlot();
@@ -217,7 +218,7 @@ class _ShelterBodyState extends State<ShelterBody> {
 
   Widget _btn(String label, Cost c, VoidCallback act, {bool dis = false, String? why}) {
     final poor = !g.canPay(c);
-    return BuyButton(label, why: dis ? why : (poor ? '자재 부족' : null), onTap: dis || poor ? null : act);
+    return BuyButton(label, why: dis ? why : (poor ? (lackText(g, c, short: true) ?? '자재 부족') : null), onTap: dis || poor ? null : act);
   }
 
   List<Widget> _craft() {
@@ -268,7 +269,7 @@ class _ShelterBodyState extends State<ShelterBody> {
             // 카드의 버튼 자리는 폭 제한이 없는 Row 안이라, 두 버튼 폭을 맞출 때는 IntrinsicWidth로 감싼다
             : IntrinsicWidth(
                 child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  CraftBtn(g, k, ok: ok, why: ok ? null : (full ? '창고 가득' : '재료 부족')),
+                  CraftBtn(g, k, ok: ok, why: ok ? null : (full ? '창고 가득' : (lackText(g, inp, short: true) ?? '재료 부족'))),
                   if (g.acraftOpen) ...[const SizedBox(height: 6), k == 0 ? hl('acr', _acrBtn(k)) : _acrBtn(k)], // 웹: 첫 스위치만 강조
                 ]),
               ),
@@ -408,7 +409,7 @@ class ModuleCard extends StatelessWidget {
               style: Ttc.t(12, color: Ttc.sepia2, height: 1.5),
             ),
       costs: up == null ? null : costWrap(g, up),
-      button: up == null ? doneBadge() : BuyButton('강화', why: g.canPay(up) ? null : '자재 부족', onTap: g.canPay(up) ? () => g.upMod(slot) : null),
+      button: up == null ? doneBadge() : BuyButton('강화', why: g.canPay(up) ? null : (lackText(g, up, short: true) ?? '자재 부족'), onTap: g.canPay(up) ? () => g.upMod(slot) : null),
     );
   }
 }
@@ -843,7 +844,11 @@ class _CraftBtnState extends State<CraftBtn> {
                 ])
               : Column(mainAxisSize: MainAxisSize.min, children: [
                   Text('만들기', style: Ttc.t(on ? 13 : 12, color: on ? Ttc.darkBtnText : Ttc.offBtnText, weight: FontWeight.w700, height: 1.2)),
-                  if (widget.why != null) Text(widget.why!, style: Ttc.t(11, color: Ttc.offBtnText.withValues(alpha: .85), weight: FontWeight.w600, height: 1.2)),
+                  if (widget.why != null)
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(widget.why!, textAlign: TextAlign.center, style: Ttc.t(11, color: Ttc.offBtnText.withValues(alpha: .85), weight: FontWeight.w600, height: 1.2)),
+                    ),
                 ]),
         ),
       ),

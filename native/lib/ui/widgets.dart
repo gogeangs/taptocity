@@ -1,4 +1,5 @@
 // 웹 시트의 부품(.row.mcard, .cost.cc, .buy, .segs, .sumchips, .sec …)을 같은 치수·색으로 옮겼다.
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -221,10 +222,15 @@ class _BuyButtonState extends State<BuyButton> {
   Widget build(BuildContext context) {
     final on = widget.onTap != null;
     final Color bg, bd, fg;
-    if (widget.hero) {
+    if (widget.hero && on) {
       bg = Ttc.amberBtn;
       bd = Ttc.amberBtnLine;
       fg = const Color(0xFF243039);
+    } else if (widget.hero) {
+      // 못 누르는 큰 버튼: 빛바랜 베이지 + 짙은 글자 (밝은 호박색이면 눌러도 될 것처럼 보인다)
+      bg = const Color(0xFFE4DDCC);
+      bd = const Color(0xFFCFC6B2);
+      fg = const Color(0xFF5B5A52);
     } else if (on) {
       bg = Ttc.darkBtn;
       bd = Ttc.darkBtn;
@@ -250,7 +256,14 @@ class _BuyButtonState extends State<BuyButton> {
           alignment: Alignment.center,
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Text(widget.label, style: Ttc.t(widget.hero ? 15.5 : (on ? 13 : 12), color: fg, weight: FontWeight.w700, height: 1.2)),
-            if (widget.why != null) Text(widget.why!, style: Ttc.t(10.5, color: fg.withValues(alpha: .85), weight: FontWeight.w600, height: 1.2)),
+            if (widget.why != null)
+              widget.hero
+                  ? Text(widget.why!, textAlign: TextAlign.center, style: Ttc.t(12, color: fg, weight: FontWeight.w600, height: 1.3))
+                  // 좁은 버튼: 두 줄 이유('철판 42\n더 필요')를 버튼 폭에 맞춰 줄인다
+                  : FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(widget.why!, textAlign: TextAlign.center, style: Ttc.t(10.5, color: fg.withValues(alpha: .85), weight: FontWeight.w600, height: 1.2)),
+                    ),
           ]),
         ),
       ),
@@ -358,31 +371,38 @@ Widget sec(String t, [String? small]) => Padding(
 
 /// 웹 .segs
 class Segs extends StatelessWidget {
-  const Segs({super.key, required this.items, required this.on, required this.onTap, this.dots = const [], this.hlKeys = const []});
+  const Segs({super.key, required this.items, required this.on, required this.onTap, this.dots = const [], this.hlKeys = const [], this.oneRow = false});
   final List<String> items;
   final List<String> hlKeys; // 칸마다 길잡이 강조 키 (story_ui hl)
   final List<bool> dots;
   final int on;
   final void Function(int) onTap;
+
+  /// 칸이 많아도 한 줄에 같은 폭으로 (좁으면 글자를 줄인다)
+  final bool oneRow;
   @override
   Widget build(BuildContext context) {
     Widget seg0(int k) => GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () => onTap(k),
           child: Container(
-            height: 40,
+            height: oneRow ? 38 : 40,
             alignment: Alignment.center,
+            padding: oneRow ? const EdgeInsets.symmetric(horizontal: 3) : null,
             decoration: BoxDecoration(color: k == on ? Ttc.surface : Colors.transparent, borderRadius: BorderRadius.circular(6)),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Text(items[k], style: Ttc.t(13, color: k == on ? const Color(0xFF22323B) : Ttc.segText, weight: FontWeight.w600)),
-              if (k < dots.length && dots[k])
-                Container(width: 8, height: 8, margin: const EdgeInsets.only(left: 5), decoration: const BoxDecoration(shape: BoxShape.circle, color: Ttc.amber)),
-            ]),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Text(items[k], style: Ttc.t(oneRow ? 12.5 : 13, color: k == on ? const Color(0xFF22323B) : Ttc.segText, weight: FontWeight.w600)),
+                if (k < dots.length && dots[k])
+                  Container(width: oneRow ? 7 : 8, height: oneRow ? 7 : 8, margin: EdgeInsets.only(left: oneRow ? 4 : 5), decoration: const BoxDecoration(shape: BoxShape.circle, color: Ttc.amber)),
+              ]),
+            ),
           ),
         );
     Widget seg(int k) => k < hlKeys.length ? hl(hlKeys[k], seg0(k), radius: 6) : seg0(k);
-    // 웹 .segs: 5칸이면 3칸씩 두 줄
-    final cols = items.length >= 5 ? 3 : items.length;
+    // 웹 .segs: 5칸이면 3칸씩 두 줄 (oneRow면 한 줄)
+    final cols = oneRow ? items.length : (items.length >= 5 ? 3 : items.length);
     final rows = <Widget>[];
     for (var r = 0; r * cols < items.length; r++) {
       rows.add(Row(children: [
@@ -422,3 +442,25 @@ Widget emptyBox(Widget icon, String t, String d) => Container(
         Text(d, textAlign: TextAlign.center, style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5)),
       ]),
     );
+
+/// 모자란 첫 자재를 '철판 42 더 필요'처럼 (좁은 버튼은 두 줄로). 다 있으면 null
+String? lackText(Game g, Cost c, {bool short = false}) {
+  for (final e in c.entries) {
+    final have = g.have(e.key);
+    if (have < e.value) {
+      final n = '${matOf[e.key]?.n ?? e.key} ${fmt((e.value - have).ceil())}';
+      return short ? '$n\n더 필요' : '$n 더 필요';
+    }
+  }
+  return null;
+}
+
+/// 다친 사람이 다 낫기까지 남은 시간 ('3분' · '40초'). 안 다쳤으면 null
+String? hurtLeft(Game g, int id) {
+  final r = g.rec(id);
+  final hurt = (r?['hurt'] as num?) ?? 0;
+  if (r == null || hurt <= 0) return null;
+  final rate = g.heal * (r['slow'] == 1 ? .5 : 1);
+  final sec = rate <= 0 ? hurt : hurt / rate;
+  return sec >= 60 ? '${(sec / 60).ceil()}분' : '${math.max(1, sec.ceil())}초';
+}
