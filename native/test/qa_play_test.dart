@@ -302,7 +302,8 @@ void run(Game g, Qa qa, int minutes, int seed, {bool stopAtEnd = true}) {
   final r = math.Random(seed);
   final base = DateTime.now().millisecondsSinceEpoch;
   Game.nowMs = () => base + simMs;
-  var lastMi = -1, lastRmi = -1, stuck = 0, lastGen = -1;
+  var lastMi = -1, lastRmi = -1, stuck = 0, lastGen = -1, supplies = 0;
+  var hadSupply = false;
   String? paceLabel;
   var paceStart = 0, paceGen = 0, paceStep = 0;
   for (var sec = 0; sec < minutes * 60; sec++) {
@@ -317,6 +318,8 @@ void run(Game g, Qa qa, int minutes, int seed, {bool stopAtEnd = true}) {
     }
     autoStep(g, qa, r);
     if (sec % 10 == 0) check(g, qa, '${g.S.gen}동네 ${sec ~/ 60}분');
+    if (g.supply != null && !hadSupply) supplies++;
+    hadSupply = g.supply != null;
     if (sec % 300 == 0) roundTrip(g, qa);
     // 막힌 걸음 찾기: 15분(시뮬) 넘게 같은 걸음이면 기록
     final key = g.S.gen * 1000 + (g.mi < steps.length ? g.mi : 100 + g.rmi);
@@ -341,7 +344,7 @@ void run(Game g, Qa qa, int minutes, int seed, {bool stopAtEnd = true}) {
     }
     if (stopAtEnd && g.S.rest['ehEnd'] != null) break;
   }
-  qa.note('끝: ${g.S.gen}번째 동네 · Lv.${g.S.lv} · 생존자 ${g.S.sv.length} · 걸음 ${g.mi}/${steps.length} · 동네 미션 ${g.rmi} · 밤 ${g.num_('nights')} · 막은 폭풍 ${g.num_('defWins')} · 지하 ${g.ugBest}층 · 탑 ${g.towerN} · 시뮬 ${simMs ~/ 60000}분');
+  qa.note('끝: ${g.S.gen}번째 동네 · Lv.${g.S.lv} · 생존자 ${g.S.sv.length} · 걸음 ${g.mi}/${steps.length} · 동네 미션 ${g.rmi} · 밤 ${g.num_('nights')} · 막은 폭풍 ${g.num_('defWins')} · 지하 ${g.ugBest}층 · 탑 ${g.towerN} · 보급 더미 $supplies번 · 시뮬 ${simMs ~/ 60000}분');
 }
 
 void main() {
