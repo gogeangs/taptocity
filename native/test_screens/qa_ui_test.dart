@@ -267,7 +267,7 @@ void main() {
           });
           await visit('$tag · 아침 보고', () async {
             await home();
-            g.morningReport(3 * 3600 + 25 * 60.0, {'wood': 120, 'scrap': 80, 'food': 40});
+            g.morningReport(3 * 3600 + 25 * 60.0, {'wood': 120, 'scrap': 80, 'food': 40}, g.svIds.take(1).toList());
             final t = g.takeFx().whereType<FxTalk>().last;
             showTalk(tester.element(find.byType(GameScreen)), g, t);
             await settle();

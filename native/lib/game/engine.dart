@@ -2095,8 +2095,27 @@ class Game extends ChangeNotifier {
     final el = math.min(8 * 3600, away).toDouble();
     var got = <String, int>{};
     if (el > 60 && perMin > 0) got = give({for (final e in prod.entries) e.key: e.value * el / 60 * .5});
+    // 비운 시간만큼만 쉬어서 낫는다 (켜 둔 동안과 같은 빠르기)
+    final healed = <int>[];
+    if (el > 0) {
+      for (final id in svIds) {
+        final r = rec(id)!;
+        final hurt = (r['hurt'] as num?) ?? 0;
+        if (hurt <= 0) continue;
+        final left = hurt - el * heal * (r['slow'] == 1 ? .5 : 1);
+        if (left <= 0) {
+          r['hurt'] = 0;
+          r.remove('slow');
+          r.remove('hurtBy');
+          healed.add(id);
+        } else {
+          r['hurt'] = left;
+        }
+      }
+      if (healed.isNotEmpty) recalc();
+    }
     if (away >= 1800 && tut == null && !tutPending && onb != 1) {
-      morningReport(el, got);
+      morningReport(el, got, healed);
     } else if (got.isNotEmpty) {
       fx.add(FxOffline(el, got));
     }

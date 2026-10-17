@@ -295,19 +295,8 @@ extension Daily on Game {
   }
 
   // ================= 아침 보고 =================
-  /// 30분 넘게 비웠다 돌아오면 (engine offline): 그동안 다친 사람은 쉬어서 낫고, 말순 → 만수 → 나 순으로 짧게 알려 준다
-  void morningReport(double sec, Map<String, int> got) {
-    final healed = <int>[];
-    for (final id in svIds) {
-      final r = rec(id)!;
-      if (((r['hurt'] as num?) ?? 0) > 0) {
-        r['hurt'] = 0;
-        r.remove('slow');
-        r.remove('hurtBy');
-        healed.add(id);
-      }
-    }
-    if (healed.isNotEmpty) recalc();
+  /// 30분 넘게 비웠다 돌아오면 (engine offline): 비운 시간만큼 쉬어 다 나은 사람을 포함해, 말순 → 만수 → 나 순으로 짧게 알려 준다
+  void morningReport(double sec, Map<String, int> got, List<int> healed) {
     final int who = _tnHere(5) ? 5 : _tnHere(0) ? 0 : -1;
     final V = _mr[who]!;
     String pick(String k) {
