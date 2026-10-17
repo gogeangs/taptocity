@@ -25,6 +25,10 @@ class Qa {
 
 int simMs = 0;
 
+/// 목표마다 걸린 시간 (재미 점검용 · qa-pace.csv): 시드, 동네, 목표, 시작 분, 걸린 분
+final pace = <String>['seed,gen,step,goal,start_min,minutes'];
+int paceSeed = 0;
+
 /// 사람처럼 한 걸음: 두드리고, 받고, 짓고, 보내고, 고른다
 void autoStep(Game g, Qa qa, math.Random r) {
   void safe(String n, void Function() f) {
@@ -287,6 +291,8 @@ void run(Game g, Qa qa, int minutes, int seed, {bool stopAtEnd = true}) {
   final base = DateTime.now().millisecondsSinceEpoch;
   Game.nowMs = () => base + simMs;
   var lastMi = -1, lastRmi = -1, stuck = 0, lastGen = -1;
+  String? paceLabel;
+  var paceStart = 0, paceGen = 0, paceStep = 0;
   for (var sec = 0; sec < minutes * 60; sec++) {
     for (var q = 0; q < 2; q++) {
       simMs += 500;
@@ -303,6 +309,14 @@ void run(Game g, Qa qa, int minutes, int seed, {bool stopAtEnd = true}) {
     // 막힌 걸음 찾기: 15분(시뮬) 넘게 같은 걸음이면 기록
     final key = g.S.gen * 1000 + (g.mi < steps.length ? g.mi : 100 + g.rmi);
     if (key != lastMi * 1000 + lastRmi || g.S.gen != lastGen) {
+      // 앞 목표가 끝났다 → 걸린 시간 기록
+      if (paceLabel != null) {
+        pace.add('$paceSeed,$paceGen,$paceStep,"${paceLabel!.replaceAll('"', "'")}",${(paceStart / 60).toStringAsFixed(1)},${((sec - paceStart) / 60).toStringAsFixed(1)}');
+      }
+      paceLabel = g.mission().txt;
+      paceStart = sec;
+      paceGen = g.S.gen;
+      paceStep = g.mi < steps.length ? g.mi : 100 + g.rmi;
       lastMi = key ~/ 1000;
       lastRmi = key % 1000;
       lastGen = g.S.gen;
@@ -324,6 +338,7 @@ void main() {
   tearDownAll(() {
     Directory('test_screens/shots').createSync(recursive: true);
     File('test_screens/shots/qa-play.txt').writeAsStringSync('${out.join('\n')}\n');
+    File('test_screens/shots/qa-pace.csv').writeAsStringSync('${pace.join('\n')}\n');
   });
 
   for (final seed in [1, 2, 3]) {
@@ -331,6 +346,7 @@ void main() {
       simMs = 0;
       final qa = Qa();
       final g = Game(Game.fresh(seed: seed * 101));
+      paceSeed = seed;
       run(g, qa, 24 * 60, seed);
       out
         ..add('===== 새 게임 시드 $seed =====')
@@ -345,6 +361,7 @@ void main() {
     simMs = 0;
     final qa = Qa();
     final g = Game(Game.fresh(seed: 77));
+    paceSeed = 0; // 오프라인 판 (재미 점검표에서 0)
     run(g, qa, 40, 9);
     try {
       g.offline(Game.nowMs() + 8 * 3600 * 1000);
