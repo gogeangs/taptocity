@@ -82,8 +82,8 @@ Widget _fxChips(List<String> fx) => Padding(
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-                color: RegExp(r'-\d|다침|통행료').hasMatch(t) ? const Color(0x1FB0452A) : const Color(0x246F9646), borderRadius: BorderRadius.circular(99)),
-            child: Text(t, style: Ttc.t(13, color: RegExp(r'-\d|다침|통행료').hasMatch(t) ? const Color(0xFFB0452A) : Ttc.ok, weight: FontWeight.w600, height: 1)),
+                color: RegExp(r'-\d|다침|통행료|더딤').hasMatch(t) ? const Color(0x1FB0452A) : const Color(0x246F9646), borderRadius: BorderRadius.circular(99)),
+            child: Text(t, style: Ttc.t(13, color: RegExp(r'-\d|다침|통행료|더딤').hasMatch(t) ? const Color(0xFFB0452A) : Ttc.ok, weight: FontWeight.w600, height: 1)),
           ),
       ]),
     );
@@ -185,6 +185,37 @@ Future<void> showCase(BuildContext context, Game g, int k) async {
           padding: const EdgeInsets.only(bottom: 12),
           child: Row(children: [_stamp(c.solved), const SizedBox(width: 8), Text('사건 수첩에 적었어요', style: Ttc.t(13, color: Ttc.sepia2, height: 1.5))]),
         ),
+        Row(children: [pageBtn('닫기', () => Navigator.pop(ctx))]),
+      ]));
+}
+
+// ======================= 정답 없는 선택 (앱 전용, game/tension.dart) =======================
+Future<void> showChoice(BuildContext context, Game g) async {
+  final v = g.choiceView();
+  if (v == null) return;
+  int? picked;
+  await _casePage(context, (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text(v.tag, style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+        Padding(padding: const EdgeInsets.fromLTRB(0, 2, 0, 10), child: Text(v.title, style: Ttc.t(19, color: Ttc.sepia, weight: FontWeight.w700))),
+        caseLines(g, v.lines),
+        Text('어떻게 할까요?', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
+        const SizedBox(height: 8),
+        for (var k = 0; k < v.opts.length; k++)
+          _copt(v.opts[k].$1, v.opts[k].$2, () {
+            picked = k;
+            Navigator.pop(ctx);
+          }, hi: k == 0),
+        Text('정답은 없어요. 해가 질 때까지 정하지 않으면 누군가 대신 정해요', style: Ttc.t(11.5, color: Ttc.sepia2, height: 1.4)),
+      ]));
+  if (picked == null || !context.mounted) return;
+  final (ls, fx) = g.pickChoice(picked!);
+  if (ls.isEmpty && fx.isEmpty) return;
+  Sound.buzzMid();
+  await _casePage(context, (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text(v.tag, style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+        Padding(padding: const EdgeInsets.fromLTRB(0, 2, 0, 10), child: Text(v.title, style: Ttc.t(19, color: Ttc.sepia, weight: FontWeight.w700))),
+        caseLines(g, ls),
+        if (fx.isNotEmpty) _fxChips(fx),
         Row(children: [pageBtn('닫기', () => Navigator.pop(ctx))]),
       ]));
 }

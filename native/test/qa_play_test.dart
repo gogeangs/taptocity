@@ -53,6 +53,9 @@ void autoStep(Game g, Qa qa, math.Random r) {
           g.pickTown(r.nextBool() ? 'a' : 'b');
         case FxOnboard():
           g.onbEnd();
+        case FxChoice():
+          // 정답 없는 선택 (앱 전용): 아무거나 고른다. 안 고르면 해 질 녘에 저절로 정해진다
+          if (r.nextDouble() < .8) g.pickChoice(r.nextInt(2));
         case FxTalk(:final after):
           if (after == 'endCard') {
             g.S.rest['ehEnd'] = 1;
@@ -344,7 +347,8 @@ void run(Game g, Qa qa, int minutes, int seed, {bool stopAtEnd = true}) {
     }
     if (stopAtEnd && g.S.rest['ehEnd'] != null) break;
   }
-  qa.note('끝: ${g.S.gen}번째 동네 · Lv.${g.S.lv} · 생존자 ${g.S.sv.length} · 걸음 ${g.mi}/${steps.length} · 동네 미션 ${g.rmi} · 밤 ${g.num_('nights')} · 막은 폭풍 ${g.num_('defWins')} · 지하 ${g.ugBest}층 · 탑 ${g.towerN} · 보급 더미 $supplies번 · 시뮬 ${simMs ~/ 60000}분');
+  final st = g.S.rest['stat'] is Map ? g.S.rest['stat'] as Map : const {};
+  qa.note('끝: 부상 ${st['hurtN'] ?? 0} · 선택 ${st['choiceN'] ?? 0} · ${g.S.gen}번째 동네 · Lv.${g.S.lv} · 생존자 ${g.S.sv.length} · 걸음 ${g.mi}/${steps.length} · 동네 미션 ${g.rmi} · 밤 ${g.num_('nights')} · 막은 폭풍 ${g.num_('defWins')} · 지하 ${g.ugBest}층 · 탑 ${g.towerN} · 보급 더미 $supplies번 · 시뮬 ${simMs ~/ 60000}분');
 }
 
 void main() {

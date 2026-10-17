@@ -903,7 +903,10 @@ extension Crisis on Game {
     }
     fx.add(const FxDefense(false));
     crowRaidAfterDefense();
+    final died = (S.rest['deathG'] as Map?)?['${S.gen}'] != null;
     deathAfterDefense(win, D2);
+    // 못 막은 밤: 아무도 떠나지 않지만 한 사람이 다친다 (앱 전용, tension.dart). 이번 밤에 누군가를 잃었으면 더하지 않는다
+    if (!win && (died || (S.rest['deathG'] as Map?)?['${S.gen}'] == null)) nightInjury();
     _changed();
   }
 }

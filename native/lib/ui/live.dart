@@ -508,7 +508,9 @@ class _LivePainter extends CustomPainter {
       canvas.drawRect(rect, Paint()..color = const Color(0x14281E50));
     } else {
       canvas.saveLayer(rect, Paint());
-      canvas.drawRect(rect, Paint()..color = Color.fromRGBO((30 - 16 * nt).round(), (26 - 8 * nt).round(), (70 - 24 * nt).round(), .1 + .58 * nt));
+      // 앱 시즌 1 다듬기(2026-10-17): 밤을 조금 더 어둡게, 대형 재폭풍 밤은 더 (웹 .1 + .58·nt). 불빛 구멍은 그대로라 길은 보인다
+      final na = math.min(.82, .1 + (.64 + (g.defn != null ? .1 : g.stormOn ? .03 : 0)) * nt);
+      canvas.drawRect(rect, Paint()..color = Color.fromRGBO((30 - 16 * nt).round(), (26 - 8 * nt).round(), (70 - 24 * nt).round(), na));
       void hole(Offset w, double r0, double a0) {
         final s = scr(w), r = r0 * cam.z;
         if (s.dx < -r || s.dy < -r || s.dx > size.width + r || s.dy > size.height + r) return;

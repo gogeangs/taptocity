@@ -21,6 +21,7 @@ part 'lines.dart';
 part 'quest.dart';
 part 'supply.dart';
 part 'feat.dart';
+part 'tension.dart';
 
 /// 화면 연출(떠오르는 글자·알림·창 열기)을 그림 쪽에 알려 주는 신호.
 sealed class Fx {
@@ -196,6 +197,9 @@ class Game extends ChangeNotifier {
   double coldAcc = 0;
   LnRun? ln;
   int townChoiceShown = -1;
+  // 정답 없는 선택·불빛 밖의 밤길 (tension.dart, 저장하지 않음)
+  String? choiceAsked;
+  int darkRollAt = 0;
 
   GameState S;
   final math.Random rnd;
@@ -1424,7 +1428,10 @@ class Game extends ChangeNotifier {
   void hitCamp(int i, double amt) {
     final c = S.camp[i];
     if (c == null) return;
-    if (((c['hp'] as num?) ?? 0) > 0) sfx('hit', buzz: true);
+    if (((c['hp'] as num?) ?? 0) > 0) {
+      if (amt > 0) darkTap(i);
+      sfx('hit', buzz: true);
+    }
     if (((c['hp'] as num?) ?? 0) <= 0) {
       if (campReady(i)) {
         doRescue(i);
@@ -1480,6 +1487,12 @@ class Game extends ChangeNotifier {
     final r = rec(id);
     if (r == null) return false;
     final l = trustLv(xpOf(id));
+    // 다쳐서 누운 사람은 다 나을 때까지 신뢰가 오르지 않는다 (앱 전용, tension.dart)
+    if (l < 5 && ((r['hurt'] as num?) ?? 0) > 0) {
+      fx.add(FxNote(survivors[id].name, '“${hurtGiftLine(id)}”\n다친 사람은 다 나을 때까지 신뢰가 오르지 않아요', ms: 4800));
+      _changed();
+      return false;
+    }
     if (l >= 5 || !pay(giftCost(id))) return false;
     r['xp'] = xpOf(id) + math.max(20, ((trustXp[l] - trustXp[l - 1]) * .45).ceil());
     final a = trustLv(xpOf(id));
@@ -1564,13 +1577,20 @@ class Game extends ChangeNotifier {
       final r = rec(id)!;
       final hurt = (r['hurt'] as num?) ?? 0;
       if (hurt > 0) {
-        r['hurt'] = hurt - heal;
+        r['hurt'] = hurt - heal * (r['slow'] == 1 ? .5 : 1);
         if ((r['hurt'] as num) <= 0) {
           r['hurt'] = 0;
+          r.remove('slow');
+          r.remove('hurtBy');
           ch = true;
           fx.add(FxToast('${jo(survivors[id].name, '이', '가')} 다 나았어요'));
         }
         continue;
+      }
+      if (r['slow'] != null || r['hurtBy'] != null) {
+        // 스킬 등 다른 방법으로 나았으면 부상 표시를 지운다 (tension.dart)
+        r.remove('slow');
+        r.remove('hurtBy');
       }
       if (atOf(id) < 0 || _truthy(r['away']) || hungry) continue;
       final b = trustLv(xpOf(id));
@@ -1663,6 +1683,7 @@ class Game extends ChangeNotifier {
   bool hitSite(int i, double amt) {
     final s = S.site[i];
     if (s == null || s.c <= 0) return false;
+    darkTap(i);
     sfx('hit', buzz: true);
     addCombo();
     supplyHit(i);
@@ -2029,6 +2050,7 @@ class Game extends ChangeNotifier {
       _tickFeat();
       _tickBeats();
       _tickDusk();
+      _tickTension();
       if (S.droneLv > 0 || overT > 0) {
         final i = frontierNearest();
         if (i >= 0) {

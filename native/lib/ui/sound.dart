@@ -157,6 +157,14 @@ class Sound {
     _apply();
   }
 
+  /// 밤에는 배경음을 조금 낮춘다 (앱 전용 밤 연출, 1 = 그대로)
+  static double _dim = 1;
+  static void dim(double k) {
+    if ((k - _dim).abs() < .01) return;
+    _dim = k;
+    if (_ready) _apply();
+  }
+
   static void duck(bool on) {
     if (on == _duck) return;
     _duck = on;
@@ -190,7 +198,7 @@ class Sound {
   static double get _level {
     if (_cur == 'off') return 0;
     if (DateTime.now().millisecondsSinceEpoch < _blackUntil) return 0;
-    return (_duck ? .5 : 1) * .85;
+    return (_duck ? .5 : 1) * .85 * _dim;
   }
 
   /// 소리 크기를 천천히 맞춘다 (웹 setTargetAtTime 1.2초 → 약 1.5초에 걸쳐)

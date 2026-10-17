@@ -11,6 +11,7 @@ import 'package:taptocity/game/data.dart';
 import 'package:taptocity/game/engine.dart';
 import 'package:taptocity/ui/atlas.dart';
 import 'package:taptocity/ui/game_screen.dart';
+import 'package:taptocity/ui/season_ui.dart';
 import 'package:taptocity/ui/theme.dart';
 
 final _bad = RegExp(r'\bnull\b|NaN|Infinity|undefined|\[object|Instance of|\$\{');
@@ -209,6 +210,19 @@ void main() {
           await settle();
           await tester.drag(find.byType(Scrollable).last, const Offset(0, -2000), warnIfMissed: false);
         });
+        // 정답 없는 선택 창 (앱 전용): 약 한 알(하늘·순례) · 국이 모자란 밤
+        if (stage == 'late' && town == 'home') {
+          for (final (k, a, b, v) in const [('med', 3, 4, 'kin'), ('med', 6, 0, ''), ('soup', 3, 6, '')]) {
+            await visit('$tag · 선택 · $k$v', () async {
+              await home();
+              g.S.rest['choice'] = <String, Object?>{'k': k, 'a': a, 'b': b, 'v': v, 'day': 1};
+              g.choiceAsked = '${k}1';
+              showChoice(tester.element(find.byType(GameScreen)), g);
+              await settle();
+            });
+          }
+          g.S.rest['choice'] = null;
+        }
         for (final t in const ['프로필', '꾸미기']) {
           await visit('$tag · 프로필 · $t', () async {
             await home();

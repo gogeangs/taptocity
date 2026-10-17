@@ -403,6 +403,7 @@ extension Season on Game {
     R['p'] = p;
     final sid = c.sus != null && hasSv(c.sus!) ? c.sus : null;
     final out = <String>[];
+    Line? hurtL; // 엉뚱한 사람을 추궁하면 그 사람이 서운해하고, 이틀 뒤 사과할 수 있다 (앱 전용, tension.dart)
     if (!c.tut) {
       if (p == 'a') {
         if (c.all) {
@@ -411,8 +412,10 @@ extension Season on Game {
           }
           out.add('모두 신뢰 -20');
         } else if (sid != null) {
+          final x0 = xpOf(sid);
           rec(sid)!['xp'] = math.max(0, xpOf(sid) - 60);
           out.add('${survivors[sid].name} 신뢰 -60');
+          hurtL = wrongAccuse(sid, x0 - xpOf(sid));
         }
       }
       if (p == 'b') {
@@ -433,6 +436,7 @@ extension Season on Game {
     final e = c.end?.call(this) ?? '';
     if (e.isNotEmpty) out.add(e);
     var ls = [for (final l in o.r(this)) if (l != null) l];
+    if (hurtL != null) ls = [...ls, hurtL];
     if (c.tail != null) {
       ls = [...ls, ...c.tail!];
       R['tail'] = 1;

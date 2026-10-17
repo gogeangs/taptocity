@@ -98,6 +98,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       final changed = g.tick(.25);
       _storyUi();
       Sound.mood(_mood());
+      Sound.dim(g.isNight && g.defn == null ? .75 : 1);
+      _heartbeat();
       Atlas.region = g.S.gen != 0 ? g.S.region : null;
       Sound.duck(pageWatch.n > 0 || g.dread);
       if (g.fx.isNotEmpty) fxc.pull(g);
@@ -107,6 +109,17 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         _save();
       }
     });
+  }
+
+  /// 대형 재폭풍 밤에는 낮은 심장 소리 (앱 전용). 내구도가 절반 아래면 빨라진다
+  int _beatT = 0;
+  void _heartbeat() {
+    final D = g.defn;
+    if (D == null) {
+      _beatT = 0;
+      return;
+    }
+    if (++_beatT % (D.hp < D.max * .5 ? 5 : 9) == 0) Sound.sfx('heart');
   }
 
   /// 엔딩 대사마다 소리 (웹 endingLine 5874)
@@ -403,6 +416,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         Sound.blackout(sec);
       case FxTownChoice():
         _pageQ.add(() => showTownChoice(context, g));
+        _pumpPages();
+      case FxChoice():
+        _pageQ.add(() {
+          Sound.sfx('mystery');
+          return showChoice(context, g);
+        });
         _pumpPages();
       case FxDeath():
         // 폭풍이 걷히고 잠시 뒤 (웹 setTimeout 2200)
