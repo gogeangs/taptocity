@@ -1,60 +1,58 @@
+Resolving dependencies...
+Downloading packages...
+  app_links 6.4.1 (7.2.2 available)
+  code_assets 1.2.1 (2.1.0 available)
+  flutter_lints 5.0.0 (6.0.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  lints 5.1.1 (6.1.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  objective_c 9.5.0 (9.6.2 available)
+  petitparser 7.0.2 (7.1.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  shared_preferences_foundation 2.5.7 (2.6.0 available)
+  test_api 0.7.12 (0.7.15 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+14 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Running Xcode build...                                          
+Xcode build done.                                           108.1s
+VMServiceFlutterDriver: Connecting to Flutter application at http://127.0.0.1:52323/2lO5F24cVRY=/
+VMServiceFlutterDriver: Isolate found with number: 1104106197076675
+VMServiceFlutterDriver: Isolate 1104106197076675 is runnable.
 VMServiceFlutterDriver: Isolate is paused at start.
 VMServiceFlutterDriver: Attempting to resume isolate
 flutter: 00:00 +0: iPhone에서 앱 띄워 보기
-Failed to index action parameter: <WFHomeServicePickerParameter: 0x1068d1140> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFHomeServicePickerParameter)
-Failed to index action parameter: <WFHomeAccessoryPickerParameter: 0x1068d0fc0> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFHomeAccessoryPickerParameter)
 flutter: ▶ 처음 켜기 (0s)
-Failed to index action parameter: <WFPosterPickerParameter: 0x1068d2640> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFPosterPickerParameter)
-Failed to check availability in Spotlight for action is.workflow.actions.workout.end: Error Domain=NSOSStatusErrorDomain Code=-10814 "(null)" UserInfo={_LSLine=156, _LSFunction=+[LSBundleRecord bundleRecordWithBundleIdentifier:allowPlaceholder:error:], _LSFile=LSBundleRecord.mm, NSUnderlyingError=0x107d52f40 {Error Domain=NSOSStatusErrorDomain Code=-10814 "Unable to find this application extension record in the Launch Services database." UserInfo={_LSLine=652, _LSFunction=_LSPluginFindWithPlatformInfo, _LSFile=LSPluginBundle.mm, NSDebugDescription=Unable to find this application extension record in the Launch Services database., SK=com.apple.SessionTrackerApp, IS=false}}}
-is.workflow.actions.conditional WFConditionalAction: Skipped because: [control flow]
-Failed to index action parameter: <WFSSHKeyParameter: 0x1068e9800> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFSSHKeyParameter)
-is.workflow.actions.repeat.count WFFiniteRepeatAction: Skipped because: [control flow]
-Failed to index action parameter: <WFPosterPickerParameter: 0x106980240> due to (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFPosterPickerParameter)
-Indexed: 447
-Errored: 0
-Skipped: [donation-based action: 2, control flow: 4]
-   donation-based action: 2
-   control flow: 4
-Finished in 372.454371s
--[WFIsolatedShortcutRunner unaliveProcess] Releasing sandbox extensions
 VMServiceFlutterDriver: Connected to Flutter application.
 VMServiceFlutterDriver: request_data message is taking a long time to complete...
-flutter: ▶ 첫 화면 두드리기 (30s)
--[WFIsolatedShortcutRunner init] Taking sandbox extensions for execution
--[WFIsolatedShortcutRunner init]_block_invoke Sandbox extensions acquired
-Indexing for request: <WFToolKitIndexingRequest: 0x1031a81e0>, changeset: .partial(updatedCount: 43 removedCount: 0 updated: ["com.apple.contacts.autocomplete.appintentextension", "com.apple.Fitness", "com.apple.homed", "com.apple.springboard", "com.apple.BarcodeScanner", "com.apple.PeopleViewService", "com.apple.mobilesafari", "com.apple.GameCenter.Settings.DeviceExpertExtension", "com.apple.MobileAddressBook", "com.apple.MobileSMS", "com.apple.-Photos-AppIntents", "com.apple.TransparencySettingsIntents", "com.apple.HealthStandaloneIntents", "com.apple.reminders", "com.apple.Health", "com.apple.ShortcutsActions", "com.apple.mobileslideshow", "com.apple.MediaRemoteAppIntentsExtension", "com.apple.AppIntents", "com.apple.SensitiveContentAnalysis.SensitiveContentAnalysisConfigurationExtension", "kr.co.itso.taptocity", "com.apple.compass.CompassSettingsAppIntents", "com.apple.SafetyMonitorApp", "com.apple.musicrecognition", "com.apple.news", "com.apple.Bridge", "com.apple.intelligenceplatform.IntelligencePlatform.IntelligencePlatf<…>, priority: <decode: missing data>
-indexing: the changeset is expensive, filling Link provider in full
-flutter: ▶ 진행 중인 저장으로 켜기 (35s)
-flutter: ▶ 지도 두드리기 (소리) (42s)
-flutter: ▶ 탭 쉘터 (47s)
-flutter: ▶ 쉘터 · 건설 (49s)
-flutter: ▶ 쉘터 · 가공 (49s)
-flutter: ▶ 쉘터 · 연구 (49s)
-flutter: ▶ 쉘터 닫기 (49s)
-flutter: ▶ 탭 일지 (51s)
-flutter: ▶ 일지 · 이야기 (53s)
-Failed to index parameter type: <WFPosterPickerParameter: 0x1079879c0> in is.workflow.actions.posters.switch: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFPosterPickerParameter) for locale: en
-Failed to index parameter type: <WFContentArrayParameter: 0x107a57f00> in is.workflow.actions.list: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFContentArrayParameter) for locale: en
-Skipping: <WFUnionParameter: 0x1083d8000> in com.apple.MobileSMS.SendMessageReactionIntent because union values themselves are not treated as a type
-flutter: ▶ 일지 · 도감 (55s)
-Failed to index parameter type: <WFFontPickerParameter: 0x107df6340> in is.workflow.actions.overlaytext: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFFontPickerParameter) for locale: en
-flutter: ▶ 일지 닫기 (57s)
-Failed to index parameter type: <WFExpandingParameter: 0x1084de3e0> in is.workflow.actions.downloadurl: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFExpandingParameter) for locale: en
-Failed to index parameter type: <WFSystemShortcutPickerParameter: 0x107e36b80> in com.apple.shortcuts.RunShortcutConfigurationIntent: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFSystemShortcutPickerParameter) for locale: en
-flutter: ▶ 탭 원정 (59s)
-Failed to index parameter type: <WFSystemShortcutPickerParameter: 0x107aa9380> in com.apple.shortcuts.WFShortcutsSmallWidgetConfigurationIntent: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFSystemShortcutPickerParameter) for locale: en
-flutter: ▶ 원정 닫기 (61s)
-flutter: ▶ 탭 라디오 (63s)
-flutter: ▶ 라디오 닫기 (65s)
-flutter: ▶ 탭 생존자 (66s)
-flutter: ▶ 생존자 닫기 (68s)
-flutter: ▶ 설정 (69s)
-flutter: ▶ 설정 닫기 (72s)
-flutter: ▶ 프로필 (73s)
-flutter: ▶ 프로필 닫기 (75s)
-flutter: ▶ 뒤로 갔다 돌아오기 (75s)
-flutter: ▶ 저장 확인 (80s)
-flutter: ▶ 진동 채널 (80s)
-flutter: 01:22 +1: (tearDownAll)
-flutter: 01:30 +2: All tests passed!
+flutter: ▶ 첫 화면 두드리기 (16s)
+flutter: ▶ 진행 중인 저장으로 켜기 (21s)
+flutter: ▶ 지도 두드리기 (소리) (28s)
+flutter: ▶ 탭 쉘터 (33s)
+flutter: ▶ 쉘터 · 건설 (35s)
+flutter: ▶ 쉘터 · 가공 (35s)
+flutter: ▶ 쉘터 · 연구 (35s)
+flutter: ▶ 쉘터 닫기 (35s)
+flutter: ▶ 탭 일지 (37s)
+flutter: ▶ 일지 · 이야기 (39s)
+flutter: ▶ 일지 · 도감 (40s)
+flutter: ▶ 일지 닫기 (42s)
+flutter: ▶ 탭 원정 (44s)
+flutter: ▶ 원정 닫기 (45s)
+flutter: ▶ 탭 라디오 (47s)
+flutter: ▶ 라디오 닫기 (49s)
+flutter: ▶ 탭 생존자 (50s)
+flutter: ▶ 생존자 닫기 (52s)
+flutter: ▶ 설정 (54s)
+flutter: ▶ 설정 닫기 (56s)
+flutter: ▶ 프로필 (57s)
+flutter: ▶ 프로필 닫기 (60s)
+flutter: ▶ 뒤로 갔다 돌아오기 (60s)
+flutter: ▶ 저장 확인 (65s)
+flutter: ▶ 진동 채널 (65s)
+flutter: 01:06 +1: (tearDownAll)
+flutter: 01:16 +2: All tests passed!
 All tests passed.
