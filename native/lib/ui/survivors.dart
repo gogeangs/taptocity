@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../game/data.dart';
 import '../game/engine.dart';
+import 'daily_ui.dart';
 import 'gear.dart';
 import 'icons.dart';
 import 'portrait.dart';
@@ -578,6 +579,12 @@ void showSurvPage(BuildContext context, Game g, int id0, {void Function(int id, 
               g.toggleParty(id);
             }, alt: true),
             if (tl < 5) ...[const SizedBox(width: 8), pageBtn('선물 · 식량 ${gc['food']}', g.canPay(gc) ? () => g.gift(id) : null)],
+            // 신뢰도 5 뒤: 인연 선물 (하루 한 번)
+            if (tl >= 5 && g.bondLv(id) < 5) ...[
+              const SizedBox(width: 8),
+              pageBtn(g.bondGiftedToday(id) ? '오늘 선물함 · 내일 또' : '인연 선물 · 식량 ${bondGiftCost['food']}',
+                  !g.bondGiftedToday(id) && g.canPay(bondGiftCost) ? () => g.gift(id) : null),
+            ],
           ]),
         ]);
       }));
@@ -724,6 +731,7 @@ Widget _growTab(Game g, int id, ({double m, double w, double cd}) p, BuildContex
           ),
       ]),
     ),
+    bondBox(ctx, g, id),
   ]);
 }
 

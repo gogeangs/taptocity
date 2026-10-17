@@ -226,10 +226,31 @@ final Map<String, GearInfo> gear = {
       e.value['line'] as bool,
       e.value['ug'] as bool,
     ),
+  ...bondGearInfo,
+};
+
+/// 인연 3단계의 고유 장비 (앱 전용 2026-10-18, game/bond.dart). 그 사람만 쓸 수 있고(sig) 분해·자동 분해되지 않는다.
+/// 이미 있는 전용 장비(운전 장갑·노란 우산·호미·국자·줄자·검은 깃털)와 다른 칸에 들어간다
+const Map<String, GearInfo> bondGearInfo = {
+  'bdHandle': GearInfo('bdHandle', '낡은 버스 핸들 커버', 'keep', 2, {'craft': 0.1, 'scav': 0.08}, [0], null, 0, '삼십 년 손자국이 밴 가죽. 쥐면 손이 길을 기억한다.', true, false, false),
+  'bdRaincoat': GearInfo('bdRaincoat', '노란 실로 기운 비옷', 'wear', 2, {'hope': 4, 'fever': 1}, [3], null, 0, '구멍 난 자리를 할머니가 노란 실로 기워 줬다.', true, false, false),
+  'bdHanky': GearInfo('bdHanky', '씨앗 싼 꽃무늬 손수건', 'keep', 2, {'food': 0.15, 'hope': 2}, [4], null, 0, '꽃무늬는 다 바랬지만 마른 흙냄새는 그대로다.', true, false, false),
+  'bdApron': GearInfo('bdApron', '말순네 앞치마', 'wear', 2, {'thrift': 0.1, 'hope': 3}, [5], null, 0, '주머니에 ‘말순네’ 자수가 반쯤 풀린 채 남아 있다.', true, false, false),
+  'bdHelmet': GearInfo('bdHelmet', '찌그러진 반장 안전모', 'wear', 2, {'cost': 0.06, 'tap': 0.12}, [6], null, 0, '무너질 때 머리 대신 맞아 준 안전모. 새 끈을 단단히 맸다.', true, false, false),
+  'bdCloak': GearInfo('bdCloak', '천 덧댄 정찰 망토', 'wear', 2, {'scav': 0.12, 'fever': 1}, [17], null, 0, '검은 새 표식 위에 하늘이가 천을 덧대 삐뚤빼뚤 꿰맸다.', true, false, false),
 };
 
 /// 장비 그림 칸: [시트, 번호] (웹 design.js GCELL, LNI)
-final Map<String, (String, int)> gearCell = {for (final e in web.gearCell.entries) e.key: (e.value[0] as String, e.value[1] as int)};
+final Map<String, (String, int)> gearCell = {
+  for (final e in web.gearCell.entries) e.key: (e.value[0] as String, e.value[1] as int),
+  // 고유 장비는 비슷한 그림을 빌려 쓴다
+  'bdHandle': ('keep', 10),
+  'bdRaincoat': ('wear', 7),
+  'bdHanky': ('keep', 3),
+  'bdApron': ('wear', 9),
+  'bdHelmet': ('wear', 8),
+  'bdCloak': ('wear', 4),
+};
 const slotKeys = ['tool', 'wear', 'keep'];
 const slotName = {'tool': '도구', 'wear': '옷', 'keep': '소지품'};
 final List<Cost> gradeUpCost = [for (final c in web.gup) _cost(c)];

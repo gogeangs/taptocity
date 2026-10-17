@@ -81,7 +81,11 @@ void autoStep(Game g, Qa qa, math.Random r) {
       final u = g.ug!;
       final front = [for (var i = 0; i < u.cells.length; i++) if (g.ugFront(i)) i];
       final stairs = [for (var i = 0; i < u.cells.length; i++) if (u.cells[i].rev && u.cells[i].c == 'stairs') i];
-      if (stairs.isNotEmpty && r.nextDouble() < .7) {
+      // 끝없는 지하: 깊은 곳의 재괴물이 깨어 있으면 기름이 넉넉할 때 싸운다 (한 번 칠 때마다 기름 1 → 언젠가 끝난다)
+      final boss = [for (var i = 0; i < u.cells.length; i++) if (u.cells[i].rev && u.cells[i].boss && u.cells[i].fhp > 0) i];
+      if (boss.isNotEmpty && u.oil > 6) {
+        g.ugTap(boss.first);
+      } else if (stairs.isNotEmpty && r.nextDouble() < .7) {
         g.ugTap(stairs.first);
       } else if (front.isNotEmpty && u.oil > 3) {
         g.ugTap(front[r.nextInt(front.length)]);
@@ -348,7 +352,7 @@ void run(Game g, Qa qa, int minutes, int seed, {bool stopAtEnd = true}) {
     if (stopAtEnd && g.S.rest['ehEnd'] != null) break;
   }
   final st = g.S.rest['stat'] is Map ? g.S.rest['stat'] as Map : const {};
-  qa.note('끝: 부상 ${st['hurtN'] ?? 0} · 선택 ${st['choiceN'] ?? 0} · ${g.S.gen}번째 동네 · Lv.${g.S.lv} · 생존자 ${g.S.sv.length} · 걸음 ${g.mi}/${steps.length} · 동네 미션 ${g.rmi} · 밤 ${g.num_('nights')} · 막은 폭풍 ${g.num_('defWins')} · 지하 ${g.ugBest}층 · 탑 ${g.towerN} · 보급 더미 $supplies번 · 시뮬 ${simMs ~/ 60000}분');
+  qa.note('끝: 부상 ${st['hurtN'] ?? 0} · 선택 ${st['choiceN'] ?? 0} · ${g.S.gen}번째 동네 · Lv.${g.S.lv} · 생존자 ${g.S.sv.length} · 걸음 ${g.mi}/${steps.length} · 동네 미션 ${g.rmi} · 밤 ${g.num_('nights')} · 막은 폭풍 ${g.num_('defWins')} · 지하 최고 ${g.ugBest}층 · 조각 ${g.fragsGot.length} · 인연 ${g.bondN} · 연속 ${g.dayStreak}일 · 탑 ${g.towerN} · 보급 더미 $supplies번 · 시뮬 ${simMs ~/ 60000}분');
 }
 
 void main() {
@@ -384,6 +388,9 @@ void main() {
     run(g, qa, 40, 9);
     try {
       g.offline(Game.nowMs() + 8 * 3600 * 1000);
+      // 30분 넘게 비웠으면 따로 창 대신 아침 보고 (앱 전용)
+      final mr = g.takeFx().whereType<FxTalk>().where((f) => (f.tag ?? '').startsWith('아침 보고')).toList();
+      qa.note('아침 보고: ${mr.isEmpty ? '없음' : mr.first.lines.map((l) => l.t).join(' / ')}');
       check(g, qa, '오프라인 뒤');
       roundTrip(g, qa);
     } catch (e, st) {

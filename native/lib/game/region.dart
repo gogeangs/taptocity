@@ -336,6 +336,8 @@ extension Region on Game {
       'pf', 'playT', 'pfAsk', 'qc', 'inv', 'iu', 'relics', 'ach', 'title', 'kids', 'dog', 'endSeen', 'conf', 'hook', 'tlog', 'rumor', 'sqN', 'cases', 'odd', 'dead', 'egg', 'crow',
       'pets', 'petOn', 'stat', 'gTotal', 'gp', 'heard', 'mi', 'storyI', 'favDone', 'defWins', 'defs', 'nights', 'evDone', 'skillUses', 'expDone', 'gUses', 'art', 'artNew', 'ehEnd', 'feat',
       'expTold', 'pedCrow', 'tutSeen', 'onb', 'stepV', 'line', 'lnGot', 'lnLose', 'deathG', 'memo', 'feasts',
+      // 앱 전용 (2026-10-18): 기록 조각·오늘의 의뢰·연속 일수·세는 값 (지하 기록 S.rest['ug']는 아래에서 따로 옮긴다)
+      'frags', 'dayQ', 'dayStreak', 'dayLast', 'dayRare', 'giftN', 'ugDown', 'mrN',
     ];
     final ns = Game.fresh(random: rnd);
     for (final k in keepKeys) {

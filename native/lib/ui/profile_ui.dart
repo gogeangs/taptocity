@@ -118,6 +118,10 @@ class _ProfileBodyState extends State<ProfileBody> {
             ('이주', '${S.gen}번'),
             ('모은 유물', '${g.relics.length}개'),
             ('받은 업적', '$achN/${achList.length}'),
+            ('가장 깊이', '지하 ${g.ugBest}층'),
+            ('그날 밤의 기록 조각', '${g.fragsGot.length}/${frags.length}'),
+            ('오늘의 의뢰 연속', '${g.streakShown}일'),
+            ('인연을 맺은 사람', '${g.bondN}명'),
           ];
           return Wrap(spacing: 6, runSpacing: 6, children: [
             for (final (a, b) in st)

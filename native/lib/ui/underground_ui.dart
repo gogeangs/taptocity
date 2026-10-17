@@ -48,6 +48,10 @@ Widget ugCard(BuildContext context, Game g) {
         ]),
       ),
       Text('기름이 버티는 만큼 깊이. ${last > 1 ? '다음엔 지난번 멈춘 $last층부터 시작해요.' : '다음엔 멈춘 층부터 다시 시작해요.'}', style: Ttc.t(13, color: Ttc.sepia2, height: 1.6)),
+      // 끝없는 지하 (앱 전용): 이야기의 마지막 층에 닿으면 알려 준다
+      if (best >= ugDeep)
+        Text('$ugDeep층 아래로도 길이 끝없이 이어져요. 10층마다 깊은 곳의 재괴물이 그날 밤의 기록 조각을 지켜요 · 조각 ${g.ugFragN}/${frags.length}',
+            style: Ttc.t(12.5, color: const Color(0xFF7A4A1C), weight: FontWeight.w600, height: 1.55)),
       ...() {
         final qs = [for (final id in g.svIds) if (g.qStep(id) != null && (g.qStep(id)!['k'] == 'find' || g.qStep(id)!['k'] == 'ug')) survivors[id].name];
         return [if (qs.isNotEmpty) Text('${qs.join(', ')}의 이야기가 지하에 있어요', style: Ttc.t(13, color: const Color(0xFF7A4A1C), weight: FontWeight.w700, height: 1.6))];
@@ -84,7 +88,7 @@ void showUgPrep(BuildContext context, Game g) {
         final last = g.ugLast, startF = _Prep.start == 1 ? 1 : last;
         void fuelStep(int d) => set(() => _Prep.fuel = math.max(0, math.min(_Prep.fuel + d, math.min(fmax, g.have('fuel').toInt()))));
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text('지하 구역 · 최고 ${g.ugBest}층', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+          Text('지하 구역 · 가장 깊이: ${g.ugBest}층${g.ugFragN > 0 ? ' · 기록 조각 ${g.ugFragN}/${frags.length}' : ''}', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
           const SizedBox(height: 4),
           Text('누구와 내려갈까요?', style: Ttc.t(23, color: Ttc.sepia, weight: FontWeight.w700)),
           const SizedBox(height: 10),
@@ -581,8 +585,9 @@ class _UgPageState extends State<_UgPage> {
       final act = c.c == 'stairs' || (c.c == 'rest' && !c.used) || (c.c == 'door' && !c.open) || (c.c == 'foe' && c.fhp > 0) || c.c == 'shop';
       final done = c.used || c.open || (c.c == 'foe' && c.fhp <= 0);
       final hz = c.c == 'hazard';
-      final bg = hz ? const Color(0xFF97594C) : act ? const Color(0xFFDFB168) : const Color(0xFF8B8C7D);
-      final bd = act ? const Color(0xFFF0CA80) : const Color(0x47141A1F);
+      final boss = c.boss && c.fhp > 0; // 깊은 곳의 재괴물 (끝없는 지하)
+      final bg = boss ? const Color(0xFFC0634A) : hz ? const Color(0xFF97594C) : act ? const Color(0xFFDFB168) : const Color(0xFF8B8C7D);
+      final bd = boss ? const Color(0xFFFFB080) : act ? const Color(0xFFF0CA80) : const Color(0x47141A1F);
       final lc = hz ? const Color(0xFFFFF0DC) : act ? const Color(0xFF2A1C0C) : const Color(0xFF1D1712);
       Widget w = Container(
         decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(6), border: Border.all(color: bd)),

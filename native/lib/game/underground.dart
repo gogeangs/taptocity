@@ -13,7 +13,28 @@ class UgTheme {
 final List<UgTheme> ugThemes = [for (final t in web.ugTheme) UgTheme(t['f'] as int, t['k'] as String, t['n'] as String, t['intro'] as String)];
 final List<(int, String, String)> ugDiaries = [for (final d in web.ugDiary) (d['f'] as int, d['t'] as String, d['x'] as String)];
 const List<int> ugCks = web.ugCk;
-UgTheme ugTheme(int f) => ugThemes.fold(ugThemes[0], (a, t) => f >= t.f ? t : a);
+
+/// 이야기로 정해 둔 마지막 층 (마지막 지하 기록이 놓이는 층 = 17). 그 아래는 끝없는 지하 (앱 전용 2026-10-18)
+final int ugDeep = ugDiaries.fold(15, (a, d) => math.max(a, d.$1));
+
+/// 끝없는 지하의 세기: 마지막 층에서 한 층 내려갈 때마다 +12% (세 배까지)
+double ugDeepK(int f) => f <= ugDeep ? 1 : math.min(3.0, 1 + .12 * (f - ugDeep));
+
+/// 깊은 곳의 재괴물이 지키는 층: 마지막 층 아래의 10층마다 (20, 30, 40…)
+bool ugBossFloor(int f) => f > ugDeep && f % 10 == 0;
+
+/// 끝없는 지하의 테마: 다섯 층마다 지하철역 → 하수도 → 방공호 → 발전소 지하를 더 깊은 모습으로 되풀이
+const _ugDeepIntro = [
+  '지도에 없는 승강장. 선로가 어둠 속으로 끝없이 이어진다.',
+  '물소리가 멀어졌다. 여기까지 내려온 사람은 없는 것 같다.',
+  '철문 너머에 또 철문. 벽에 새긴 날짜들이 점점 흐려진다.',
+  '바닥이 따뜻하다. 아주 먼 곳에서 무언가 천천히 빛나고 있다.',
+];
+UgTheme ugTheme(int f) {
+  if (f <= ugDeep) return ugThemes.fold(ugThemes[0], (a, t) => f >= t.f ? t : a);
+  final seg = (f - ugDeep - 1) ~/ 5, k = seg % ugThemes.length, t = ugThemes[k];
+  return UgTheme(ugDeep + 1 + seg * 5, t.k, '깊은 ${t.n}', _ugDeepIntro[k % _ugDeepIntro.length]);
+}
 
 /// 칸 이름 (웹 UGL · UGN)
 const ugLabel = {'pet': '웅덩이', 'loot': '상자', 'rare': '귀한것', 'gear': '장비', 'oil': '기름', 'hazard': '위험', 'stairs': '계단', 'start': '입구', 'rest': '쉼터', 'key': '열쇠', 'door': '문', 'foe': '괴물', 'shop': '상인', 'diary': '기록', 'who': '흔적', 'quest': '이야기'};
@@ -39,6 +60,9 @@ class UgCell {
   bool rev = false, hit = false, fresh = false, used = false, open = false;
   int hp, fhp = 0, did = -1, qid = -1;
   String? hz;
+
+  /// 깊은 곳의 재괴물 (끝없는 지하의 10층마다)
+  bool boss = false;
 
   /// 지하 상인 칸: 이 상인에게서 산 횟수 [기름, 열쇠]
   final List<int> buys = [0, 0];
@@ -143,7 +167,9 @@ extension Underground on Game {
     final f = ++u.floor;
     ugRec['last'] = f;
     const n = ugW * ugH;
-    final cells = List.generate(n, (_) => UgCell(1 + (f - 1) ~/ 5));
+    // 끝없는 지하에서도 칸 하나는 네 번까지만 (기름 한계 안에서 더 내려갈 수 있게)
+    final deep = f > ugDeep;
+    final cells = List.generate(n, (_) => UgCell(deep ? math.min(4, 1 + (f - 1) ~/ 5) : 1 + (f - 1) ~/ 5));
     const start = (ugH - 1) * ugW + 2;
     cells[start]
       ..rev = true
@@ -174,12 +200,12 @@ extension Underground on Game {
     final th = ugTheme(f);
     if (f > 1 && th.f == f) u.msg = '${th.n} · ${th.intro}';
     if (ugCks.contains(f)) put('rest');
-    for (var k = 0; k < (th.k == 'plant' ? 4 : 5); k++) {
+    for (var k = 0; k < (th.k == 'plant' || deep ? 4 : 5); k++) {
       put('loot');
     }
     put('rare');
     if (f >= 3) put('rare');
-    for (var k = 0; k < math.min(7, 2 + f ~/ 3); k++) {
+    for (var k = 0; k < (deep ? 5 : math.min(7, 2 + f ~/ 3)); k++) {
       put('hazard').hz = rnd.nextDouble() < (th.k == 'sewer' ? .75 : .5) ? 'gas' : 'fall';
     }
     put('oil');
@@ -189,8 +215,19 @@ extension Underground on Game {
       put('key');
     }
     if (f >= 5) {
-      put('foe').fhp = 2 + f ~/ 4;
-      if (th.k == 'plant') put('foe').fhp = 3 + f ~/ 4;
+      put('foe').fhp = deep ? _ugDeepHp(f) : 2 + f ~/ 4;
+      if (th.k == 'plant') put('foe').fhp = deep ? _ugDeepHp(f) + 1 : 3 + f ~/ 4;
+    }
+    if (ugBossFloor(f)) {
+      // 깊은 곳의 재괴물: 보통 괴물의 세 배. 쓰러뜨리면 그날 밤의 기록 조각. 기름통 하나와 쉼터를 더 둔다
+      put('foe')
+        ..boss = true
+        ..fhp = _ugDeepHp(f) * 3;
+      // 남은 빈칸이 넉넉할 때만 (칸이 모자라면 다른 칸을 덮어쓰지 않게)
+      int room() => [for (var i = 0; i < n; i++) if (cells[i].c == 'empty' && ((i % ugW) - 2).abs() + ((i ~/ ugW) - (ugH - 1)).abs() >= 2) i].length;
+      if (room() > 6) put('oil');
+      if (room() > 6) put('rest');
+      u.msg = '아래에서 무언가 숨 쉬는 소리가 들린다. 깊은 곳의 재괴물이 이 층 어딘가에 있다.';
     }
     if (f >= 4 && rnd.nextDouble() < .3) put('shop');
     {
@@ -223,7 +260,7 @@ extension Underground on Game {
       ugRec['best'] = f;
       if (f > 1) {
         give({'batt': 1});
-        u.msg = '새 기록! 지하 $f층 · 건전지 +1';
+        u.msg = '새 기록! 지하 $f층 · 건전지 +1${ugBossFloor(f) ? ' · 깊은 곳의 재괴물이 이 층 어딘가에 있다' : f == ugDeep + 1 ? ' · 기록이 끝난 곳보다 더 아래예요' : ''}';
       }
     }
     if (ugRec['bestWith'] is! Map) ugRec['bestWith'] = <String, Object?>{};
@@ -232,6 +269,12 @@ extension Underground on Game {
       bw['$id'] = math.max(((bw['$id'] as num?) ?? 0).toInt(), f);
     }
   }
+
+  /// 끝없는 지하의 재 괴물 힘: 마지막 층의 괴물(2 + 17÷4 = 6)에 깊이 배수
+  int _ugDeepHp(int f) => jsRound((2 + ugDeep ~/ 4) * ugDeepK(f));
+
+  /// 기록 조각 수 (지하 준비 화면)
+  int get ugFragN => fragsGot.length;
 
   List<int> ugAdj(int i) {
     final x = i % ugW, y = i ~/ ugW;
@@ -253,8 +296,15 @@ extension Underground on Game {
     final c = u.cells[i];
     if (c.rev) {
       if (c.c == 'stairs') {
+        final from = u.floor;
         u.msg = '지하 ${u.floor + 1}층으로 내려갔다.';
+        S.rest['ugDown'] = num_('ugDown') + 1;
         _ugFloor();
+        // 끝없는 지하: 한 층을 지나 내려갈 때마다 8% 확률로 그날 밤의 기록 조각
+        if (from > ugDeep && rnd.nextDouble() < .08) {
+          final k = fragDrop();
+          if (k >= 0) u.msg += ' · 계단참에서 기록 조각을 주웠다: **${frags[k].$2}** (올라가면 읽을 수 있어요)';
+        }
         sfx('reveal');
         _changed();
         return false;
@@ -278,15 +328,16 @@ extension Underground on Game {
   }
 
   void _ugResolve(UgCell c) {
-    final u = ug!, f = u.floor, sc = 1 + (f - 1) * .35;
+    // 끝없는 지하의 전리품은 40층 몫까지만 커진다
+    final u = ug!, f = u.floor, fr = math.min(f, 40), sc = 1 + (fr - 1) * .35;
     final snd = const {'loot': 'get', 'oil': 'get', 'key': 'get', 'hazard': 'night', 'foe': 'night', 'empty': '', 'stairs': '', 'start': '', 'shop': ''}[c.c] ?? 'find';
     if (snd.isNotEmpty) sfx(snd);
     switch (c.c) {
       case 'loot':
         final a = baseMats[rnd.nextInt(6)], b = baseMats[rnd.nextInt(6)], m = ugRole('mech') ? 1.3 : 1.0;
         final o = <String, num>{};
-        o[a] = jsRound((3 + f * 1.2) * m * (a == 'food' && ugRole('farm') ? 2 : 1));
-        o[b] = (o[b] ?? 0) + jsRound((2 + f) * m);
+        o[a] = jsRound((3 + fr * 1.2) * m * (a == 'food' && ugRole('farm') ? 2 : 1));
+        o[b] = (o[b] ?? 0) + jsRound((2 + fr) * m);
         _ugAdd(o);
         u.msg = '상자를 열었다 · ${lootText(o)}';
         if (rnd.nextDouble() < .08 && findRelic() != null) u.msg += ' · 유물도 함께!';
@@ -314,7 +365,10 @@ extension Underground on Game {
       case 'hazard':
         final guard = ugRole('guard');
         if (c.hz == 'gas') {
-          final l = jsRound((3 + f ~/ 2) * (guard ? .5 : 1));
+          // 끝없는 지하: 가스는 마지막 층 세기에서 한 층마다 +4% (1.6배까지)
+          final l = f > ugDeep
+              ? jsRound((3 + ugDeep ~/ 2) * math.min(1.6, 1 + .04 * (f - ugDeep)) * (guard ? .5 : 1))
+              : jsRound((3 + f ~/ 2) * (guard ? .5 : 1));
           u.oil = math.max(0, u.oil - l);
           u.msg = '가스가 새어 나왔다! 랜턴이 흔들린다 · 기름 -$l';
         } else {
@@ -341,7 +395,9 @@ extension Underground on Game {
         u.msg = u.keys > 0 ? '잠긴 철문. 열쇠로 열 수 있다. 눌러서 열어요.' : '잠긴 철문. 이 층 어딘가에 열쇠가 있을 거다.';
       case 'foe':
         if (ugRole('guard')) c.fhp = math.max(1, (c.fhp / 2).ceil());
-        u.msg = '재 괴물이 깨어났다! 쓰러뜨리기 전까지 칸마다 기름이 2씩 들어요. 눌러서 싸워요 (${c.fhp})';
+        u.msg = c.boss
+            ? '**깊은 곳의 재괴물 · 지하 $f층**이 몸을 일으켰다! 쓰러뜨리기 전까지 칸마다 기름이 2씩 들어요. 눌러서 싸워요 (${c.fhp})'
+            : '재 괴물이 깨어났다! 쓰러뜨리기 전까지 칸마다 기름이 2씩 들어요. 눌러서 싸워요 (${c.fhp})';
       case 'shop':
         u.msg = '지하 상인이 등불을 들고 앉아 있다. 눌러서 거래해요.';
       case 'diary':
@@ -407,9 +463,9 @@ extension Underground on Game {
       u.keys--;
       c.open = true;
       sfx('find');
-      final sc = 1 + (f - 1) * .35;
+      final fr = math.min(f, 40), sc = 1 + (fr - 1) * .35;
       final o = <String, num>{'plate': jsRound(3 * sc), 'parts': jsRound(4 * sc)};
-      if (f >= 4) o[rnd.nextDouble() < .5 ? 'wire' : 'med'] = 1 + f ~/ 8;
+      if (f >= 4) o[rnd.nextDouble() < .5 ? 'wire' : 'med'] = 1 + fr ~/ 8;
       _ugAdd(o);
       var m = '철문이 열렸다! 비밀 창고 · ${lootText(o)}';
       if (rnd.nextDouble() < .35 + f * .02) {
@@ -426,12 +482,22 @@ extension Underground on Game {
       sfx(c.fhp <= 0 ? 'find' : 'hit', buzz: true);
       if (c.fhp <= 0) {
         c.fhp = 0;
-        final o = <String, num>{rnd.nextDouble() < .5 ? 'wire' : 'med': 1, 'scrap': 6 + f};
-        _ugAdd(o);
+        final o = <String, num>{rnd.nextDouble() < .5 ? 'wire' : 'med': 1, 'scrap': 6 + math.min(f, 40)};
         _stat['foe'] = ((_stat['foe'] as num?) ?? 0) + 1;
-        u.msg = '재 괴물을 쓰러뜨렸다! · ${lootText(o)}';
+        if (c.boss) {
+          // 깊은 곳의 재괴물: 전리품 세 배 + 그날 밤의 기록 조각 (다 모았으면 건전지)
+          o.updateAll((key, v) => v * 3);
+          o['batt'] = 2;
+          _ugAdd(o);
+          final k = fragDrop();
+          _stat['ugBoss'] = ((_stat['ugBoss'] as num?) ?? 0) + 1;
+          u.msg = '깊은 곳의 재괴물이 흩어졌다! · ${lootText(o)}${k >= 0 ? ' · 재 속에서 기록 조각이 나왔다: **${frags[k].$2}** (올라가면 읽을 수 있어요)' : ''}';
+        } else {
+          _ugAdd(o);
+          u.msg = '재 괴물을 쓰러뜨렸다! · ${lootText(o)}';
+        }
       } else {
-        u.msg = '재 괴물을 내리쳤다! 남은 힘 ${c.fhp}';
+        u.msg = c.boss ? '깊은 곳의 재괴물을 내리쳤다! 남은 힘 ${c.fhp}' : '재 괴물을 내리쳤다! 남은 힘 ${c.fhp}';
       }
       if (u.oil <= 0) {
         _changed();

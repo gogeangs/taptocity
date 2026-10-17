@@ -10,6 +10,7 @@ import '../game/data.dart';
 import '../game/engine.dart';
 import 'atlas.dart';
 import 'cloud_ui.dart';
+import 'daily_ui.dart';
 import 'icons.dart';
 import 'life_ui.dart';
 import 'season_ui.dart';
@@ -537,7 +538,7 @@ class _DiaryBodyState extends State<DiaryBody> {
         'towns' => routeTab(context, g),
         'ach' => achTab(g),
         'guide' => guideTab(context, g),
-        _ => [...storyLog(g), ...diaryLog(g, (k) => showDiary(context, k))],
+        _ => [...dailySection(g), ...storyLog(g), ...fragSection(context, g), ...diaryLog(g, (k) => showDiary(context, k))],
       },
     ]);
   }

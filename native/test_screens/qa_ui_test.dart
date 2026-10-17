@@ -13,6 +13,7 @@ import 'package:taptocity/ui/atlas.dart';
 import 'package:taptocity/ui/game_screen.dart';
 import 'package:taptocity/ui/season_ui.dart';
 import 'package:taptocity/ui/story_ui.dart';
+import 'package:taptocity/ui/survivors.dart';
 import 'package:taptocity/ui/theme.dart';
 
 final _bad = RegExp(r'\bnull\b|NaN|Infinity|undefined|\[object|Instance of|\$\{');
@@ -223,6 +224,93 @@ void main() {
             });
           }
           g.S.rest['choice'] = null;
+          // 앱 전용 (2026-10-18): 기록 조각 · 일지의 조각 목록 · 오늘의 의뢰 연속 칸 · 아침 보고 · 인연 Lv.3 · 지하 준비(가장 깊이)
+          final frags0 = g.S.rest['frags'], ug0 = Map<String, Object?>.from(g.ugRec), dq0 = g.S.rest['dayQ'], ds0 = g.S.rest['dayStreak'], dl0 = g.S.rest['dayLast'];
+          g.S.rest['frags'] = <Object?>[0, 3, 7];
+          g.ugRec['best'] = 23;
+          await visit('$tag · 기록 조각 창', () async {
+            await home();
+            showTalk(tester.element(find.byType(GameScreen)), g, g.fragTalk(3, first: true));
+            await settle();
+            await tapText('탭해서 계속 ▸');
+          });
+          g.S.rest['dayStreak'] = 6;
+          g.S.rest['dayLast'] = g.todayKey;
+          g.S.rest['dayQ'] = <String, Object?>{
+            'd': g.todayKey,
+            'all': 0,
+            'q': [
+              <String, Object?>{'k': 'wood', 'n': 136, 'p': 136, 'l': 1e9, 'ok': 1},
+              <String, Object?>{'k': 'ug', 'n': 3, 'p': 1, 'l': 1e9, 'ok': 0},
+              <String, Object?>{'k': 'gift', 'n': 1, 'p': 0, 'l': 1e9, 'ok': 0},
+            ],
+          };
+          await visit('$tag · 일지 · 오늘의 의뢰 · 연속 칸', () async {
+            await home();
+            await tapText('일지');
+            await tapText('이야기');
+          });
+          await visit('$tag · 일지 · 기록 조각 목록', () async {
+            await home();
+            await tapText('일지');
+            await tapText('이야기');
+            final lv = find.byType(Scrollable);
+            if (lv.evaluate().isNotEmpty) {
+              await tester.drag(lv.last, const Offset(0, -900), warnIfMissed: false);
+              await settle();
+            }
+          });
+          await visit('$tag · 지하 준비 · 가장 깊이', () async {
+            await home();
+            await tapText('원정');
+            await tapText('내려갈 준비');
+          });
+          await visit('$tag · 아침 보고', () async {
+            await home();
+            g.morningReport(3 * 3600 + 25 * 60.0, {'wood': 120, 'scrap': 80, 'food': 40});
+            final t = g.takeFx().whereType<FxTalk>().last;
+            showTalk(tester.element(find.byType(GameScreen)), g, t);
+            await settle();
+            await tapText('탭해서 계속 ▸');
+          });
+          final r0 = g.rec(0)!, xp0 = r0['xp'], bn0 = r0['bondN'], bg0 = r0['bondG'];
+          r0['xp'] = trustXp.last + bondCum[2] + 500;
+          r0['bondN'] = 3;
+          r0['bondG'] = 1;
+          final st0 = survTab;
+          await visit('$tag · 생존자 ${survivors[0].name} · 성장 · 인연 Lv.3', () async {
+            await home();
+            await tapText('생존자');
+            await tapText(survivors[0].name);
+            await tapText('성장');
+            final lv = find.byType(Scrollable);
+            if (lv.evaluate().isNotEmpty) {
+              await tester.drag(lv.last, const Offset(0, -900), warnIfMissed: false);
+              await settle();
+            }
+          });
+          await visit('$tag · 인연 장면 창', () async {
+            await home();
+            showTalk(tester.element(find.byType(GameScreen)), g, g.bondTalk(0, 3));
+            await settle();
+          });
+          survTab = st0;
+          r0['xp'] = xp0;
+          if (bn0 == null) {
+            r0.remove('bondN');
+          } else {
+            r0['bondN'] = bn0;
+          }
+          if (bg0 == null) {
+            r0.remove('bondG');
+          } else {
+            r0['bondG'] = bg0;
+          }
+          g.S.rest['frags'] = frags0;
+          g.S.rest['ug'] = ug0;
+          g.S.rest['dayQ'] = dq0;
+          g.S.rest['dayStreak'] = ds0;
+          g.S.rest['dayLast'] = dl0;
         }
         if (stage == 'mid' && town == 'home') {
           // 대사 창: 한 줄씩 넘기기(창 두드리기) · 건너뛰기 · 마지막 줄의 행동 버튼

@@ -22,6 +22,8 @@ part 'quest.dart';
 part 'supply.dart';
 part 'feat.dart';
 part 'tension.dart';
+part 'bond.dart';
+part 'daily.dart';
 
 /// 화면 연출(떠오르는 글자·알림·창 열기)을 그림 쪽에 알려 주는 신호.
 sealed class Fx {
@@ -1487,6 +1489,8 @@ class Game extends ChangeNotifier {
     final r = rec(id);
     if (r == null) return false;
     final l = trustLv(xpOf(id));
+    // 신뢰도 5부터는 인연 선물 (앱 전용, bond.dart): 하루 한 번
+    if (l >= 5) return bondGift(id);
     // 다쳐서 누운 사람은 다 나을 때까지 신뢰가 오르지 않는다 (앱 전용, tension.dart)
     if (l < 5 && ((r['hurt'] as num?) ?? 0) > 0) {
       fx.add(FxNote(survivors[id].name, '“${hurtGiftLine(id)}”\n다친 사람은 다 나을 때까지 신뢰가 오르지 않아요', ms: 4800));
@@ -1495,6 +1499,7 @@ class Game extends ChangeNotifier {
     }
     if (l >= 5 || !pay(giftCost(id))) return false;
     r['xp'] = xpOf(id) + math.max(20, ((trustXp[l] - trustXp[l - 1]) * .45).ceil());
+    S.rest['giftN'] = num_('giftN') + 1;
     final a = trustLv(xpOf(id));
     if (a > l) {
       fx.add(FxToast('${survivors[id].name} 신뢰도 $a! 새 사연이 열렸어요'));
@@ -2051,6 +2056,8 @@ class Game extends ChangeNotifier {
       _tickBeats();
       _tickDusk();
       _tickTension();
+      _tickBond();
+      _tickDaily();
       if (S.droneLv > 0 || overT > 0) {
         final i = frontierNearest();
         if (i >= 0) {
@@ -2082,11 +2089,16 @@ class Game extends ChangeNotifier {
   }
 
   /// 앱을 다시 열었을 때 꺼져 있던 동안의 생산 (웹 start 6417: 최대 8시간, 절반)
+  /// 30분 넘게 비웠으면 따로 창을 띄우지 않고 아침 보고(daily.dart)로 들려준다 (앱 전용)
   void offline(int nowMs) {
-    final el = math.min(8 * 3600, (nowMs - S.t) / 1000).toDouble();
-    if (el > 60 && perMin > 0) {
-      final got = give({for (final e in prod.entries) e.key: e.value * el / 60 * .5});
-      if (got.isNotEmpty) fx.add(FxOffline(el, got));
+    final away = (nowMs - S.t) / 1000;
+    final el = math.min(8 * 3600, away).toDouble();
+    var got = <String, int>{};
+    if (el > 60 && perMin > 0) got = give({for (final e in prod.entries) e.key: e.value * el / 60 * .5});
+    if (away >= 1800 && tut == null && !tutPending && onb != 1) {
+      morningReport(el, got);
+    } else if (got.isNotEmpty) {
+      fx.add(FxOffline(el, got));
     }
     S.t = nowMs;
   }
