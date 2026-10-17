@@ -391,7 +391,13 @@ extension Region on Game {
     talk([if (wl.isNotEmpty) Line('me', wl), ...(regIntro(0) ?? _lines((web.regionText['talk'] as Map)[region]))],
         card: ('$g번째 동네', regions[region]!.n), goal: regionMis()[0].goal);
     S.rest['rsI'] = 0;
-    fx.add(const FxToastLater(5200, '연구와 지어 본 설계는 그대로 기억해요 · 모듈 첫 짓기 비용 절반'));
+    // 지어 본 설계를 기억한다는 걸 사람이 말해 준다 (만수 → 철호 → 나)
+    final (bw, bt) = hasSv(0)
+        ? ('박만수', '“손은 기억하는 법이여. 한 번 지어 본 건 두 번째가 빠르구먼.”')
+        : hasSv(6)
+            ? ('장철호', '“한 번 세워 봤잖아. 이번엔 반나절이면 돼.”')
+            : (pfSet ? pfName : '나', '한 번 지어 본 것들은 손이 먼저 기억했다.');
+    fx.add(FxNoteLater(5200, bw, '$bt\n모듈 첫 짓기 비용 절반 · 연구는 그대로', ms: 5200));
     if (g == 1) {
       final here = hasSv(0), left = !here && inStay(0) && !isDead(0);
       fx.add(FxNote(here ? '만수가 노선도를 그려 줬어요' : left ? '만수가 떠나기 전에 노선도를 그려 줬어요' : '지나온 길을 노선도로 그리기 시작했어요',
