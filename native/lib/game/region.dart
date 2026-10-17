@@ -335,7 +335,7 @@ extension Region on Game {
     const keepKeys = [
       'pf', 'playT', 'pfAsk', 'qc', 'inv', 'iu', 'relics', 'ach', 'title', 'kids', 'dog', 'endSeen', 'conf', 'hook', 'tlog', 'rumor', 'sqN', 'cases', 'odd', 'dead', 'egg', 'crow',
       'pets', 'petOn', 'stat', 'gTotal', 'gp', 'heard', 'mi', 'storyI', 'favDone', 'defWins', 'defs', 'nights', 'evDone', 'skillUses', 'expDone', 'gUses', 'art', 'artNew', 'ehEnd', 'feat',
-      'expTold', 'pedCrow', 'tutSeen', 'onb', 'stepV', 'line', 'lnGot', 'deathG', 'memo', 'feasts',
+      'expTold', 'pedCrow', 'tutSeen', 'onb', 'stepV', 'line', 'lnGot', 'lnLose', 'deathG', 'memo', 'feasts',
     ];
     final ns = Game.fresh(random: rnd);
     for (final k in keepKeys) {

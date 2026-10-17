@@ -114,7 +114,8 @@ void main() {
           expect(g.modCost(int.parse(id as String), l), cost((v as List)[l - 1]), reason: '강화 비용 $id/$l');
         }
       });
-      expect(g.shelterUpCost, c['shup'] == null ? isNull : cost(c['shup']));
+      // 요새·불빛의 도시 증축(Lv.3→4, 4→5)은 앱에서 일부러 낮췄다 → 그 앞 단계만 웹과 같은지 본다
+      if (g.S.lv <= 2) expect(g.shelterUpCost, c['shup'] == null ? isNull : cost(c['shup']));
       for (var k = 0; k < 3; k++) {
         expect(g.wallCost(k), cost((c['walls'] as List)[k]));
       }

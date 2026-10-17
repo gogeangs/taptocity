@@ -447,7 +447,9 @@ class Game extends ChangeNotifier {
   double rebuildK(int l) => S.gen == 0 ? 1 : (l == 0 ? .5 : .75);
   Cost modCost(int id, int l) => scaleCost(mods[id]!.cost[l], costMult * rebuildK(l));
   Cost modBuildCost(int id) => scaleCost(mods[id]!.cost[0], costMult * rebuildK(0) * (1 + .6 * modN(id)));
-  double shupPace(int i) => S.gen != 0 ? const [.8, .65, .55, .55][i] : const [1.0, 1.0, .7, .7][i];
+  /// 증축 비용 배율. 앱 시즌 1 다듬기(2026-10-17): 요새·불빛의 도시가 가장 긴 벽이라(자동 플레이 30분·60분) 낮췄다
+  /// (웹: 첫 동네 [1,1,.7,.7] · 새 동네 [.8,.65,.55,.55])
+  double shupPace(int i) => S.gen != 0 ? const [.8, .65, .5, .4][i] : const [1.0, 1.0, .6, .5][i];
   Cost? get shelterUpCost => S.lv >= 5 ? null : scaleCost(scaleCost(shupBase[S.lv - 1], shupPace(S.lv - 1)), costMult);
   Cost wallCost(int k) => scaleCost(wallsInfo[k].$2, costMult);
   Cost lmCost(int k) => scaleCost(landmarks[k].cost, costMult);

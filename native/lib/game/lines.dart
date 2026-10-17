@@ -311,13 +311,17 @@ extension Lines on Game {
     poke();
   }
 
+  /// 연달아 쓰러졌을 때 돕는 정도 (0~3): 고리가 느려지고 맞는 폭이 넓어진다 (앱 시즌 1 다듬기 2026-10-17)
+  int get lnAssist => math.min(3, num_('lnLose').toInt());
+
   // ---------- 재 괴물: 고리가 좁혀 오다 금빛 테두리에 겹칠 때 두드린다 ----------
   void _lnFight(bool boss) {
     final L = ln!, sec = math.min(2, (L.step - (boss ? 1 : 0)) ~/ 3);
     L.phase = 'fight';
     L.miss = 0;
-    L.fight = LnFight(boss, boss ? 7 : 3 + sec, boss ? 1100 : math.max(1100, 1250 - sec * 80).toDouble(), _lnNow() + 500);
+    L.fight = LnFight(boss, boss ? 7 : 3 + sec, (boss ? 1100 : math.max(1100, 1250 - sec * 80).toDouble()) * (1 + .12 * lnAssist), _lnNow() + 500);
     L.msg = boss ? '${jo(lnTowns[L.reg]!.boss, '이', '가')} 길을 막았다!' : '재 괴물이 다가온다! 고리가 금빛 테두리에 닿을 때 두드려요.';
+    if (lnAssist > 0 && !boss && L.step <= 1) L.msg = '지난번엔 힘들었죠. 이번엔 고리가 조금 느리게 와요.';
   }
 
   /// 고리 반지름 (100 → 0)
@@ -334,8 +338,8 @@ extension Lines on Game {
     if (L == null || L.phase != 'fight') return;
     final F = L.fight!, now = _lnNow();
     if (now < F.t0 || now < F.lock) return;
-    final r = lnRing(now - 60), d = (r - lnTgt).abs();
-    final dmg = d <= 6 ? 2 : d <= 13 ? 1 : 0;
+    final r = lnRing(now - 60), d = (r - lnTgt).abs(), a = lnAssist;
+    final dmg = d <= 6 + a ? 2 : d <= 13 + 2 * a ? 1 : 0;
     if (dmg > 0) {
       F.hp -= dmg;
       F.res = dmg > 1 ? '딱 맞았다!' : '맞혔다';
@@ -357,7 +361,7 @@ extension Lines on Game {
   /// 다음 고리. 두 번 연달아 놓치면 숨 고르기
   void _lnNextRing(double now, int gap) {
     final L = ln!, F = L.fight!;
-    final base = F.boss ? 1100.0 : math.max(1100, 1250 - math.min(2, L.step ~/ 3) * 80).toDouble();
+    final base = (F.boss ? 1100.0 : math.max(1100, 1250 - math.min(2, L.step ~/ 3) * 80).toDouble()) * (1 + .12 * lnAssist);
     if (L.miss >= 2) {
       F.dur = base * 1.3;
       F.t0 = now + gap + 500;
@@ -438,6 +442,8 @@ extension Lines on Game {
       final v = safe ? e.value : e.value ~/ 2;
       if (v > 0) scaled[e.key] = math.max(1, jsRound(v * m));
     }
+    // 쓰러져 나오면 다음 판을 조금 돕고, 무사히 나오면 돕기를 한 단계 줄인다
+    S.rest['lnLose'] = safe ? math.max(0, lnAssist - 1) : math.min(3, lnAssist + 1);
     final got = give(scaled), items = safe ? u.items : const <String>[];
     for (final t in items) {
       addGear(t);
