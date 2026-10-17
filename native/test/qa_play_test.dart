@@ -311,7 +311,7 @@ void run(Game g, Qa qa, int minutes, int seed, {bool stopAtEnd = true}) {
     if (key != lastMi * 1000 + lastRmi || g.S.gen != lastGen) {
       // 앞 목표가 끝났다 → 걸린 시간 기록
       if (paceLabel != null) {
-        pace.add('$paceSeed,$paceGen,$paceStep,"${paceLabel!.replaceAll('"', "'")}",${(paceStart / 60).toStringAsFixed(1)},${((sec - paceStart) / 60).toStringAsFixed(1)}');
+        pace.add('$paceSeed,$paceGen,$paceStep,"${paceLabel.replaceAll('"', "'")}",${(paceStart / 60).toStringAsFixed(1)},${((sec - paceStart) / 60).toStringAsFixed(1)}');
       }
       paceLabel = g.mission().txt;
       paceStart = sec;
