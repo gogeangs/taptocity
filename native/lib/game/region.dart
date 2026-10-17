@@ -231,7 +231,9 @@ extension Region on Game {
     return ((npc as Map)['n'] as String, npc['sub'] as String);
   }
 
-  bool get canMigrate => S.lv >= 5 && (S.rest['endSeen'] != null || S.gen != 0);
+  /// 첫 동네는 마지막 걸음('등불 탑에 불 켜기')까지 받은 뒤에 떠난다.
+  /// (탑을 켠 직후 받기 전에 떠나면 그 걸음이 새 동네로 따라와 동네 미션이 열리지 않던 문제 · 2026-10-17)
+  bool get canMigrate => S.lv >= 5 && (S.gen != 0 || (S.rest['endSeen'] != null && mi >= steps.length));
 
   // ================= 이주 (웹 migrate 4272) =================
   /// 다음 동네에 맞춘 추천 다섯 (웹 migRecommend)
@@ -347,6 +349,10 @@ extension Region on Game {
     if (tr is Map) ns.rest['trade'] = <String, Object?>{'day': -1, 'offers': [], 'used': 0, 'pend': tr['pend'] ?? []};
     final pd = old.rest['ped'];
     if (pd is Map) ns.rest['ped'] = <String, Object?>{'next': 0, 'here': null, 'stock': [], 'visits': pd['visits'], 'bought': pd['bought']};
+    // 연구(두드리는 힘·튀김·드론)는 손이 기억한다 — 새 동네에서 처음부터 다시 올리지 않는다 (앱 시즌 1 다듬기)
+    ns.tapLv = old.tapLv;
+    ns.splashLv = old.splashLv;
+    ns.droneLv = old.droneLv;
     ns.found
       ..clear()
       ..addAll(old.found);
@@ -385,6 +391,7 @@ extension Region on Game {
     talk([if (wl.isNotEmpty) Line('me', wl), ...(regIntro(0) ?? _lines((web.regionText['talk'] as Map)[region]))],
         card: ('$g번째 동네', regions[region]!.n), goal: regionMis()[0].goal);
     S.rest['rsI'] = 0;
+    fx.add(const FxToastLater(5200, '연구와 지어 본 설계는 그대로 기억해요 · 모듈 첫 짓기 비용 절반'));
     if (g == 1) {
       final here = hasSv(0), left = !here && inStay(0) && !isDead(0);
       fx.add(FxNote(here ? '만수가 노선도를 그려 줬어요' : left ? '만수가 떠나기 전에 노선도를 그려 줬어요' : '지나온 길을 노선도로 그리기 시작했어요',

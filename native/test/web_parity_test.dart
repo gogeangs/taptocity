@@ -107,8 +107,9 @@ void main() {
           expect(g.siteHp(Site(k: k as String, c: 1, max: 1, d: ds[j], hp: 0)), (v as List)[j], reason: '뒤지기 체력 $k');
         }
       });
-      (c['modBuild'] as Map).forEach((id, v) => expect(g.modBuildCost(int.parse(id as String)), cost(v), reason: '짓기 비용 $id'));
-      (c['modUp'] as Map).forEach((id, v) {
+      // 새 동네(gen>0)의 모듈 비용은 앱에서 일부러 낮췄다 (지어 본 설계: 첫 짓기 절반·증축 3/4) → 첫 동네만 웹과 같은지 본다
+      if (g.S.gen == 0) (c['modBuild'] as Map).forEach((id, v) => expect(g.modBuildCost(int.parse(id as String)), cost(v), reason: '짓기 비용 $id'));
+      if (g.S.gen == 0) (c['modUp'] as Map).forEach((id, v) {
         for (var l = 1; l <= 2; l++) {
           expect(g.modCost(int.parse(id as String), l), cost((v as List)[l - 1]), reason: '강화 비용 $id/$l');
         }

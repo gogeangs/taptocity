@@ -572,6 +572,13 @@ extension Story on Game {
     if (tickTut()) return;
     _tickSeasonSec();
     tickRegionSec();
+    tickSupply();
+    // 이미 그렇게 떠나 와서 첫 동네 마지막 걸음이 남은 저장은 정리한다
+    if (S.gen != 0 && mi < steps.length) {
+      S.rest['mi'] = steps.length;
+      fx.add(const FxToast('첫 동네의 마지막 목표를 마무리했어요 · 이제 이 동네의 일이 보여요'));
+      _changed();
+    }
     _tickStorySec(mission());
   }
 

@@ -19,6 +19,7 @@ part 'season.dart';
 part 'region.dart';
 part 'lines.dart';
 part 'quest.dart';
+part 'supply.dart';
 part 'feat.dart';
 
 /// 화면 연출(떠오르는 글자·알림·창 열기)을 그림 쪽에 알려 주는 신호.
@@ -441,8 +442,11 @@ class Game extends ChangeNotifier {
     return (b['k'] == 'all' || (b['k'] == 'farm' && k == 'food')) ? (b['m'] as num).toDouble() : 1;
   }
 
-  Cost modCost(int id, int l) => scaleCost(mods[id]!.cost[l], costMult);
-  Cost modBuildCost(int id) => scaleCost(mods[id]!.cost[0], costMult * (1 + .6 * modN(id)));
+  /// 새 동네에서는 이미 지어 본 설계라 빨리 다시 짓는다 (2026-10-17 앱 시즌 1 다듬기: 동네마다 같은 일을 되풀이하지 않게)
+  /// 첫 짓기 절반, 증축 3/4
+  double rebuildK(int l) => S.gen == 0 ? 1 : (l == 0 ? .5 : .75);
+  Cost modCost(int id, int l) => scaleCost(mods[id]!.cost[l], costMult * rebuildK(l));
+  Cost modBuildCost(int id) => scaleCost(mods[id]!.cost[0], costMult * rebuildK(0) * (1 + .6 * modN(id)));
   double shupPace(int i) => S.gen != 0 ? const [.8, .65, .55, .55][i] : const [1.0, 1.0, .7, .7][i];
   Cost? get shelterUpCost => S.lv >= 5 ? null : scaleCost(scaleCost(shupBase[S.lv - 1], shupPace(S.lv - 1)), costMult);
   Cost wallCost(int k) => scaleCost(wallsInfo[k].$2, costMult);
@@ -1659,6 +1663,7 @@ class Game extends ChangeNotifier {
     if (s == null || s.c <= 0) return false;
     sfx('hit', buzz: true);
     addCombo();
+    supplyHit(i);
     s.hp -= amt;
     while (s.hp <= 0 && s.c > 0) {
       s.c--;

@@ -459,6 +459,40 @@ class _LivePainter extends CustomPainter {
       tp.paint(canvas, Offset(c.dx + 4 - tp.width / 2, by - tp.height / 2));
       if (k == 'fox') glows.add((Offset(c.dx, c.dy - 6), 30.0, const Color(0xFFC8DCFF), .4));
     }
+    // 보급 더미 ✦: 퍼지는 고리 두 겹 + 반짝임 (앱 시즌 1 다듬기)
+    final sp = g.supply;
+    if (sp != null) {
+      final c = MapPainter.P((sp['i'] as num).toInt(), .5, .5, 10);
+      final calm = Prefs.calm;
+      for (var q = 0; q < 2; q++) {
+        final p = calm ? .5 : ((time / 1400 + q * .5) % 1);
+        canvas.drawOval(Rect.fromCenter(center: c, width: (18 + p * 26) * 2, height: (9 + p * 13) * 2),
+            Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 2
+              ..color = Color.fromRGBO(255, 214, 120, (1 - p) * .85));
+      }
+      final tw = calm ? 1.0 : .75 + .25 * math.sin(time / 260);
+      final star = Path();
+      for (var k = 0; k < 8; k++) {
+        final a = k * math.pi / 4, r = k.isEven ? 9.0 * tw : 3.2;
+        final pt = c.translate(math.cos(a) * r, -26 + math.sin(a) * r);
+        if (k == 0) {
+          star.moveTo(pt.dx, pt.dy);
+        } else {
+          star.lineTo(pt.dx, pt.dy);
+        }
+      }
+      star.close();
+      canvas.drawPath(star, Paint()..color = const Color(0xFFFFE08A));
+      canvas.drawPath(
+          star,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.2
+            ..color = const Color(0xFF6B4A1C));
+      glows.add((c, 34.0, const Color(0xFFFFD27A), .45));
+    }
     // 노선 역 '노선' 표식 (웹 lnBadge — 지도 그림과 같이 밤 어둠 아래)
     for (final b in MapPainter.badges) {
       MapPainter.lnBadge(canvas, b.$1, b.$2, time, b.$3, b.$4, calm: Prefs.calm);

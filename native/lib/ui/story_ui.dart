@@ -691,6 +691,9 @@ String? _stepLack(Game g, String? hl) {
 
 GuideTarget? guideTarget(Game g) {
   if (g.tut != null) return _tutTarget(g);
+  // 보급 더미가 있으면 그쪽부터 (앱 시즌 1 다듬기)
+  final sp = g.supply;
+  if (sp != null) return GuideTarget(tile: (sp['i'] as num).toInt(), label: '${matOf[sp['k']]?.n ?? '자재'} 모으기 ✦');
   final m = g.mission();
   if (m.done || m.step == null || m.step!.focus == null) return null;
   final st = m.step!, f = st.focus!, S = g.S;

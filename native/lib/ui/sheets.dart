@@ -190,7 +190,7 @@ class _ShelterBodyState extends State<ShelterBody> {
         out.add(hl('mbuild:$id', MCard(
           thumb: moduleThumb(id, 0),
           title: d.n,
-          tags: [newTag()],
+          tags: [newTag(), if (S.gen != 0) smallTag('지어 본 설계 · 비용 절반')],
           desc: descText(d.fx[0]),
           costs: costWrap(g, c),
           button: _btn('짓기', c, () => g.buildMod(id), dis: fs < 0, why: '빈 자리 없음'),
