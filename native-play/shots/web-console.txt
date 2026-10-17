@@ -1,12 +1,13 @@
 [debug] Injecting <script> tag. Using callback.
-[warn] [.WebGL-0x2e0c007f7200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
-[warn] [.WebGL-0x2e0c007f7200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
-[warn] [.WebGL-0x2e0c007f7200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
-[warn] [.WebGL-0x2e0c007f7200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)
-[timing] 첫 화면까지 3.4초
-[http 404] https://firestore.googleapis.com/v1/projects/taptocity-bd5d1/databases/(default)/documents/saves/SdIFRvs9cUhJYvetILX4HMuM98z2
+[warn] WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost
+[warn] [.WebGL-0x134400d9f600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
+[warn] [.WebGL-0x134400d9f600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
+[warn] [.WebGL-0x134400d9f600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
+[warn] [.WebGL-0x134400d9f600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)
+[timing] 첫 화면까지 6.7초
+[http 404] https://firestore.googleapis.com/v1/projects/taptocity-bd5d1/databases/(default)/documents/saves/UEZiG0X5OmMzdkHFUEPwpB9Op5n2
 [error] Failed to load resource: the server responded with a status of 404 ()
-[timing] 받은 양 20.8MB
+[timing] 받은 양 20.9MB
 [debug] Injecting <script> tag. Using callback.
 [warn] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio
 [warn] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio
