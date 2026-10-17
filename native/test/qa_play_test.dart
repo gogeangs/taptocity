@@ -141,10 +141,11 @@ void autoStep(Game g, Qa qa, math.Random r) {
       }
       // 아직 안 지은 모듈이 있으면 자재를 아낀다 (그 모듈에 드는 재료의 가공만)
       final saving = want.isNotEmpty;
-      final need = {for (final id in want) ...g.modBuildCost(id).keys};
+      final need = {for (final id in want) ...g.modBuildCost(id).keys, if (g.towerOpen && g.towerN < 5) ...g.towerCost.keys};
       for (final k in g.S.mods.keys.toList()) {
         // 전선은 작업대 2단계부터 → 전선이 필요하면 작업대는 올린다
-        if ((!saving || (need.contains('wire') && g.S.mods[k]!.id == 1 && g.wbL < 2)) && r.nextDouble() < .2) g.upMod(k);
+        final wbWant = need.contains('med') ? 3 : need.contains('wire') ? 2 : 0; // 약품은 작업대 3단계, 전선은 2단계부터
+        if ((!saving || (g.S.mods[k]!.id == 1 && g.wbL < wbWant)) && r.nextDouble() < .2) g.upMod(k);
       }
       g.upShelter();
       g.upWalls();
@@ -152,7 +153,7 @@ void autoStep(Game g, Qa qa, math.Random r) {
         // 사람처럼: 다음에 지을 것(증축·새 모듈·방벽)에 드는 만큼만, 없으면 조금만 쌓아 둔다 (재료를 다 갈아 넣지 않게)
         final out = recipes[k].out;
         var want2 = 12.0;
-        for (final c in [g.shelterUpCost, for (final id in want) g.modBuildCost(id), if (g.S.walls < 3) g.wallCost(g.S.walls)]) {
+        for (final c in [g.shelterUpCost, for (final id in want) g.modBuildCost(id), if (g.S.walls < 3) g.wallCost(g.S.walls), if (g.towerOpen && g.towerN < 5) g.towerCost]) {
           if (c != null && c[out] != null) want2 = math.max(want2, c[out]!.toDouble());
         }
         if (g.have(out) >= want2) continue;
