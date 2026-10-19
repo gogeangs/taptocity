@@ -657,7 +657,7 @@ class SkillBar extends StatelessWidget {
       );
     }
     final off = g.busy(id), left = g.cdLeft(id), tot = g.skillCd(id), ready = left <= 0 && !off;
-    final away = g.rec(id)?['away'] == true, hurtT = away ? null : hurtLeft(g, id), hurt = hurtT != null;
+    final away = isAwayVal(g.rec(id)?['away']), hurtT = away ? null : hurtLeft(g, id), hurt = hurtT != null;
     const red = Color(0xFFD0533A);
     const txtShadow = [Shadow(color: Colors.black, blurRadius: 3, offset: Offset(0, 1))];
     return GestureDetector(

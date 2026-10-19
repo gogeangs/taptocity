@@ -2188,3 +2188,6 @@ class Game extends ChangeNotifier {
   static void Function(String k, bool buzz)? onSfx;
   void sfx(String k, {bool buzz = false}) => onSfx?.call(k, buzz);
 }
+
+/// 원정 표시: 웹처럼 원정 키(문자열)나 true면 자리를 비운 것
+bool isAwayVal(Object? v) => v != null && v != false && v != 0 && v != '';

@@ -76,7 +76,7 @@ class Life {
     walk.removeWhere((id, _) => !ids.contains(id));
     for (final id in ids) {
       final r = g.rec(id)!;
-      final free = r['away'] != true && !(((r['hurt'] as num?) ?? 0) > 0), working = g.atOf(id) >= 0;
+      final free = !isAwayVal(r['away']) && !(((r['hurt'] as num?) ?? 0) > 0), working = g.atOf(id) >= 0;
       var w = walk[id];
       if (!free) {
         walk.remove(id);
@@ -113,7 +113,7 @@ class Life {
     // 일하던 사람도 가끔 쉬러 나온다
     for (final id in ids) {
       final r = g.rec(id)!, at = g.atOf(id);
-      if (at >= 0 && r['away'] != true && !(((r['hurt'] as num?) ?? 0) > 0) && !walk.containsKey(id) && !g.isNight && _r.nextDouble() < dt / 55) {
+      if (at >= 0 && !isAwayVal(r['away']) && !(((r['hurt'] as num?) ?? 0) > 0) && !walk.containsKey(id) && !g.isNight && _r.nextDouble() < dt / 55) {
         final c = tileC(at);
         walk[id] = Walk(c.dx, c.dy, brk: 14 + _r.nextDouble() * 10);
       }

@@ -635,7 +635,7 @@ extension Crisis on Game {
       }
     }
     final T0 = sqTypes[k]!;
-    final ids = svIds.where((id) => rec(id)!['away'] != true).toList();
+    final ids = svIds.where((id) => !isAwayVal(rec(id)!['away'])).toList();
     final who = (ids.isNotEmpty ? ids : svIds.toList());
     final n = T0.n(this), b = T0.v(this), w0 = who[rnd.nextInt(who.length)], say0 = T0.say[rnd.nextInt(T0.say.length)];
     S.rest['sq'] = <String, Object?>{

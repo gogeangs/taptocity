@@ -466,7 +466,7 @@ void showSurvPage(BuildContext context, Game g, int id0, {void Function(int id, 
         final xp = g.xpOf(id), tl = Game.trustLv(xp), nx = tl < 5 ? trustXp[tl] : 0, pv = trustXp[tl - 1], gc = g.giftCost(id), at = g.atOf(id), p = g.pw(id);
         final hurt = ((r['hurt'] as num?) ?? 0) > 0;
         final hurtT = hurtLeft(g, id);
-        final where = r['away'] == true ? '원정 중' : hurt ? '다쳐서 치료 중${hurtT != null ? ' · $hurtT 남음' : ''}' : at >= 0 ? '${g.workName(at)}에서 일하는 중' : duties[g.dutyOf(id)]!.$2;
+        final where = isAwayVal(r['away']) ? '원정 중' : hurt ? '다쳐서 치료 중${hurtT != null ? ' · $hurtT 남음' : ''}' : at >= 0 ? '${g.workName(at)}에서 일하는 중' : duties[g.dutyOf(id)]!.$2;
         final narrow = MediaQuery.of(ctx).size.width < 381;
         final pfW = narrow ? 104.0 : 116.0;
         final ids = g.svIds.toList();
@@ -518,9 +518,9 @@ void showSurvPage(BuildContext context, Game g, int id0, {void Function(int id, 
                 const SizedBox(height: 3),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: hurt && r['away'] != true ? Ttc.noBg : const Color(0x0F252E36), borderRadius: BorderRadius.circular(5)),
+                  decoration: BoxDecoration(color: hurt && !isAwayVal(r['away']) ? Ttc.noBg : const Color(0x0F252E36), borderRadius: BorderRadius.circular(5)),
                   child: Text(where,
-                      style: Ttc.t(11, color: hurt && r['away'] != true ? Ttc.no : at >= 0 && r['away'] != true ? Ttc.ok : Ttc.sepia2, weight: FontWeight.w600, height: 1.2)),
+                      style: Ttc.t(11, color: hurt && !isAwayVal(r['away']) ? Ttc.no : at >= 0 && !isAwayVal(r['away']) ? Ttc.ok : Ttc.sepia2, weight: FontWeight.w600, height: 1.2)),
                 ),
                 const SizedBox(height: 8),
                 Row(children: [
