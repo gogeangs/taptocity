@@ -63,13 +63,13 @@ class TaptocityApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: Ttc.theme(),
         navigatorObservers: [pageWatch],
-        // 글자 크게 (웹 body.big: 창·띠·알림을 1.12배)
+        // 글자 크게 (설정 '글자 크게', 앱 전체 글자를 1.15배 · 2026-10-20 웹 1.12배에서 올림)
         builder: (context, child) => ValueListenableBuilder<int>(
           valueListenable: Prefs.version,
           builder: (c, _, __) => Listener(
             behavior: HitTestBehavior.translucent,
             onPointerDown: (_) => Sound.kick(),
-            child: Prefs.big ? MediaQuery(data: MediaQuery.of(c).copyWith(textScaler: const TextScaler.linear(1.12)), child: child!) : child!,
+            child: Prefs.big ? MediaQuery(data: MediaQuery.of(c).copyWith(textScaler: const TextScaler.linear(1.15)), child: child!) : child!,
           ),
         ),
         home: GameScreen(game: game),

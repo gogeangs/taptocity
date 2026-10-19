@@ -1,5 +1,5 @@
 // 5단계 화면: 미션 띠(웹 #tape), 대화 창(.page.talk), 재혁의 고백, 길잡이 화살표(#guide)·강조(.hl),
-// 등불 탑 카드(.tower), 일지의 이야기·업적·안내서 탭. 웹 index.html 1880–2107, 4086–4104, 4372–4392, 5075–5106.
+// 등불 탑 카드(.tower), 일지의 이야기·업적 탭과 설정의 안내서. 웹 index.html 1880–2107, 4086–4104, 4372–4392, 5075–5106.
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -9,6 +9,7 @@ import '../data/web_data.g.dart' as web;
 import '../game/data.dart';
 import '../game/engine.dart';
 import 'atlas.dart';
+import 'daily_ui.dart';
 import 'portrait.dart';
 import 'profile_ui.dart';
 import 'season_ui.dart';
@@ -116,9 +117,12 @@ class _PulseState extends State<_Pulse> with SingleTickerProviderStateMixin {
 
 // ======================= 미션 띠 (웹 #tape, design.css 16–18) =======================
 class MissionTape extends StatefulWidget {
-  const MissionTape(this.g, {super.key, required this.onLv, required this.onGo, required this.onPed, required this.onMig, required this.ping});
+  const MissionTape(this.g, {super.key, required this.onLv, required this.onGo, required this.onPed, required this.onMig, required this.ping, this.onStories, this.onChoice});
   final Game g;
   final VoidCallback onLv, onGo, onPed, onMig;
+
+  /// '새 이야기 N' 배지 · '선택 기다림' 칩 (앱 전용 2026-10-20)
+  final VoidCallback? onStories, onChoice;
   final int ping; // 받기 버튼을 잠깐 흔든다 (웹 pingEl)
   @override
   State<MissionTape> createState() => _MissionTapeState();
@@ -137,6 +141,23 @@ class _MissionTapeState extends State<MissionTape> {
     return parts.fold(0.0, (a, v) => a + v) / parts.length;
   }
 
+  /// 새 이야기 · 선택 기다림 (튜토리얼 동안은 없다)
+  List<Widget> _badges() {
+    if (g.tut != null) return const [];
+    final nq = widget.onStories == null ? 0 : g.qNew.length;
+    final ch = widget.onChoice != null && !choiceShowing && g.choiceView() != null;
+    if (nq == 0 && !ch) return const [];
+    return [
+      Padding(
+        padding: const EdgeInsets.only(left: 6),
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [
+          if (ch) _badge('선택 기다림', widget.onChoice!, Ttc.rust, const Color(0xFFFFF1E6)),
+          if (nq > 0) _badge('새 이야기 $nq', widget.onStories!, Ttc.amber, const Color(0xFF243039)),
+        ]),
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final S = g.S, m = g.mission(), st = m.step, c = st == null ? null : chapters[st.ci];
@@ -145,12 +166,12 @@ class _MissionTapeState extends State<MissionTape> {
     final chapC = done ? const Color(0xFF523D24) : Ttc.glow;
     final tu = g.tut;
     final chap = tu != null
-        ? [TextSpan(text: '그날 밤 ', style: Ttc.t(11, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${((tu['i'] as num?) ?? 0) + 1}/${tutSteps.length}  ', style: Ttc.t(11, color: chapC))]
+        ? [TextSpan(text: '그날 밤 ', style: Ttc.t(12, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${((tu['i'] as num?) ?? 0) + 1}/${tutSteps.length}  ', style: Ttc.t(12, color: chapC))]
         : c != null
-        ? [TextSpan(text: '${c.ch} ', style: Ttc.t(11, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${st!.si + 1}/${c.steps.length}  ', style: Ttc.t(11, color: chapC))]
+        ? [TextSpan(text: '${c.ch} ', style: Ttc.t(12, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${st!.si + 1}/${c.steps.length}  ', style: Ttc.t(12, color: chapC))]
         : m.reg
-        ? [TextSpan(text: '${g.reg?.n ?? ''} ', style: Ttc.t(11, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${g.rmi + 1}/${g.regionMis().length}  ', style: Ttc.t(11, color: chapC))]
-        : [TextSpan(text: '끝없는 불빛 ', style: Ttc.t(11, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${(((S.rest['eg'] as Map?)?['i'] as num?) ?? 0) + 1}  ', style: Ttc.t(11, color: chapC))];
+        ? [TextSpan(text: '${g.reg?.n ?? ''} ', style: Ttc.t(12, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${g.rmi + 1}/${g.regionMis().length}  ', style: Ttc.t(12, color: chapC))]
+        : [TextSpan(text: '끝없는 불빛 ', style: Ttc.t(12, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${(((S.rest['eg'] as Map?)?['i'] as num?) ?? 0) + 1}  ', style: Ttc.t(12, color: chapC))];
     final lvchip = GestureDetector(
       onTap: widget.onLv,
       child: Container(
@@ -223,11 +244,12 @@ class _MissionTapeState extends State<MissionTape> {
                   padding: const EdgeInsets.only(top: 3),
                   child: Text.rich(TextSpan(children: [
                     if (c != null) TextSpan(text: '${c.ch} · ${c.title}', style: const TextStyle(fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)])),
-                    if (m.sub.isNotEmpty) TextSpan(text: '${c != null ? ' — ' : ''}${m.sub}'),
-                  ]), style: Ttc.t(12.5, color: const Color(0xFFC7CEC9), height: 1.5)),
+                    if (m.sub.isNotEmpty) TextSpan(text: '${c != null ? ' — ' : ''}${uiWords(m.sub)}'),
+                  ]), style: Ttc.t(13, color: const Color(0xFFD6DBD7), height: 1.5)),
                 ),
             ]),
           ),
+          ..._badges(),
           if (g.pedHere) _chip('노친네', widget.onPed, const [Color(0xFF4A3A2A), Color(0xFF7A5A33)], const Color(0xFFF3E2B8), lead: pedFace()),
           if (g.fireOn && g.warm != null)
             hl('firechip', _chip('모닥불 ${g.warm!.round()}%', () => g.feedFire(), g.warmTier == 0 ? const [Color(0xFF2D3A45), Color(0xFF4B5D6B)] : const [Color(0xFF6B2F17), Color(0xFFC4652A)],
@@ -267,6 +289,21 @@ class _MissionTapeState extends State<MissionTape> {
     );
   }
 }
+
+/// 이야기 띠 오른쪽의 작은 배지 (위아래로 쌓아 폭을 아낀다)
+Widget _badge(String t, VoidCallback onTap, Color bg, Color fg) => GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 1),
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(99)),
+        child: Text(t, maxLines: 1, softWrap: false, style: Ttc.t(12, color: fg, weight: FontWeight.w700, height: 1.15)),
+      ),
+    );
+
+/// 게임 데이터의 옛 이름('미션')을 화면에서만 지금 이름('이야기')으로
+String uiWords(String s) => s.replaceAll('미션을 눌러', '이야기 띠를 눌러').replaceAll('미션 띠', '이야기 띠').replaceAll('미션', '이야기');
 
 Widget _chip(String t, VoidCallback onTap, List<Color> bg, Color fg, {Widget? lead}) => GestureDetector(
       onTap: onTap,
@@ -510,6 +547,7 @@ class _TalkPageState extends State<_TalkPage> {
     final scr = MediaQuery.of(context).size;
     final small = scr.height <= 700;
     final canSkip = !last && n > 2 && !t.noskip;
+    final daily = last && (t.tag ?? '').startsWith('아침 보고') ? dailyMini(g) : null;
     return Dialog(
       backgroundColor: Ttc.paper,
       insetPadding: const EdgeInsets.all(16),
@@ -546,13 +584,13 @@ class _TalkPageState extends State<_TalkPage> {
                   margin: const EdgeInsets.only(bottom: 4),
                   decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Ttc.line))),
                   child: Column(children: [
-                    Text(t.card!.$1, style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+                    Text(t.card!.$1, style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
                     const SizedBox(height: 4),
                     Text(t.card!.$2, textAlign: TextAlign.center, style: Ttc.t(23, color: Ttc.sepia, weight: FontWeight.w700)),
                   ]),
                 )
               else if (t.tag != null)
-                Text(t.tag!, style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600, height: 1.4)),
+                Text(t.tag!, style: Ttc.t(13, color: Ttc.sepia2, weight: FontWeight.w600, height: 1.4)),
               // 말하는 사람: 작은 얼굴 + 이름 · 하는 일 한 줄
               Padding(
                 padding: const EdgeInsets.fromLTRB(0, 10, 0, 12),
@@ -563,7 +601,7 @@ class _TalkPageState extends State<_TalkPage> {
                     child: Text.rich(
                       TextSpan(children: [
                         TextSpan(text: _name(l.who), style: Ttc.t(17, color: Ttc.sepia, weight: FontWeight.w700, height: 1.3)),
-                        TextSpan(text: '  ${_speakerSub(g, l.who)}', style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.3)),
+                        TextSpan(text: '  ${_speakerSub(g, l.who)}', style: Ttc.t(13, color: Ttc.sepia2, height: 1.3)),
                       ]),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -586,6 +624,8 @@ class _TalkPageState extends State<_TalkPage> {
                   const TextSpan(text: '할 일 ', style: TextStyle(fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)])),
                   TextSpan(text: t.goal),
                 ]), style: Ttc.t(13, color: Ttc.sepia, height: 1.6))),
+              // 아침 보고 끝: 오늘의 할 일 셋 (앱 전용 2026-10-20)
+              if (daily != null) daily,
               // 아래 줄: 옅은 선 하나 + (넘기는 중) 몇 번째 줄 · 탭해서 계속 · 건너뛰기 / (마지막) 행동 버튼
               Container(
                 margin: const EdgeInsets.only(top: 6),
@@ -674,7 +714,7 @@ Future<void> showConf(BuildContext context, Game g) => showDialog(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(b, style: Ttc.t(14.5, color: Ttc.sepia, weight: FontWeight.w700)),
                   const SizedBox(height: 2),
-                  Text(small, style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5)),
+                  Text(small, style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
                 ]),
               ),
             );
@@ -687,7 +727,7 @@ Future<void> showConf(BuildContext context, Game g) => showDialog(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                Text('6장 · 재혁의 고백', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+                Text('6장 · 재혁의 고백', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(0, 12, 0, 18),
                   child: Row(children: [
@@ -696,7 +736,7 @@ Future<void> showConf(BuildContext context, Game g) => showDialog(
                     Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Text(s.name, style: Ttc.t(18, color: Ttc.sepia, weight: FontWeight.w700)),
-                        Text(s.job, style: Ttc.t(12, color: Ttc.sepia2, height: 1.5)),
+                        Text(s.job, style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
                       ]),
                     ),
                   ]),
@@ -997,7 +1037,7 @@ List<Widget> towerCard(Game g) {
                 ],
               ]),
             ),
-          Text('${t.d}${hi && (n + 1) % 5 == 0 ? ' · 5층마다 특별한 선물이 있어요' : ''}', style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.45)),
+          Text('${t.d}${hi && (n + 1) % 5 == 0 ? ' · 5층마다 특별한 선물이 있어요' : ''}', style: Ttc.t(13, color: Ttc.sepia2, height: 1.45)),
           Padding(
             padding: const EdgeInsets.fromLTRB(0, 8, 0, 6),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1070,7 +1110,7 @@ List<Widget> achTab(Game g) {
         const TextSpan(text: '지금 칭호 '),
         TextSpan(text: title, style: const TextStyle(color: Color(0xFFB0452A), fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)])),
         const TextSpan(text: ' · 받은 업적의 칭호를 눌러 바꿀 수 있어요'),
-      ]), style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5)),
+      ]), style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
     ),
     _achRow(on: title == '등불지기', head: GestureDetector(onTap: () => g.title = '등불지기', child: Text('등불지기', style: _achB)), small: '처음부터 가진 칭호'),
   ];
@@ -1170,7 +1210,7 @@ List<Widget> guideTab(BuildContext context, Game g) {
       p('· 가운데 쉘터를 누르면 건설·가공·창고·꾸미기 화면이 열려요.\n· 모듈이 일정 수 이상 있어야 증축할 수 있어요. 텃밭·고물상·창고·랜턴탑은 여러 개 지을 수 있어요.\n· 지도의 모듈을 누르면 빠른 메뉴(강화·배치)가 떠요.'),
     ]),
     gs('생존자', [
-      p('· 구조 신호를 따라가 잔해를 치우고 필요한 물자와 빈 침상이 있으면 구조해요.\n· 딱 맞는 모듈에 배치하면 효과가 커지고, 일할수록 신뢰가 쌓여 사연과 개인 이야기가 열려요.\n· 일터가 없는 사람은 ‘쉴 때 할 일’을 해요: 주워 오기(자재 조금씩 · 기본), 훈련(신뢰 절반 속도), 순찰(밤에 재 걷기), 아이 돌보기(아이가 빨리 자라고 돌보는 사람을 닮아요).\n· 쉘터 Lv.3부터 생존자 수첩의 ‘자동 배치’로 딱 맞는 사람을 한 번에 앉힐 수 있어요. 스위치를 켜 두면 빈 일터를 알아서 채워요.\n· 쉘터 Lv.4부터 원정 탭의 ‘자동 원정’을 켜면, 쉬는 사람(순찰·아이 돌보기 제외)으로 가장 효율 좋은 팀을 꾸려 보내고 돌아오면 전리품을 알아서 챙겨요. 팀을 꾸릴 때 ‘자동 팀’ 버튼도 쓸 수 있어요.\n· 등급: ${[for (var i = 0; i < 4; i++) '${grades[i].n} ×${grades[i].m}'].join(' · ')} · 등급은 처음 정해진 그대로이고, 신뢰와 자재로 1~5성까지 올려요.'),
+      p('· 구조 신호를 따라가 잔해를 치우고 필요한 물자와 빈 침상이 있으면 구조해요.\n· 딱 맞는 모듈에 배치하면 효과가 커지고, 일할수록 신뢰가 쌓여 사연과 그 사람의 이야기가 열려요. 새로 열린 이야기는 위쪽 이야기 띠에 ‘새 이야기’로 떠요.\n· 생존자의 부탁: 지도 왼쪽 위 한 줄 띠예요. 누르면 펼쳐지고, 다 하면 ‘받기’로 보상을 받아요.\n· 일터가 없는 사람은 ‘쉴 때 할 일’을 해요: 주워 오기(자재 조금씩 · 기본), 훈련(신뢰 절반 속도), 순찰(밤에 재 걷기), 아이 돌보기(아이가 빨리 자라고 돌보는 사람을 닮아요).\n· 쉘터 Lv.3부터 생존자 수첩의 ‘자동 배치’로 딱 맞는 사람을 한 번에 앉힐 수 있어요. 스위치를 켜 두면 빈 일터를 알아서 채워요.\n· 쉘터 Lv.4부터 원정 탭의 ‘자동 원정’을 켜면, 쉬는 사람(순찰·아이 돌보기 제외)으로 가장 효율 좋은 팀을 꾸려 보내고 돌아오면 전리품을 알아서 챙겨요. 팀을 꾸릴 때 ‘자동 팀’ 버튼도 쓸 수 있어요.\n· 등급: ${[for (var i = 0; i < 4; i++) '${grades[i].n} ×${grades[i].m}'].join(' · ')} · 등급은 처음 정해진 그대로이고, 신뢰와 자재로 1~5성까지 올려요.'),
     ]),
     gs('밤과 재폭풍', [
       p('· 밤마다 가장자리에 붉은 재가 쌓여요. 제때 걷어내지 않으면 땅이나 모듈을 잃어요.\n· 세 번째 밤마다(공단은 두 번째) '),
@@ -1184,7 +1224,7 @@ List<Widget> guideTab(BuildContext context, Game g) {
       p('· 원정: 생존자를 보내 시간이 지나면 물자와 이야기를 가져와요.\n· 지하: 랜턴 기름이 버티는 만큼 내려가요. 기름이 떨어지면 전리품 절반을 잃어요. $ugDeep층 아래로는 끝없이 이어지고, 10층마다 깊은 곳의 재괴물이 그날 밤의 기록 조각을 지켜요.\n· 라디오: 건전지로 탐색해요. 히든 생존자는 여기서만 만나요. ${pity}번 안에 한 번은 반드시 나와요.'),
     ]),
     gs('매일 할 거리', [
-      p('· 오늘의 의뢰: 날마다 세 가지가 일지 ‘이야기’ 맨 위에 와요. 하나마다 건전지 1, 셋 다 하면 연속 하루. 7일째엔 귀한 장비를 받아요. 하루 걸러도 처음부터 다시 셀 뿐 벌은 없어요.\n· 아침 보고: 30분 넘게 비웠다 돌아오면 말순(없으면 만수)이 그동안의 일을 알려 줘요.\n· 인연: 신뢰도 5 뒤에도 정은 계속 쌓여요. 인연 선물은 하루 한 번, 단계마다 짧은 이야기가 열리고 3단계엔 고유 장비가 있어요.'),
+      p('· 오늘의 할 일: 날마다 세 가지가 일지 ‘기록’ 맨 위에 와요. 지도 왼쪽 위 ‘연속’ 칩을 눌러도 바로 열려요. 하나마다 건전지 1, 셋 다 하면 연속 하루. 7일째엔 귀한 장비를 받아요. 하루 걸러도 처음부터 다시 셀 뿐 벌은 없어요.\n· 아침 보고: 30분 넘게 비웠다 돌아오면 말순(없으면 만수)이 그동안의 일을 알려 줘요.\n· 인연: 신뢰도 5 뒤에도 정은 계속 쌓여요. 인연 선물은 하루 한 번, 단계마다 짧은 이야기가 열리고 3단계엔 고유 장비가 있어요.'),
     ]),
     gs('이주', [p('· 불빛의 도시를 완성하면 새 동네로 떠날 수 있어요. 사람·장비·유물은 함께 가고, 등불의 기억(생산·두드리기 +10%)이 쌓여요.')]),
     gs('펫', [
@@ -1215,7 +1255,7 @@ Future<void> showOnboard(BuildContext context, Game g, {required VoidCallback on
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
-                Text('그날 밤 이후', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+                Text('그날 밤 이후', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
                   child: Row(children: [

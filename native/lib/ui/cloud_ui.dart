@@ -53,7 +53,7 @@ class CloudSection extends StatelessWidget {
                   if (Cloud.last > 0) TextSpan(text: '\n마지막 저장 ${cloudWhen(Cloud.last)}'),
                   if (Cloud.msg.isNotEmpty) TextSpan(text: '\n${Cloud.msg}', style: const TextStyle(fontWeight: FontWeight.w700)),
                 ]),
-                style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5)),
+                style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
             const SizedBox(height: 8),
             Row(children: [
               _btn('지금 저장', () async {
@@ -167,7 +167,7 @@ Future<void> showFeedback(BuildContext context, Game g) async {
         }
 
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
-          Text('피드백', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+          Text('피드백', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
           Padding(padding: const EdgeInsets.fromLTRB(0, 4, 0, 10), child: Text('개발자에게 한마디', style: Ttc.t(20, color: Ttc.sepia, weight: FontWeight.w700))),
           Wrap(spacing: 6, runSpacing: 6, children: [
             for (final (k, n) in _fbCat)
@@ -222,7 +222,7 @@ Future<void> showFeedback(BuildContext context, Game g) async {
             ]),
           ),
           const SizedBox(height: 6),
-          Text('이름·연락처는 보내지 않아요. 답장이 필요하면 ceo@itso.co.kr 로 메일 주세요.', style: Ttc.t(12, color: Ttc.sepia2, height: 1.5)),
+          Text('이름·연락처는 보내지 않아요. 답장이 필요하면 ceo@itso.co.kr 로 메일 주세요.', style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
           const SizedBox(height: 12),
           Row(children: [
             pageBtn('닫기', () => Navigator.pop(ctx), alt: true),

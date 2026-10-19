@@ -1632,7 +1632,7 @@ class _FxLayerState extends State<FxLayer> with SingleTickerProviderStateMixin {
                           : Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                               Text(t.h!, style: Ttc.serif(c.low ? 12.5 : 13.5, color: Ttc.sepia, weight: FontWeight.w700, height: 1.3)),
                               if (t.t.isNotEmpty)
-                                Text(t.t, maxLines: c.low ? 2 : 3, overflow: TextOverflow.ellipsis, style: Ttc.t(c.low ? 11.5 : 12, color: Ttc.sepia2, height: c.low ? 1.4 : 1.5)),
+                                Text(t.t, maxLines: c.low ? 2 : 3, overflow: TextOverflow.ellipsis, style: Ttc.t(c.low ? 12.5 : 13, color: Ttc.sepia2, height: c.low ? 1.4 : 1.5)),
                             ]),
                     ),
                   ),

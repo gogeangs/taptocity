@@ -692,7 +692,7 @@ extension Crisis on Game {
     if (hasSv(who)) rec(who)!['xp'] = xpOf(who) + 40;
     S.rest['sqN'] = num_('sqN') + 1;
     final nm = hasSv(who) ? survivors[who].name : '';
-    fx.add(FxNote('${nm.isNotEmpty ? '$nm의 ' : ''}의뢰 완료', '${lootText(got)}${nm.isNotEmpty ? ' · $nm 신뢰 +40' : ''}$extra'));
+    fx.add(FxNote('${nm.isNotEmpty ? '$nm의 ' : ''}부탁 완료', '${lootText(got)}${nm.isNotEmpty ? ' · $nm 신뢰 +40' : ''}$extra'));
     S.rest['sq'] = null;
     S.rest['sqAt'] = Game.nowMs() + 60000;
     _changed();

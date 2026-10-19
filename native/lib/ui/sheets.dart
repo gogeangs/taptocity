@@ -114,7 +114,7 @@ class _ShelterBodyState extends State<ShelterBody> {
         sumChip([bold('+${fmt(g.prod['food'] ?? 0)}'), TextSpan(text: ' / -${fmt(g.eat)}')], icon: 'food', bad: g.hungry),
         if (g.modLv(5) >= 0) sumChip([TextSpan(text: '-${fmt(g.fuelUse)}${g.have('fuel') > 0 ? '' : ' 멈춤'}')], icon: 'fuel', bad: g.have('fuel') <= 0),
       ]),
-      if (g.hungry) Padding(padding: const EdgeInsets.only(top: 6), child: Text('배고파서 생산이 절반으로 줄었어요 · 텃밭을 늘리거나 식량을 모아요', style: Ttc.t(12, color: Ttc.no, weight: FontWeight.w600))),
+      if (g.hungry) Padding(padding: const EdgeInsets.only(top: 6), child: Text('배고파서 생산이 절반으로 줄었어요 · 텃밭을 늘리거나 식량을 모아요', style: Ttc.t(13, color: Ttc.no, weight: FontWeight.w600))),
       const SizedBox(height: 12),
       Segs(
           items: const ['건설', '가공', '연구', '창고', '꾸미기'],
@@ -240,7 +240,7 @@ class _ShelterBodyState extends State<ShelterBody> {
                 const TextSpan(text: '을 켜면 남는 재료를 알아서 가공해요'),
               ],
             ]),
-            style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5))));
+            style: Ttc.t(13, color: Ttc.sepia2, height: 1.5))));
     for (var k = 0; k < recipes.length; k++) {
       final r = recipes[k], lk = g.recipeLock(r), inp = g.recipeInp(r);
       if (lk.isNotEmpty && r.lv > 0 && g.S.lv < r.lv - 1) continue;
@@ -310,7 +310,7 @@ class _ShelterBodyState extends State<ShelterBody> {
   List<Widget> _research() {
     final out = <Widget>[
       sec('연구 · 탐사 장비'),
-      Padding(padding: const EdgeInsets.only(bottom: 10), child: Text('한 번 연구하면 영구히 남아요. 작업대 단계가 오를수록 더 깊이 연구할 수 있어요.', style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5))),
+      Padding(padding: const EdgeInsets.only(bottom: 10), child: Text('한 번 연구하면 영구히 남아요. 작업대 단계가 오를수록 더 깊이 연구할 수 있어요.', style: Ttc.t(13, color: Ttc.sepia2, height: 1.5))),
     ];
     if (g.wbL == 0) out.add(emptyBox(moduleThumb(1, 0, w: 52, h: 52, gray: true), '작업대가 아직 없어요', '작업대를 세우면 곡괭이·랜턴·드론을 연구할 수 있어요'));
     const names = {'tap': '곡괭이', 'splash': '랜턴 불씨', 'drone': '정찰 드론'};
@@ -382,7 +382,7 @@ class _ShelterBodyState extends State<ShelterBody> {
         ),
         const SizedBox(height: 8),
         Text('기본 자재와 철판·밧줄은 창고 한도 ${fmt(g.cap)}, 전선·약품은 그 1/4까지 모여요. 창고 모듈과 쉘터 증축으로 늘려요. 건전지는 한도가 없어요.',
-            style: Ttc.t(11.5, color: Ttc.sepia2, height: 1.5)),
+            style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
       ];
 }
 
@@ -407,7 +407,7 @@ class ModuleCard extends StatelessWidget {
                 const TextSpan(text: '→', style: TextStyle(color: Ttc.amber, fontWeight: FontWeight.w700)),
                 TextSpan(text: ' ${d.fx[m.l + 1]}', style: const TextStyle(color: Ttc.ok, fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)])),
               ]),
-              style: Ttc.t(12, color: Ttc.sepia2, height: 1.5),
+              style: Ttc.t(13, color: Ttc.sepia2, height: 1.5),
             ),
       costs: up == null ? null : costWrap(g, up),
       button: up == null ? doneBadge() : BuyButton('강화', why: g.canPay(up) ? null : (lackText(g, up, short: true) ?? '자재 부족'), onTap: g.canPay(up) ? () => g.upMod(slot) : null),
@@ -491,53 +491,72 @@ Widget campBody(Game g, int tile) {
   ]);
 }
 
-// ======================= 일지 (웹 diary: 이야기 · 도감 · 업적 · 안내서) =======================
+// ======================= 일지 (앱 전용 2026-10-20: 위 탭 셋 — 기록 · 사건 수첩 · 도감) =======================
+// 기록 = 오늘의 할 일 · 이야기 · 기록 조각 · 일기 / 회상, 사건 수첩 = 사건, 도감 = 폐허 도감 / 업적 / 노선도. 안내서는 설정으로 옮겼다.
+// DiaryBody.tab에는 안쪽 칸 이름(story·scene·case·relic·ach·towns)을 그대로 둔다 (새 기능 카드 '보러 가기'·라디오 노선도 버튼이 쓰는 이름).
 class DiaryBody extends StatefulWidget {
   const DiaryBody(this.g, {super.key});
   final Game g;
   static String tab = 'story';
+
+  /// 안쪽 칸 → 위 탭
+  static String topOf(String k) => switch (k) {
+        'case' => 'case',
+        'relic' || 'ach' || 'towns' => 'book',
+        _ => 'log',
+      };
   @override
   State<DiaryBody> createState() => _DiaryBodyState();
 }
 
 class _DiaryBodyState extends State<DiaryBody> {
   Game get g => widget.g;
+
+  bool _dot(String k) =>
+      (k == 'ach' && g.achReady) || (k == 'scene' && g.S.rest['artNew'] != null) || (k == 'case' && g.S.rest['caseNew'] != null) || g.segNew('diary', k);
+
+  void _go(String k) => setState(() {
+        DiaryBody.tab = k;
+        g.seeFeat('diary', k);
+      });
+
   @override
   Widget build(BuildContext context) {
     g.artBackfill();
-    final tabs = [
-      ('story', '이야기'),
-      if (g.artCount > 0) ('scene', '회상'),
-      if (g.caseSeen) ('case', '사건'),
-      if (g.S.gen > 0 || g.tlogList.isNotEmpty) ('towns', '노선도'),
-      ('relic', '도감'),
-      ('ach', '업적'),
-      ('guide', '안내서'),
-    ];
-    final on = tabs.indexWhere((t) => t.$1 == DiaryBody.tab);
-    // 지금 보는 탭의 새 표시는 바로 지운다
+    final subs = <String, List<(String, String)>>{
+      'log': [('story', '이야기'), if (g.artCount > 0) ('scene', '회상')],
+      if (g.caseSeen) 'case': [('case', '사건')],
+      'book': [('relic', '도감'), ('ach', '업적'), if (g.S.gen > 0 || g.tlogList.isNotEmpty) ('towns', '노선도')],
+    };
+    const names = {'log': '기록', 'case': '사건 수첩', 'book': '도감'};
+    // 없는 칸(옛 '안내서'·아직 안 열린 회상·사건)이면 기록의 이야기로
+    if (!subs.values.any((l) => l.any((x) => x.$1 == DiaryBody.tab))) DiaryBody.tab = 'story';
+    final top = DiaryBody.topOf(DiaryBody.tab), tops = subs.keys.toList(), inner = subs[top]!;
+    // 지금 보는 칸의 새 표시는 바로 지운다
     if (DiaryBody.tab == 'scene') g.S.rest.remove('artNew');
     if (DiaryBody.tab == 'case') g.S.rest.remove('caseNew');
     return ListView(padding: _bodyPad, children: [
       Segs(
-        items: [for (final t in tabs) t.$2],
-        on: on < 0 ? 0 : on,
-        dots: [
-          for (final t in tabs)
-            (t.$1 == 'ach' && g.achReady) || (t.$1 == 'scene' && g.S.rest['artNew'] != null) || (t.$1 == 'case' && g.S.rest['caseNew'] != null) || g.segNew('diary', t.$1)
-        ],
-        onTap: (k) => setState(() {
-          DiaryBody.tab = tabs[k].$1;
-          g.seeFeat('diary', tabs[k].$1);
-        }),
+        items: [for (final t in tops) names[t]!],
+        on: tops.indexOf(top),
+        oneRow: true,
+        dots: [for (final t in tops) t != top && subs[t]!.any((x) => _dot(x.$1))],
+        // 위 탭을 누르면 그 탭의 첫 칸부터 (기록 → 이야기, 도감 → 도감)
+        onTap: (k) => _go(subs[tops[k]]!.first.$1),
       ),
+      if (inner.length > 1)
+        SubTabs(
+          items: [for (final x in inner) x.$2],
+          on: inner.indexWhere((x) => x.$1 == DiaryBody.tab),
+          dots: [for (final x in inner) x.$1 != DiaryBody.tab && _dot(x.$1)],
+          onTap: (k) => _go(inner[k].$1),
+        ),
       ...switch (DiaryBody.tab) {
         'relic' => relicsSection(g),
         'scene' => scenesTab(context, g),
         'case' => casesTab(context, g),
         'towns' => routeTab(context, g),
         'ach' => achTab(g),
-        'guide' => guideTab(context, g),
         _ => [...dailySection(g), ...storyLog(g), ...fragSection(context, g), ...diaryLog(g, (k) => showDiary(context, k))],
       },
     ]);
@@ -555,7 +574,7 @@ Future<void> showPage(BuildContext context, {required String tag, required Strin
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(tag, style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+            Text(tag, style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
             const SizedBox(height: 4),
             Text(title, style: Ttc.t(23, color: Ttc.sepia, weight: FontWeight.w700)),
             const SizedBox(height: 10),
@@ -599,6 +618,9 @@ class _SettingsBodyState extends State<SettingsBody> {
   String msg = '';
   bool confirmReset = false;
 
+  /// 안내서 보는 중 (앱 전용 2026-10-20: 일지에서 설정으로 옮김)
+  bool guide = false;
+
   @override
   void dispose() {
     ctrl.dispose();
@@ -612,7 +634,7 @@ class _SettingsBodyState extends State<SettingsBody> {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(t, style: Ttc.t(14, color: Ttc.sepia, weight: FontWeight.w700)),
-              Text(d, style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5)),
+              Text(d, style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
             ]),
           ),
           const SizedBox(width: 10),
@@ -653,7 +675,7 @@ class _SettingsBodyState extends State<SettingsBody> {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(n, style: Ttc.t(14, color: Ttc.sepia, weight: FontWeight.w700)),
-              Text(d, style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5)),
+              Text(d, style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
             ]),
           ),
           const SizedBox(width: 10),
@@ -688,8 +710,27 @@ class _SettingsBodyState extends State<SettingsBody> {
   @override
   Widget build(BuildContext context) {
     final g = widget.g;
+    if (guide) {
+      return ListView(padding: _bodyPad, children: [
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => setState(() => guide = false),
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 40),
+            alignment: Alignment.centerLeft,
+            child: Text('‹ 설정으로', style: Ttc.t(14, color: Ttc.sepia, weight: FontWeight.w700)),
+          ),
+        ),
+        ...guideTab(context, g),
+      ]);
+    }
     return ListView(padding: _bodyPad, children: [
       Text('네이티브 미리보기 · 8단계', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
+      GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => setState(() => guide = true),
+        child: _row('안내서', '쉘터·생존자·밤·원정·오늘의 할 일 등 게임 방법을 한곳에 모았어요', _ghost('열기', () => setState(() => guide = true))),
+      ),
       if (widget.onSaveNow != null) CloudSection(onSaveNow: widget.onSaveNow!),
       if (widget.onLegacy != null) _row('예전 버전에서 진행 가져오기', '웹 게임이나 예전 탭투시티 앱에서 하던 진행을 이 앱으로 옮겨요', _ghost('가져오기', () => widget.onLegacy!())),
       _row('피드백 보내기', '버그·제안·소감, 무엇이든 개발자에게 바로 전해져요', _ghost('쓰기', () => showFeedback(context, g))),
@@ -699,7 +740,7 @@ class _SettingsBodyState extends State<SettingsBody> {
         ('vib', '진동', '두드릴 때 휴대폰이 살짝 떨려요'),
         ('calm', '움직임 줄이기', '흔들림·깜빡임 같은 애니메이션을 줄여요'),
         ('eco', '절전 모드', '화면을 덜 자주, 조금 덜 선명하게 그려 휴대폰이 덜 뜨거워지고 배터리가 오래가요'),
-        ('big', '글자 크게', '화면 글자와 창을 조금 크게 보여요'),
+        ('big', '글자 크게', '앱 전체 글자를 1.15배로 키워 읽기 쉽게 해요'),
       ])
         _setRow(k, n, d),
       sec('저장'),
@@ -711,7 +752,7 @@ class _SettingsBodyState extends State<SettingsBody> {
         padding: const EdgeInsets.only(top: 12),
         child: Text('저장 코드 불러오기', style: Ttc.t(14, color: Ttc.sepia, weight: FontWeight.w700)),
       ),
-      Text('웹에서 복사한 TTC1. 코드를 붙여 넣으면 그 진행으로 이어서 해요', style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5)),
+      Text('웹에서 복사한 TTC1. 코드를 붙여 넣으면 그 진행으로 이어서 해요', style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
       const SizedBox(height: 8),
       TextField(
         controller: ctrl,

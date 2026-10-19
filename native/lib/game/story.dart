@@ -492,10 +492,10 @@ extension Story on Game {
     if (t > 10 && t < auto && !misNudged) {
       misNudged = true;
       S.rest['hintClaim'] = num_('hintClaim') + 1;
-      fx.add(FxNote('미션 완료!', num_('hintClaim') <= 2 ? '위쪽 미션 줄의 ‘받기’를 눌러요' : '', ms: num_('hintClaim') <= 2 ? 4500 : 2600));
+      fx.add(FxNote('이야기 완료!', num_('hintClaim') <= 2 ? '위쪽 이야기 띠의 ‘받기’를 눌러요' : '', ms: num_('hintClaim') <= 2 ? 4500 : 2600));
     }
     if (t > auto && !uiBusy) {
-      fx.add(const FxNote('미션 보상을 챙겨 뒀어요', '', ms: 2600));
+      fx.add(const FxNote('이야기 보상을 챙겨 뒀어요', '', ms: 2600));
       claimMission();
     }
   }

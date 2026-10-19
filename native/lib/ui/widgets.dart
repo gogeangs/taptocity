@@ -297,7 +297,7 @@ Widget lockBadge(String t) => Container(
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         SvgIcon(Ico.lock, size: 13, color: Ttc.sepia2),
         const SizedBox(width: 4),
-        Text(t, style: Ttc.t(11.5, color: Ttc.sepia2, weight: FontWeight.w700, height: 1)),
+        Text(t, style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w700, height: 1)),
       ]),
     );
 
@@ -354,8 +354,8 @@ class MCard extends StatelessWidget {
   }
 }
 
-Widget descText(String t) => Text(t, style: Ttc.t(12, color: Ttc.sepia2, height: 1.5));
-Widget smallTag(String t) => Text(t, style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w500));
+Widget descText(String t) => Text(t, style: Ttc.t(13, color: Ttc.sepia2, height: 1.5));
+Widget smallTag(String t) => Text(t, style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w500));
 Widget newTag() => Text('새로 짓기', style: Ttc.t(10, color: const Color(0xFF58716A), weight: FontWeight.w500));
 
 /// 웹 .sec: 굵은 소제목 + 작은 설명 + 오른쪽으로 이어지는 선
@@ -363,7 +363,7 @@ Widget sec(String t, [String? small]) => Padding(
       padding: const EdgeInsets.fromLTRB(2, 16, 2, 8),
       child: Row(children: [
         Text(t, style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
-        if (small != null) ...[const SizedBox(width: 8), Text(small, style: Ttc.t(11.5, color: Ttc.sepia2, weight: FontWeight.w500))],
+        if (small != null) ...[const SizedBox(width: 8), Text(small, style: Ttc.t(12.5, color: Ttc.sepia2, weight: FontWeight.w500))],
         const SizedBox(width: 8),
         const Expanded(child: Divider(color: Ttc.line, height: 1, thickness: .8)),
       ]),
@@ -393,7 +393,7 @@ class Segs extends StatelessWidget {
             child: FittedBox(
               fit: BoxFit.scaleDown,
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Text(items[k], style: Ttc.t(oneRow ? 12.5 : 13, color: k == on ? const Color(0xFF22323B) : Ttc.segText, weight: FontWeight.w600)),
+                Text(items[k], style: Ttc.t(13, color: k == on ? const Color(0xFF22323B) : Ttc.segText, weight: FontWeight.w600)),
                 if (k < dots.length && dots[k])
                   Container(width: oneRow ? 7 : 8, height: oneRow ? 7 : 8, margin: EdgeInsets.only(left: oneRow ? 4 : 5), decoration: const BoxDecoration(shape: BoxShape.circle, color: Ttc.amber)),
               ]),
@@ -418,12 +418,46 @@ class Segs extends StatelessWidget {
   }
 }
 
+/// 위 탭(Segs) 아래의 작은 둘째 칸 (앱 전용 2026-10-20: 일지 '기록'의 이야기·회상, '도감'의 도감·업적·노선도)
+class SubTabs extends StatelessWidget {
+  const SubTabs({super.key, required this.items, required this.on, required this.onTap, this.dots = const []});
+  final List<String> items;
+  final List<bool> dots;
+  final int on;
+  final void Function(int) onTap;
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Wrap(spacing: 6, runSpacing: 6, children: [
+          for (var k = 0; k < items.length; k++)
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => onTap(k),
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 34),
+                padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+                decoration: BoxDecoration(
+                  color: k == on ? Ttc.sepia : Colors.transparent,
+                  borderRadius: BorderRadius.circular(99),
+                  border: Border.all(color: k == on ? Ttc.sepia : const Color(0x4026333B)),
+                ),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Text(items[k], style: Ttc.t(13, color: k == on ? const Color(0xFFF1E5C6) : Ttc.sepia, weight: FontWeight.w600, height: 1.2)),
+                  if (k < dots.length && dots[k])
+                    Container(width: 7, height: 7, margin: const EdgeInsets.only(left: 5), decoration: const BoxDecoration(shape: BoxShape.circle, color: Ttc.amber)),
+                ]),
+              ),
+            ),
+        ]),
+      );
+}
+
 /// 웹 .sumchips 한 칸
 Widget sumChip(List<InlineSpan> spans, {String? icon, bool bad = false}) => Padding(
       padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         if (icon != null) ...[ResIcon(icon, size: 17), const SizedBox(width: 3)],
-        Text.rich(TextSpan(children: spans), style: Ttc.t(11, color: bad ? Ttc.no : Ttc.sumText, weight: FontWeight.w500)),
+        Text.rich(TextSpan(children: spans), style: Ttc.t(12, color: bad ? Ttc.no : Ttc.sumText, weight: FontWeight.w500)),
       ]),
     );
 TextSpan bold(String t) => TextSpan(text: t, style: const TextStyle(fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)], color: Ttc.sepia));
@@ -439,7 +473,7 @@ Widget emptyBox(Widget icon, String t, String d) => Container(
         const SizedBox(height: 6),
         Text(t, style: Ttc.t(14.5, color: Ttc.sepia, weight: FontWeight.w700)),
         const SizedBox(height: 6),
-        Text(d, textAlign: TextAlign.center, style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5)),
+        Text(d, textAlign: TextAlign.center, style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
       ]),
     );
 

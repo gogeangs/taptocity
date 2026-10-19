@@ -187,7 +187,7 @@ class _GearRowState extends State<GearRow> {
                   child: Text.rich(TextSpan(children: [
                     TextSpan(text: G.d, style: const TextStyle(color: Color(0xFF8A7458))),
                     if (more != null) TextSpan(text: '\n$more', style: only != null ? const TextStyle(fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)]) : null),
-                  ]), style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5)),
+                  ]), style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
                 ),
             ]),
           ),
@@ -464,7 +464,7 @@ class _BagBodyState extends State<BagBody> {
             Text(c.isEmpty ? '정리할 장비가 없어요' : '남는 장비 ${c.length}개', style: Ttc.t(14, color: Ttc.sepia, weight: FontWeight.w700)),
             const SizedBox(height: 2),
             Text(c.isEmpty ? '같은 장비 여분이나, 더 좋은 장비가 있는 일반 등급 장비를 골라 줘요' : '같은 장비 여분 · 더 좋은 장비가 있는 일반 등급 · 착용 중·전용·잠금은 빼고',
-                style: Ttc.t(11.5, color: Ttc.sepia2, height: 1.4)),
+                style: Ttc.t(13, color: Ttc.sepia2, height: 1.4)),
           ]),
         ),
         if (c.isNotEmpty) ...[const SizedBox(width: 10), BuyButton('정리하기', width: 72, onTap: () => showTidy(context, g, widget.toast))],
@@ -488,7 +488,7 @@ void showTidy(BuildContext context, Game g, void Function(String) toast) {
           g.dismBack(gear[x['t']]!).forEach((k, v) => back[k] = (back[k] ?? 0) + v);
         }
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text('장비 가방 정리', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+          Text('장비 가방 정리', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
           const SizedBox(height: 4),
           Text('남는 장비 분해', textAlign: TextAlign.center, style: Ttc.t(20, color: Ttc.sepia, weight: FontWeight.w700)),
           const SizedBox(height: 6),
@@ -605,7 +605,7 @@ Widget partyBody(Game g) {
                   if (r) badge('추천', bg: const Color(0xFFE0B441), fg: const Color(0xFF3B2A1A)),
                 ]),
                 const SizedBox(height: 2),
-                Text.rich(TextSpan(children: [bold(skills[id].n), TextSpan(text: ' · ${skills[id].d} (재사용 ${g.skillCd(id).round()}초)')]), style: Ttc.t(12, color: Ttc.sepia2, height: 1.45)),
+                Text.rich(TextSpan(children: [bold(skills[id].n), TextSpan(text: ' · ${skills[id].d} (재사용 ${g.skillCd(id).round()}초)')]), style: Ttc.t(13, color: Ttc.sepia2, height: 1.45)),
               ]),
             ),
             const SizedBox(width: 8),

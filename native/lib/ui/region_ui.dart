@@ -16,10 +16,10 @@ import 'sound.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
-Widget _tag(String t) => Text(t, style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600));
+Widget _tag(String t) => Text(t, style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600));
 Widget _h3(String t) => Padding(padding: const EdgeInsets.only(top: 4, bottom: 6), child: Text(t, style: Ttc.t(20, color: Ttc.sepia, weight: FontWeight.w700, height: 1.3)));
 Widget _p(String t) => Text(t, style: Ttc.t(14, color: const Color(0xFF4A3320), height: 1.7));
-Widget _d(String t) => Text(t, style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.55));
+Widget _d(String t) => Text(t, style: Ttc.t(13, color: Ttc.sepia2, height: 1.55));
 Widget _sec2(String t, [String? small]) => Padding(
       padding: const EdgeInsets.only(top: 10, bottom: 4),
       child: Text.rich(TextSpan(children: [
@@ -165,7 +165,7 @@ Future<void> showMigrate(BuildContext context, Game g) {
           _d('지도 · 쉘터 단계 · 모듈 · 방벽 · 기본 자재 · 동맹'),
           _sec2('새로 얻는 것'),
           Text.rich(TextSpan(children: [bold('등불의 기억 $n단계'), TextSpan(text: ' · 모든 생산 +${n * 10}% · 두드리는 힘 +${n * 10}% (영구)\n함께 온 사람 수만큼 침상 추가')]),
-              style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.55)),
+              style: Ttc.t(13, color: Ttc.sepia2, height: 1.55)),
           const SizedBox(height: 14),
           Row(children: [
             pageBtn('조금 더 머물기', () => Navigator.pop(ctx), alt: true),
@@ -246,7 +246,7 @@ Widget _npcHead(String region) {
       Expanded(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(n?.$1 ?? '', style: Ttc.t(18, color: Ttc.sepia, weight: FontWeight.w700)),
-          Text(n?.$2 ?? '', style: Ttc.t(12, color: Ttc.sepia2, height: 1.5)),
+          Text(n?.$2 ?? '', style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
         ]),
       ),
     ]),
@@ -279,7 +279,7 @@ Future<void> showTownChoice(BuildContext context, Game g) {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(o['n'] as String, style: Ttc.t(14.5, color: Ttc.sepia, weight: FontWeight.w700)),
               const SizedBox(height: 2),
-              Text(g.choiceDesc(x), style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5)),
+              Text(g.choiceDesc(x), style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
             ]),
           ),
         );
@@ -357,10 +357,10 @@ Future<void> showOp(BuildContext context, Game g) {
             ]),
           ),
           const SizedBox(height: 8),
-          Text.rich(TextSpan(children: [const TextSpan(text: '생존자들이 작전을 하고 있어요. '), bold('따로 할 일은 없어요'), const TextSpan(text: ' — 시간이 지나면 저절로 끝나고, 미션 띠에서 보상을 받아요. 창을 닫고 다른 일을 해도 돼요.')]),
-              style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.55)),
+          Text.rich(TextSpan(children: [const TextSpan(text: '생존자들이 작전을 하고 있어요. '), bold('따로 할 일은 없어요'), const TextSpan(text: ' — 시간이 지나면 저절로 끝나고, 이야기 띠에서 보상을 받아요. 창을 닫고 다른 일을 해도 돼요.')]),
+              style: Ttc.t(13, color: Ttc.sepia2, height: 1.55)),
         ] else ...[
-          Text.rich(TextSpan(children: [bold('할 일:'), const TextSpan(text: ' 아래 자재를 보내 작전을 시작하세요. 그다음은 기다리기만 하면 돼요.')]), style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.55)),
+          Text.rich(TextSpan(children: [bold('할 일:'), const TextSpan(text: ' 아래 자재를 보내 작전을 시작하세요. 그다음은 기다리기만 하면 돼요.')]), style: Ttc.t(13, color: Ttc.sepia2, height: 1.55)),
           const SizedBox(height: 6),
           needList(g, c),
           const SizedBox(height: 6),
@@ -378,7 +378,7 @@ Future<void> showOp(BuildContext context, Game g) {
                 ? () {
                     if (g.startOp()) {
                       Navigator.pop(ctx);
-                      g.fx.add(const FxToast('작전 시작! 기다리면 저절로 끝나요 · 남은 시간은 미션 띠에'));
+                      g.fx.add(const FxToast('작전 시작! 기다리면 저절로 끝나요 · 남은 시간은 이야기 띠에'));
                     }
                   }
                 : null),
@@ -573,8 +573,8 @@ List<Widget> memorialRows(Game g) {
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(survivors[(d['id'] as num).toInt()].name, style: Ttc.t(15, color: Ttc.sepia, weight: FontWeight.w700)),
-                  Text('${survivors[(d['id'] as num).toInt()].job}${(d['town'] as String? ?? '').isNotEmpty ? ' · ${d['town']}에서' : ''}', style: Ttc.t(12, color: Ttc.sepia2, height: 1.5)),
-                  Text(g.lastLine((d['id'] as num).toInt()), style: Ttc.t(12, color: Ttc.sepia2, height: 1.45).copyWith(fontStyle: FontStyle.italic)),
+                  Text('${survivors[(d['id'] as num).toInt()].job}${(d['town'] as String? ?? '').isNotEmpty ? ' · ${d['town']}에서' : ''}', style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
+                  Text(g.lastLine((d['id'] as num).toInt()), style: Ttc.t(13, color: Ttc.sepia2, height: 1.45).copyWith(fontStyle: FontStyle.italic)),
                 ]),
               ),
             ]),
@@ -653,13 +653,13 @@ List<Widget> routeTab(BuildContext context, Game g) {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('만수의 노선도', style: Ttc.t(15, color: Ttc.sepia, weight: FontWeight.w700, height: 1.3)),
         const SizedBox(height: 3),
-        Text('시운전하던 밤에 달린 길 · 정류장을 누르면 그 동네 기록과 남은 사람들을 봐요', style: Ttc.t(12, color: Ttc.sepia2, height: 1.5)),
+        Text('시운전하던 밤에 달린 길 · 정류장을 누르면 그 동네 기록과 남은 사람들을 봐요', style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
       ]),
     ),
     _stop(
         Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           _stopT('다음 정류장', '안개 속'),
-          Text(regions[g.nextRegion]?.n ?? '', style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5)),
+          Text(regions[g.nextRegion]?.n ?? '', style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
         ]),
         next: true,
         first: true),
@@ -678,7 +678,7 @@ List<Widget> routeTab(BuildContext context, Game g) {
         Positioned(left: 11, top: 0, bottom: 0, child: Container(width: 2, color: const Color(0x593B2A1A))),
         Padding(
           padding: const EdgeInsets.fromLTRB(36, 2, 0, 2),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [for (final x in w) Text('· $x', style: Ttc.t(11.5, color: Ttc.sepia2, height: 1.6))]),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [for (final x in w) Text('· $x', style: Ttc.t(13, color: Ttc.sepia2, height: 1.6))]),
         ),
       ]));
     }
@@ -688,7 +688,7 @@ List<Widget> routeTab(BuildContext context, Game g) {
     out.add(_stop(
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         _stopT(townName(gen), '${gen > 0 ? '$gen번째 동네' : '출발지'}${cur ? ' · 지금' : L != null ? ' · ${L['day']}일째 떠남' : ''}'),
-        Padding(padding: const EdgeInsets.only(top: 3), child: Text(d, style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5))),
+        Padding(padding: const EdgeInsets.only(top: 3), child: Text(d, style: Ttc.t(13, color: Ttc.sepia2, height: 1.5))),
         if (ids.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 7),
@@ -830,7 +830,7 @@ List<Widget> radioRegion(BuildContext context, Game g, {VoidCallback? onRoute}) 
               const TextSpan(text: '받는 것 '),
               bold('${matOf[gk]!.n} $gn'),
               if (clip && !full) TextSpan(text: ' 창고에 ${fmt(room)}만 들어가요', style: const TextStyle(color: Ttc.no)),
-            ]), style: Ttc.t(12, color: Ttc.sepia2, height: 1.5)),
+            ]), style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
           ]),
           costs: costWrap(g, want, lead: [Text('보내는 것', style: Ttc.t(11.5, color: Ttc.sepia2))]),
           button: full
@@ -883,7 +883,7 @@ List<Widget> radioRegion(BuildContext context, Game g, {VoidCallback? onRoute}) 
   return out;
 }
 
-// ======================= 개인 이야기 (웹 questHtml 3467) =======================
+// ======================= 생존자의 이야기 (웹 questHtml 3467 '개인 이야기') =======================
 Widget questBox(Game g, int id) {
   final Q = quests[id];
   if (Q == null) return const SizedBox.shrink();
@@ -902,15 +902,15 @@ Widget questBox(Game g, int id) {
         ),
       );
   if (q == null) {
-    return box([_sec2('개인 이야기 · ???'), _d('신뢰도 $qUnlock이 되면 ${survivors[id].name}의 이야기가 열려요')], lock: true);
+    return box([_sec2('${survivors[id].name}의 이야기 · ???'), _d('신뢰도 $qUnlock이 되면 ${survivors[id].name}의 이야기가 열려요')], lock: true);
   }
   if (q['done'] == true) {
-    return box([_sec2('개인 이야기 · ${Q.t} ✓'), _d(Q.end.last.t)], done: true);
+    return box([_sec2('${survivors[id].name}의 이야기 · ${Q.t} ✓'), _d(Q.end.last.t)], done: true);
   }
   final s = ((q['s'] as num?) ?? 0).toInt(), st = Q.steps[math.min(s, Q.steps.length - 1)];
   final c = g.qCost(st);
   return box([
-    _sec2('개인 이야기 · ${Q.t}', '${s + 1}/${Q.steps.length}'),
+    _sec2('${survivors[id].name}의 이야기 · ${Q.t}', '${s + 1}/${Q.steps.length}'),
     Padding(padding: const EdgeInsets.fromLTRB(0, 2, 0, 6), child: Text(g.qSay(st), style: Ttc.serif(16, color: const Color(0xFF5A3F24), height: 1.45))),
     Padding(
       padding: const EdgeInsets.only(bottom: 6),

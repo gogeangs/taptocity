@@ -14,7 +14,7 @@ import 'survivors.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
-Widget _tag(String t) => Text(t, style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600));
+Widget _tag(String t) => Text(t, style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600));
 Widget _h3(String t) => Padding(padding: const EdgeInsets.only(top: 4, bottom: 6), child: Text(t, textAlign: TextAlign.center, style: Ttc.t(20, color: Ttc.sepia, weight: FontWeight.w700)));
 Widget _p(String t, {TextAlign align = TextAlign.left}) => Text(t, textAlign: align, style: Ttc.t(14, color: const Color(0xFF4A3320), height: 1.65));
 Widget _trait(List<InlineSpan> s) => Container(
@@ -580,7 +580,7 @@ List<Widget> decoTab(Game g, {required void Function(String k) onPick}) {
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('${on ? '✓ ' : ''}${Z['n']}', style: Ttc.t(13.5, color: on ? Ttc.ok : Ttc.sepia, weight: FontWeight.w700)),
-        Text('${(Z['need'] as List).map((n) => web.deco[n]!['n']).join(' + ')} 가까이 · ${Z['d']}', style: Ttc.t(12, color: Ttc.sepia2, height: 1.4)),
+        Text('${(Z['need'] as List).map((n) => web.deco[n]!['n']).join(' + ')} 가까이 · ${Z['d']}', style: Ttc.t(13, color: Ttc.sepia2, height: 1.4)),
       ]),
     ));
   });
@@ -709,7 +709,7 @@ List<Widget> relicsSection(Game g) {
                 ? Text.rich(TextSpan(children: [
                     TextSpan(text: '$it\n', style: const TextStyle(fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)], color: Ttc.sepia)),
                     TextSpan(text: web.rstory[it] ?? ''),
-                  ]), style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5))
+                  ]), style: Ttc.t(13, color: Ttc.sepia2, height: 1.5))
                 : Text('???', style: Ttc.t(12.5, color: const Color(0xFFA8977A), weight: FontWeight.w700)),
           ),
       ]),

@@ -10,6 +10,7 @@ import '../data/web_data.g.dart' as web;
 import '../game/data.dart';
 import '../game/engine.dart';
 import 'atlas.dart';
+import 'crisis_ui.dart' show Every;
 import 'cuts_ui.dart';
 import 'portrait.dart';
 import 'profile_ui.dart';
@@ -231,14 +232,14 @@ Future<void> showCase(BuildContext context, Game g, int k) async {
   String? picked;
   await _casePage(context, (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         _caseArt(g, k, clue: g.caseRec(k)?['solved'] == null),
-        Text('사건 ${k + 1} · ${c.ch}', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+        Text('사건 ${k + 1} · ${c.ch}', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
         Padding(padding: const EdgeInsets.fromLTRB(0, 2, 0, 6), child: Text(c.t, style: Ttc.t(19, color: Ttc.sepia, weight: FontWeight.w700))),
         Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: Text.rich(TextSpan(children: [
             TextSpan(text: '${c.when} · 의심받는 사람: '),
             TextSpan(text: g.caseSus(k), style: const TextStyle(color: Color(0xFFB0452A))),
-          ]), style: Ttc.t(12.5, color: Ttc.sepia2, weight: FontWeight.w600, height: 1.4)),
+          ]), style: Ttc.t(13, color: Ttc.sepia2, weight: FontWeight.w600, height: 1.4)),
         ),
         caseLines(g, [for (final l in c.x(g)) if (l != null) l]),
       ]), foot: (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
@@ -262,7 +263,7 @@ Future<void> showCase(BuildContext context, Game g, int k) async {
   await _casePage(context, (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         // 풀린 사건이면 이제 그림을 그대로 보여 준다
         _caseArt(g, k, clue: g.caseRec(k)?['solved'] == null),
-        Text('사건 ${k + 1} · ${c.ch}', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+        Text('사건 ${k + 1} · ${c.ch}', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
         Padding(padding: const EdgeInsets.fromLTRB(0, 2, 0, 10), child: Text(c.t, style: Ttc.t(19, color: Ttc.sepia, weight: FontWeight.w700))),
         caseLines(g, ls),
         if (fx.isNotEmpty) _fxChips(fx),
@@ -277,30 +278,70 @@ Future<void> showCase(BuildContext context, Game g, int k) async {
 }
 
 // ======================= 정답 없는 선택 (앱 전용, game/tension.dart) =======================
+/// 선택 창이 떠 있나 (떠 있으면 이야기 띠의 '선택 기다림'을 숨긴다). 창이 사라지면 그 자리도 함께 사라진다
+BuildContext? _choiceCtx;
+bool get choiceShowing => _choiceCtx?.mounted ?? false;
+
+/// 해 질 때까지 남은 시간 '1:20' (밤이면 null)
+String? duskLeft(Game g) {
+  if (g.isNight) return null;
+  final left = math.max(0, (dayLen - g.phase).ceil());
+  return '${left ~/ 60}:${(left % 60).toString().padLeft(2, '0')}';
+}
+
 Future<void> showChoice(BuildContext context, Game g) async {
   final v = g.choiceView();
-  if (v == null) return;
+  if (v == null || choiceShowing) return;
   int? picked;
   await _casePage(context, (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(v.tag, style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
-        Padding(padding: const EdgeInsets.fromLTRB(0, 2, 0, 10), child: Text(v.title, style: Ttc.t(19, color: Ttc.sepia, weight: FontWeight.w700))),
-        caseLines(g, v.lines),
-      ]), foot: (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
-        Text('어떻게 할까요?', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
-        const SizedBox(height: 8),
-        for (var k = 0; k < v.opts.length; k++)
-          _copt(v.opts[k].$1, v.opts[k].$2, () {
-            picked = k;
-            Navigator.pop(ctx);
-          }, hi: k == 0),
-        Text('정답은 없어요. 해가 질 때까지 정하지 않으면 누군가 대신 정해요', style: Ttc.t(11.5, color: Ttc.sepia2, height: 1.4)),
-      ]));
+          Text(v.tag, style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
+          Padding(padding: const EdgeInsets.fromLTRB(0, 2, 0, 10), child: Text(v.title, style: Ttc.t(19, color: Ttc.sepia, weight: FontWeight.w700))),
+          caseLines(g, v.lines),
+        ]), foot: (ctx) {
+      _choiceCtx = ctx;
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
+          Row(children: [
+            Expanded(child: Text('어떻게 할까요?', style: Ttc.t(13.5, color: Ttc.sepia, weight: FontWeight.w700))),
+            // 남은 시간 (해가 지면 누군가 대신 정한다)
+            Every(
+              g: g,
+              builder: (c) {
+                final t = duskLeft(g);
+                if (t == null) return const SizedBox.shrink();
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(color: const Color(0x1FB0452A), borderRadius: BorderRadius.circular(99)),
+                  child: Text('해 질 때까지 $t', maxLines: 1, softWrap: false, style: Ttc.t(13, color: Ttc.no, weight: FontWeight.w700, height: 1.2)),
+                );
+              },
+            ),
+          ]),
+          const SizedBox(height: 8),
+          for (var k = 0; k < v.opts.length; k++)
+            _copt(v.opts[k].$1, v.opts[k].$2, () {
+              picked = k;
+              Navigator.pop(ctx);
+            }, hi: k == 0),
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(child: Text('정답은 없어요. 해가 질 때까지 정하지 않으면 누군가 대신 정해요', style: Ttc.t(13, color: Ttc.sepia2, height: 1.4))),
+            // 닫아 두면 위쪽 이야기 띠의 '선택 기다림'으로 다시 열 수 있다
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => Navigator.pop(ctx),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 0, 2, 4),
+                child: Text('나중에', style: Ttc.t(13, color: Ttc.sepia2, weight: FontWeight.w600).copyWith(decoration: TextDecoration.underline, decorationColor: Ttc.sepia2)),
+              ),
+            ),
+          ]),
+        ]);
+    });
   if (picked == null || !context.mounted) return;
   final (ls, fx) = g.pickChoice(picked!);
   if (ls.isEmpty && fx.isEmpty) return;
   Sound.buzzMid();
   await _casePage(context, (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(v.tag, style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+        Text(v.tag, style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
         Padding(padding: const EdgeInsets.fromLTRB(0, 2, 0, 10), child: Text(v.title, style: Ttc.t(19, color: Ttc.sepia, weight: FontWeight.w700))),
         caseLines(g, ls),
         if (fx.isNotEmpty) _fxChips(fx),
@@ -313,7 +354,7 @@ Future<void> showCrowMeet(BuildContext context, Game g) async {
   String? picked;
   final c = g.crowToll, ok = g.canPay(c);
   await _casePage(context, (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text('까마귀 · 접촉', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+        Text('까마귀 · 접촉', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
         Padding(padding: const EdgeInsets.fromLTRB(0, 2, 0, 10), child: Text('길을 막은 사람들', style: Ttc.t(19, color: Ttc.sepia, weight: FontWeight.w700))),
         caseLines(g, const [
           Line('me', '원정대가 돌아오는 길목을 검은 옷의 무리가 막아섰다. 벽에서 보던 검은 새가 그들 팔에 그려져 있었다.'),
@@ -341,7 +382,7 @@ Future<void> showCrowMeet(BuildContext context, Game g) async {
   if (picked == null || !context.mounted) return;
   final (ls, fx) = g.pickCrow(picked!);
   await _casePage(context, (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text('까마귀 · 접촉', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+        Text('까마귀 · 접촉', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
         Padding(padding: const EdgeInsets.fromLTRB(0, 2, 0, 10), child: Text('길을 막은 사람들', style: Ttc.t(19, color: Ttc.sepia, weight: FontWeight.w700))),
         caseLines(g, ls),
         if (fx.isNotEmpty) _fxChips(fx),
@@ -353,7 +394,7 @@ Future<void> showCrowMeet(BuildContext context, Game g) async {
 Future<void> showEgg(BuildContext context, {required String tag, required Widget body, String? note}) => _casePage(
     context,
     (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text(tag, style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+          Text(tag, style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
           const SizedBox(height: 8),
           body,
           if (note != null) Padding(padding: const EdgeInsets.only(bottom: 12), child: Text(note, style: Ttc.t(13, color: Ttc.sepia2, height: 1.5))),
@@ -683,7 +724,7 @@ void showScene(BuildContext context, Game g, int n) {
                 ),
               ),
             ),
-            Text(src?.$2 ?? '회상', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+            Text(src?.$2 ?? '회상', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
             Padding(padding: const EdgeInsets.fromLTRB(0, 2, 0, 12), child: Text(cap, style: Ttc.t(23, color: Ttc.sepia, weight: FontWeight.w700))),
             if (src != null) ...[
               Row(children: [

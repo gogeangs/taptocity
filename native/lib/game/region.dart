@@ -130,7 +130,7 @@ extension Region on Game {
         RegMis('저수조 지키기 · 물 도둑 막아내기', (g) => g.num_('defWins') - ((g.rq['raidBase'] as num?) ?? 1e9) >= 1, {'plate': 20, 'batt': 2},
             '오늘 밤 물 도둑이 쳐들어와요. 방벽과 랜턴탑으로 버텨요',
             k: 'raid'),
-        RegMis('저수조를 어떻게 할지 정하기', (g) => g.rq['pick'] != null, {'batt': 2}, '미션을 눌러 정해요', k: 'choice'),
+        RegMis('저수조를 어떻게 할지 정하기', (g) => g.rq['pick'] != null, {'batt': 2}, '이야기 띠를 눌러 정해요', k: 'choice'),
         fort,
         city,
         tower,
@@ -142,8 +142,8 @@ extension Region on Game {
         shack,
         RegMis('대형 재폭풍 2번 막아내기', (g) => g.num_('defWins') - base >= 2, {'plate': 15, 'batt': 2}, '두 밤마다 몰려와요. 방벽과 랜턴탑을 서둘러요'),
         RegMis('멈추지 않는 공장 찾기', (g) => g.rq['spot'] != null, {'parts': 40, 'batt': 2}, '지도에 굴뚝 표시가 생겼어요. 그쪽 구름을 걷어요', k: 'spot'),
-        RegMis('공장 끄기 작전', (g) => g.rq['op'] != null, {'wire': 6, 'batt': 2}, '미션을 눌러 작전을 시작해요', k: 'op'),
-        RegMis('공장 라인을 어떻게 할지 정하기', (g) => g.rq['pick'] != null, {'batt': 2}, '미션을 눌러 정해요', k: 'choice'),
+        RegMis('공장 끄기 작전', (g) => g.rq['op'] != null, {'wire': 6, 'batt': 2}, '이야기 띠를 눌러 작전을 시작해요', k: 'op'),
+        RegMis('공장 라인을 어떻게 할지 정하기', (g) => g.rq['pick'] != null, {'batt': 2}, '이야기 띠를 눌러 정해요', k: 'choice'),
         fort,
         city,
         tower,
@@ -155,7 +155,7 @@ extension Region on Game {
       RegMis('목재 200 모으기', (g) => g.have('wood') >= 200, {'fuel': 30, 'batt': 2}, '무너진 집에서 목재가 넉넉히 나와요'),
       RegMis('산골 분교 찾기', (g) => g.rq['spot'] != null, {'food': 60, 'cloth': 20, 'batt': 2}, '지도에 학교 표시가 생겼어요. 그쪽 구름을 걷어요', k: 'spot'),
       RegMis('한파 사흘 버티기', (g) => g.rq['cold'] != null, {'fuel': 40, 'batt': 3}, '사흘 밤 동안 장작이 빨리 줄어요. 목재를 넉넉히 모아 둬요', k: 'cold'),
-      RegMis('산 너머 대피소를 어떻게 할지 정하기', (g) => g.rq['pick'] != null, {'batt': 2}, '미션을 눌러 정해요', k: 'choice'),
+      RegMis('산 너머 대피소를 어떻게 할지 정하기', (g) => g.rq['pick'] != null, {'batt': 2}, '이야기 띠를 눌러 정해요', k: 'choice'),
       fort,
       city,
       tower,
@@ -338,6 +338,8 @@ extension Region on Game {
       'expTold', 'pedCrow', 'tutSeen', 'onb', 'stepV', 'line', 'lnGot', 'lnLose', 'deathG', 'memo', 'feasts',
       // 앱 전용 (2026-10-18): 기록 조각·오늘의 의뢰·연속 일수·세는 값 (지하 기록 S.rest['ug']는 아래에서 따로 옮긴다)
       'frags', 'dayQ', 'dayStreak', 'dayLast', 'dayRare', 'giftN', 'ugDown', 'mrN',
+      // 앱 전용 (2026-10-20): 아직 안 읽은 새 이야기 (함께 떠나는 사람만 화면에 남는다)
+      'qNew',
     ];
     final ns = Game.fresh(random: rnd);
     for (final k in keepKeys) {
@@ -460,7 +462,7 @@ extension Region on Game {
           Q['spot'] = 1;
           tlog(spotLog);
           sfx('chime');
-          fx.add(FxNote('찾았어요!', '$spotLog 미션 띠에서 보상을 받아요'));
+          fx.add(FxNote('찾았어요!', '$spotLog 이야기 띠에서 보상을 받아요'));
           _mapChanged();
         }
       case 'raid':
@@ -479,7 +481,7 @@ extension Region on Game {
           Q['op'] = 1;
           tlog('공장을 멈췄다. 공단이 처음으로 조용해졌다.');
           sfx('chime');
-          fx.add(const FxNote('공장 끄기 작전 성공!', '미션 띠에서 보상을 받아요'));
+          fx.add(const FxNote('공장 끄기 작전 성공!', '이야기 띠에서 보상을 받아요'));
         }
       case 'cold':
         if (Q['coldBase'] == null) {

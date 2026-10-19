@@ -166,7 +166,7 @@ void main() {
     if (find.text('건설').evaluate().isNotEmpty) await step('쉘터 시트 닫기', () async => await tapText('쉘터'));
     for (final (tab, subs) in const [
       ('쉘터', ['건설', '가공', '연구']),
-      ('일지', ['이야기', '도감']),
+      ('일지', ['기록', '도감']), // 2026-10-20: 일지 위 탭 (기록 · 사건 수첩 · 도감)
       ('원정', <String>[]),
       ('라디오', <String>[]),
       ('생존자', <String>[]),

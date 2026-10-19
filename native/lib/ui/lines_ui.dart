@@ -96,7 +96,7 @@ Future<void> showLnPrep(BuildContext context, Game g) async {
           return SingleChildScrollView(
             padding: const EdgeInsets.all(18),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
-              Text('끊긴 노선 · ${T.n}', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+              Text('끊긴 노선 · ${T.n}', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
               Padding(padding: const EdgeInsets.fromLTRB(0, 4, 0, 8), child: Text('누구와 갈까요?', style: Ttc.t(20, color: Ttc.sepia, weight: FontWeight.w700))),
               if (free.length > 2)
                 MCard(
@@ -161,7 +161,7 @@ Future<void> showLnPrep(BuildContext context, Game g) async {
                     if (m < 1) const TextSpan(text: ' (연달아 들어가 줄었어요 · 15분마다 회복)'),
                     const TextSpan(text: ' · 최대 2명'),
                   ]),
-                  style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.55)),
+                  style: Ttc.t(13, color: Ttc.sepia2, height: 1.55)),
               const SizedBox(height: 12),
               Row(children: [
                 pageBtn('취소', () => Navigator.pop(ctx), alt: true),
@@ -360,7 +360,7 @@ class _LnPageState extends State<_LnPage> with SingleTickerProviderStateMixin {
       ),
       Padding(
         padding: const EdgeInsets.only(top: 6),
-        child: Text('${F.boss ? lnTowns[L.reg]!.boss : '재 괴물'} · 고리가 금빛 테두리에 겹칠 때 아무 데나 두드려요', textAlign: TextAlign.center, style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5)),
+        child: Text('${F.boss ? lnTowns[L.reg]!.boss : '재 괴물'} · 고리가 금빛 테두리에 겹칠 때 아무 데나 두드려요', textAlign: TextAlign.center, style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
       ),
     ]);
   }
@@ -405,7 +405,7 @@ class _LnPageState extends State<_LnPage> with SingleTickerProviderStateMixin {
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
-            Text('끊긴 노선 · ${T.n}', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+            Text('끊긴 노선 · ${T.n}', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
             const SizedBox(height: 4),
             _track(L, T),
             Padding(
@@ -446,7 +446,7 @@ class _LnPageState extends State<_LnPage> with SingleTickerProviderStateMixin {
               margin: const EdgeInsets.only(top: 12),
               padding: const EdgeInsets.only(top: 10),
               decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(0x333B2A1A)))),
-              child: carry.isEmpty ? Text('아직 챙긴 게 없어요', style: Ttc.t(12, color: Ttc.sepia2)) : Wrap(spacing: 10, runSpacing: 6, children: carry),
+              child: carry.isEmpty ? Text('아직 챙긴 게 없어요', style: Ttc.t(13, color: Ttc.sepia2)) : Wrap(spacing: 10, runSpacing: 6, children: carry),
             ),
             if (L.phase == 'pick' || L.phase == 'hazard') ...[
               const SizedBox(height: 10),

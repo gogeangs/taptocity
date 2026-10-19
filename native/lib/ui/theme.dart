@@ -12,7 +12,7 @@ abstract final class Ttc {
   static const tabOn = Color(0xFF35434A);
   static const tabOnLine = Color(0xFFC89D5C);
   static const tabOnText = Color(0xFFF1DEBB);
-  static const tabText = Color(0xFFD5D9D3);
+  static const tabText = Color(0xFFE2E5DF); // 2026-10-20: 짙은 바탕 위 글자 한 단계 밝게 (웹 D5D9D3)
   static const hudText = Color(0xFFE7E4DC);
   static const matText = Color(0xFFE9E9DF);
   static const line12 = Color(0x1FEEE5D3); // rgba(238,229,211,.12)
@@ -27,10 +27,10 @@ abstract final class Ttc {
   static const heroLine = Color(0xFFC7974E);
   static const lockedCard = Color(0xFFE0E2DB);
   static const segs = Color(0xFFDCE0DC);
-  static const segText = Color(0xFF606970);
+  static const segText = Color(0xFF50595F); // 2026-10-20: 밝은 카드 위 회색 한 단계 짙게 (웹 606970)
   static const sepia = Color(0xFF26333B);
-  static const sepia2 = Color(0xFF606B70);
-  static const sumText = Color(0xFF64716F);
+  static const sepia2 = Color(0xFF4F5A5F); // 2026-10-20: 한 단계 짙게 (웹 606B70)
+  static const sumText = Color(0xFF55615F); // 2026-10-20: 한 단계 짙게 (웹 64716F)
   static const line = Color(0x2426333B); // rgba(38,51,59,.14)
   static const ok = Color(0xFF4F6E2F);
   static const no = Color(0xFFB0452A);

@@ -84,6 +84,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       Sound.sfx(k);
       if (b) Sound.buzz();
     };
+    // 처음 켠 새 게임(튜토리얼)이 아니면, 켤 때 몰려오는 큰 창은 둘까지만
+    if (!GameScreen.firstRun) _burstStart();
     _start();
     WidgetsBinding.instance.addPostFrameCallback((_) => fxc.pull(g));
     if (GameScreen.cloudOn) Future.delayed(const Duration(seconds: 2), () => mounted ? _cloudStart() : null);
@@ -94,9 +96,10 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     _clock?.cancel();
     // 게임 시간은 0.25초마다 한 번. 화면은 바뀐 게 있을 때만 다시 그린다.
     _clock = Timer.periodic(const Duration(milliseconds: 250), (_) {
-      g.uiModal = pageWatch.n > 0 || _pageQ.isNotEmpty;
+      g.uiModal = pageWatch.n > 0 || _paging || _pageQ.any((x) => !_held(x));
       g.uiSheet = sheet != null;
       final changed = g.tick(.25);
+      _burstTick();
       _storyUi();
       Sound.mood(_mood());
       Sound.dim(g.isNight && g.defn == null ? .75 : 1);
@@ -318,6 +321,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       _save();
       if (GameScreen.cloudOn) _cloudUp();
     } else if (s == AppLifecycleState.resumed && _clock == null) {
+      _burstStart();
       g.offline(DateTime.now().millisecondsSinceEpoch);
       fxc.pull(g);
       g.poke();
@@ -348,12 +352,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       case FxCamp(:final tile):
         showCampPage(context, g, tile);
       case FxRescue(:final id, :final via):
-        Future.delayed(const Duration(milliseconds: 250), () async {
-          if (!mounted) return;
+        _queue(1, () async {
           // 웹툰 컷 (앱 전용): 이야기 속 사람이 처음 합류할 때 네 칸
           final cut = joinCuts[id];
           if (cut != null) await playCutOnce(context, g, cut, cut, const [0, 1, 2, 3]);
-          if (mounted) showRescuePage(context, g, id, via);
+          if (mounted) await showRescuePage(context, g, id, via);
         });
       case FxDefense(:final start):
         if (start) {
@@ -380,7 +383,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           if (mounted) showRequestDone(context, g, ev, k, sum);
         });
       case FxTalk():
-        _pageQ.add(() async {
+        _queue((f.tag ?? '').startsWith('아침 보고') ? 2 : 1, () async {
           // 9장 까마귀 · 대치: 독수리 앞에 선 진 (웹툰 컷 ①② 먼저, 대화 뒤 남기로 한 ③)
           final jin = f.tag == '까마귀 · 대치' && g.hasSv(jinId);
           if (jin) {
@@ -398,48 +401,39 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           if (!jin || !mounted) return;
           await playCutOnce(context, g, 'join_jin_choice:3', 'join_jin_choice', const [2]);
         });
-        _pumpPages();
       case FxCase(:final k):
-        _pageQ.add(() {
+        _queue(1, () {
           Sound.sfx('mystery');
           return showCase(context, g, k);
         });
-        _pumpPages();
       case FxCrowMeet():
-        _pageQ.add(() {
+        _queue(1, () {
           Sound.sfx('mystery');
           return showCrowMeet(context, g);
         });
-        _pumpPages();
       case FxTutDone(:final replay):
         _tutDone(replay);
       case FxOnboard():
-        _pageQ.add(() => showOnboard(context, g, onTour: () => setState(() => _coach = 0)));
-        _pumpPages();
+        _queue(1, () => showOnboard(context, g, onTour: () => setState(() => _coach = 0)));
       case FxConf():
-        _pageQ.add(() async {
+        _queue(1, () async {
           // 6장 재혁의 고백: 웹툰 컷 네 칸을 먼저
           await playCutOnce(context, g, 'join_jaehyuk', 'join_jaehyuk', const [0, 1, 2, 3]);
           if (mounted) await showConf(context, g);
         });
-        _pumpPages();
       case FxFeat(:final k):
-        _pageQ.add(() => showFeatCard(context, g, k, go: _featGo));
-        _pumpPages();
+        _queue(3, () => showFeatCard(context, g, k, go: _featGo));
       case FxPfName():
-        _pageQ.add(() => showPfName(context, g, first: true));
-        _pumpPages();
+        _queue(1, () => showPfName(context, g, first: true));
       case FxBlackout(:final sec):
         Sound.blackout(sec);
       case FxTownChoice():
-        _pageQ.add(() => showTownChoice(context, g));
-        _pumpPages();
+        _queue(1, () => showTownChoice(context, g));
       case FxChoice():
-        _pageQ.add(() {
+        _queue(1, () {
           Sound.sfx('mystery');
           return showChoice(context, g);
         });
-        _pumpPages();
       case FxDeath():
         // 폭풍이 걷히고 잠시 뒤 (웹 setTimeout 2200)
         Future.delayed(const Duration(milliseconds: 2200), () {
@@ -448,14 +442,13 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             sheet = null;
             _closeRing();
           });
-          _pageQ.insert(0, () async {
+          _queue(0, () async {
             _mournUntil = DateTime.now().millisecondsSinceEpoch + 3600000;
             Sound.sfx('toll');
             await showDeath(context, g, f);
             Sound.sfx('chime');
             _mournUntil = DateTime.now().millisecondsSinceEpoch + 1500;
           });
-          _pumpPages();
         });
       case FxMigrated(g: final n, :final region):
         setState(() {
@@ -469,14 +462,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         _stamp(lv);
       case FxOffline(:final seconds, :final got):
         final h = seconds ~/ 3600, m = (seconds % 3600 / 60).round();
-        Future.delayed(const Duration(milliseconds: 600), () {
-          if (!mounted) return;
-          showPage(context,
-              tag: '돌아오셨군요',
-              title: '${h > 0 ? '$h시간 ' : ''}$m분 동안',
-              body: '모인 자재 · ${got.entries.map((e) => '${matOf[e.key]!.n} +${e.value}').join(' · ')}',
-              button: '좋아요');
-        });
+        _queue(2, () => showPage(context,
+            tag: '돌아오셨군요',
+            title: '${h > 0 ? '$h시간 ' : ''}$m분 동안',
+            body: '모인 자재 · ${got.entries.map((e) => '${matOf[e.key]!.n} +${e.value}').join(' · ')}',
+            button: '좋아요'));
       default:
         break;
     }
@@ -484,6 +474,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   // ---------- 화면 둘러보기 (웹 onbTour): 가리킬 곳 ----------
   static final _kMats = GlobalKey(), _kTape = GlobalKey(), _kClock = GlobalKey(), _kLamp = GlobalKey(), _kTabs = GlobalKey();
+  final _kEv = GlobalKey(), _kStage = GlobalKey();
   int _coach = -1;
   bool _endCard = false;
   (int, String)? _mig;
@@ -537,17 +528,67 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     _save();
   }
 
-  // ---------- 이야기 창 줄 세우기 (웹 mq: 창은 한 번에 하나) ----------
-  final List<Future<void> Function()> _pageQ = [];
+  // ---------- 큰 창 줄 세우기 (웹 mq: 창은 한 번에 하나) ----------
+  // 앱 전용 (2026-10-20): 줄 하나에 급을 매긴다. 0 죽음 · 1 이야기 대화·웹툰 컷·사건·선택·구조 · 2 아침 보고·돌아오셨군요 · 3 새 기능 카드.
+  // 앱을 켜거나 돌아온 직후(_burst)에는 큰 창을 둘까지만 띄우고, 급 2·3은 손을 20초 쉬거나 시트를 열었다 닫을 때까지 미룬다
+  // (급 1은 이야기 순서가 꼬이지 않게 미루지 않는다). 미룬 창은 버리지 않고 그대로 줄에 남는다. 길어야 90초 뒤에는 다 풀린다.
+  final List<_Pg> _pageQ = [];
+  int _pgSeq = 0;
   bool _paging = false;
+  bool _burst = false;
+  int _burstShown = 0, _burstTicks = 0, _idleTicks = 0;
+  bool _burstSheet = false;
+
+  void _queue(int p, Future<void> Function() open) {
+    final it = _Pg(p, _pgSeq++, open);
+    // 같은 급끼리는 온 순서대로, 높은 급(작은 수)이 앞으로
+    final i = _pageQ.indexWhere((x) => x.p > p);
+    if (i < 0) {
+      _pageQ.add(it);
+    } else {
+      _pageQ.insert(i, it);
+    }
+    _pumpPages();
+  }
+
+  /// 지금 띄우면 안 되고 미뤄 둘 창
+  bool _held(_Pg x) => _burst && x.p >= 2 && _burstShown >= 2 && g.tut == null;
+
+  /// 앱을 켜거나 돌아왔을 때: 몰려오는 창을 둘까지만
+  void _burstStart() {
+    _burst = true;
+    _burstShown = 0;
+    _burstTicks = 0;
+    _idleTicks = 0;
+    _burstSheet = false;
+  }
+
+  /// 매 0.25초: 손을 20초 쉬었거나, 시트를 열었다 닫았거나, 90초가 지나면 미룬 창을 푼다
+  void _burstTick() {
+    if (!_burst) return;
+    _burstTicks++;
+    if (sheet != null) _burstSheet = true;
+    final idle = sheet == null && pageWatch.n == 0 && ringTile < 0;
+    _idleTicks = idle ? _idleTicks + 1 : 0;
+    if (_idleTicks >= 80 || (_burstSheet && sheet == null) || _burstTicks >= 360) _burst = false;
+  }
+
   void _pumpPages() {
     if (_paging || _pageQ.isEmpty || pageWatch.n > 0 || !mounted) return;
+    final i = _pageQ.indexWhere((x) => !_held(x));
+    if (i < 0) return;
     _paging = true;
-    final open = _pageQ.removeAt(0);
+    final it = _pageQ.removeAt(i);
+    if (_burst) _burstShown++;
     Future.delayed(const Duration(milliseconds: 150), () async {
       if (!mounted) return;
-      await open();
-      _paging = false;
+      try {
+        await it.open();
+      } finally {
+        // 창 하나가 잘못되어도 줄이 멈추지 않게
+        _paging = false;
+      }
+      if (!mounted) return;
       fxc.pull(g);
       _pumpPages();
     });
@@ -634,7 +675,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     }
     final st = m.step, f = st?.focus, hlS = st?.hl ?? '';
     void hint() {
-      if (m.sub.isNotEmpty) fxc.toast(m.sub);
+      if (m.sub.isNotEmpty) fxc.toast(uiWords(m.sub));
     }
 
     void toShelter(int tab) {
@@ -759,7 +800,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       case 'clock':
         return const Offset(60, 10);
       case 'ev':
-        return Offset(34, (g.sq != null && g.sqOn ? 122 : 50) - 2.0);
+        // 손님 부탁 버튼은 시계 아래 줄의 맨 아래 (연속 칩·부탁 띠에 따라 내려간다)
+        final eb = _kEv.currentContext?.findRenderObject() as RenderBox?, sb = _kStage.currentContext?.findRenderObject() as RenderBox?;
+        if (eb == null || sb == null || !eb.hasSize || !sb.hasSize) return const Offset(34, 48);
+        final o = eb.localToGlobal(Offset.zero) - sb.localToGlobal(Offset.zero);
+        return Offset(o.dx + 22, o.dy - 2);
       case 'skills':
         return Offset(94 + 28, H0 - bottom - 84 - 60);
     }
@@ -959,6 +1004,37 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     }
   }
 
+  /// 연속 칩: 일지 '기록' 맨 위의 오늘의 할 일
+  void _openDaily() {
+    DiaryBody.tab = 'story';
+    if (sheet?.kind != 'diary') {
+      _open(const SheetSpec('diary'));
+    } else {
+      setState(() {});
+    }
+  }
+
+  /// 이야기 띠의 '새 이야기 N': 한 사람이면 그 사람의 이야기 탭, 여럿이면 생존자 수첩 맨 위 목록
+  void _openStories() {
+    if (pageWatch.n > 0) return;
+    final ids = g.qNew;
+    if (ids.length == 1) {
+      _close();
+      survTab = 'story';
+      _survPage(ids.first);
+    } else if (ids.isNotEmpty && sheet?.kind != 'surv') {
+      _open(const SheetSpec('surv'));
+    }
+  }
+
+  /// 이야기 띠의 '선택 기다림': 닫아 둔 선택 창을 다시
+  void _openChoice() {
+    if (pageWatch.n > 0 || g.choiceView() == null) return;
+    _close();
+    Sound.sfx('mystery');
+    showChoice(context, g);
+  }
+
   void _survPage(int id) => showSurvPage(context, g, id, onGear: (id, slot) => _open(SheetSpec('gear', arg: '$id:$slot')));
 
   void _flyTo(int tile) {
@@ -1070,7 +1146,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     if (_coach >= 0 && coachR == null) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? setState(() {}) : null);
     return Scaffold(
       backgroundColor: Ttc.body,
-      body: Stack(children: [
+      // 손이 닿으면 '쉬는 중' 셈을 처음부터 (미룬 큰 창은 손을 20초 쉬면 연다)
+      body: Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (_) => _idleTicks = 0,
+        child: Stack(children: [
         Column(children: [
         AnimatedBuilder(
           animation: g,
@@ -1093,12 +1173,15 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               showMigrate(context, g);
             },
             onProfile: () => sheet?.kind == 'profile' ? _close() : _open(const SheetSpec('profile')),
+            onStories: _openStories,
+            onChoice: _openChoice,
           ),
         ),
         Expanded(
           child: LayoutBuilder(builder: (context, box) {
             _stageSize = box.biggest;
             return Container(
+              key: _kStage,
               color: Ttc.stage,
               child: Stack(clipBehavior: Clip.hardEdge, children: [
                 Positioned.fill(
@@ -1164,7 +1247,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                   // 대형 재폭풍 동안은 숨긴다: 아래 방어 막대가 같은 말을 하는 머리가 된다
                   child: Align(alignment: Alignment.centerLeft, child: KeyedSubtree(key: _kClock, child: Every(g: g, builder: (c) => g.defn != null ? const SizedBox.shrink() : clockChip(g)))),
                 ),
-                // 대형 재폭풍 막대 (시계 자리, 오른쪽 위 버튼은 비켜서) · 생존자 의뢰 · 부탁
+                // 대형 재폭풍 막대 (시계 자리, 오른쪽 위 버튼은 비켜서)
                 Positioned(
                   left: 10,
                   right: 64,
@@ -1177,31 +1260,35 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                     ),
                   ),
                 ),
+                // 시계 아래 왼쪽 줄 (앱 전용 2026-10-20): 연속 칩 · 생존자의 부탁 띠(접힘 한 줄, 누르면 펼침) · 손님 부탁. 지도 가운데는 비워 둔다
                 Positioned(
                   left: 12,
-                  top: 70,
+                  right: 64,
+                  top: 50,
                   child: Every(
                     g: g,
-                    builder: (c) => g.defn != null || matsOpen
-                        ? const SizedBox.shrink()
-                        : DateTime.now().millisecondsSinceEpoch >= g.sqOpenUntil && !g.sqDone
-                            ? sideQuest(g, onTap: _sqGo)
-                            : SizedBox(width: math.min(300, box.maxWidth - 84), child: sideQuest(g, onTap: _sqGo)),
-                  ),
-                ),
-                // (Stack 크기가 0이 되지 않게, 위치가 바뀌는 부탁 버튼은 자기 Stack 안에 둔다)
-                Positioned.fill(
-                  child: Every(
-                    g: g,
-                    builder: (c) => Stack(children: [
-                      if (g.defn == null && !matsOpen && g.evCur >= 0)
-                        Positioned(
-                          left: 12,
-                          right: 72,
-                          top: g.sq != null && g.sqOn ? 122 : 50,
-                          child: Align(alignment: Alignment.centerLeft, child: eventButton(g, () => showRequestPage(context, g))),
-                        ),
-                    ]),
+                    builder: (c) {
+                      if (g.defn != null || matsOpen) return const SizedBox.shrink();
+                      final sqOpen = g.sq != null && g.sqOn && DateTime.now().millisecondsSinceEpoch < g.sqOpenUntil;
+                      final streak = g.dayOn ? streakChip(g, onTap: _openDaily) : null;
+                      final side = sideQuest(g, onTap: _sqGo);
+                      return Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                        if (streak != null || !sqOpen)
+                          Row(mainAxisSize: MainAxisSize.min, children: [
+                            if (streak != null) streak,
+                            if (streak != null && !sqOpen && g.sq != null && g.sqOn) const SizedBox(width: 6),
+                            if (!sqOpen) Flexible(child: side),
+                          ]),
+                        if (sqOpen) ...[
+                          if (streak != null) const SizedBox(height: 6),
+                          SizedBox(width: math.min(300, box.maxWidth - 84), child: side),
+                        ],
+                        if (g.evCur >= 0) ...[
+                          const SizedBox(height: 8),
+                          KeyedSubtree(key: _kEv, child: eventButton(g, () => showRequestPage(context, g))),
+                        ],
+                      ]);
+                    },
                   ),
                 ),
                 // 시트
@@ -1264,7 +1351,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                     key: _kTabs,
                     animation: g,
                     builder: (c, _) => _Tabs(
-                    dots: {...g.tabDots(Game.nowMs()), if (g.achReady) 4},
+                    dots: g.actionDots(Game.nowMs()),
                     on: switch (sheet?.kind) {
                       'surv' => 0,
                       'exp' => 1,
@@ -1374,6 +1461,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         if (_mig != null) Positioned.fill(child: MigStamp(_mig!.$1, _mig!.$2, key: ValueKey(_mig), onDone: () => setState(() => _mig = null))),
         if (coachR != null) Positioned.fill(child: CoachOverlay(i: _coach, hole: coachR, onNext: _coachNext, onSkip: () => setState(_coachEnd))),
       ]),
+      ),
     );
   }
 }
@@ -1381,12 +1469,24 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 // ======================= 머리 (자원·설정·할 일 띠) =======================
 class _Header extends StatelessWidget {
   const _Header(this.g,
-      {required this.top, required this.ping, required this.onGo, required this.onSettings, required this.onMats, required this.onShelter, required this.onPed, required this.onMig, required this.onProfile, this.matsKey, this.tapeKey});
+      {required this.top,
+      required this.ping,
+      required this.onGo,
+      required this.onSettings,
+      required this.onMats,
+      required this.onShelter,
+      required this.onPed,
+      required this.onMig,
+      required this.onProfile,
+      required this.onStories,
+      required this.onChoice,
+      this.matsKey,
+      this.tapeKey});
   final Game g;
   final Key? matsKey, tapeKey;
   final double top;
   final int ping;
-  final VoidCallback onSettings, onMats, onShelter, onPed, onGo, onMig, onProfile;
+  final VoidCallback onSettings, onMats, onShelter, onPed, onGo, onMig, onProfile, onStories, onChoice;
 
   @override
   Widget build(BuildContext context) {
@@ -1416,7 +1516,7 @@ class _Header extends StatelessWidget {
           ]),
         ),
         const SizedBox(height: 6),
-        KeyedSubtree(key: tapeKey, child: MissionTape(g, onLv: onShelter, onGo: onGo, onPed: onPed, onMig: onMig, ping: ping)),
+        KeyedSubtree(key: tapeKey, child: MissionTape(g, onLv: onShelter, onGo: onGo, onPed: onPed, onMig: onMig, onStories: onStories, onChoice: onChoice, ping: ping)),
       ]),
     );
   }
@@ -1507,9 +1607,9 @@ class _MatsAll extends StatelessWidget {
                       Text.rich(TextSpan(children: [
                         TextSpan(text: '${m.n} '),
                         TextSpan(text: fmt(g.have(m.k)), style: const TextStyle(fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)])),
-                        if (m.tier < 3) TextSpan(text: '/${fmt(g.capOf(m.k))}', style: const TextStyle(color: Color(0xFFB8A27C))),
+                        if (m.tier < 3) TextSpan(text: '/${fmt(g.capOf(m.k))}', style: const TextStyle(color: Color(0xFFCDB993))),
                       ]), style: Ttc.t(12.5)),
-                      Text(m.s2, style: Ttc.t(11, color: const Color(0xFFB8A27C))),
+                      Text(m.s2, style: Ttc.t(12, color: const Color(0xFFCDB993))),
                     ]),
                   ),
                 ]),
@@ -1519,7 +1619,7 @@ class _MatsAll extends StatelessWidget {
           Container(height: .8, color: Ttc.line20),
           const SizedBox(height: 6),
           Text('기본 자재와 철판·밧줄은 창고 한도 ${fmt(g.cap)}, 전선·약품은 그 1/4까지 모여요. 창고 모듈과 쉘터 증축으로 늘려요. 건전지는 한도가 없어요.',
-              style: Ttc.t(11, color: const Color(0xFFB8A27C), height: 1.5)),
+              style: Ttc.t(12.5, color: const Color(0xFFCDB993), height: 1.5)),
         ]),
       );
 }
@@ -1609,7 +1709,7 @@ class _Tabs extends StatelessWidget {
                                 width: 9, height: 9, decoration: BoxDecoration(shape: BoxShape.circle, color: Ttc.amber, border: Border.all(color: Ttc.header, width: 1.5)))),
                     ]),
                     const SizedBox(height: 5),
-                    Text(items[k].$2, style: Ttc.t(10, color: k == on ? Ttc.tabOnText : Ttc.tabText, weight: FontWeight.w500, height: 1)),
+                    FittedBox(fit: BoxFit.scaleDown, child: Text(items[k].$2, maxLines: 1, style: Ttc.t(11.5, color: k == on ? Ttc.tabOnText : Ttc.tabText, weight: FontWeight.w600, height: 1))),
                   ]),
                 ),
               ),
@@ -1633,4 +1733,11 @@ class _Stamp extends StatelessWidget {
           ),
         ),
       );
+}
+
+/// 큰 창 줄의 한 칸: 급(0 죽음 · 1 이야기 · 2 아침 보고 · 3 새 기능), 온 순서, 여는 함수
+class _Pg {
+  _Pg(this.p, this.seq, this.open);
+  final int p, seq;
+  final Future<void> Function() open;
 }

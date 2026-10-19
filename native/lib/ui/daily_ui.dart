@@ -1,4 +1,4 @@
-// 앱 전용 화면 (2026-10-18): 오늘의 의뢰·연속 칸(일지 이야기 탭 위), 그날 밤의 기록 조각(일지 이야기 탭), 인연(생존자 성장 탭).
+// 앱 전용 화면 (2026-10-18): 오늘의 할 일·연속 칸(일지 기록 탭 위 · 아침 보고 끝), 그날 밤의 기록 조각(일지 기록 탭), 인연(생존자 성장 탭).
 import 'package:flutter/material.dart';
 
 import '../game/data.dart';
@@ -8,7 +8,7 @@ import 'story_ui.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
-// ======================= 오늘의 의뢰 =======================
+// ======================= 오늘의 할 일 =======================
 /// 연속 칸: 7개, 7번째는 귀한 장비
 Widget streakRow(Game g) {
   final n = g.streakShown, today = g.dayAllDone;
@@ -40,7 +40,7 @@ Widget streakRow(Game g) {
   ]);
 }
 
-/// 일지 이야기 탭 맨 위: 오늘의 의뢰 3개 + 연속 칸
+/// 일지 기록 탭 맨 위: 오늘의 할 일 3개 + 연속 칸
 List<Widget> dailySection(Game g) {
   if (!g.dayOn) return const [];
   final list = g.dayList;
@@ -57,8 +57,8 @@ List<Widget> dailySection(Game g) {
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Expanded(child: Text('오늘의 의뢰 $done/${list.length}', style: Ttc.t(15, color: const Color(0xFF7A3A1C), weight: FontWeight.w700))),
-          Text('연속 ${g.streakShown}일', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w700)),
+          Expanded(child: Text('오늘의 할 일 $done/${list.length}', style: Ttc.t(15, color: const Color(0xFF7A3A1C), weight: FontWeight.w700))),
+          Text('연속 ${g.streakShown}일', style: Ttc.t(13, color: Ttc.sepia2, weight: FontWeight.w700)),
         ]),
         const SizedBox(height: 6),
         for (final (t, p, n, ok) in list)
@@ -75,17 +75,54 @@ List<Widget> dailySection(Game g) {
               const SizedBox(width: 8),
               Expanded(child: Text(t, style: Ttc.t(13, color: ok ? Ttc.sepia2 : Ttc.sepia, weight: FontWeight.w600, height: 1.35))),
               const SizedBox(width: 6),
-              Text(ok ? '완료' : '$p/$n', style: Ttc.t(12, color: ok ? Ttc.ok : Ttc.sepia2, weight: FontWeight.w700)),
+              Text(ok ? '완료' : '$p/$n', style: Ttc.t(12.5, color: ok ? Ttc.ok : Ttc.sepia2, weight: FontWeight.w700)),
             ]),
           ),
         const SizedBox(height: 8),
         streakRow(g),
         const SizedBox(height: 6),
-        Text(g.dayAllDone ? '오늘 몫은 끝 · 내일 새 의뢰가 와요' : '하나마다 건전지 1 · 셋 다 하면 연속 하루 · 7일째엔 귀한 장비 · 하루 걸러도 벌은 없어요',
-            style: Ttc.t(11.5, color: Ttc.sepia2, height: 1.45)),
+        Text(g.dayAllDone ? '오늘 몫은 끝 · 내일 새 할 일이 와요' : '하나마다 건전지 1 · 셋 다 하면 연속 하루 · 7일째엔 귀한 장비 · 하루 걸러도 벌은 없어요',
+            style: Ttc.t(13, color: Ttc.sepia2, height: 1.45)),
       ]),
     ),
   ];
+}
+
+/// 아침 보고 끝에 붙는 작은 오늘의 할 일 (앱 전용 2026-10-20). 아직 열리지 않았거나 목록이 없으면 null
+Widget? dailyMini(Game g) {
+  if (!g.dayOn) return null;
+  final list = g.dayList;
+  if (list.isEmpty) return null;
+  final done = list.where((x) => x.$4).length;
+  return Container(
+    width: double.infinity,
+    margin: const EdgeInsets.only(bottom: 8),
+    padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+    decoration: BoxDecoration(color: const Color(0xFFF6EBD0), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0x59B0452A))),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
+      Row(children: [
+        Expanded(child: Text('오늘의 할 일 $done/${list.length}', style: Ttc.t(14, color: const Color(0xFF7A3A1C), weight: FontWeight.w700))),
+        Text('연속 ${g.streakShown}일', style: Ttc.t(13, color: Ttc.sepia2, weight: FontWeight.w700)),
+      ]),
+      for (final (t, p, n, ok) in list)
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Row(children: [
+            Container(
+              width: 16,
+              height: 16,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: ok ? Ttc.ok : null, border: Border.all(color: ok ? Ttc.ok : const Color(0xFF9A824E), width: 1.2)),
+              child: ok ? const SvgIcon(Ico.check, size: 11, color: Color(0xFFFFFFFF)) : null,
+            ),
+            const SizedBox(width: 7),
+            Expanded(child: Text(t, maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(13, color: ok ? Ttc.sepia2 : Ttc.sepia, weight: FontWeight.w600, height: 1.3))),
+            const SizedBox(width: 6),
+            Text(ok ? '완료' : '$p/$n', style: Ttc.t(12.5, color: ok ? Ttc.ok : Ttc.sepia2, weight: FontWeight.w700)),
+          ]),
+        ),
+    ]),
+  );
 }
 
 // ======================= 그날 밤의 기록 조각 =======================
@@ -107,7 +144,7 @@ List<Widget> fragSection(BuildContext context, Game g) {
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text('${got.indexOf(k) + 1}. ${frags[k].$2}', style: Ttc.t(14, color: Ttc.sepia, weight: FontWeight.w700, height: 1.4)),
-                  Text('${survivors[frags[k].$1].name}의 그날 밤 · 눌러서 다시 읽기', style: Ttc.t(12, color: Ttc.sepia2, height: 1.4)),
+                  Text('${survivors[frags[k].$1].name}의 그날 밤 · 눌러서 다시 읽기', style: Ttc.t(13, color: Ttc.sepia2, height: 1.4)),
                 ]),
               ),
               Text('›', style: Ttc.t(20, color: Ttc.sepia2)),
@@ -157,7 +194,7 @@ Widget bondBox(BuildContext context, Game g, int id) {
       ),
       const SizedBox(height: 5),
       Text('일터에서 함께할수록, 하루 한 번 인연 선물(식량 ${bondGiftCost['food']} · 인연 +$bondGiftXp)로 깊어져요${gt != null && b < 3 ? ' · Lv.3에 고유 장비 ‘${gear[gt]?.n ?? ''}’' : ''}',
-          style: Ttc.t(11.5, color: Ttc.sepia2, height: 1.45)),
+          style: Ttc.t(13, color: Ttc.sepia2, height: 1.45)),
       for (var lv = 1; lv <= seen; lv++)
         GestureDetector(
           behavior: HitTestBehavior.opaque,
@@ -170,14 +207,14 @@ Widget bondBox(BuildContext context, Game g, int id) {
               SvgIcon(Ico.heart, size: 12, color: const Color(0xFFC0503A).withValues(alpha: .8)),
               const SizedBox(width: 6),
               Expanded(child: Text('$lv. ${g.bondScene(id, lv).$1}', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w600))),
-              Text('다시 보기 ›', style: Ttc.t(11.5, color: Ttc.sepia2)),
+              Text('다시 보기 ›', style: Ttc.t(12.5, color: Ttc.sepia2)),
             ]),
           ),
         ),
       if (b < 5)
         Padding(
           padding: const EdgeInsets.only(top: 6),
-          child: Text('다음 이야기 · 인연 Lv.${b + 1}에 열려요', style: Ttc.t(11.5, color: const Color(0xFFA8977A))),
+          child: Text('다음 이야기 · 인연 Lv.${b + 1}에 열려요', style: Ttc.t(13, color: const Color(0xFF8C7B5E))),
         ),
     ]),
   );

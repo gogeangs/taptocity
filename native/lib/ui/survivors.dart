@@ -207,7 +207,48 @@ class _SurvBodyState extends State<SurvBody> {
       'up': ((id) => g.canPromote(id), '강화 가능'),
     };
     final list = met.where(fl[filter]!.$1).toList();
+    final fresh = g.qNew;
     return ListView(padding: const EdgeInsets.fromLTRB(14, 14, 14, 20), children: [
+      // 새로 열린 이야기 (앱 전용 2026-10-20: 지도 위 알림 카드 대신 여기와 이야기 띠의 '새 이야기')
+      if (fresh.isNotEmpty) ...[
+        sec('새로 열린 이야기', '${fresh.length}'),
+        for (final id in fresh)
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              survTab = 'story';
+              widget.onOpen(id);
+            },
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 6),
+              padding: const EdgeInsets.fromLTRB(6, 6, 10, 6),
+              decoration: BoxDecoration(color: const Color(0xFFF6EBD0), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0x59B0452A))),
+              child: Row(children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFE6D8B6)),
+                  clipBehavior: Clip.antiAlias,
+                  child: Portrait(id, width: 34, height: 40),
+                ),
+                const SizedBox(width: 9),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(children: [
+                      TextSpan(text: '${survivors[id].name}의 이야기', style: const TextStyle(fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)])),
+                      if (quests[id] != null) TextSpan(text: ' · ${quests[id]!.t}', style: const TextStyle(color: Color(0xFF4F5A5F))),
+                    ]),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Ttc.t(13.5, color: Ttc.sepia, height: 1.35),
+                  ),
+                ),
+                Text('읽기 ›', style: Ttc.t(13, color: Ttc.rust, weight: FontWeight.w700)),
+              ]),
+            ),
+          ),
+        const SizedBox(height: 6),
+      ],
       ..._tools(),
       SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -227,7 +268,7 @@ class _SurvBodyState extends State<SurvBody> {
                   child: Text.rich(TextSpan(children: [
                     TextSpan(text: '${e.value.$2} '),
                     TextSpan(text: '${met.where(e.value.$1).length}', style: const TextStyle(color: Ttc.sepia2)),
-                  ]), style: Ttc.t(11, color: Ttc.sepia, weight: FontWeight.w600)),
+                  ]), style: Ttc.t(12.5, color: Ttc.sepia, weight: FontWeight.w600)),
                 ),
               ),
             ),
@@ -251,8 +292,8 @@ class _SurvBodyState extends State<SurvBody> {
         padding: const EdgeInsets.only(bottom: 10),
         child: Wrap(spacing: 12, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
           for (var i = 0; i < 4; i++)
-            Row(mainAxisSize: MainAxisSize.min, children: [gradeChip(i), Text(' 효과 ×${fmtX(grades[i].m)}', style: Ttc.t(11.5, color: Ttc.sepia2))]),
-          Text('등급은 처음 그대로 · 등급마다 1~5성', style: Ttc.t(11.5, color: Ttc.sepia2)),
+            Row(mainAxisSize: MainAxisSize.min, children: [gradeChip(i), Text(' 효과 ×${fmtX(grades[i].m)}', style: Ttc.t(12.5, color: Ttc.sepia2))]),
+          Text('등급은 처음 그대로 · 등급마다 1~5성', style: Ttc.t(13, color: Ttc.sepia2)),
         ]),
       ),
       sec('인연'),
@@ -295,7 +336,7 @@ class _SurvBodyState extends State<SurvBody> {
                     : job != null && kidJobs.containsKey(job)
                         ? '${kidJobs[job]!.$1} · ${kidJobs[job]!.$2}'
                         : '무엇을 배울지 정해 주세요',
-                style: Ttc.t(12, color: Ttc.sepia2, height: 1.5)),
+                style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
             Container(
               margin: const EdgeInsets.only(top: 2),
               height: 4,
@@ -325,7 +366,7 @@ class _SurvBodyState extends State<SurvBody> {
               TextSpan(text: head, style: TextStyle(fontWeight: FontWeight.w700, fontVariations: const [FontVariation('wght', 700)], color: cut ? Ttc.sepia2 : on ? const Color(0xFF4F6E2F) : Ttc.sepia)),
               TextSpan(text: rest),
             ]),
-            style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5)),
+            style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
       ),
     );
   }
@@ -348,7 +389,7 @@ class _SurvBodyState extends State<SurvBody> {
                 const SizedBox(width: 6),
                 gradeTag(g, id),
               ]),
-              Text(s.job, style: Ttc.t(12, color: Ttc.sepia2, height: 1.5)),
+              Text(s.job, style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
               Text(() {
                 final st = g.statusOf(id), ht = hurtLeft(g, id);
                 return st == '다쳐서 쉬는 중' && ht != null ? '$st · $ht 남음' : st;
@@ -394,7 +435,7 @@ class _SurvBodyState extends State<SurvBody> {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [gradeTag(g, id, base: true), const SizedBox(width: 6), Text(s.hidden ? (s.alias ?? '???') : '???', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700))]),
               const SizedBox(height: 3),
-              Text(hint, style: Ttc.t(12, color: Ttc.sepia2, height: 1.4)),
+              Text(hint, style: Ttc.t(13, color: Ttc.sepia2, height: 1.4)),
             ]),
           ),
           if (where != null) Text('›', style: Ttc.t(22, color: Ttc.sepia2)),
@@ -440,7 +481,7 @@ Widget pageBtn(String t, VoidCallback? onTap, {bool alt = false}) => Expanded(
 Widget _head(Game g, int id, {bool base = false, String? tag}) {
   final s = survivors[id];
   return Column(children: [
-    if (tag != null) Align(alignment: Alignment.centerLeft, child: Text(tag, style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600))),
+    if (tag != null) Align(alignment: Alignment.centerLeft, child: Text(tag, style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600))),
     const SizedBox(height: 6),
     faceBox(g, id, w: 116, h: 135),
     const SizedBox(height: 8),
@@ -470,7 +511,9 @@ void showSurvPage(BuildContext context, Game g, int id0, {void Function(int id, 
         final narrow = MediaQuery.of(ctx).size.width < 381;
         final pfW = narrow ? 104.0 : 116.0;
         final ids = g.svIds.toList();
-        final tabs = [('info', '정보', false), ('grow', '성장', g.canPromote(id)), ('gear', '장비', false), ('story', '이야기', false)];
+        // 이야기 탭을 보면 '새 이야기'를 읽은 것으로 (다른 탭에 있으면 이야기 탭에 점)
+        if (survTab == 'story') g.qSeen(id);
+        final tabs = [('info', '정보', false), ('grow', '성장', g.canPromote(id)), ('gear', '장비', false), ('story', '이야기', g.qNew.contains(id))];
         final Widget body = switch (survTab) {
           'grow' => _growTab(g, id, p, ctx),
           'gear' => _gearTab(g, id, onGear == null ? null : (sl) {
@@ -514,7 +557,7 @@ void showSurvPage(BuildContext context, Game g, int id0, {void Function(int id, 
                 const SizedBox(height: 6),
                 gradeTag(g, id),
                 const SizedBox(height: 3),
-                Text('${s.age}세 · ${s.job}', style: Ttc.t(12, color: Ttc.sepia2, height: 1.5)),
+                Text('${s.age}세 · ${s.job}', style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
                 const SizedBox(height: 3),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -638,7 +681,7 @@ Widget _dutyBox(Game g, int id, StateSetter set) {
       ]),
       Padding(
         padding: const EdgeInsets.fromLTRB(50, 4, 0, 0),
-        child: Text('${duties[cur]!.$4}${idle ? ' · 지금 하는 중' : ''}', style: Ttc.t(12, color: Ttc.sepia2, height: 1.4)),
+        child: Text('${duties[cur]!.$4}${idle ? ' · 지금 하는 중' : ''}', style: Ttc.t(13, color: Ttc.sepia2, height: 1.4)),
       ),
     ]),
   );
@@ -713,7 +756,7 @@ Widget _growTab(Game g, int id, ({double m, double w, double cd}) p, BuildContex
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Text(n.$4, style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700, height: 1.4)),
               const SizedBox(height: 2),
-              Text('→ ${_pct(n.$1 == 'star' ? g.pwAt(gr, g.starOf(id) + 1) : g.pwAt(gr + 1, 1))}', style: Ttc.t(12, color: Ttc.sepia2, height: 1.45)),
+              Text('→ ${_pct(n.$1 == 'star' ? g.pwAt(gr, g.starOf(id) + 1) : g.pwAt(gr + 1, 1))}', style: Ttc.t(13, color: Ttc.sepia2, height: 1.45)),
               const SizedBox(height: 4),
               Row(children: [
                 Text('신뢰도', style: Ttc.t(12.5, color: tl >= n.$2 ? Ttc.ok : Ttc.no, weight: FontWeight.w700, height: 1.5)),
@@ -742,7 +785,7 @@ void showGradeUp(BuildContext context, Game g, int id) {
   final s = survivors[id], gr = g.gradeOf(id);
   const lines = ['“이 정도면 믿고 맡겨도 되겠죠?” {n}의 눈빛이 달라졌어요.', '{n}은(는) 이제 쉘터에 없어서는 안 될 사람이 됐어요.', '{n}의 이야기는 이제 쉘터의 전설이 됐어요.'];
   showPageOf(context, g, (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text('등급 승급', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+        Text('등급 승급', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
         const SizedBox(height: 6),
         Center(child: faceBox(g, id, w: 116, h: 135)),
         const SizedBox(height: 8),
@@ -813,7 +856,7 @@ void showCampPage(BuildContext context, Game g, int tile) => showPageOf(context,
         if (hp > 0) ...[const SizedBox(height: 8), Text('잔해 치우기 ${((1 - hp / mx) * 100).round()}% · 신호 자리를 두드려요', style: Ttc.t(12.5, color: Ttc.sepia2, weight: FontWeight.w600))],
         sec('구조에 필요한 것'),
         costWrap(g, need, lead: [CostChip(label: '빈 침상', have: bf < 0 ? 0 : bf, need: 1)]),
-        if (bf <= 0) Padding(padding: const EdgeInsets.only(top: 6), child: Text('쉘터를 키우면 침상이 늘어요', style: Ttc.t(12, color: Ttc.sepia2))),
+        if (bf <= 0) Padding(padding: const EdgeInsets.only(top: 6), child: Text('쉘터를 키우면 침상이 늘어요', style: Ttc.t(13, color: Ttc.sepia2))),
         const SizedBox(height: 14),
         Row(children: [
           pageBtn('나중에', () => Navigator.pop(ctx), alt: true),
@@ -829,7 +872,7 @@ void showCampPage(BuildContext context, Game g, int tile) => showPageOf(context,
     });
 
 /// 새 식구 (웹 rescue 2643)
-void showRescuePage(BuildContext context, Game g, int id, String via) => showPageOf(context, g, (ctx) {
+Future<void> showRescuePage(BuildContext context, Game g, int id, String via) => showPageOf(context, g, (ctx) {
       final s = survivors[id];
       final bond = bonds.where((b) => b.ids.contains(id) && b.ids.every(g.hasSv)).firstOrNull;
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -880,7 +923,7 @@ Widget assignBody(Game g, int tile, {required VoidCallback onDone}) {
                     child: Text(ok ? '딱 맞음 ×${(2 + g.pw(id).w).toStringAsFixed(2)}' : '×1.3', style: Ttc.t(11, color: Colors.white)),
                   ),
                 ]),
-                Text('${s.job} · $where\n${g.traitOf(id)}', style: Ttc.t(12, color: Ttc.sepia2, height: 1.45)),
+                Text('${s.job} · $where\n${g.traitOf(id)}', style: Ttc.t(13, color: Ttc.sepia2, height: 1.45)),
               ]),
             ),
             const SizedBox(width: 8),

@@ -173,7 +173,8 @@ void main() {
         await visit('$tag · 지도', home);
         for (final (tab, subs) in const [
           ('쉘터', ['건설', '가공', '연구', '창고', '꾸미기']),
-          ('일지', ['이야기', '회상', '사건', '노선도', '도감', '업적', '안내서']),
+          // 일지 (2026-10-20): 위 탭 셋(기록·사건 수첩·도감) + 안쪽 칸('>'로 이어 누름). 안내서는 설정으로 옮겼다
+          ('일지', ['기록', '기록>회상', '사건 수첩', '도감', '도감>업적', '도감>노선도']),
           ('원정', <String>[]),
           ('라디오', <String>[]),
           ('생존자', <String>[]),
@@ -186,7 +187,9 @@ void main() {
             await visit('$tag · $tab · $s', () async {
               await home();
               await tapText(tab);
-              await tapText(s);
+              for (final t in s.split('>')) {
+                await tapText(t);
+              }
               // 아래까지 내려 보기
               final lv = find.byType(Scrollable);
               if (lv.evaluate().isNotEmpty) {
@@ -211,6 +214,14 @@ void main() {
           await home();
           await tester.tap(find.byKey(const ValueKey('setBtn')));
           await settle();
+          await tester.drag(find.byType(Scrollable).last, const Offset(0, -2000), warnIfMissed: false);
+        });
+        // 안내서 (2026-10-20: 일지에서 설정으로)
+        await visit('$tag · 설정 · 안내서', () async {
+          await home();
+          await tester.tap(find.byKey(const ValueKey('setBtn')));
+          await settle();
+          await tapText('안내서');
           await tester.drag(find.byType(Scrollable).last, const Offset(0, -2000), warnIfMissed: false);
         });
         // 정답 없는 선택 창 (앱 전용): 약 한 알(하늘·순례) · 국이 모자란 밤
@@ -242,14 +253,14 @@ void main() {
               }
             });
           }
-          await visit('$tag · 일지 · 사건 · 컷 다시 보기', () async {
+          await visit('$tag · 일지 · 사건 수첩 · 컷 다시 보기', () async {
             await home();
             await tester.runAsync(() => Atlas.ensure(cutFile('case1')));
             await tapText('일지');
-            await tapText('사건');
+            await tapText('사건 수첩');
             await tapText('컷 다시 보기');
           });
-          // 앱 전용 (2026-10-18): 기록 조각 · 일지의 조각 목록 · 오늘의 의뢰 연속 칸 · 아침 보고 · 인연 Lv.3 · 지하 준비(가장 깊이)
+          // 앱 전용 (2026-10-18): 기록 조각 · 일지의 조각 목록 · 오늘의 할 일 연속 칸 · 아침 보고(끝에 오늘의 할 일) · 인연 Lv.3 · 지하 준비(가장 깊이)
           final frags0 = g.S.rest['frags'], ug0 = Map<String, Object?>.from(g.ugRec), dq0 = g.S.rest['dayQ'], ds0 = g.S.rest['dayStreak'], dl0 = g.S.rest['dayLast'];
           g.S.rest['frags'] = <Object?>[0, 3, 7];
           g.ugRec['best'] = 23;
@@ -270,15 +281,20 @@ void main() {
               <String, Object?>{'k': 'gift', 'n': 1, 'p': 0, 'l': 1e9, 'ok': 0},
             ],
           };
-          await visit('$tag · 일지 · 오늘의 의뢰 · 연속 칸', () async {
+          await visit('$tag · 일지 · 오늘의 할 일 · 연속 칸', () async {
             await home();
             await tapText('일지');
-            await tapText('이야기');
+            await tapText('기록');
+          });
+          // 지도의 연속 칩 → 일지 기록 맨 위
+          await visit('$tag · 지도 · 연속 칩', () async {
+            await home();
+            await tapText('연속 6일');
           });
           await visit('$tag · 일지 · 기록 조각 목록', () async {
             await home();
             await tapText('일지');
-            await tapText('이야기');
+            await tapText('기록');
             final lv = find.byType(Scrollable);
             if (lv.evaluate().isNotEmpty) {
               await tester.drag(lv.last, const Offset(0, -900), warnIfMissed: false);
@@ -297,6 +313,15 @@ void main() {
             showTalk(tester.element(find.byType(GameScreen)), g, t);
             await settle();
             await tapText('탭해서 계속 ›');
+          });
+          // 아침 보고 마지막 줄: 오늘의 할 일 셋이 붙는다
+          await visit('$tag · 아침 보고 · 끝 (오늘의 할 일)', () async {
+            await home();
+            g.morningReport(3 * 3600 + 25 * 60.0, {'wood': 120, 'scrap': 80, 'food': 40}, g.svIds.take(1).toList());
+            final t = g.takeFx().whereType<FxTalk>().last;
+            showTalk(tester.element(find.byType(GameScreen)), g, t);
+            await settle();
+            await tapText('건너뛰기');
           });
           final r0 = g.rec(0)!, xp0 = r0['xp'], bn0 = r0['bondN'], bg0 = r0['bondG'];
           r0['xp'] = trustXp.last + bondCum[2] + 500;

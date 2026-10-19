@@ -1,13 +1,15 @@
-// 3단계 화면: 시계, 생존자의 부탁 버튼·창, 생존자 의뢰 띠, 대형 재폭풍 막대.
+// 3단계 화면: 시계, 생존자의 부탁 버튼·창, 생존자의 부탁 띠, 연속 칩, 대형 재폭풍 막대.
 // 웹 #clock · #evBtn · .page.req · #sq · #defBar 의 마지막 스타일(design.css·qa.css)을 따랐다.
 import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../data/web_data.g.dart' as web;
 import '../game/data.dart';
 import '../game/engine.dart';
+import 'icons.dart';
 import 'portrait.dart';
 import 'survivors.dart';
 import 'theme.dart';
@@ -77,12 +79,12 @@ Widget clockChip(Game g) {
       ),
       const SizedBox(width: 7),
       if (!buffOn)
-        Flexible(child: Text(clock, maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(11, color: big ? const Color(0xFFF4C1B6) : const Color(0xFFE8E4D9), weight: FontWeight.w500)))
+        Flexible(child: Text(clock, maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(12.5, color: big ? const Color(0xFFF4C1B6) : const Color(0xFFE8E4D9), weight: FontWeight.w500)))
       else ...[
         // 시계 글자는 줄이지 않고, 행사 칩이 먼저 줄어든다 (행사 이름이 말줄임 · 남은 초는 끝까지)
         ConstrainedBox(
           constraints: BoxConstraints(maxWidth: cons.maxWidth.isFinite ? math.max(40.0, cons.maxWidth - 13 - 7 - 4 - 58) : double.infinity),
-          child: Text(clock, maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(11, color: big ? const Color(0xFFF4C1B6) : const Color(0xFFE8E4D9), weight: FontWeight.w500)),
+          child: Text(clock, maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(12.5, color: big ? const Color(0xFFF4C1B6) : const Color(0xFFE8E4D9), weight: FontWeight.w500)),
         ),
         const SizedBox(width: 4),
         Flexible(
@@ -90,8 +92,8 @@ Widget clockChip(Game g) {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(color: const Color(0x38F3A53A), borderRadius: BorderRadius.circular(99)),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Flexible(child: Text(buffLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(11, color: const Color(0xFFFFD98A), weight: FontWeight.w700, height: 1.2))),
-              Text(' $buffLeft초', maxLines: 1, softWrap: false, style: Ttc.t(11, color: const Color(0xFFFFD98A), weight: FontWeight.w700, height: 1.2)),
+              Flexible(child: Text(buffLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(12.5, color: const Color(0xFFFFD98A), weight: FontWeight.w700, height: 1.2))),
+              Text(' $buffLeft초', maxLines: 1, softWrap: false, style: Ttc.t(12.5, color: const Color(0xFFFFD98A), weight: FontWeight.w700, height: 1.2)),
             ]),
           ),
         ),
@@ -154,7 +156,7 @@ Widget eventButton(Game g, VoidCallback onTap) {
         const SizedBox(width: 9),
         Flexible(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Text('${who != null ? survivors[who].name : '손님'}의 부탁', style: Ttc.t(11, color: Ttc.rust, weight: FontWeight.w600, height: 1.1)),
+            Text('${who != null ? survivors[who].name : '손님'}의 부탁', maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(12.5, color: Ttc.rust, weight: FontWeight.w600, height: 1.1)),
             const SizedBox(height: 1),
             Text(e['t'] as String, overflow: TextOverflow.ellipsis, style: Ttc.t(14, color: Ttc.sepia, weight: FontWeight.w700, height: 1.2)),
           ]),
@@ -202,7 +204,7 @@ Widget _reqHead(Game g, int ev, String tag) {
       const SizedBox(width: 12),
       Expanded(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(tag, style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+          Text(tag, style: Ttc.t(12.5, color: Ttc.sepia2, weight: FontWeight.w600)),
           const SizedBox(height: 2),
           Text(web.events[ev]['t'] as String, style: Ttc.t(19, color: Ttc.sepia, weight: FontWeight.w700, height: 1.25)),
         ]),
@@ -252,7 +254,7 @@ void showRequestPage(BuildContext context, Game g) {
                   Text(o['l'] as String, style: Ttc.t(16, color: Ttc.sepia, weight: FontWeight.w700, height: 1.3)),
                   const SizedBox(height: 7),
                   if (c0.isEmpty)
-                    Text('비용 없음', style: Ttc.t(12, color: const Color(0xFF56646A)))
+                    Text('비용 없음', style: Ttc.t(13, color: const Color(0xFF4F5A5F)))
                   else
                     Wrap(spacing: 4, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
                       if (!ok) Text('자재 부족 ', style: Ttc.t(12, color: Ttc.no, weight: FontWeight.w700)),
@@ -317,7 +319,11 @@ void showRequestDone(BuildContext context, Game g, int ev, int k, List<(String, 
       ]));
 }
 
-// ======================= 생존자 의뢰 (웹 renderSq) =======================
+// ======================= 생존자의 부탁 띠 (웹 renderSq) =======================
+/// 부탁 내용을 한 줄로 ('철판 27장 만들기' → '철판 27장')
+String sqShort(String t) => t.replaceFirst(RegExp(r'\s*(만들기|모으기)$'), '');
+
+/// 지도 왼쪽 위 생존자의 부탁. 평소에는 시계 아래 한 줄(얼굴 20 · '부탁 · 철판 27장 0/27'), 누르면 잠깐 펼친 카드
 Widget sideQuest(Game g, {required VoidCallback onTap}) {
   final q = g.sq;
   if (q == null || !g.sqOn) return const SizedBox.shrink();
@@ -325,9 +331,53 @@ Widget sideQuest(Game g, {required VoidCallback onTap}) {
   if (t0 == null) return const SizedBox.shrink();
   final n = ((q['n'] as num?) ?? 1).toInt(), p = g.sqProg(), done = p >= n;
   final who = (q['who'] as num?)?.toInt() ?? -1, hasWho = g.hasSv(who);
-  final mini = DateTime.now().millisecondsSinceEpoch >= g.sqOpenUntil && !done;
+  final open = DateTime.now().millisecondsSinceEpoch < g.sqOpenUntil;
+  final claim = Container(
+    padding: EdgeInsets.symmetric(horizontal: open ? 12 : 9, vertical: open ? 7 : 4),
+    decoration: BoxDecoration(color: Ttc.rust, borderRadius: BorderRadius.circular(99)),
+    child: Text('받기', style: Ttc.t(13, color: Colors.white, weight: FontWeight.w700, height: 1)),
+  );
+  if (!open) {
+    // 접힌 띠: 한 줄
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 30,
+        padding: const EdgeInsets.fromLTRB(4, 3, 4, 3),
+        decoration: BoxDecoration(
+          color: const Color(0xF0F1E5C6),
+          borderRadius: BorderRadius.circular(99),
+          border: Border.all(color: done ? Ttc.rust : const Color(0x403B2A1A), width: 1.2),
+          boxShadow: const [BoxShadow(color: Color(0x47000000), blurRadius: 6, offset: Offset(0, 2))],
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Container(
+            width: 20,
+            height: 20,
+            decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFE6D8B6)),
+            clipBehavior: Clip.antiAlias,
+            child: hasWho ? Portrait(who, width: 20, height: 24) : null,
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text.rich(
+              TextSpan(children: [
+                const TextSpan(text: '부탁 · ', style: TextStyle(color: Ttc.rust)),
+                TextSpan(text: sqShort(t0.t(n))),
+                if (!done) TextSpan(text: ' ${fmt(p)}/${fmt(n)}', style: const TextStyle(color: Color(0xFF4F5A5F), fontWeight: FontWeight.w600, fontVariations: [FontVariation('wght', 600)])),
+              ]),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700, height: 1.1),
+            ),
+          ),
+          if (done) ...[const SizedBox(width: 6), claim] else const SizedBox(width: 6),
+        ]),
+      ),
+    );
+  }
   final bar = Container(
-    width: mini ? 46 : 64,
+    width: 64,
     height: 18,
     decoration: BoxDecoration(color: const Color(0x1F3B2A1A), borderRadius: BorderRadius.circular(99)),
     clipBehavior: Clip.antiAlias,
@@ -339,10 +389,11 @@ Widget sideQuest(Game g, {required VoidCallback onTap}) {
       Center(child: Text('${fmt(p)}/${fmt(n)}', style: Ttc.t(11, color: Ttc.sepia, weight: FontWeight.w600, height: 1))),
     ]),
   );
+  // 펼친 카드 (누르면 할 일 쪽으로 데려간다)
   return GestureDetector(
     onTap: onTap,
     child: Container(
-      padding: EdgeInsets.fromLTRB(4, 4, mini ? 8 : 10, 4),
+      padding: const EdgeInsets.fromLTRB(4, 4, 10, 4),
       decoration: BoxDecoration(
         color: const Color(0xF5F1E5C6),
         borderRadius: BorderRadius.circular(14),
@@ -351,34 +402,54 @@ Widget sideQuest(Game g, {required VoidCallback onTap}) {
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Container(
-          width: mini ? 30 : 32,
-          height: mini ? 30 : 32,
+          width: 32,
+          height: 32,
           decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFE6D8B6)),
           clipBehavior: Clip.antiAlias,
           child: hasWho ? Portrait(who, width: 32, height: 38) : null,
         ),
-        SizedBox(width: mini ? 6 : 8),
-        if (!mini) ...[
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-              Text.rich(TextSpan(children: [
-                TextSpan(text: '${hasWho ? survivors[who].name : '쉘터'}의 의뢰 '),
-                TextSpan(text: '${g.num_('sqN').toInt() % 3 + 1}/3', style: const TextStyle(color: Ttc.sepia2, fontWeight: FontWeight.w400, fontVariations: [FontVariation('wght', 400)])),
-              ]), style: Ttc.t(11.5, color: Ttc.rust, weight: FontWeight.w600, height: 1.1)),
-              const SizedBox(height: 1),
-              Text(t0.t(n), maxLines: 2, overflow: TextOverflow.ellipsis, style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700, height: 1.25)),
-            ]),
-          ),
-          const SizedBox(width: 8),
-        ],
-        if (done)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-            decoration: BoxDecoration(color: Ttc.rust, borderRadius: BorderRadius.circular(99)),
-            child: Text('받기', style: Ttc.t(13, color: Colors.white, weight: FontWeight.w700, height: 1)),
-          )
-        else
-          bar,
+        const SizedBox(width: 8),
+        Flexible(
+          fit: FlexFit.tight,
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+            Text.rich(
+                TextSpan(children: [
+                  TextSpan(text: '${hasWho ? survivors[who].name : '쉘터'}의 부탁 '),
+                  TextSpan(text: '${g.num_('sqN').toInt() % 3 + 1}/3', style: const TextStyle(color: Color(0xFF4F5A5F), fontWeight: FontWeight.w400, fontVariations: [FontVariation('wght', 400)])),
+                ]),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Ttc.t(12.5, color: Ttc.rust, weight: FontWeight.w600, height: 1.1)),
+            const SizedBox(height: 1),
+            Text(t0.t(n), maxLines: 2, overflow: TextOverflow.ellipsis, style: Ttc.t(13.5, color: Ttc.sepia, weight: FontWeight.w700, height: 1.25)),
+          ]),
+        ),
+        const SizedBox(width: 8),
+        if (done) claim else bar,
+      ]),
+    ),
+  );
+}
+
+// ======================= 연속 칩 (앱 전용 2026-10-20) =======================
+/// 지도 왼쪽 위 '연속 4일' (불꽃 그림). 오늘의 할 일이 열린 뒤에만. 누르면 일지의 오늘의 할 일
+Widget streakChip(Game g, {required VoidCallback onTap}) {
+  if (!g.dayOn) return const SizedBox.shrink();
+  final n = g.streakShown, today = g.dayAllDone;
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      height: 30,
+      padding: const EdgeInsets.fromLTRB(6, 3, 10, 3),
+      decoration: BoxDecoration(
+        color: const Color(0xF2202932),
+        borderRadius: BorderRadius.circular(99),
+        border: Border.all(color: today ? const Color(0xFFDFA54B) : const Color(0x2EEEE5D3)),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Opacity(opacity: n > 0 ? 1 : .55, child: SvgPicture.string(Ico.flame, width: 16, height: 16)),
+        const SizedBox(width: 4),
+        Text('연속 $n일', maxLines: 1, softWrap: false, style: Ttc.t(13, color: n > 0 ? const Color(0xFFFFD98A) : const Color(0xFFE2E5DF), weight: FontWeight.w700, height: 1.1)),
       ]),
     ),
   );
@@ -421,7 +492,7 @@ Widget defenseBar(Game g) {
       ),
       const SizedBox(height: 5),
       Text('${danger ? '쉘터 위험 · ' : ''}남은 괴물 $alive${D2.wave < 3 ? ' · 다음 무리까지 ${math.max(0, (D2.wave * 24 - D2.t).ceil())}초' : ''}',
-          style: Ttc.t(11, color: const Color(0xFFE6D5C5))),
+          style: Ttc.t(12, color: const Color(0xFFEDE0D2))),
     ]),
   );
 }

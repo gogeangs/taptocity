@@ -46,7 +46,7 @@ const Map<int, String> _dqAll = {
   4: '오늘 할 일은 다 했데이. 욕봤다.',
   5: '오늘 몫 끝. 수고했어, 국 먹고 쉬어.',
   6: '오늘 작업 끝. 내일 또 보자.',
-  10: '오늘의 의뢰, 모두 완료. 내일 이 시간에 또 만나요.',
+  10: '오늘의 할 일, 모두 완료. 내일 이 시간에 또 만나요.',
   12: '오늘 몫은 다 감았구먼. 내일 또 감세.',
   17: '…오늘 거 다 했네. 내일도 올 거지?',
 };
@@ -196,7 +196,7 @@ extension Daily on Game {
     if (st > 0 && last != today && last != dayKeyAdd(today, -1)) {
       S.rest['dayStreak'] = 0;
       final (who, say) = _dayVoice(_dqMiss, '하루를 걸렀다. 괜찮다, 오늘부터 다시 세면 된다.');
-      fx.add(FxNote(_voiceHead(who), '${_voiceText(who, say)}\n오늘의 의뢰 연속이 처음부터 다시 시작돼요', ms: 5200));
+      fx.add(FxNote(_voiceHead(who), '${_voiceText(who, say)}\n오늘의 할 일 연속이 처음부터 다시 시작돼요', ms: 5200));
     }
     final ks = _dqTypes.keys.where((k) => _dqTypes[k]!.ok(this)).toList(), pick = <String>[];
     double wt(String k) => const ['wood', 'scrap', 'food', 'reveal'].contains(k) ? 1 : 1.3;
@@ -253,7 +253,7 @@ extension Daily on Game {
         ch = true;
         final got = give({...scaleCost(T.rw, lvScale), 'batt': 1});
         final done = list.where((y) => y is Map && y['ok'] == 1).length;
-        fx.add(FxNote('오늘의 의뢰 $done/${list.length} · ${T.t(n)}', lootText(got), ms: 3800));
+        fx.add(FxNote('오늘의 할 일 $done/${list.length} · ${T.t(n)}', lootText(got), ms: 3800));
         sfx('chime');
       }
     }
@@ -278,7 +278,7 @@ extension Daily on Game {
       fx.add(FxNote('연속 7일 · ${_voiceHead(w)}', '${_voiceText(w, line)}\n${t != null ? '${gear[t]!.n} · ' : ''}건전지 +5', ms: 6500));
     } else {
       final (w, line) = _dayVoice(_dqAll, '오늘 할 일을 다 마쳤다.');
-      fx.add(FxNote('오늘의 의뢰 끝 · 연속 $n일', '${_voiceText(w, line)}${w is int ? ' — ${survivors[w].name}' : ''}\n${lootText(got)} · 7일째엔 귀한 장비', ms: 5600));
+      fx.add(FxNote('오늘의 할 일 끝 · 연속 $n일', '${_voiceText(w, line)}${w is int ? ' — ${survivors[w].name}' : ''}\n${lootText(got)} · 7일째엔 귀한 장비', ms: 5600));
     }
     dirty = true;
   }

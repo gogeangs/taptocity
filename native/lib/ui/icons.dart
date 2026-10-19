@@ -37,6 +37,10 @@ abstract final class Ico {
   static const check =
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>';
 
+  /// 연속 일수 불꽃 (글꼴에 이모지가 없어 그림으로)
+  static const flame =
+      '<svg viewBox="0 0 24 24"><path d="M12 2c1 4 6 6.5 6 12.5a6 6 0 0 1-12 0c0-3.2 1.8-5.2 3-6.5 0 2 .9 3.2 2 3.5-.8-3.2.1-6.5 1-9.5z" fill="#f08a2c"/><path d="M12 11.5c1.8 1.9 3 3.2 3 5.2a3 3 0 0 1-6 0c0-1.9 1.4-3.2 3-5.2z" fill="#ffd98a"/></svg>';
+
   /// 랜턴 버튼 (웹 #lamp): 진행 고리와 불꽃 크기만 바뀐다
   static String lamp(double p, double flame) {
     final off = (201 * (1 - p.clamp(0, 1))).toStringAsFixed(1);

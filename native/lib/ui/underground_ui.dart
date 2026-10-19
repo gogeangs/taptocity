@@ -88,7 +88,7 @@ void showUgPrep(BuildContext context, Game g) {
         final last = g.ugLast, startF = _Prep.start == 1 ? 1 : last;
         void fuelStep(int d) => set(() => _Prep.fuel = math.max(0, math.min(_Prep.fuel + d, math.min(fmax, g.have('fuel').toInt()))));
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text('지하 구역 · 가장 깊이: ${g.ugBest}층${g.ugFragN > 0 ? ' · 기록 조각 ${g.ugFragN}/${frags.length}' : ''}', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+          Text('지하 구역 · 가장 깊이: ${g.ugBest}층${g.ugFragN > 0 ? ' · 기록 조각 ${g.ugFragN}/${frags.length}' : ''}', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
           const SizedBox(height: 4),
           Text('누구와 내려갈까요?', style: Ttc.t(23, color: Ttc.sepia, weight: FontWeight.w700)),
           const SizedBox(height: 10),
@@ -101,7 +101,7 @@ void showUgPrep(BuildContext context, Game g) {
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text('추천 세 명', style: Ttc.t(14, color: Ttc.sepia, weight: FontWeight.w700)),
-                    Text('소방·정찰·연구·간호 역할을 한 명씩, 나머지는 등급 순', style: Ttc.t(12, color: Ttc.sepia2, height: 1.5)),
+                    Text('소방·정찰·연구·간호 역할을 한 명씩, 나머지는 등급 순', style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
                   ]),
                 ),
                 const SizedBox(width: 8),
@@ -206,7 +206,7 @@ void showUgPrep(BuildContext context, Game g) {
                         }
                       }),
           ]),
-          if (t.isEmpty) Padding(padding: const EdgeInsets.only(top: 8), child: Text('함께 갈 사람을 골라 주세요 (최대 3명)', textAlign: TextAlign.center, style: Ttc.t(12, color: Ttc.sepia2))),
+          if (t.isEmpty) Padding(padding: const EdgeInsets.only(top: 8), child: Text('함께 갈 사람을 골라 주세요 (최대 3명)', textAlign: TextAlign.center, style: Ttc.t(13, color: Ttc.sepia2))),
         ]);
       }));
 }
@@ -839,7 +839,7 @@ class _ShakeState extends State<_Shake> with SingleTickerProviderStateMixin {
 void showUgDiary(BuildContext context, Game g) {
   final got = g.ugDiaryGot;
   showPageOf(context, g, (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text('지하 기록 ${got.length}/${ugDiaries.length}', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+        Text('지하 기록 ${got.length}/${ugDiaries.length}', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
         const SizedBox(height: 4),
         Text('깊은 곳에 남은 글', style: Ttc.t(23, color: Ttc.sepia, weight: FontWeight.w700)),
         const SizedBox(height: 10),

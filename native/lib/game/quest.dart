@@ -93,12 +93,34 @@ extension Quest on Game {
         qAdvance(id);
       }
     }
-    if (opened.length == 1) {
-      final id = opened.first;
-      fx.add(FxNote('${survivors[id].name}의 이야기가 열렸어요', '‘${quests[id]!.t}’ · 생존자 수첩에서 확인해요', ms: 5000));
-    } else if (opened.length > 1) {
-      final titles = [for (final id in opened) '‘${quests[id]!.t}’'].join(' · ');
-      fx.add(FxNote('${survivors[opened.first].name} 외 ${opened.length - 1}명의 이야기가 열렸어요', '$titles · 생존자 수첩에서 확인해요', ms: 5000));
+    // 앱 전용 (2026-10-20): 열렸다는 카드를 지도 위에 띄우지 않는다. 위쪽 이야기 띠에 '새 이야기 N'을 달고, 알림은 한 줄만
+    if (opened.isEmpty) return;
+    final nw = qNewRaw;
+    for (final id in opened) {
+      if (!nw.contains(id)) nw.add(id);
     }
+    fx.add(FxToast(opened.length == 1
+        ? '${survivors[opened.first].name}의 이야기가 열렸어요 · 위쪽 띠의 ‘새 이야기’'
+        : '${survivors[opened.first].name} 외 ${opened.length - 1}명의 이야기가 열렸어요 · 위쪽 띠의 ‘새 이야기’'));
+  }
+
+  /// 아직 읽지 않은 새 이야기 (저장: S.rest['qNew'] = [생존자 번호])
+  List get qNewRaw {
+    if (S.rest['qNew'] is! List) S.rest['qNew'] = <Object?>[];
+    return S.rest['qNew'] as List;
+  }
+
+  /// 화면에 보일 새 이야기: 지금 쉘터에 있고 이야기가 끝나지 않은 사람만
+  List<int> get qNew => [
+        for (final x in (S.rest['qNew'] is List ? S.rest['qNew'] as List : const []))
+          if (x is num && hasSv(x.toInt()) && qOf(x.toInt()) != null) x.toInt(),
+      ];
+
+  /// 그 사람의 이야기를 봤다 (화면을 그리는 중에도 부를 수 있게 알리지는 않는다)
+  void qSeen(int id) {
+    final l = S.rest['qNew'];
+    if (l is! List || !l.contains(id)) return;
+    l.remove(id);
+    dirty = true;
   }
 }

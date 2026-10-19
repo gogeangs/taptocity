@@ -24,8 +24,8 @@ const featGuide = {
   'bag': FeatGuide('g:toolbox', '주운 장비를 생존자에게 입혀 생산과 두드리는 힘을 올려요.',
       ['생존자 수첩 위쪽 ‘장비’를 눌러요.', '장비마다 ‘잘 맞는 사람’이 있어요. 그 사람이 입으면 효과가 1.5배예요.', '‘지금 맞추기’를 누르면 가장 잘 맞게 한 번에 입혀요.', '남는 장비는 ‘정리하기’로 분해해 재료로 돌려받아요.'],
       tip: '아끼는 장비는 자물쇠로 잠가 두면 분해되지 않아요.'),
-  'quest': FeatGuide('u:quest', '신뢰가 쌓인 생존자의 개인 이야기가 열렸어요. 끝까지 따라가면 그 사람만의 전용 장비를 받아요.',
-      ['생존자 수첩에서 그 사람을 눌러요.', '‘개인 이야기’의 할 일을 확인해요. 물건을 건네거나, 지하에 함께 내려가는 일이에요.', '모든 단계를 마치면 전용 장비와 희망 +3을 받아요.'],
+  'quest': FeatGuide('u:quest', '신뢰가 쌓인 생존자의 이야기가 열렸어요. 끝까지 따라가면 그 사람만의 전용 장비를 받아요.',
+      ['위쪽 이야기 띠의 ‘새 이야기’나 생존자 수첩에서 그 사람을 눌러요.', '‘이야기’ 탭에서 ‘○○의 이야기’의 할 일을 확인해요. 물건을 건네거나, 지하에 함께 내려가는 일이에요.', '모든 단계를 마치면 전용 장비와 희망 +3을 받아요.'],
       tip: '전용 장비는 그 사람이 입었을 때 제 힘을 내요.'),
   'deco': FeatGuide('u:rest', '쉘터 주변에 장식을 놓아 마을을 꾸며요.', ['쉘터 화면에서 ‘꾸미기’ 탭을 눌러요.', '장식을 고르고 지도에서 놓을 칸을 눌러요.', '놓은 장식은 다시 눌러 옮기거나 치울 수 있어요.']),
   'ug': FeatGuide('u:stairs', '랜턴 기름이 버티는 만큼 지하로 내려가 귀한 물자와 사람들의 기록을 찾아요.',
@@ -36,7 +36,7 @@ const featGuide = {
   'autoexp': FeatGuide('u:start', '쉬는 사람으로 가장 효율 좋은 팀을 꾸려 원정을 보내고, 돌아오면 전리품도 챙겨요.', ['원정 탭 맨 위 ‘자동 원정’ 스위치를 켜요.', '순찰·아이 돌보기 중인 사람은 빼고 팀을 꾸려요.']),
   'acraft': FeatGuide('g:welder', '레시피마다 자동 가공을 켜 두면 재료가 있을 때 알아서 만들어요.', ['쉘터 화면 ‘가공’ 탭을 눌러요.', '레시피 옆 자동 스위치를 켜요.']),
   'trade': FeatGuide('u:shop', '이주할 때 남겨 둔 사람들과 무전으로 물건을 바꿔요.', ['라디오 탭에서 아래 ‘무전 거래’로 내려가요.', '남은 사람마다 바꿔 주는 물건이 달라요.', '거래한 물건은 잠시 뒤에 도착해요.']),
-  'route': FeatGuide('g:lnMap', '만수가 그려 준 노선도에서 지나온 동네와 남은 사람들을 봐요.', ['일지에서 ‘노선도’ 탭을 눌러요.', '동네를 누르면 그곳에 남은 사람과 기록이 나와요.']),
+  'route': FeatGuide('g:lnMap', '만수가 그려 준 노선도에서 지나온 동네와 남은 사람들을 봐요.', ['일지 ‘도감’ 탭에서 ‘노선도’를 눌러요.', '동네를 누르면 그곳에 남은 사람과 기록이 나와요.']),
   'migrate': FeatGuide('u:door', '불빛의 도시를 완성했어요. 새 동네로 떠날 수 있어요.',
       ['쉘터 화면 건설 탭 맨 위 ‘새 동네로’를 눌러요.', '함께 갈 사람과 남을 사람을 골라요. 남은 사람과는 무전 거래를 이어가요.', '사람·장비·유물은 함께 가고, 등불의 기억(생산·두드리기 +10%)이 쌓여요.']),
   'line': FeatGuide('g:lnLamp', '복구한 역(랜드마크) 안쪽 터널을 따라 종점까지 가는 던전이에요.',
@@ -150,7 +150,7 @@ List<Widget> featListSection(BuildContext context, Game g, {required void Functi
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(f.h, style: Ttc.t(14, color: Ttc.sepia, weight: FontWeight.w700)),
-                Text(featGuide[f.k]!.what, maxLines: 2, overflow: TextOverflow.ellipsis, style: Ttc.t(12, color: Ttc.sepia2, height: 1.4)),
+                Text(featGuide[f.k]!.what, maxLines: 2, overflow: TextOverflow.ellipsis, style: Ttc.t(13, color: Ttc.sepia2, height: 1.4)),
               ]),
             ),
             Text('›', style: Ttc.t(18, color: Ttc.sepia2)),

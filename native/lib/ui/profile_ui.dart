@@ -120,7 +120,7 @@ class _ProfileBodyState extends State<ProfileBody> {
             ('받은 업적', '$achN/${achList.length}'),
             ('가장 깊이', '지하 ${g.ugBest}층'),
             ('그날 밤의 기록 조각', '${g.fragsGot.length}/${frags.length}'),
-            ('오늘의 의뢰 연속', '${g.streakShown}일'),
+            ('오늘의 할 일 연속', '${g.streakShown}일'),
             ('인연을 맺은 사람', '${g.bondN}명'),
           ];
           return Wrap(spacing: 6, runSpacing: 6, children: [
@@ -190,7 +190,7 @@ class _ProfileBodyState extends State<ProfileBody> {
           ),
         ]),
         const SizedBox(height: 12),
-        Text('얼굴 대신, 당신의 여정을 보여 주세요.\n마음에 드는 초상화를 고르면 프로필과 대화에 함께 적용됩니다.', textAlign: TextAlign.center, style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5)),
+        Text('얼굴 대신, 당신의 여정을 보여 주세요.\n마음에 드는 초상화를 고르면 프로필과 대화에 함께 적용됩니다.', textAlign: TextAlign.center, style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
         const SizedBox(height: 10),
         LayoutBuilder(builder: (c, box) {
           final w = (box.maxWidth - 8) / 2;
@@ -251,7 +251,7 @@ Future<void> showPfName(BuildContext context, Game g, {required bool first}) {
         }
 
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
-          Text(first ? '등불지기의 이름' : '이름 바꾸기', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+          Text(first ? '등불지기의 이름' : '이름 바꾸기', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
           if (first) ...[
             const SizedBox(height: 10),
             Center(

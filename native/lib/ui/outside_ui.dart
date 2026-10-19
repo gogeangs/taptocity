@@ -276,7 +276,7 @@ class _ExpBodyState extends State<ExpBody> {
                             WidgetSpan(alignment: PlaceholderAlignment.middle, child: Padding(padding: const EdgeInsets.only(right: 4), child: lineIco(lockSvg, 12, Ttc.sepia2))),
                             TextSpan(text: l),
                           ]),
-                          style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.4))),
+                          style: Ttc.t(13, color: Ttc.sepia2, height: 1.4))),
               ]),
             ));
           }
@@ -289,7 +289,7 @@ class _ExpBodyState extends State<ExpBody> {
 void showExpBack(BuildContext context, Game g, FxExpBack f) {
   final e = expOf(f.key);
   showPageOf(context, g, (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text('원정 일지 · ${e?.name ?? ''}', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+        Text('원정 일지 · ${e?.name ?? ''}', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
         const SizedBox(height: 6),
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           for (final id in f.team) Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: faceBox(g, id, w: 56, h: 65)),
@@ -348,7 +348,7 @@ class RadioBody extends StatelessWidget {
           const SizedBox(height: 10),
           Row(children: [pullBtn(1), const SizedBox(width: 8), pullBtn(5)]),
           const SizedBox(height: 6),
-          Text('5번 탐색에는 희귀 자재 이상이 하나는 꼭 들어 있어요', textAlign: TextAlign.center, style: Ttc.t(12.5, color: Ttc.sepia2, height: 1.5)),
+          Text('5번 탐색에는 희귀 자재 이상이 하나는 꼭 들어 있어요', textAlign: TextAlign.center, style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
         ]),
       ),
       MCard(
@@ -460,14 +460,14 @@ class _PullPageState extends State<_PullPage> {
           Center(child: GearIcon(x.t, size: 46)),
           Text(G.n, textAlign: TextAlign.center, style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
           Center(child: gradeChip(G.g)),
-          Text('${slotName[G.slot]}\n${effText(G.eff)}', textAlign: TextAlign.center, style: Ttc.t(12, color: Ttc.sepia2, height: 1.45)),
+          Text('${slotName[G.slot]}\n${effText(G.eff)}', textAlign: TextAlign.center, style: Ttc.t(13, color: Ttc.sepia2, height: 1.45)),
         ]);
       case 'voice':
         bg = const Color(0xFFECE2F2);
         bd = const Color(0xFF8A6AA0);
         kids.addAll([
           Text('먼 곳의 목소리', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
-          Text(x.t!, style: Ttc.t(12, color: Ttc.sepia2, height: 1.45)),
+          Text(x.t!, style: Ttc.t(13, color: Ttc.sepia2, height: 1.45)),
           Text('희망 +2', style: Ttc.t(12, color: Ttc.sepia2)),
         ]);
       default:
@@ -477,9 +477,9 @@ class _PullPageState extends State<_PullPage> {
         }
         kids.addAll([
           Text(x.k == 'rare' ? '희귀 자재' : '잡음 속 물자', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
-          if (x.got.isEmpty) Text('창고가 가득 찼어요', style: Ttc.t(12, color: Ttc.sepia2)),
+          if (x.got.isEmpty) Text('창고가 가득 찼어요', style: Ttc.t(13, color: Ttc.sepia2)),
           for (final e in x.got.entries)
-            Row(children: [ResIcon(e.key, size: 13), const SizedBox(width: 3), Text('${matOf[e.key]!.n} ${e.value}', style: Ttc.t(12, color: Ttc.sepia2, height: 1.45))]),
+            Row(children: [ResIcon(e.key, size: 13), const SizedBox(width: 3), Text('${matOf[e.key]!.n} ${e.value}', style: Ttc.t(13, color: Ttc.sepia2, height: 1.45))]),
         ]);
     }
     return Stack(clipBehavior: Clip.none, children: [
@@ -517,7 +517,7 @@ class _PullPageState extends State<_PullPage> {
     final g = widget.g;
     if (phase < 2) {
       return Column(children: [
-        Align(alignment: Alignment.centerLeft, child: Text('주파수 탐색', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600))),
+        Align(alignment: Alignment.centerLeft, child: Text('주파수 탐색', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600))),
         const SizedBox(height: 8),
         radioArt(width: 220),
         const SizedBox(height: 6),
@@ -528,7 +528,7 @@ class _PullPageState extends State<_PullPage> {
     final hs = res.where((x) => x.k == 'hidden').toList();
     final n = widget.n;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text('탐색 결과', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
+      Text('탐색 결과', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
       const SizedBox(height: 10),
       if (res.length == 1)
         Center(child: SizedBox(width: 180, child: _card(res.first)))

@@ -61,7 +61,7 @@ Game _demo() {
 }
 
 /// 앱 전용 화면용 후반 진행: 쉘터 Lv.5, 생존자 열둘(0~11), 이야기 끝, 낮 (qa_ui_test의 late·home과 같은 결).
-/// 오늘의 의뢰·긴장 장치(선택·부상·사과·불빛 밖)가 켜지는 상태. 시험마다 새로 만들어 서로 섞이지 않게 쓴다.
+/// 오늘의 할 일·긴장 장치(선택·부상·사과·불빛 밖)가 켜지는 상태. 시험마다 새로 만들어 서로 섞이지 않게 쓴다.
 Game _late() {
   final g = Game(Game.fresh(seed: 42));
   final S = g.S;
@@ -115,7 +115,7 @@ Game _choice(String k, int a, int b, String v) {
   return g;
 }
 
-/// 오늘의 의뢰 셋(하나 끝) + 어제까지 연속 4일
+/// 오늘의 할 일 셋(하나 끝) + 어제까지 연속 4일
 void _daily(Game g) {
   g.S.rest['dayStreak'] = 4;
   g.S.rest['dayLast'] = dayKeyAdd(g.todayKey, -1);
@@ -248,7 +248,7 @@ void main() {
       await tester.tap(find.text('+').first);
     });
     g.party = [0, 3];
-    // 3단계: 의뢰·부탁이 떠 있는 낮
+    // 3단계: 생존자의 부탁(펼친 카드)·손님 부탁이 떠 있는 낮
     final now = DateTime.now().millisecondsSinceEpoch;
     g.S.rest['sq'] = <String, Object?>{'k': 'wood', 'n': 45, 'b': (g.S.got['wood'] ?? 0) - 20, 'at': now, 'who': 1, 'say': '“장작이 모자라요.”'};
     g.sqOpenUntil = now + 60000;
@@ -360,6 +360,11 @@ void main() {
       for (var k = 0; k < 6; k++) {
         await tester.pump(const Duration(milliseconds: 60));
       }
+      // 2026-10-20: 일지 위 탭 '도감' 안의 '업적'
+      await tester.tap(find.text('도감').first);
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
       await tester.tap(find.text('업적').last);
     });
     g.S.rest['mi'] = stepI('등불 탑 토대 놓기');
@@ -386,10 +391,15 @@ void main() {
       for (var k = 0; k < 6; k++) {
         await tester.pump(const Duration(milliseconds: 60));
       }
-      await tester.tap(find.text('사건').last);
+      await tester.tap(find.text('사건 수첩').last); // 2026-10-20: 일지 위 탭 '사건 수첩'
     });
     await _shot(tester, g, '30-gallery', act: () async {
       await tester.tap(find.text('일지').last);
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      // 2026-10-20: 일지 위 탭 '기록' 안의 '회상'
+      await tester.tap(find.text('기록').first);
       for (var k = 0; k < 6; k++) {
         await tester.pump(const Duration(milliseconds: 60));
       }
@@ -498,6 +508,11 @@ void main() {
     r.tlog('급유탑 밑에 숨겨진 저수조를 찾았다.');
     await _shot(tester, r, '34-route', act: () async {
       await tester.tap(find.text('일지').last);
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      // 2026-10-20: 일지 위 탭 '도감' 안의 '노선도'
+      await tester.tap(find.text('도감').first);
       for (var k = 0; k < 6; k++) {
         await tester.pump(const Duration(milliseconds: 60));
       }
@@ -706,7 +721,7 @@ void main() {
       return g;
     }, act: waitPage);
 
-    // --- 일지: 오늘의 의뢰·연속 칸 / 기록 조각 목록 / 조각 창 ---
+    // --- 일지 기록: 오늘의 할 일·연속 칸 / 기록 조각 목록 / 조각 창 ---
     Game daily() {
       final g = _late();
       _daily(g);
@@ -715,7 +730,7 @@ void main() {
 
     await shot('52-diary-daily', daily, act: (g) async {
       await tapText('일지');
-      await tapText('이야기');
+      await tapText('기록');
     });
     Game fragGame() {
       final g = _late();
@@ -726,7 +741,7 @@ void main() {
 
     await shot('53-diary-frags', fragGame, act: (g) async {
       await tapText('일지');
-      await tapText('이야기');
+      await tapText('기록');
       await reveal('53-diary-frags', '그날 밤의 기록 조각');
     });
     await shot('54-frag-scene', () {
@@ -844,7 +859,7 @@ void main() {
       return g;
     }, act: (g) async {
       await tapText('일지');
-      await tapText('사건');
+      await tapText('사건 수첩');
       await reveal('62-casebook-replay', '컷 다시 보기');
     });
 
@@ -899,7 +914,7 @@ void main() {
     await shot('70-narrow-cut', _demo, size: _narrow, act: (g) => cuts('case1', const [0, 1, 2, 3], 3));
     await shot('71-narrow-diary-daily', daily, size: _narrow, act: (g) async {
       await tapText('일지');
-      await tapText('이야기');
+      await tapText('기록');
     });
     await shot('72-narrow-choice', () => _choice('med', 3, 4, 'kin'), size: _narrow, act: openChoice);
 
