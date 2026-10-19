@@ -24,7 +24,7 @@ const Map<String, List<CutSfx?>> cutSfx = {
   'case6': [('펄럭', 'tl'), null, null, ('딸깍', 'tr')],
   'case7': [('쏴아—', 'tr'), null, null, ('지직', 'br')],
   'case8': [('끼익—', 'tr'), null, null, ('저벅', 'bl')],
-  'case9': [('탁', 'tr'), null, null, ('사박 사박', 'br')],
+  'case9': [('딸깍', 'tr'), null, null, ('사박 사박', 'br')],
   'join_mansu': [('치익—', 'br'), null, null, ('부릉', 'tr')],
   'join_haneul': [('토독 토독', 'tr'), null, null, ('슥슥', 'br')],
   'join_sunrye': [('휘이잉', 'tr'), ('툭', 'br'), null, null],

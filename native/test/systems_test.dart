@@ -75,6 +75,8 @@ void main() {
   test('끝없는 지하: 17층 → 42층 (재괴물 20·30·40층), 조각 12개까지', () {
     final g = mk(11, [0, 3, 4, 5, 6, 13]);
     g.S.rest['conf'] = 'a'; // 재혁의 조각도 나올 수 있게
+    // 조각은 한 번이라도 함께한 사람의 것만 나온다: 나머지 주인은 함께했다가 잃은 사람으로
+    g.S.rest['dead'] = <Object?>[for (final f in frags) if (!g.hasSv(f.$1)) <String, Object?>{'id': f.$1}];
     // 이야기 물건(quest) 칸이 칸을 모자라게 하지 않도록 찾기 걸음이 없는 사람으로
     final team = [for (final id in g.svIds) if (g.qStep(id)?['k'] != 'find') id].take(3).toList();
     expect(team.length, 3);
@@ -145,6 +147,10 @@ void main() {
     int owner(int k) => frags[k].$1;
     final a = g.fragDrop(), b = g.fragDrop();
     expect({owner(a), owner(b)}, {0, 3});
+    // 한 번도 만나지 못한 사람의 조각은 나오지 않는다 (재혁은 고백 전)
+    expect(g.fragDrop(), -1);
+    // 함께했다가 잃은 사람의 것은 나온다
+    g.S.rest['dead'] = <Object?>[for (final f in frags) if (!{0, 3, 9}.contains(f.$1)) <String, Object?>{'id': f.$1}];
     // 그다음은 다른 사람의 것 (재혁의 것은 빼고)
     for (var n = 0; n < frags.length; n++) {
       final k = g.fragDrop();

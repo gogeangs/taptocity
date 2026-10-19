@@ -36,6 +36,9 @@ UgTheme ugTheme(int f) {
   return UgTheme(ugDeep + 1 + seg * 5, t.k, '깊은 ${t.n}', _ugDeepIntro[k % _ugDeepIntro.length]);
 }
 
+/// 이야기 물건을 찾았을 때의 첫마디 (웹 UG_FOUND)
+const Map<int, String> ugFoundSay = {0: '찾았구먼…', 3: '찾았어요!', 4: '찾았데이…', 5: '찾았다!', 6: '…찾았다.', 12: '찾았구먼…', 17: '…찾았어.'};
+
 /// 칸 이름 (웹 UGL · UGN)
 const ugLabel = {'pet': '웅덩이', 'loot': '상자', 'rare': '귀한것', 'gear': '장비', 'oil': '기름', 'hazard': '위험', 'stairs': '계단', 'start': '입구', 'rest': '쉼터', 'key': '열쇠', 'door': '문', 'foe': '괴물', 'shop': '상인', 'diary': '기록', 'who': '흔적', 'quest': '이야기'};
 const ugName = {'pet': '물웅덩이', 'loot': '상자', 'rare': '귀한 물건', 'gear': '장비', 'oil': '기름통', 'hazard': '위험', 'stairs': '아래층 계단', 'start': '내려온 곳', 'rest': '쉼터', 'key': '열쇠', 'door': '잠긴 문', 'foe': '재 괴물', 'shop': '지하 상인', 'diary': '기록', 'who': '누군가의 흔적', 'quest': '이야기 물건'};
@@ -108,6 +111,15 @@ extension Underground on Game {
   int ugOil0(List<int> team, int fuel) => 14 + fuel * 3 + (team.any((id) => roleOf(id).contains('cook')) ? 6 : 0);
   int ugFuelMax(List<int> team) => 4 + 2 * team.length.clamp(1, 3);
 
+  /// 그 몫(간호·소방)을 맡은 사람의 이름: 다치지 않은 동료 중 처음, 없으면 같이 온 펫
+  String _ugRoleWho(String r) {
+    final u = ug!;
+    for (final id in u.team) {
+      if (!u.hurt.contains(id) && roleOf(id).contains(r)) return survivors[id].name;
+    }
+    return u.pet != null ? petName(u.pet!) : '누군가';
+  }
+
   bool ugRole(String r) {
     final u = ug;
     if (u == null) return false;
@@ -174,17 +186,21 @@ extension Underground on Game {
     cells[start]
       ..rev = true
       ..c = 'start';
+    bool isFree(int i) => cells[i].c == 'empty' && i != start && ((i % ugW) - 2).abs() + ((i ~/ ugW) - (ugH - 1)).abs() >= 2;
+    // 빈칸을 200번 굴려 찾는다 (웹과 같은 난수 순서). 못 찾으면 -1: 예전처럼 아무 칸이나 돌려주면 계단·재괴물·입구를 덮어썼다
     int free() {
       int i, g = 0;
       do {
         i = rnd.nextInt(n);
         g++;
-      } while ((cells[i].c != 'empty' || i == start || ((i % ugW) - 2).abs() + ((i ~/ ugW) - (ugH - 1)).abs() < 2) && g < 200);
-      return i;
+      } while (!isFree(i) && g < 200);
+      return isFree(i) ? i : -1;
     }
 
-    UgCell put(String c) {
+    // 칸을 놓는다. 빈칸이 없으면 놓지 않고 null (상자·위험·상인·장비·이야기 물건 같은 것은 이 층에서 빠진다)
+    UgCell? put(String c) {
       final i = free();
+      if (i < 0) return null;
       cells[i].c = c;
       return cells[i];
     }
@@ -199,6 +215,19 @@ extension Underground on Game {
     }
     final th = ugTheme(f);
     if (f > 1 && th.f == f) u.msg = '${th.n} · ${th.intro}';
+    if (ugBossFloor(f)) {
+      // 깊은 곳의 재괴물(끝없는 지하의 10층마다): 계단 다음으로 먼저 놓아 다른 칸에 덮이거나 밀려나지 않게.
+      // 보통 괴물의 세 배. 쓰러뜨리면 그날 밤의 기록 조각. 기름통 하나와 쉼터는 칸이 넉넉할 때만 (아래)
+      var bi = free();
+      if (bi < 0) bi = [for (var i = 0; i < n; i++) if (isFree(i)) i].firstOrNull ?? -1;
+      if (bi >= 0) {
+        cells[bi]
+          ..c = 'foe'
+          ..boss = true
+          ..fhp = _ugDeepHp(f) * 3;
+      }
+      u.msg = '아래에서 무언가 숨 쉬는 소리가 들린다. 깊은 곳의 재괴물이 이 층 어딘가에 있다.';
+    }
     if (ugCks.contains(f)) put('rest');
     for (var k = 0; k < (th.k == 'plant' || deep ? 4 : 5); k++) {
       put('loot');
@@ -206,28 +235,26 @@ extension Underground on Game {
     put('rare');
     if (f >= 3) put('rare');
     for (var k = 0; k < (deep ? 5 : math.min(7, 2 + f ~/ 3)); k++) {
-      put('hazard').hz = rnd.nextDouble() < (th.k == 'sewer' ? .75 : .5) ? 'gas' : 'fall';
+      final h = put('hazard'); // 위험 종류 굴림은 칸이 없어도 한다 (예전과 같은 난수 순서)
+      final hz = rnd.nextDouble() < (th.k == 'sewer' ? .75 : .5) ? 'gas' : 'fall';
+      h?.hz = hz;
     }
     put('oil');
     if (f % 2 == 0 || th.k == 'sewer' || f >= 8) put('oil');
     if (th.k == 'bunker' || (f >= 3 && rnd.nextDouble() < .45)) {
-      put('door');
-      put('key');
+      final door = put('door');
+      // 열쇠 칸이 없으면 열 수 없는 문도 두지 않는다
+      if (put('key') == null) door?.c = 'empty';
     }
     if (f >= 5) {
-      put('foe').fhp = deep ? _ugDeepHp(f) : 2 + f ~/ 4;
-      if (th.k == 'plant') put('foe').fhp = deep ? _ugDeepHp(f) + 1 : 3 + f ~/ 4;
+      put('foe')?.fhp = deep ? _ugDeepHp(f) : 2 + f ~/ 4;
+      if (th.k == 'plant') put('foe')?.fhp = deep ? _ugDeepHp(f) + 1 : 3 + f ~/ 4;
     }
     if (ugBossFloor(f)) {
-      // 깊은 곳의 재괴물: 보통 괴물의 세 배. 쓰러뜨리면 그날 밤의 기록 조각. 기름통 하나와 쉼터를 더 둔다
-      put('foe')
-        ..boss = true
-        ..fhp = _ugDeepHp(f) * 3;
-      // 남은 빈칸이 넉넉할 때만 (칸이 모자라면 다른 칸을 덮어쓰지 않게)
-      int room() => [for (var i = 0; i < n; i++) if (cells[i].c == 'empty' && ((i % ugW) - 2).abs() + ((i ~/ ugW) - (ugH - 1)).abs() >= 2) i].length;
+      // 재괴물 층의 덤: 남은 빈칸이 넉넉할 때만 기름통 하나와 쉼터
+      int room() => [for (var i = 0; i < n; i++) if (isFree(i)) i].length;
       if (room() > 6) put('oil');
       if (room() > 6) put('rest');
-      u.msg = '아래에서 무언가 숨 쉬는 소리가 들린다. 깊은 곳의 재괴물이 이 층 어딘가에 있다.';
     }
     if (f >= 4 && rnd.nextDouble() < .3) put('shop');
     {
@@ -239,14 +266,14 @@ extension Underground on Game {
           break;
         }
       }
-      if (d >= 0 && !u.dPlaced) put('diary').did = d;
+      if (d >= 0 && !u.dPlaced) put('diary')?.did = d;
     }
     if (f >= 15 && !hasSv(13) && !u.mtrace) put('who');
     if (f >= 6 && f <= 9 && !pets.containsKey('turtle') && u.petFound == null && rnd.nextDouble() < .4) put('pet');
     if (rnd.nextDouble() < .22 + f * .03) put('gear');
     for (final id in u.team) {
       final st = qStep(id);
-      if (st != null && st['k'] == 'find' && f >= (st['f'] as num) && !u.found.contains(id)) put('quest').qid = id;
+      if (st != null && st['k'] == 'find' && f >= (st['f'] as num) && !u.found.contains(id)) put('quest')?.qid = id;
     }
     u.cells = cells;
     u.medicUsed = false;
@@ -375,9 +402,9 @@ extension Underground on Game {
           final ok = u.team.where((id) => !u.hurt.contains(id)).toList();
           if (ugRole('medic') && !u.medicUsed) {
             u.medicUsed = true;
-            u.msg = '천장이 무너졌지만, 서진이 재빨리 모두를 끌어냈다.';
+            u.msg = '천장이 무너졌지만, ${jo(_ugRoleWho('medic'), '이', '가')} 재빨리 모두를 끌어냈다.';
           } else if (guard && rnd.nextDouble() < .5) {
-            u.msg = '천장이 무너졌다! 우진이 몸으로 막아냈다.';
+            u.msg = '천장이 무너졌다! ${jo(_ugRoleWho('guard'), '이', '가')} 몸으로 막아냈다.';
           } else if (ok.isNotEmpty) {
             final id = ok[rnd.nextInt(ok.length)];
             u.hurt.add(id);
@@ -415,7 +442,7 @@ extension Underground on Game {
         if (c.qid >= 0 && !u.found.contains(c.qid)) {
           u.found.add(c.qid);
           final qs = qStep(c.qid);
-          u.msg = '${survivors[c.qid].name}: “${const {4: '찾았데이…', 12: '찾았구먼…'}[c.qid] ?? '찾았어요…'} ${qs?['item'] ?? ''}!”${qs?['note'] != null ? ' ${qs!['note']}' : ''}';
+          u.msg = '${survivors[c.qid].name}: “${ugFoundSay[c.qid] ?? '찾았어요…'} ${qs?['item'] ?? ''}!”${qs?['note'] != null ? ' ${qs!['note']}' : ''}';
           qAdvance(c.qid);
         }
       case 'who':

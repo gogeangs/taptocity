@@ -3664,6 +3664,10 @@ $('shBody').addEventListener('click',e=>{const b=e.target.closest('[data-act="ln
 // Walk out any time with everything; run dry and you drop half the haul and all the gear.
 const UGW=5,UGH=6;
 const ugOpen=()=>S.lv>=3||lmOn('station');
+// 그 몫(간호·소방)을 맡은 사람의 이름: 다치지 않은 동료 중 처음, 없으면 같이 온 펫
+const ugRoleWho=r=>{const id=UG.team.find(id=>!UG.hurt.includes(id)&&ROLE[id]&&ROLE[id].includes(r));return id!=null?SURV[id].name:UG.pet?petNm(UG.pet):'누군가';};
+// 이야기 물건을 찾았을 때의 첫마디
+const UG_FOUND={0:'찾았구먼…',3:'찾았어요!',4:'찾았데이…',5:'찾았다!',6:'…찾았다.',12:'찾았구먼…',17:'…찾았어.'};
 const ugRole=(team,r)=>team.some(id=>!(UG&&UG.hurt.includes(id))&&ROLE[id]&&ROLE[id].includes(r))||ugPetRole(r);
 let UG=null,ugPrep={team:[],fuel:0};
 function ugOil0(team,fuel){return 14+fuel*3+(team.some(id=>ROLE[id].includes('cook'))?6:0);}
@@ -3744,11 +3748,11 @@ function ugResolve(c){const f=UG.floor,sc=1+(f-1)*.35;
   else if(c.c==='oil'){UG.oil+=6;UG.max=Math.max(UG.max,UG.oil);UG.msg='기름통을 찾았다 · 기름 +6';sfx('get');}
   else if(c.c==='hazard'){const guard=ugRole(UG.team,'guard');
     if(c.hz==='gas'){const l=Math.round((3+Math.floor(f/2))*(guard?.5:1));UG.oil=Math.max(0,UG.oil-l);UG.msg=`가스가 새어 나왔다! 랜턴이 흔들린다 · 기름 -${l}`;}
-    else{const ok=UG.team.filter(id=>!UG.hurt.includes(id));if(ugRole(UG.team,'medic')&&!UG.medicUsed){UG.medicUsed=true;UG.msg='천장이 무너졌지만, 서진이 재빨리 모두를 끌어냈다.';}
-      else if(guard&&Math.random()<.5)UG.msg='천장이 무너졌다! 우진이 몸으로 막아냈다.';
+    else{const ok=UG.team.filter(id=>!UG.hurt.includes(id));if(ugRole(UG.team,'medic')&&!UG.medicUsed){UG.medicUsed=true;UG.msg=`천장이 무너졌지만, ${jo(ugRoleWho('medic'),'이','가')} 재빨리 모두를 끌어냈다.`;}
+      else if(guard&&Math.random()<.5)UG.msg=`천장이 무너졌다! ${jo(ugRoleWho('guard'),'이','가')} 몸으로 막아냈다.`;
       else if(ok.length){const id=ok[(Math.random()*ok.length)|0];UG.hurt.push(id);UG.msg=`천장이 무너졌다! ${jo(SURV[id].name,'이','가')} 다쳤다.`;}}
     sfx('night');}
-  else if(c.c==='quest'){UG.found.push(c.qid);const qs=QUESTS[c.qid].steps[S.sv[c.qid].q.s];UG.msg=`${SURV[c.qid].name}: “${({4:'찾았데이…',12:'찾았구먼…'})[c.qid]||'찾았어요…'} ${qs.item}!”${qs.note?` ${qs.note}`:''}`;sfx('find');qAdvance(c.qid);}
+  else if(c.c==='quest'){UG.found.push(c.qid);const qs=QUESTS[c.qid].steps[S.sv[c.qid].q.s];UG.msg=`${SURV[c.qid].name}: “${UG_FOUND[c.qid]||'찾았어요…'} ${qs.item}!”${qs.note?` ${qs.note}`:''}`;sfx('find');qAdvance(c.qid);}
   else if(c.c==='stairs'){UG.msg='아래로 이어지는 계단을 찾았다. 눌러서 내려가요.';}
   else if(c.c==='rest'){UG.msg='쉼터를 찾았다! 눌러서 쉬어 가면 챙긴 물건을 위로 올려 보내고, 다음엔 여기서 시작할 수 있어요.';sfx('find');}
   else if(c.c==='key'){UG.keys++;UG.msg='녹슨 열쇠를 주웠다. 이 층 어딘가에 잠긴 문이 있다.';sfx('get');}
@@ -5564,9 +5568,12 @@ const SQT={
  feast:{ok:()=>feastOpen()&&Date.now()>(S.feastAt||0)+FEAST_CD,n:()=>1,v:()=>S.feasts||0,t:()=>'마을 잔치 한 번 열기',go:'craft',say:['“요즘 다들 지쳤어요. 잔치 한번 열어요!”']}};
 // 말투가 뚜렷한 사람은 공용 의뢰 문구 대신 자기 말로 (아이는 술 이야기를 하지 않는다)
 const SQ_VOICE={
- 3:{night:'“오늘 밤도 무사히 넘겨요. 그럼 불빛 같이 세요!”'},
- 4:{wood:'“장작이 모자란다. 오늘 밤 불 좀 넉넉히 때 보자이.”',scrap:'“쇠붙이 좀 모아 오이소. 녹슨 거라도 다 쓸 데가 있데이.”',food:'“창고가 비어 간다. 아이들 묵을 거라도 채워 놓자.”',plate:'“지붕에 구멍이 났데이. 철판으로 덮어야 안 되겠나.”',rope:'“빨랫줄이 끊어졌데이. 밧줄 좀 꼬아 주겠나?”',reveal:'“저 너머에 뭐가 있는고 궁금하데이. 쪼매만 더 밝혀 도.”',exp:'“멀리서 연기가 올라온다. 누가 쫌 가 봐야 안 되겠나.”',ug:'“지하철역 매점에 통조림이 남아 있을지도 모른데이. 한번 내려가 보이소.”',radio:'“라디오에서 누가 부르는 거 같더라. 다이얼 좀 돌려 보이소.”',ev:'“다들 말은 안 해도 부탁이 하나씩 있을 끼다.”',night:'“오늘 밤도 무사히 넘기재이. 그라믄 따순 국 한 그릇 하자.”',feast:'“요새 다들 지쳤데이. 잔치 한번 열자.”'},
- 12:{wood:'“장작이 모자라네. 오늘 밤 불 좀 넉넉히 피우세.”',scrap:'“고철만 있으면 이것저것 고쳐 보겠네.”',food:'“창고가 비어 가는구먼. 아이들 먹을 거라도 채워 두게.”',plate:'“지붕에 구멍이 났네. 철판으로 덮어야겠어.”',rope:'“빨랫줄이 끊어졌네. 밧줄 좀 꼬아 주겠나?”',reveal:'“저 너머에 뭐가 있는지 궁금하구먼. 조금만 더 밝혀 주게.”',exp:'“지도에 표시해 둔 곳이 있네. 누가 다녀와 주겠나?”',ug:'“지하에서 이상한 소리가 났다더군. 한번 내려가 보게.”',radio:'“라디오에서 누가 부르는 것 같았네. 다이얼 좀 돌려 보게.”',ev:'“다들 말은 안 해도 부탁이 하나씩 있을 걸세.”',night:'“오늘 밤도 무사히 넘기세. 그럼 차 한잔하세.”',feast:'“요즘 다들 지쳤구먼. 잔치 한번 여세.”'},
+ 0:{wood:'“장작이 모자라구먼. 오늘 밤 불 좀 넉넉히 때 보자고.”',scrap:'“고철만 있으면 이것저것 손볼 수 있구먼. 녹슨 거라도 주워 와.”',food:'“창고가 비어 가는구먼. 애들 먹을 거라도 채워 두자고.”',plate:'“지붕에 구멍이 났구먼. 철판으로 덮자고.”',rope:'“빨랫줄이 끊어졌구먼. 밧줄 좀 꼬아 줘.”',reveal:'“저 너머에 뭐가 있는지 궁금하구먼. 조금만 더 밝혀 보자고.”',exp:'“지도에 표시해 둔 데가 있구먼. 누가 한 번 다녀와 줘.”',ug:'“지하철역 매점에 통조림이 남았을지도 모르겠구먼. 한번 내려가 보자고.”',radio:'“라디오에서 누가 부르는 것 같구먼. 다이얼 좀 돌려 봐.”',ev:'“다들 말은 안 해도 부탁이 하나씩 있는 눈치구먼.”',night:'“오늘 밤도 무사히 넘기자고. 아침에 차 한잔하면서 웃자고.”',feast:'“요새 다들 지쳤구먼. 잔치 한번 열자고.”'},
+ 3:{wood:'“장작이 모자라요. 오늘 밤 추우면 안 되잖아요!”',scrap:'“고철 주우러 가요! 반짝이는 거 제가 먼저 찾을게요.”',food:'“창고에 먹을 게 별로 없어요. 같이 찾으러 가요!”',plate:'“지붕에 구멍이 났어요. 철판으로 막아 주세요!”',rope:'“빨랫줄이 끊어졌어요. 밧줄 꼬아 주세요!”',reveal:'“저 너머에 뭐가 있을까요? 조금만 더 밝혀 봐요!”',exp:'“멀리서 연기가 나요. 누가 있나 봐요. 가 봐요!”',ug:'“지하에서 이상한 소리가 났대요. …같이 내려가 줄 거죠?”',radio:'“라디오에서 누가 부르는 것 같았어요! 다이얼 돌려 봐요.”',ev:'“다들 부탁이 하나씩 있대요. 제가 다 들었어요!”',night:'“오늘 밤도 무사히 넘겨요. 그럼 불빛 같이 세어요!”',feast:'“다들 힘들어 보여요. 잔치 열어요, 네?”'},
+ 4:{wood:'“장작이 모자란다. 오늘 밤 불 좀 넉넉히 때 보자이.”',scrap:'“쇠붙이 좀 모아 오이소. 녹슨 거라도 다 쓸 데가 있데이.”',food:'“창고가 비어 간다. 아이들 묵을 거라도 채워 놓자.”',plate:'“지붕에 구멍이 났데이. 철판으로 덮어야 안 되겠나.”',rope:'“빨랫줄이 끊어졌데이. 밧줄 좀 꼬아 주겠나?”',reveal:'“저 너머에 뭐가 있는고 궁금하데이. 쪼매만 더 밝혀 도.”',exp:'“멀리서 연기가 올라온다. 누가 쫌 가 봐야 안 되겠나.”',ug:'“지하철역 매점에 통조림이 남아 있을지도 모른데이. 한번 내려가 보이소.”',radio:'“라디오에서 누가 부르는 거 같더라. 다이얼 좀 돌려 보이소.”',ev:'“다들 말은 안 해도 부탁이 하나씩 있을 끼다.”',night:'“오늘 밤도 무사히 넘기제이. 그라믄 따순 국 한 그릇 하자.”',feast:'“요새 다들 지쳤데이. 잔치 한번 열자.”'},
+ 5:{wood:'“장작 떨어져 간다. 국솥 불 꺼지기 전에 나무 좀 해 와.”',scrap:'“고철 좀 주워 와. 솥 받침이 다 삭았어.”',food:'“창고 비어 간다. 애들 먹을 거라도 채워 놔, 국 끓이게.”',plate:'“지붕 새는 거 봤지? 철판 좀 만들어. 국에 재 들어가.”',rope:'“빨랫줄 끊어졌어. 밧줄 좀 꼬아 와, 앞치마 말려야 돼.”',reveal:'“저 너머 좀 밝혀 봐. 장 볼 데가 있을지 누가 알아.”',exp:'“멀리서 연기 올라오더라. 누가 가 봐. 밥은 먹고 가고.”',ug:'“지하철역 매점에 통조림 남았을지 몰라. 내려가 봐.”',radio:'“라디오에서 누가 부르는 것 같더라. 다이얼 좀 돌려 봐.”',ev:'“다들 말 안 해도 부탁 하나씩은 있어. 들어 줘.”',night:'“오늘 밤만 넘기면 아침에 뜨끈한 국 한 그릇이다.”',feast:'“다들 축 처졌어. 잔치 한번 하자, 솥은 내가 걸게.”'},
+ 6:{wood:'“장작 모자란다. 목재 좀 모아 와.”',scrap:'“고철 필요하다. 녹슨 것도 다 쓴다.”',food:'“창고 비어 간다. 먹을 거 좀 채워 놔.”',plate:'“지붕 구멍 났다. 철판으로 덮자.”',rope:'“밧줄 모자란다. 망루 올리려면 더 꼬아야 돼.”',reveal:'“저 너머 지형 봐야겠다. 좀 더 밝혀.”',exp:'“지도에 표시한 데 있다. 누가 가서 확인하고 와.”',ug:'“지하 구조 한번 봐야겠다. 내려가 보자.”',radio:'“라디오에 뭐 잡힌다. 다이얼 돌려 봐.”',ev:'“다들 부탁 하나씩은 있다. 하나씩 처리하자.”',night:'“오늘 밤 버티자. 방벽은 내가 본다.”',feast:'“다들 지쳤다. 잔치 한번 하자. 공사는 하루 쉰다.”'},
+ 12:{wood:'“장작이 모자라네. 오늘 밤 불 좀 넉넉히 피우세.”',scrap:'“고철만 있으면 이것저것 고쳐 보겠네.”',food:'“창고가 비어 가는구먼. 아이들 먹을 거라도 채워 두게.”',plate:'“지붕에 구멍이 났네. 철판으로 덮어야겠네.”',rope:'“빨랫줄이 끊어졌네. 밧줄 좀 꼬아 주겠나?”',reveal:'“저 너머에 뭐가 있는지 궁금하구먼. 조금만 더 밝혀 주게.”',exp:'“지도에 표시해 둔 곳이 있네. 누가 다녀와 주겠나?”',ug:'“지하에서 이상한 소리가 났다더군. 한번 내려가 보게.”',radio:'“라디오에서 누가 부르는 것 같았네. 다이얼 좀 돌려 보게.”',ev:'“다들 말은 안 해도 부탁이 하나씩 있을 걸세.”',night:'“오늘 밤도 무사히 넘기세. 그럼 차 한잔하세.”',feast:'“요즘 다들 지쳤구먼. 잔치 한번 여세.”'},
  15:{wood:'“장작 모자라. 나무 좀.”',scrap:'“고철 좀 모아 와. 고쳐 볼게.”',food:'“창고 비어 간다. 먹을 거 채워 둬.”',plate:'“지붕 구멍 났어. 철판 필요해.”',rope:'“밧줄 좀 꼬아 줘. 빨랫줄 끊어졌어.”',reveal:'“저 너머, 좀 더 밝혀 봐.”',exp:'“멀리 연기 올라와. 누가 가 봐.”',ug:'“지하에서 쇳소리 났어. 내려가 보자.”',radio:'“라디오에 뭐 잡혀. 다이얼 돌려 봐.”',ev:'“다들 부탁 하나씩은 있을 거야.”',night:'“오늘 밤 넘기자. 그럼 한잔하지.”',feast:'“다들 지쳤어. 잔치 한번 하자.”'},
  17:{wood:'“장작 모자라. …오늘 밤 추울 거야.”',scrap:'“고철 있으면 쓸 만한 거 내가 골라 볼게.”',food:'“창고 비어 가. 애들 먹을 거라도 채워 둬.”',plate:'“지붕에 구멍 났어. 철판으로 막아야 돼.”',rope:'“밧줄 좀 꼬아 줘. 망루 올라가게.”',reveal:'“저 너머 뭐 있는지 봐야 돼. 좀 더 밝혀.”',exp:'“지도에 표시해 둔 데 있어. 누가 다녀와.”',ug:'“지하철역 매점, 아직 안 털렸을지도 몰라. 내려가 보자.”',radio:'“라디오에 누가 부르는 거 같았어. 다이얼 돌려 봐.”',ev:'“…다들 말 안 해도 부탁 하나씩 있을걸.”',night:'“오늘 밤만 넘기면 돼. …같이 버티자.”',feast:'“다들 지쳤어. 잔치 같은 거, 하면 안 돼?”'}};
 function sqPickWho(){const ids=Object.keys(S.sv).map(Number).filter(id=>!S.sv[id].away);const a=ids.length?ids:Object.keys(S.sv).map(Number);return a[(Math.random()*a.length)|0];}

@@ -66,7 +66,7 @@ const Map<int, String> _dq7 = {
 /// 하루를 걸러 연속이 끊겼을 때 (벌은 없다)
 const Map<int, String> _dqMiss = {
   0: '어제는 쉬었구먼. 괜찮아, 오늘부터 다시 세자고.',
-  3: '어제 안 왔죠? 괜찮아요, 오늘부터 다시 세요!',
+  3: '어제 안 왔죠? 괜찮아요, 오늘부터 다시 세어요!',
   4: '어제는 쉬었나. 괜찮다, 쉬는 날도 있어야제.',
   5: '어제 빼먹었지? 됐어, 오늘 다시 하면 돼.',
   6: '하루 빠졌네. 괜찮아, 다시 쌓으면 돼.',
@@ -94,7 +94,7 @@ const Map<int, Map<String, List<String>>> _mr = {
       '오늘은 좀 일찍 들어와. 국 데워 놓을게.',
       '잔소리는 여기까지. 나가 봐.',
     ],
-    'res': ['네가 없는 동안 {loot} 모아 놨어. 다들 손이 안 쉬더라.'],
+    'res': ['네가 없는 동안 이만큼 모았어: {loot}. 다들 손이 안 쉬더라.'],
     'none': ['창고는 그대로야. 다들 쉬엄쉬엄 했지 뭐.'],
     'healed': ['{names} 다 나았어. 내 국 먹고 일어난 거야.'],
     'visitor': ['쉘터 앞에 낯선 사람이 와 있어. 가 봐.'],
@@ -105,7 +105,7 @@ const Map<int, Map<String, List<String>>> _mr = {
     'open': [
       '왔구먼. 운행 잘 마치고 왔나?',
       '허허, 이제 오는구먼. 기다렸다고.',
-      '어이, 등불지기. 자리 비운 사이 별일 없었구먼.',
+      '어이, 등불지기. 자리 비운 사이 별일 없었어.',
       '왔나. 시동부터 걸자고, 보고할 게 있어.',
       '늦었구먼. 그래도 돌아왔으니 됐어.',
       '마침 잘 왔구먼. 차 한 잔 하면서 듣자고.',
@@ -116,9 +116,9 @@ const Map<int, Map<String, List<String>>> _mr = {
       '다들 무사하구먼. 그거면 됐어.',
       '오늘도 한 바퀴 돌아 보자고.',
       '운행 시작이구먼. 조심히 다니자고.',
-      '그럼 나는 정비하러 가 보겠구먼.',
+      '그럼 나는 정비하러 가 봐야겠구먼.',
     ],
-    'res': ['자리 비운 사이 {loot} 모였구먼. 다들 손이 부지런해.'],
+    'res': ['네가 없는 동안 이만큼 모였구먼: {loot}. 다들 손이 부지런해.'],
     'none': ['창고는 그대로구먼. 다들 좀 쉬었지.'],
     'healed': ['{names} 다 나았구먼. 허허, 다행이야.'],
     'visitor': ['쉘터 앞에 누가 와서 기다리는구먼. 가 보자고.'],
@@ -142,7 +142,7 @@ const Map<int, Map<String, List<String>>> _mr = {
       '숨을 한 번 고르고, 일을 시작했다.',
       '불빛을 조금 더 키워야겠다.',
     ],
-    'res': ['창고가 조금 불어 있었다. {loot}.'],
+    'res': ['없는 동안 창고가 이만큼 불어 있었다: {loot}.'],
     'none': ['창고는 그대로였다.'],
     'healed': ['{names}의 상처가 다 아물어 있었다.'],
     'visitor': ['쉘터 앞에 누군가 와 있었다.'],
@@ -305,7 +305,7 @@ extension Daily on Game {
     }
 
     Line say(String t) => who >= 0 ? Line(who, t) : Line('me', t);
-    final names = [for (final id in healed) if (id != who) _tnShort(id)];
+    final names = [for (final id in healed) if (id != who) callName(who >= 0 ? who : null, id)];
     final now = Game.nowMs();
     final expBack = expMap.values.any((x) => now >= ((x['end'] as num?) ?? 1e15));
     final visitor = S.camp.values.any((c) => c['visit'] == true);

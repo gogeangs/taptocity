@@ -28,13 +28,47 @@ String _tnShort(int id) {
 /// 받침이 있으면 '이'를 붙인 부름 (하늘 → 하늘이, 철호 → 철호)
 String _tnCall(String n) => jo(n, '이', '');
 
+/// 여자인 생존자 (부르는 말: 할머니·아줌마·언니·누나·이모)
+const Set<int> _tnFemale = {2, 3, 4, 5, 7, 11, 13, 14, 16, 19, 21, 23, 25, 26, 28};
+
+/// 남을 가리켜 부르는 이름: 말하는 사람(by: 생존자 번호, 그 밖은 '나')과 듣는 사람의 나이로 높인다.
+/// 아이는 하늘이·진이, 손아랫사람은 이름만, 손윗사람은 일흔부터 할머니·할아버지, 쉰부터 아저씨·아줌마, 서른부터 씨.
+/// 아이가 부를 땐 마흔부터 아저씨·아줌마, 서른부터 삼촌·이모, 그 아래는 오빠·언니(하늘)·형·누나(진). '나'는 예순부터만 높인다 (만수 아저씨)
+String callName(Object? by, int id) {
+  if (id < 0 || id >= survivors.length) return '누군가';
+  final n = _tnShort(id), a = survivors[id].age, f = _tnFemale.contains(id);
+  if (a < 20) return _tnCall(n);
+  final sp = by is int && by >= 0 && by < survivors.length ? by : null;
+  if (sp == null) return a >= 70 ? '$n ${f ? '할머니' : '할아버지'}' : a >= 60 ? '$n ${f ? '아줌마' : '아저씨'}' : n;
+  if (sp == id) return n;
+  final sa = survivors[sp].age;
+  if (sa >= a) return n;
+  if (a >= 70) return '$n ${f ? '할머니' : '할아버지'}';
+  if (sa < 20) {
+    if (a >= 40) return '$n ${f ? '아줌마' : '아저씨'}';
+    if (a >= 30) return '$n ${f ? '이모' : '삼촌'}';
+    final sf = _tnFemale.contains(sp);
+    return '$n ${f ? (sf ? '언니' : '누나') : (sf ? '오빠' : '형')}';
+  }
+  if (a >= 50) return '$n ${f ? '아줌마' : '아저씨'}';
+  if (a >= 30) return '$n 씨';
+  return n;
+}
+
+/// 부르는 말 (하늘아, 철호야, 만수 아저씨): 이름만 부르면 아/야를 붙인다
+String callVoc(Object? by, int id) {
+  if (id < 0 || id >= survivors.length) return '저기';
+  final c = callName(by, id), n = _tnShort(id);
+  return c == n || c == _tnCall(n) ? jo(n, '아', '야') : c;
+}
+
 /// 대형 재폭풍을 못 막고 다친 사람의 대답
 const Map<int, String> _tnHurtReply = {
   0: '허허, 늙은 몸이 재 바람 한 번에 이 꼴이구먼. 하루면 된다고.',
   1: '이 정도는 배달하다 넘어진 거에 비하면 아무것도 아니에요.',
   2: '제가 제일 잘 알아요. 하루면 돼요. 붕대는 제가 감을게요.',
   3: '…하나도 안 아파요. 진짜예요. …조금만 아파요.',
-  4: '아이고, 이 할미 걱정은 말그래이. 하루 누버 있으믄 된다.',
+  4: '아이고, 이 할미 걱정은 마래이. 하루 누버 있으믄 된다.',
   5: '내 걱정 말고 국솥이나 봐. 내일은 내가 다시 끓인다.',
   6: '…괜찮다니까. 방벽은 내일 내가 다시 세울게.',
   7: '…괜찮아요. 오른손은 멀쩡하니까 그림은 그릴 수 있어요.',
@@ -65,7 +99,7 @@ const Map<int, String> _tnDarkReply = {
 
 /// 다쳐서 누운 사람에게 선물을 내밀면
 const Map<int, String> _tnGiftHurt = {
-  0: '허허, 누워서 받을 순 없지. 다 나으면 받자고.',
+  0: '허허, 누워서 받을 순 없지. 다 나으면 받겠구먼.',
   3: '…지금은 입맛이 없어요. 다 나으면 주세요.',
   4: '아이고, 누워서 무슨 선물이고. 다 낫거든 도.',
   5: '됐어, 누워서 받는 건 체질에 안 맞아. 일어나면 줘.',
@@ -78,7 +112,7 @@ const Map<int, String> _tnGiftHurt = {
 
 /// 약을 받은 사람
 const Map<int, String> _tnMedThanks = {
-  0: '고맙구먼. 이 빚은 운전대로 갚자고.',
+  0: '고맙구먼. 이 빚은 운전대로 갚겠구먼.',
   3: '…고마워요. 쓴 거 다 참고 먹었어요.',
   4: '이 할미를 먼저 챙기다이… 고맙데이.',
   5: '쓰다, 써. …그래도 고마워.',
@@ -91,7 +125,7 @@ const Map<int, String> _tnMedThanks = {
 
 /// 약을 양보한 사람 (고른 뒤)
 const Map<int, String> _tnMedAfter = {
-  0: '잘 골랐구먼. 나는 하루 더 누워 있자고.',
+  0: '잘 골랐구먼. 나는 하루 더 누워 있으면 그만이구먼.',
   3: '…괜찮아요. 저 금방 나아요.',
   4: '잘했다. 이 할미는 쑥찜이면 된다.',
   5: '잘했어. 난 원래 잘 안 죽어.',
@@ -134,11 +168,11 @@ const Map<int, String> _tnSoupThanks = {
 
 /// 잘못 의심받은 사람의 서운한 말 / 사과를 받는 말
 const Map<int, String> _tnAccused = {
-  1: '…배달 십 년에 도둑 소리는 처음 듣네요.',
+  1: '…그 밧줄, 제가 타고 내려갈 줄이었어요. 제가 왜 끊어요.',
   3: '…저 아니라고 했잖아요.',
   6: '…내가 그렇게 보였냐.',
   9: '…또 저군요. 도망친 사람은 계속 의심받는 거겠죠.',
-  14: '…사막에서 온 사람이라 그런 거죠? 괜찮아요. 익숙해요.',
+  14: '…이 동네 사람이 아니라서 그런 거죠? 괜찮아요. 익숙해요.',
   15: '…그래. 불꽃 다루는 놈이 제일 만만하지.',
   17: '…역시. 다들 나부터 의심하지.',
 };
@@ -195,16 +229,17 @@ extension Tension on Game {
 
   // ================= A. 밤 방어 실패 → 한 사람 부상 =================
   String _tnCareLine(int c, int id) {
-    final n = _tnShort(id), v = rnd.nextInt(2);
+    final n = callName(c, id), vo = callVoc(c, id), v = rnd.nextInt(2);
     if (c == 4 && id == 3) return '아이고 내 새끼, 어데 보자. 할미가 밤새 옆에 있으께.';
     if (c == 5 && id == 3) return '하늘아, 울지 마. 아줌마가 따뜻한 국 끓여 줄게.';
     switch (c) {
       case 5:
-        return v == 0 ? '$n 팔이 찢어졌어. 오늘은 내가 국 끓일 테니, 넌 붕대나 찾아와.' : '${_tnCall(n)}, 이리 와 앉아. 피는 멎었으니 하루만 누워 있어.';
+        return v == 0 ? '$n 팔이 찢어졌어. 오늘은 내가 국 끓일 테니, 넌 붕대나 찾아와.' : '$vo, 이리 와 앉아. 피는 멎었으니 하루만 누워 있어.';
       case 4:
-        return v == 0 ? '아이고, $n 다리 좀 봐라. 오늘은 꼼짝 말고 누워 있그래이.' : '${_tnCall(n)}, 피 나는 데 쑥 찧어 붙이자. 하루면 낫는다.';
+        return v == 0 ? '아이고, $n 다리 좀 봐라. 오늘은 꼼짝 말고 누워 있거래이.' : '$vo, 피 나는 데 쑥 찧어 붙이자. 하루면 낫는다.';
       default:
-        return v == 0 ? '${_tnCall(n)}, 손 좀 보자고. 허허, 이 정도면 하루 쉬면 붙겠구먼.' : '오늘은 $n 대신 내가 망 보자고. 넌 눈 좀 붙여.';
+        // 손윗사람에게는 '넌'이라 하지 않는다
+        return v == 0 || survivors[id].age > survivors[c].age ? '$vo, 손 좀 보자고. 허허, 이 정도면 하루 쉬면 붙겠구먼.' : '$vo, 오늘 망은 내가 볼 테니, 넌 눈 좀 붙여.';
     }
   }
 
@@ -229,11 +264,13 @@ extension Tension on Game {
     _tnWound(id, cycleLen, 'night');
     recalc();
     final care = [5, 4, 0].where((c) => c != id && _tnHere(c) && !_tnHurt(c)).firstOrNull;
-    final n = _tnShort(id);
+    final n = callName(null, id);
+    // 재혁의 '도망치지 않았어요'는 그날 이야기(고백)를 들은 뒤에만
+    final reply = id == 9 && conf == null ? '…괜찮아요. 연구실에서 다친 것보다 덜해요.' : _tnHurtReply[id] ?? '…괜찮아요. 하루만 쉬면 돼요.';
     talk([
       Line('me', '폭풍이 걷히자 ${jo(n, '이', '가')} 방벽 아래 주저앉아 있었다.'),
       if (care != null) Line(care, _tnCareLine(care, id)),
-      Line(id, _tnHurtReply[id] ?? '…괜찮아요. 하루만 쉬면 돼요.'),
+      Line(id, reply),
     ], tag: '폭풍이 지나간 새벽 · ${survivors[id].name} 다침');
     fx.add(FxToast('${survivors[id].name} 부상 · 하루 쉬어요. 다 나을 때까지 신뢰가 오르지 않아요'));
   }
@@ -311,9 +348,9 @@ extension Tension on Game {
     final an = _tnShort(a), bn = _tnShort(b);
     if (c['k'] == 'med' && c['v'] == 'kin') {
       final care = [2, 5].where((x) => _tnHere(x) && !_tnHurt(x)).firstOrNull;
-      return ChoiceView('새벽 · 정답 없는 선택', '약 한 알', [
+      return ChoiceView('낮 · 정답 없는 선택', '약 한 알', [
         const Line('me', '밤새 하늘이가 열에 들떴다. 순례 할머니는 무릎이 퉁퉁 부어 일어나지 못했다.'),
-        if (care == 2) const Line(2, '해열제가 한 사람 몫이에요. 하늘이도, 할머니도 필요해요.'),
+        if (care == 2) const Line(2, '소염진통제가 한 알뿐이에요. 열도 내리고 붓기도 빼는 건데… 하늘이도, 할머니도 필요해요.'),
         if (care == 5) const Line(5, '약이 한 알뿐이야. 할매도 하늘이도 앓는데… 네가 정해.'),
         const Line(4, '약은 아한테 먼저 주이소. 나는 괜찮다.'),
         const Line(3, '…할머니 먼저 줘요. 저는 금방 나아요.'),
@@ -325,19 +362,19 @@ extension Tension on Game {
     if (c['k'] == 'med') {
       final care = [2, 5, 4].where((x) => x != a && x != b && _tnHere(x) && !_tnHurt(x)).firstOrNull;
       final y = b == 4 && a == 3 ? '약은 아한테 먼저 주이소. 나는 괜찮다.' : _tnMedYield[b];
-      return ChoiceView('새벽 · 정답 없는 선택', '약 한 알, 다친 사람 둘', [
+      return ChoiceView('낮 · 정답 없는 선택', '약 한 알, 다친 사람 둘', [
         const Line('me', '약상자에 남은 건 진통제 한 알뿐이었다. 누워 있는 사람은 둘이다.'),
-        if (care == 2) Line(2, '한 사람 몫이에요. ${_tnCall(an)}도 ${_tnCall(bn)}도 상처가 깊어요. 누구 먼저 줄지 정해 줘요.'),
-        if (care == 5) Line(5, '약이 한 알뿐이야. ${_tnCall(an)}도 ${_tnCall(bn)}도 끙끙 앓는데. 네가 정해. 난 못 고르겠다.'),
+        if (care == 2) Line(2, '한 사람 몫이에요. ${callName(2, a)}도 ${callName(2, b)}도 상처가 깊어요. 누구 먼저 줄지 정해 줘요.'),
+        if (care == 5) Line(5, '약이 한 알뿐이야. ${callName(5, a)}도 ${callName(5, b)}도 끙끙 앓는데. 네가 정해. 난 못 고르겠다.'),
         if (care == 4) const Line(4, '약이 한 알뿐이데이. 둘 다 앓는데… 니가 정해 도.'),
         if (y != null) Line(b, y),
       ], [
-        ('${_tnCall(an)}에게 준다', '$an 바로 회복 · $bn 회복이 더뎌요'),
-        ('${_tnCall(bn)}에게 준다', '$bn 바로 회복 · $an 회복이 더뎌요'),
+        ('${callName(null, a)}에게 준다', '$an 바로 회복 · $bn 회복이 더뎌요'),
+        ('${callName(null, b)}에게 준다', '$bn 바로 회복 · $an 회복이 더뎌요'),
       ]);
     }
     if (c['k'] == 'soup') {
-      return ChoiceView('저녁 · 정답 없는 선택', '국이 모자란 밤', [
+      return ChoiceView('낮 · 정답 없는 선택', '국이 모자란 밤', [
         const Line('me', '저녁 국솥이 반도 차지 않았다.'),
         const Line(5, '국이 모자라. 다 같이 반 그릇씩 먹으면 내일 아무도 힘을 못 써. 누구 몫부터 뜰까.'),
       ], [
@@ -384,7 +421,7 @@ extension Tension on Game {
         ls.add(Line(x, _tnMedThanks[x] ?? '…고마워요. 금방 일어날게요.'));
         ls.add(Line(y, _tnMedAfter[y] ?? '…괜찮아요. 잘했어요.'));
       }
-      if (auto) fx.add(FxNote('약 한 알', '머뭇거리는 사이 약은 ${_tnShort(x)} 몫이 됐다. ${jo(_tnShort(y), '은', '는')} 하루를 더 앓는다.', ms: 6000));
+      if (auto) fx.add(FxNote('약 한 알', '머뭇거리는 사이 약은 ${callName(null, x)} 몫이 됐다. ${jo(callName(null, y), '은', '는')} 하루를 더 앓는다.', ms: 6000));
     } else if (c['k'] == 'soup') {
       final kids = [3, jinId].where((q) => _tnHere(q)).toList();
       if (k == 0) {
@@ -421,16 +458,25 @@ extension Tension on Game {
     if (cb is! num || dayN < cb || isNight || uiBusy || phase < 10 || phase > 120) return;
     S.rest.remove('medCb');
     final x = (S.rest['choice_med'] as num?)?.toInt();
-    if (x == 3 && hasSv(3)) {
+    // 상대가 지금 쉘터에 없으면(원정·이주·떠남) 그날을 떠올리는 말로
+    if (x == 3 && _tnHere(3)) {
       talk([
-        const Line(3, '그때 할머니가 양보한 거, 저 알아요.'),
-        const Line(4, '…야가 뭘 안다꼬. 어서 밥이나 묵어라.'),
-        const Line('me', '순례 할머니는 괜히 하늘이 머리만 쓰다듬었다.'),
+        if (_tnHere(4)) ...const [
+          Line(3, '그때 할머니가 양보한 거, 저 알아요.'),
+          Line(4, '…야가 뭘 안다꼬. 어서 밥이나 묵어라.'),
+          Line('me', '순례 할머니는 괜히 하늘이 머리만 쓰다듬었다.'),
+        ] else ...const [
+          Line(3, '그때 할머니가 약 양보한 거, 저 다 알아요. …고맙다고 말도 못 했는데.'),
+          Line('me', '하늘이는 할머니가 앉던 밭둑 쪽을 한참 바라보았다.'),
+        ],
       ], tag: '약 한 알 · 그 뒤');
-    } else if (x == 4 && hasSv(4)) {
+    } else if (x == 4 && _tnHere(4)) {
       talk([
         const Line(4, '니 덕에 이 할미가 아직 밭을 맨다 아이가.'),
-        const Line('me', '할머니는 호미를 들고 밭으로 나갔다. 하늘이가 그 뒤를 졸졸 따랐다.'),
+        if (_tnHere(3))
+          const Line('me', '할머니는 호미를 들고 밭으로 나갔다. 하늘이가 그 뒤를 졸졸 따랐다.')
+        else
+          const Line('me', '할머니는 호미를 들고 밭으로 나갔다. 하늘이가 늘 따라 걷던 자리를 몇 번이나 돌아보았다.'),
       ], tag: '약 한 알 · 그 뒤');
     }
     dirty = true;
@@ -459,7 +505,7 @@ extension Tension on Game {
       S.rest.remove(k);
       S.rest.remove('sorryXp_$id');
       rec(id)!['xp'] = xpOf(id) + back;
-      talk([const Line('me', '미안해.'), Line(id, _tnForgive[id] ?? '…괜찮아요. 이제 됐어요.')], tag: '사과 · ${survivors[id].name} 신뢰 +$back');
+      talk([Line('me', survivors[id].age >= 60 ? '미안합니다.' : '미안해.'), Line(id, _tnForgive[id] ?? '…괜찮아요. 이제 됐어요.')], tag: '사과 · ${survivors[id].name} 신뢰 +$back');
       dirty = true;
       return;
     }
