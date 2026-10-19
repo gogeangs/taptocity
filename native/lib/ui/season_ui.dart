@@ -10,6 +10,7 @@ import '../data/web_data.g.dart' as web;
 import '../game/data.dart';
 import '../game/engine.dart';
 import 'atlas.dart';
+import 'cuts_ui.dart';
 import 'portrait.dart';
 import 'story_ui.dart';
 import 'survivors.dart';
@@ -195,6 +196,10 @@ Future<void> _casePage(BuildContext context, Widget Function(BuildContext ctx) b
 // ======================= 사건 창 (웹 openCase · pickCase) =======================
 Future<void> showCase(BuildContext context, Game g, int k) async {
   final c = caseOf(k);
+  // 웹툰 컷 (앱 전용 2026-10-19): 처음 열 때 ①②③, 고른 결과를 본 뒤 ④
+  final fresh = g.caseRec(k)?['p'] == null, cut = caseCut(k);
+  if (fresh) await playCutOnce(context, g, cut, cut, const [0, 1, 2]);
+  if (!context.mounted) return;
   String? picked;
   await _casePage(context, (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         _caseArt(g, k, clue: g.caseRec(k)?['solved'] == null),
@@ -239,6 +244,8 @@ Future<void> showCase(BuildContext context, Game g, int k) async {
         ),
         Row(children: [pageBtn('닫기', () => Navigator.pop(ctx))]),
       ]));
+  if (!fresh || !context.mounted) return;
+  await playCutOnce(context, g, '$cut:4', cut, const [3]);
 }
 
 // ======================= 정답 없는 선택 (앱 전용, game/tension.dart) =======================
@@ -512,6 +519,7 @@ List<Widget> casesTab(BuildContext context, Game g) {
             if (c.alibi != null) cst('증언', c.alibi!),
             cst('내 선택', c.opt(p).l(g)),
             if (solved && c.log != null) cst('결말', c.log!) else if (clues.isNotEmpty) ...[for (final t in clues) csc('단서 · $t')] else csc('단서 없음', none: true),
+            if (solved) cutReplayButton(context, caseCut(k), const [0, 1, 2, 3]),
           ]),
         ),
         Positioned(right: 4, top: 0, child: _stamp(solved)),

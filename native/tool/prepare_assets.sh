@@ -11,6 +11,9 @@ for f in shelters modules module-upgrades exploration-sites landmarks settlement
   walkers-1 walkers-2 walkers-3 terrain-props ground-tiles lantern-tower line-stations line-stations-factory landmarks-desert landmarks-factory landmarks-snow; do
   cp "../assets/illustrated/$f.webp" assets/illustrated/
 done
+# 웹툰 컷 (2×2 네 칸, 앱 전용): 사건·합류 장면
+mkdir -p assets/illustrated/cuts
+cp ../assets/illustrated/cuts/*.webp assets/illustrated/cuts/
 # 웹 글꼴(woff2)을 앱용(ttf)으로
 python3 -m fontTools.ttLib.woff2 decompress -o assets/fonts/ttc-sans.ttf ../fonts/ttc-sans.woff2
 ls -la assets/illustrated assets/fonts

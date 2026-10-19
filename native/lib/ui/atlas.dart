@@ -124,6 +124,13 @@ class Atlas {
     } catch (_) {}
   }
 
+  /// 크고 한 번 보고 마는 그림(웹툰 컷 assets/illustrated/cuts/)을 놓아준다. 다시 필요하면 ensure·lazy가 새로 불러온다.
+  /// 그리는 중일 수도 있어 dispose하지 않고 손만 뗀다
+  static void forget(String f) {
+    _img.remove(f);
+    _want.remove(f);
+  }
+
   // ---------- 손그림 소품의 실제 테두리 (웹 tpBoxes · wkBox · LT.box: 칸마다 불투명한 부분만) ----------
   static final Map<String, List<Rect?>?> _boxes = {};
 

@@ -30,6 +30,8 @@ flutter:
   # 그림과 글꼴은 저장소의 원본(assets/illustrated, fonts)을 빌드 때 복사해 쓴다 (tool/prepare_assets.sh)
   assets:
     - assets/illustrated/
+    # 웹툰 컷 (하위 폴더는 따로 적어야 묶인다)
+    - assets/illustrated/cuts/
     # 소리: 웹의 합성음을 렌더링한 음원 (tool/gen_audio.cjs)
     - assets/audio/sfx/
     - assets/audio/music/

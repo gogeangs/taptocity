@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:taptocity/game/data.dart';
 import 'package:taptocity/game/engine.dart';
 import 'package:taptocity/ui/atlas.dart';
+import 'package:taptocity/ui/cuts_ui.dart';
 import 'package:taptocity/ui/game_screen.dart';
 import 'package:taptocity/ui/season_ui.dart';
 import 'package:taptocity/ui/story_ui.dart';
@@ -224,6 +225,30 @@ void main() {
             });
           }
           g.S.rest['choice'] = null;
+          // 웹툰 컷 보기 (앱 전용 2026-10-19): 사건 1 ①·④(효과 글자), 순례 합류 ②, 탑 아래 진 ③, 사건 수첩의 다시 보기
+          for (final (name, panels, taps, label) in const [
+            ('case1', [0, 3], 0, '사건 1 ①'),
+            ('case1', [0, 3], 1, '사건 1 ④'),
+            ('join_sunrye', [1], 0, '순례 합류 ②'),
+            ('join_jin_choice', [2], 0, '탑 아래 진 ③'),
+          ]) {
+            await visit('$tag · 웹툰 컷 · $label', () async {
+              await home();
+              await tester.runAsync(() => Atlas.ensure(cutFile(name)));
+              showCuts(tester.element(find.byType(GameScreen)), name, panels);
+              await settle();
+              for (var k = 0; k < taps; k++) {
+                await tapText('탭해서 계속 ▸');
+              }
+            });
+          }
+          await visit('$tag · 일지 · 사건 · 컷 다시 보기', () async {
+            await home();
+            await tester.runAsync(() => Atlas.ensure(cutFile('case1')));
+            await tapText('일지');
+            await tapText('사건');
+            await tapText('컷 다시 보기');
+          });
           // 앱 전용 (2026-10-18): 기록 조각 · 일지의 조각 목록 · 오늘의 의뢰 연속 칸 · 아침 보고 · 인연 Lv.3 · 지하 준비(가장 깊이)
           final frags0 = g.S.rest['frags'], ug0 = Map<String, Object?>.from(g.ugRec), dq0 = g.S.rest['dayQ'], ds0 = g.S.rest['dayStreak'], dl0 = g.S.rest['dayLast'];
           g.S.rest['frags'] = <Object?>[0, 3, 7];

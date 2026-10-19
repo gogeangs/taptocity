@@ -21,6 +21,7 @@ import '../report.dart';
 import 'atlas.dart';
 import 'cloud_ui.dart';
 import 'crisis_ui.dart';
+import 'cuts_ui.dart';
 import 'feat_ui.dart';
 import 'gear.dart';
 import 'icons.dart';
@@ -347,7 +348,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       case FxCamp(:final tile):
         showCampPage(context, g, tile);
       case FxRescue(:final id, :final via):
-        Future.delayed(const Duration(milliseconds: 250), () {
+        Future.delayed(const Duration(milliseconds: 250), () async {
+          if (!mounted) return;
+          // 웹툰 컷 (앱 전용): 이야기 속 사람이 처음 합류할 때 네 칸
+          final cut = joinCuts[id];
+          if (cut != null) await playCutOnce(context, g, cut, cut, const [0, 1, 2, 3]);
           if (mounted) showRescuePage(context, g, id, via);
         });
       case FxDefense(:final start):
@@ -375,15 +380,23 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           if (mounted) showRequestDone(context, g, ev, k, sum);
         });
       case FxTalk():
-        _pageQ.add(() {
+        _pageQ.add(() async {
+          // 9장 까마귀 · 대치: 독수리 앞에 선 진 (웹툰 컷 ①② 먼저, 대화 뒤 남기로 한 ③)
+          final jin = f.tag == '까마귀 · 대치' && g.hasSv(jinId);
+          if (jin) {
+            await playCutOnce(context, g, 'join_jin_choice', 'join_jin_choice', const [0, 1]);
+            if (!mounted) return;
+          }
           if (f.after == 'endCard') _endMood = 'air';
-          return showTalk(context, g, f, onDone: () {
+          await showTalk(context, g, f, onDone: () {
             if (f.goal != null) g.panGuide = DateTime.now().millisecondsSinceEpoch;
             if (f.after == 'endCard') {
               _endMood = null;
               setState(() => _endCard = true);
             }
           });
+          if (!jin || !mounted) return;
+          await playCutOnce(context, g, 'join_jin_choice:3', 'join_jin_choice', const [2]);
         });
         _pumpPages();
       case FxCase(:final k):
@@ -404,7 +417,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         _pageQ.add(() => showOnboard(context, g, onTour: () => setState(() => _coach = 0)));
         _pumpPages();
       case FxConf():
-        _pageQ.add(() => showConf(context, g));
+        _pageQ.add(() async {
+          // 6장 재혁의 고백: 웹툰 컷 네 칸을 먼저
+          await playCutOnce(context, g, 'join_jaehyuk', 'join_jaehyuk', const [0, 1, 2, 3]);
+          if (mounted) await showConf(context, g);
+        });
         _pumpPages();
       case FxFeat(:final k):
         _pageQ.add(() => showFeatCard(context, g, k, go: _featGo));

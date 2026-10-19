@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../game/data.dart';
 import '../game/engine.dart';
+import 'cuts_ui.dart';
 import 'daily_ui.dart';
 import 'gear.dart';
 import 'icons.dart';
@@ -487,6 +488,8 @@ void showSurvPage(BuildContext context, Game g, int id0, {void Function(int id, 
                       : Text('신뢰도 ${k + 1}에 열려요', style: Ttc.t(12.5, color: const Color(0xFFA8977A))),
                 ),
               if (id == 12 && tl >= 2) watchButton(ctx, g),
+              for (final c in survivorCuts(id))
+                if (g.cutSeen(c.$1)) Align(alignment: Alignment.centerLeft, child: cutReplayButton(ctx, c.$1, c.$2, label: c.$3)),
             ]),
           _ => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               _sline('특기', g.traitOf(id)),
