@@ -1,60 +1,60 @@
+Downloading packages...
+  app_links 6.4.1 (7.2.2 available)
+  code_assets 1.2.1 (2.1.0 available)
+  flutter_lints 5.0.0 (6.0.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  lints 5.1.1 (6.1.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  objective_c 9.5.0 (9.6.2 available)
+  petitparser 7.0.2 (7.1.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  shared_preferences_foundation 2.5.7 (2.6.0 available)
+  test_api 0.7.12 (0.7.15 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+14 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
 Running Xcode build...                                          
-Xcode build done.                                           88.5s
-VMServiceFlutterDriver: Connecting to Flutter application at http://127.0.0.1:52430/17pl3tGsbyc=/
-VMServiceFlutterDriver: Isolate found with number: 1657859726233763
-VMServiceFlutterDriver: Isolate 1657859726233763 is runnable.
+Xcode build done.                                           150.3s
+VMServiceFlutterDriver: Connecting to Flutter application at http://127.0.0.1:52571/IRd4rzbTYJU=/
+VMServiceFlutterDriver: Isolate found with number: 4552120367235043
+VMServiceFlutterDriver: Isolate 4552120367235043 is runnable.
 VMServiceFlutterDriver: Isolate is paused at start.
 VMServiceFlutterDriver: Attempting to resume isolate
 flutter: 00:00 +0: iPhone에서 앱 띄워 보기
 VMServiceFlutterDriver: Connected to Flutter application.
 flutter: ▶ 처음 켜기 (0s)
 VMServiceFlutterDriver: request_data message is taking a long time to complete...
-flutter: ▶ 첫 화면 두드리기 (13s)
-flutter: ▶ 진행 중인 저장으로 켜기 (18s)
-flutter: ▶ 지도 두드리기 (소리) (24s)
-flutter: ▶ 탭 쉘터 (29s)
-flutter: ▶ 쉘터 · 건설 (31s)
-flutter: ▶ 쉘터 · 가공 (31s)
-flutter: ▶ 쉘터 · 연구 (31s)
-flutter: ▶ 쉘터 닫기 (31s)
-flutter: ▶ 탭 일지 (33s)
-flutter: ▶ 일지 · 기록 (34s)
-flutter: ▶ 일지 · 도감 (34s)
-flutter: ▶ 일지 닫기 (34s)
-flutter: ▶ 탭 원정 (36s)
-flutter: ▶ 원정 닫기 (37s)
-flutter: ▶ 탭 라디오 (39s)
-flutter: ▶ 라디오 닫기 (40s)
-flutter: ▶ 탭 생존자 (42s)
-flutter: ▶ 생존자 닫기 (44s)
-flutter: ▶ 설정 (45s)
-flutter: ▶ 설정 닫기 (47s)
-flutter: ▶ 프로필 (48s)
-flutter: ▶ 프로필 닫기 (51s)
-flutter: ▶ 뒤로 갔다 돌아오기 (51s)
-flutter: ▶ 저장 확인 (56s)
-flutter: ▶ 진동 채널 (56s)
-flutter: 00:56 +1: (tearDownAll)
-flutter: 01:06 +2: All tests passed!
-All tests passed.
+flutter: ▶ 첫 화면 두드리기 (17s)
+flutter: ▶ 진행 중인 저장으로 켜기 (22s)
+flutter: ▶ 지도 두드리기 (소리) (28s)
+flutter: ▶ 탭 쉘터 (33s)
+flutter: ▶ 쉘터 · 건설 (35s)
+flutter: ▶ 쉘터 · 가공 (35s)
+flutter: ▶ 쉘터 · 연구 (35s)
+flutter: ▶ 쉘터 닫기 (35s)
+flutter: ▶ 탭 일지 (36s)
+flutter: ▶ 일지 · 기록 (38s)
+flutter: ▶ 일지 · 도감 (38s)
+flutter: ▶ 일지 닫기 (38s)
+flutter: ▶ 탭 원정 (39s)
+flutter: ▶ 원정 닫기 (41s)
+flutter: ▶ 탭 라디오 (43s)
+flutter: ▶ 라디오 닫기 (44s)
+flutter: ▶ 탭 생존자 (46s)
+flutter: ▶ 생존자 닫기 (48s)
+flutter: ▶ 설정 (49s)
+flutter: ▶ 설정 닫기 (51s)
+flutter: ▶ 프로필 (52s)
+flutter: ▶ 프로필 닫기 (54s)
+flutter: ▶ 뒤로 갔다 돌아오기 (54s)
+flutter: ▶ 저장 확인 (59s)
+flutter: ▶ 진동 채널 (59s)
+flutter: 00:59 +1: (tearDownAll)
+flutter: 01:09 +2: All tests passed!
 -[WFIsolatedShortcutRunner init] Taking sandbox extensions for execution
 -[WFIsolatedShortcutRunner init]_block_invoke Sandbox extensions acquired
-Indexing for request: <WFToolKitIndexingRequest: 0x1071b4320>, changeset: .full, priority: 31
-Failed to index parameter type: <WFSystemShortcutPickerParameter: 0x10c3ed740> in com.apple.shortcuts.RunShortcutIntent: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFSystemShortcutPickerParameter) for locale: en
-Failed to index parameter type: <WFTagFieldParameter: 0x10c3f6140> in is.workflow.actions.addnewreminder: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFTagFieldParameter) for locale: en
-Failed to index parameter type: <WFPosterPickerParameter: 0x10c3ef9c0> in is.workflow.actions.wallpaper.set: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFPosterPickerParameter) for locale: en
-Failed to index parameter type: <WFSystemShortcutPickerParameter: 0x10c3ef540> in com.apple.shortcuts.RunShortcutConfigurationIntent: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFSystemShortcutPickerParameter) for locale: en
-Skipping: <WFUnionParameter: 0x10d118600> in com.apple.MobileSMS.SendMessageReactionIntent because union values themselves are not treated as a type
-Failed to index parameter type: <WFSSHKeyParameter: 0x10d0ae880> in is.workflow.actions.runsshscript: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFSSHKeyParameter) for locale: en
-Failed to index parameter type: <WFLightroomPresetPickerParameter: 0x10d1fb980> in is.workflow.actions.lightroom.import: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.missingIntentDescription for locale: en
-Failed to index parameter type: <WFPhotoItemCollectionParameter: 0x10d35e3e0> in com.apple.mobileslideshow.PLPhotosReliveWidgetConfigurationIntent: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFPhotoItemCollectionParameter) for locale: en
-Failed to index parameter type: <WFExpandingParameter: 0x10d35fd40> in is.workflow.actions.downloadurl: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFExpandingParameter) for locale: en
-Failed to index parameter type: <WFInputTypeParameter: 0x10d460480> in is.workflow.actions.input: ActionKit.(unknown context at $10694e880).WFParameterStateToolKitConversionError.unknownParameterState(WFMultipleValueParameterState) for locale: en
-Failed to index parameter type: <WFInputSurfaceParameter: 0x10d411440> in is.workflow.actions.input: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFInputSurfaceParameter) for locale: en
-Failed to index parameter type: <WFSystemShortcutPickerParameter: 0x10d528900> in com.apple.shortcuts.WFShortcutsWidgetConfigurationIntent: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFSystemShortcutPickerParameter) for locale: en
-Failed to index parameter type: <WFMediaPickerParameter: 0x10d528e40> in is.workflow.actions.playmusic: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFMediaPickerParameter) for locale: en
-Skipping: <WFUnionParameter: 0x10b06a200> in com.apple.mobilecal.EditEventIntent because union values themselves are not treated as a type
-Skipping: <WFUnionParameter: 0x10b06a800> in com.apple.mobilecal.EditEventIntent because union values themselves are not treated as a type
-Failed to index parameter type: <WFHomeAccessoryPickerParameter: 0x10d52ad00> in is.workflow.actions.homeaccessory: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFHomeAccessoryPickerParameter) for locale: en
-Failed to index parameter type: <WFPosterPickerParameter: 0x10b0c0d80> in is.workflow.actions.posters.switch: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFPosterPickerParameter) for locale: en
-Failed to index parameter type: <WFEvernoteTagsTagFieldParameter: 0x10d593900> in is.workflow.actions.evernote.new: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFEvernoteTagsTagFieldParameter) for locale: en
+Indexing for request: <WFToolKitIndexingRequest: 0x106dc0320>, changeset: .full, priority: 31
+All tests passed.
