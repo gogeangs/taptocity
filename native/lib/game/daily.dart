@@ -154,7 +154,7 @@ const Map<int, Map<String, List<String>>> _mr = {
 extension Daily on Game {
   int get todayKey => dayKeyOf(Game.nowMs());
 
-  /// 오늘의 의뢰가 열리는 때 (긴장 장치와 같게: 튜토리얼·안내 뒤, 재폭풍 밤을 배우고 판잣집이 된 뒤)
+  /// 오늘의 의뢰가 열리는 때 (긴장 장치와 같게: 튜토리얼·안내 뒤, 재폭풍 밤을 배우고 판잣집이 된 뒤, 첫 동네는 4장 은호가 온 뒤)
   bool get dayOn => tensionOn;
   Map? get dayQ => S.rest['dayQ'] is Map ? S.rest['dayQ'] as Map : null;
   int get dayStreak => ((S.rest['dayStreak'] as num?) ?? 0).toInt();

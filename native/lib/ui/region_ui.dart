@@ -902,7 +902,7 @@ Widget questBox(Game g, int id) {
         ),
       );
   if (q == null) {
-    return box([_sec2('${survivors[id].name}의 이야기 · ???'), _d('신뢰도 $qUnlock이 되면 ${survivors[id].name}의 이야기가 열려요')], lock: true);
+    return box([_sec2('${survivors[id].name}의 이야기 · ???'), _d(g.questsOpen ? '신뢰도 $qUnlock이 되면 ${survivors[id].name}의 이야기가 열려요' : '3장에 들어서고 신뢰도 $qUnlock이 되면 ${survivors[id].name}의 이야기가 열려요')], lock: true);
   }
   if (q['done'] == true) {
     return box([_sec2('${survivors[id].name}의 이야기 · ${Q.t} ✓'), _d(Q.end.last.t)], done: true);

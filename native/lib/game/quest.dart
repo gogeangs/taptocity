@@ -19,6 +19,9 @@ const qUnlock = web.qUnlock;
 extension Quest on Game {
   Map? qOf(int id) => rec(id)?['q'] as Map?;
 
+  /// 개인 이야기가 열릴 수 있는 때. 앱 전용 (2026-10-20): 첫 동네는 3장('고물상 세우기')부터 — 신뢰도가 먼저 차도 3장까지 기다린다
+  bool get questsOpen => S.gen != 0 || mi >= stepI('고물상 세우기');
+
   /// 지금 걸음 (끝났거나 안 열렸으면 null)
   Map? qStep(int id) {
     final q = qOf(id), Q = quests[id];
@@ -78,7 +81,7 @@ extension Quest on Game {
     for (final id in svIds.toList()) {
       final Q = quests[id], r = rec(id);
       if (Q == null || r == null) continue;
-      if (r['q'] == null && Game.trustLv(xpOf(id)) >= qUnlock) {
+      if (r['q'] == null && questsOpen && Game.trustLv(xpOf(id)) >= qUnlock) {
         r['q'] = <String, Object?>{'s': 0};
         svNew = true;
         opened.add(id);

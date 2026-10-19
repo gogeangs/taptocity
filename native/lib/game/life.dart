@@ -51,6 +51,10 @@ extension Living on Game {
   }
 
   // ================= 장식 =================
+  /// 쉘터 꾸미기 탭. 앱 전용 (2026-10-20): 첫 동네는 컨테이너 쉘터(Lv.3)부터 (웹은 Lv.2). 이미 놓은 장식이 있는 옛 저장은 그대로.
+  /// 엔진의 placeDeco는 막지 않는다 (웹 비교 시험) — 화면의 꾸미기 탭에서 막는다
+  bool get decoOpen => S.gen != 0 || S.lv >= 3 || (S.rest['deco'] is Map && (S.rest['deco'] as Map).isNotEmpty);
+
   Map<String, Object?> get deco {
     if (S.rest['deco'] is! Map) S.rest['deco'] = <String, Object?>{};
     return S.rest['deco'] as Map<String, Object?>;
@@ -191,7 +195,9 @@ extension Living on Game {
   }
 
   String? get petOn => S.rest['petOn'] as String?;
-  bool get petsOpen => S.gen != 0 || (S.lv >= 2 && S.sv.length >= 2);
+  /// 떠돌이 동물이 나타나고 펫을 돌보는 때. 앱 전용 (2026-10-20): 첫 동네는 3장 사건 ‘사라지는 통조림’이 풀려
+  /// 떠돌이 개 ‘등불’이 식구가 된 뒤(다른 길로 개가 왔거나 펫이 이미 있어도). 하늘이가 없어 그 사건을 건너뛰었으면 그때 연다
+  bool get petsOpen => S.gen != 0 || Game._truthy(S.rest['dog']) || pets.isNotEmpty || ((S.rest['cases'] as Map?)?['0'] as Map?)?['skip'] != null;
   int petLv(String k) {
     final x = ((pets[k]?['xp'] as num?) ?? 0);
     var l = 1;

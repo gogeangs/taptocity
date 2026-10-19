@@ -68,7 +68,11 @@ void main() {
     final g = mk(1, [0, 3]);
     expect(g.tensionOn, isTrue);
     expect(g.dayOn, isTrue);
+    // 앱 전용 (2026-10-20): 첫 동네 지하는 5장 첫 걸음부터 열린다 (그 전엔 닫힘)
+    expect(g.ugOpen, isFalse);
+    g.S.rest['mi'] = stepI('지하 구역 2층까지 내려가기');
     expect(g.ugOpen, isTrue);
+    g.S.rest['mi'] = stepI('생존자 5명 모으기');
     expect(g.heal, 1);
   });
 

@@ -193,8 +193,9 @@ const Map<int, String> _tnForgive = {
 }
 
 extension Tension on Game {
-  /// 이 긴장 장치들이 켜지는 때: 튜토리얼·안내가 끝나고, 재폭풍 밤을 배우고, 판잣집이 된 뒤 (새 동네는 처음부터)
-  bool get tensionOn => tut == null && onb != 1 && ashLearned && (S.lv >= 2 || S.gen != 0);
+  /// 이 긴장 장치들이 켜지는 때: 튜토리얼·안내가 끝나고, 재폭풍 밤을 배우고, 판잣집이 된 뒤 (새 동네는 처음부터).
+  /// 앱 전용 (2026-10-20): 첫 동네는 4장에서 은호가 온 뒤('첫 원정 보내기' 걸음부터) — 기능이 이야기와 함께 하나씩 열리게
+  bool get tensionOn => tut == null && onb != 1 && ashLearned && (S.gen != 0 || (S.lv >= 2 && mi >= stepI('첫 원정 보내기')));
   int get dayN => num_('day').toInt();
 
   bool _tnHere(int id) => hasSv(id) && !Game._truthy(rec(id)!['away']) && !isDead(id);

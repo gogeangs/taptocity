@@ -486,7 +486,7 @@ class PetsBody extends StatelessWidget {
     }
     if (own.isEmpty) {
       out.add(emptyBox(const Opacity(opacity: .85, child: PetPic('dog', size: 56, silhouette: true)), '아직 함께하는 펫이 없어요',
-          g.petsOpen ? '구름을 걷다 보면 떠돌이 동물의 발자국이 지도에 찍혀요' : '판잣집이 되고 생존자가 두 명 모이면 떠돌이 동물이 나타나요'));
+          g.petsOpen ? '구름을 걷다 보면 떠돌이 동물의 발자국이 지도에 찍혀요' : '해 질 녘이면 쉘터 뒤에서 개 짖는 소리가 나요. 3장에 무슨 일인지 알게 돼요'));
     }
     if (own.length > 1) {
       final hungry = petKeys.where((k) => own.containsKey(k) && g.petFedLeft(k) == 0).toList();
@@ -562,6 +562,13 @@ class PetsBody extends StatelessWidget {
 const decoIds = {'pot': 8, 'flag': 9, 'bench': 10, 'lamp': 11, 'chime': 12, 'string': 13, 'mural': 14, 'statue': 15};
 
 List<Widget> decoTab(Game g, {required void Function(String k) onPick}) {
+  // 앱 전용 (2026-10-20): 첫 동네는 컨테이너 쉘터(Lv.3)부터 (life.dart decoOpen)
+  if (!g.decoOpen) {
+    return [
+      emptyBox(Opacity(opacity: .6, child: AtlasPic(file: 'settlement-props.webp', src: Atlas.fr(Atlas.propFrames[decoIds['bench']!]), width: 56, height: 56)), '아직 꾸밀 자리가 없어요',
+          '지금 쉘터 둘레는 비바람을 막기에도 빠듯해요. 컨테이너 쉘터(Lv.3)로 키우면 장식을 놓을 수 있어요'),
+    ];
+  }
   final ds = g.decoSets();
   final total = g.decoHope + ds.keys.fold<int>(0, (a, q) => a + (setHope[q] ?? 0));
   final out = <Widget>[

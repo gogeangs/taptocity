@@ -24,8 +24,11 @@ class FxFeat extends Fx {
 
 /// 웹 FEAT (4327): 기능이 처음 열리면 카드 하나 · 아래 탭에 점
 class FeatInfo {
-  const FeatInfo(this.k, this.tab, this.sheet, this.seg, this.on, this.msg, this.h);
+  const FeatInfo(this.k, this.tab, this.sheet, this.seg, this.on, this.msg, this.h, {this.story});
   final String k, msg, h;
+
+  /// 앱 전용 (2026-10-20): 카드 맨 위에 붙는 이야기 한 줄 — 이 기능이 이야기의 어느 순간에 열렸는지 (첫 동네)
+  final String Function(Game g)? story;
 
   /// 아래 탭 번호 (0 생존자 · 1 원정 · 2 쉘터 · 3 라디오 · 4 일지), 없으면 -1
   final int tab;
@@ -34,11 +37,22 @@ class FeatInfo {
 }
 
 final List<FeatInfo> feats = [
-  FeatInfo('radio', 3, 'radio', null, (g) => g.have('batt') >= 3 && g.mi >= 2, '라디오에 건전지를 넣을 수 있어요', '주파수 탐색'),
-  FeatInfo('bag', 0, 'surv', null, (g) => g.inv.isNotEmpty, '생존자에게 장비를 맞춰 줄 수 있어요', '장비'),
-  FeatInfo('quest', 0, 'surv', null, (g) => g.S.sv.values.any((r) => r is Map && r['q'] != null), '생존자의 이야기가 열렸어요', '생존자의 이야기'),
-  FeatInfo('deco', 2, 'shelter', 'deco', (g) => g.S.lv >= 2, '쉘터 화면 ‘꾸미기’ 탭에서 장식을 놓을 수 있어요', '쉘터 꾸미기'),
-  FeatInfo('ug', 1, 'exp', null, (g) => g.ugOpen, '원정 탭 맨 위에 지하 구역이 열렸어요', '지하 구역'),
+  // 앱 전용 (2026-10-20): 기능이 이야기와 함께 열린다 (첫 동네). 라디오는 4장 첫 걸음부터 쓸 수 있고(radioOpen — 그 걸음이 탐색을 요구),
+  // 카드는 은호가 와서 라디오를 손본 뒤에 (웹: 건전지 3개 · 프롤로그 뒤)
+  FeatInfo('radio', 3, 'radio', null, (g) => g.radioOpen && (g.S.gen != 0 || g.hasSv(10) || g.mi > stepI('목소리의 주인 맞이하기')) && g.have('batt') >= 3,
+      '은호가 무전기를 고쳤어요. 라디오에서 주파수를 찾을 수 있어요', '주파수 탐색',
+      story: (g) => '은호가 무전기를 고쳤어요. 라디오에서 주파수를 찾을 수 있어요.'),
+  FeatInfo('bag', 0, 'surv', null, (g) => g.inv.isNotEmpty, '주운 장비를 생존자에게 맞춰 줄 수 있어요', '장비',
+      story: (g) => '뒤지고 다니다 처음으로 쓸 만한 장비를 주웠어요.'),
+  // 개인 이야기는 3장부터 열린다 (quest.dart questsOpen)
+  FeatInfo('quest', 0, 'surv', null, (g) => g.S.sv.values.any((r) => r is Map && r['q'] != null), '신뢰가 쌓인 생존자가 자기 이야기를 꺼냈어요', '생존자의 이야기',
+      story: (g) => '함께 버틴 날들이 쌓이자, 누군가 처음으로 자기 이야기를 꺼냈어요.'),
+  // 꾸미기는 컨테이너 쉘터(Lv.3)부터 (life.dart decoOpen · 웹은 Lv.2)
+  FeatInfo('deco', 2, 'shelter', 'deco', (g) => g.decoOpen, '컨테이너 쉘터 둘레에 장식을 놓을 수 있어요 · 쉘터 화면 ‘꾸미기’ 탭', '쉘터 꾸미기',
+      story: (g) => '컨테이너를 쌓아 올리자 쉘터 둘레에 장식을 놓을 자리가 생겼어요.'),
+  // 지하는 5장 첫 걸음부터 (story.dart ugOpen)
+  FeatInfo('ug', 1, 'exp', null, (g) => g.ugOpen, '컨테이너 밑 맨홀 아래로 지하 구역이 열렸어요 · 원정 탭 맨 위', '지하 구역',
+      story: (g) => '컨테이너 밑 맨홀에서 찬 바람이 올라와요. 지하에 아무도 털지 않은 창고가 있을 거예요.'),
   FeatInfo('relic', 4, 'diary', 'relic', (g) => g.relics.isNotEmpty, '일지 ‘폐허 도감’에서 유물을 볼 수 있어요', '폐허 도감'),
   FeatInfo('auto', 0, 'surv', null, (g) => g.S.lv >= 3, '생존자 수첩 맨 위에서 버튼 한 번으로 일터를 채울 수 있어요', '자동 배치'),
   FeatInfo('autoexp', 1, 'exp', null, (g) => g.S.lv >= 4, '원정 탭 맨 위에서 자동 원정을 켤 수 있어요', '자동 원정'),
@@ -47,7 +61,11 @@ final List<FeatInfo> feats = [
   FeatInfo('route', 4, 'diary', 'towns', (g) => g.S.gen > 0, '일지 ‘도감’ › ‘노선도’에서 지나온 동네와 남은 사람들을 볼 수 있어요', '만수의 노선도'),
   FeatInfo('migrate', 2, 'shelter', 'build', (g) => Game._truthy(g.S.rest['endSeen']) && g.S.lv >= 5, '쉘터 화면에서 새 동네로 떠날 수 있어요', '이주'),
   FeatInfo('line', 1, 'exp', null, (g) => g.lnOpen, '복구한 역 안쪽 끊긴 노선에 들어갈 수 있어요', '끊긴 노선'),
-  FeatInfo('pets', 0, 'pets', null, (g) => g.pets.isNotEmpty, '식구가 된 동물을 펫 화면에서 돌볼 수 있어요', '펫'),
+  // 펫은 3장 사건이 풀려 떠돌이 개가 식구가 된 뒤 (life.dart petsOpen)
+  FeatInfo('pets', 0, 'pets', null, (g) => g.pets.isNotEmpty, '식구가 된 동물을 펫 화면에서 돌볼 수 있어요', '펫',
+      story: (g) => g.pets.containsKey('dog')
+          ? '떠돌이 개 ${jo(g.petName('dog'), '이', '가')} 식구가 됐어요. 이제 다른 떠돌이 동물도 쉘터 근처를 기웃거려요.'
+          : '쉘터에 네 발 달린 식구가 생겼어요. 이제 다른 떠돌이 동물도 쉘터 근처를 기웃거려요.'),
   FeatInfo('fire', -1, null, null, (g) => g.S.region == 'snow', '위쪽 띠의 모닥불 온기를 지켜요', '모닥불 온기'),
 ];
 
@@ -124,7 +142,7 @@ extension FeatExt on Game {
     final bt = have('batt').toInt();
     if (bt < 5) ack['rdAt'] = 0;
     final rdAt = ((ack['rdAt'] as num?) ?? 0).toInt();
-    if (bt >= 5 && (rdAt == 0 || bt >= rdAt + 10)) out.add(3);
+    if (radioOpen && bt >= 5 && (rdAt == 0 || bt >= rdAt + 10)) out.add(3); // 앱 전용: 라디오가 열리기 전(첫 동네 4장 전)엔 점 없음
     final f = featMap;
     for (final x in feats) {
       if (f[x.k] == 1 && x.tab >= 0) out.add(x.tab);
@@ -151,7 +169,7 @@ extension FeatExt on Game {
   bool _tabActDot(int t) {
     if (t == 2) return canUpNow && !Game._truthy(ack['up']);
     final bt = have('batt').toInt(), rdAt = ((ack['rdAt'] as num?) ?? 0).toInt();
-    return bt >= 5 && (rdAt == 0 || bt >= rdAt + 10);
+    return radioOpen && bt >= 5 && (rdAt == 0 || bt >= rdAt + 10);
   }
 
   // ---------------- 새 기능 안내 (웹 tickFeat · seeFeat · seeTab) ----------------

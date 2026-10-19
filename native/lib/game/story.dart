@@ -133,7 +133,13 @@ extension Story on Game {
   int get storyI => (S.rest['storyI'] as num?)?.toInt() ?? -1;
   String? get conf => S.rest['conf'] as String?;
   int get towerN => num_('tower').toInt();
-  bool get ugOpen => S.lv >= 3 || lmOn('station');
+  /// 지하 구역. 앱 전용 (2026-10-20): 첫 동네는 5장 첫 걸음('지하 구역 2층까지 내려가기' — 컨테이너 밑 맨홀)에 열린다.
+  /// 이미 내려가 본 옛 저장은 그대로. 새 동네는 웹처럼 쉘터 Lv.3 또는 역 복구.
+  bool get ugOpen => S.gen != 0 ? (S.lv >= 3 || lmOn('station')) : (mi >= stepI('지하 구역 2층까지 내려가기') || ugBest > 0);
+
+  /// 주파수 탐색. 앱 전용 (2026-10-20): 첫 동네는 4장 첫 걸음('라디오로 주파수 탐색 한 번 하기' — 창고에서 낡은 라디오를 찾음)부터.
+  /// 은호(10)가 오면 확실히 열리고, 이미 돌려 본 옛 저장은 그대로. 엔진의 pull()은 막지 않는다 (웹 비교 시험) — 화면에서 막는다.
+  bool get radioOpen => S.gen != 0 || mi >= stepI('라디오로 주파수 탐색 한 번 하기') || hasSv(10) || num_('gUses') > 0 || num_('gTotal') > 0;
   int get ugBest => (((S.rest['ug'] as Map?)?['best'] as num?) ?? 0).toInt();
 
   // ================= 옛 저장 맞추기 (웹 migrateSteps 4403) =================

@@ -84,6 +84,11 @@ Future<void> showFeatCard(BuildContext context, Game g, String k, {required void
         const SizedBox(width: 12),
         Expanded(child: Text(f.h, style: Ttc.t(21, color: Ttc.sepia, weight: FontWeight.w700, height: 1.25))),
       ]),
+      // 앱 전용 (2026-10-20): 첫 동네에서는 이 기능이 이야기의 어느 순간에 열렸는지 한 줄
+      if (f.story != null && g.S.gen == 0) ...[
+        const SizedBox(height: 10),
+        Text(f.story!(g), style: Ttc.serif(14.5, color: Ttc.sepia2, height: 1.6)),
+      ],
       const SizedBox(height: 10),
       Text(G.what, style: Ttc.t(15, color: Ttc.sepia, height: 1.6)),
       const SizedBox(height: 12),

@@ -295,9 +295,16 @@ void main() {
       await tester.tap(find.text(survivors[1].name).last);
     });
     g.S.m['batt'] = 6;
+    // 앱 전용 (2026-10-20): 첫 동네 라디오는 4장 첫 걸음부터 돌릴 수 있다 → 이 사진만 4장 첫 걸음으로 (장면은 본 것으로)
+    final miR = g.mi;
+    g.S.rest['mi'] = stepI('라디오로 주파수 탐색 한 번 하기');
+    g.S.rest['storyI'] = g.mi;
     await _shot(tester, g, '17-radio', act: () async {
       await tester.tap(find.text('라디오').last);
     });
+    g.S.rest['mi'] = miR;
+    g.S.rest['storyI'] = miR;
+    g.takeFx();
     g.petAdopt('dog', quiet: true);
     g.petAdopt('cat', quiet: true);
     g.addKid();
@@ -406,6 +413,9 @@ void main() {
       await tester.tap(find.text('회상').last);
     });
     // 지하 구역: 준비 창 → 내려간 첫 층
+    // 앱 전용 (2026-10-20): 첫 동네 지하는 5장 첫 걸음('지하 구역 2층까지 내려가기')부터 열린다
+    g.S.rest['mi'] = stepI('지하 구역 2층까지 내려가기');
+    g.S.rest['storyI'] = g.mi;
     g.S.lv = 3;
     g.recalc();
     await _shot(tester, g, '26-ug-prep', act: () async {

@@ -104,7 +104,7 @@ final Map<String, _Sq> sqTypes = {
       const ['“지도에 표시해 둔 곳이 있어요. 누가 다녀와 줄래요?”', '“멀리서 연기가 올라와요. 확인해 봐야겠어요.”']),
   'ug': _Sq((g) => g.ugOpen && g.ugRuns > 0, (g) => 1, (g) => g.ugRuns, (n) => '지하 구역 한 번 내려가기', 'fExp',
       const ['“지하에서 이상한 소리가 났대요. 한번 내려가 봐요.”', '“지하철역 매점에 통조림이 남아 있을지도 몰라요.”']),
-  'radio': _Sq((g) => g.have('batt') >= 3, (g) => 3, (g) => g.num_('gTotal'), (n) => '주파수 탐색 $n번 하기', 'radio',
+  'radio': _Sq((g) => g.radioOpen && g.have('batt') >= 3, (g) => 3, (g) => g.num_('gTotal'), (n) => '주파수 탐색 $n번 하기', 'radio',
       const ['“라디오에서 누가 부르는 것 같았어요. 다이얼 좀 돌려 봐요.”', '“건전지 아껴서 뭐 해요. 신호 좀 찾아봐요!”']),
   'ev': _Sq((g) => g.num_('evDone') > 0, (g) => 1, (g) => g.num_('evDone'), (n) => '생존자의 부탁 하나 들어주기', 'ev', const ['“다들 말은 안 해도 부탁이 하나씩 있을 거예요.”']),
   'night': _Sq((g) => g.num_('nights') > 0, (g) => 1, (g) => g.num_('nights'), (n) => '재폭풍 밤 한 번 버티기', 'clock', const ['“오늘 밤도 무사히 넘겨요. 그럼 한잔해요.”']),

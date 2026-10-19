@@ -319,7 +319,10 @@ class RadioBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final b = g.batt, c = g.exchangeCost;
-    Widget pullBtn(int n) => Expanded(child: hl('pull:$n', BuyButton('$n번 탐색 · 건전지 $n', width: double.infinity, onTap: b < n ? null : () => showPull(context, g, n)), radius: 7));
+    // 앱 전용 (2026-10-20): 첫 동네는 4장(창고에서 낡은 라디오를 찾음)부터 돌릴 수 있다 (story.dart radioOpen)
+    final open = g.radioOpen;
+    Widget pullBtn(int n) => Expanded(
+        child: hl('pull:$n', BuyButton('$n번 탐색 · 건전지 $n', width: double.infinity, onTap: !open || b < n ? null : () => showPull(context, g, n), why: open ? null : '4장에 열려요'), radius: 7));
     return ListView(padding: const EdgeInsets.fromLTRB(14, 14, 14, 20), children: [
       Container(
         padding: const EdgeInsets.all(16),
@@ -331,8 +334,12 @@ class RadioBody extends StatelessWidget {
             if (g.hasMod(7) && g.egg['b'] == null) Positioned(top: -2, left: math.min(230, MediaQuery.of(context).size.width * .6) / 2 + 58, child: MorseLamp(g)),
           ]),
           const SizedBox(height: 12),
-          Text.rich(TextSpan(children: [const TextSpan(text: '건전지로 다이얼을 돌려 물자와 장비를 찾아요. 가끔 '), bold('히든 생존자'), const TextSpan(text: '의 목소리도 잡혀요.')]),
-              style: Ttc.t(14, color: Ttc.sepia2, height: 1.7)),
+          if (open)
+            Text.rich(TextSpan(children: [const TextSpan(text: '건전지로 다이얼을 돌려 물자와 장비를 찾아요. 가끔 '), bold('히든 생존자'), const TextSpan(text: '의 목소리도 잡혀요.')]),
+                style: Ttc.t(14, color: Ttc.sepia2, height: 1.7))
+          else
+            Text('창고 어딘가에서 가끔 지지직 소리가 나요. 아직 쓸 만한 라디오를 찾지 못했어요. (4장 ‘잡음 속의 목소리’에서 열려요)',
+                textAlign: TextAlign.center, style: Ttc.t(14, color: Ttc.sepia2, height: 1.7)),
           const SizedBox(height: 10),
           Container(
             width: double.infinity,
