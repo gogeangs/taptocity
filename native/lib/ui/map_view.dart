@@ -782,7 +782,7 @@ class MapPainter extends CustomPainter {
       canvas.drawCircle(m, 9, _fill);
       _line.strokeWidth = 1.5;
       canvas.drawCircle(m, 9, _line);
-      final tx = TextPainter(text: TextSpan(text: k == 'trader' ? '⇄' : k == 'raider' ? '!' : '?', style: const TextStyle(fontSize: 11, color: Color(0xFF3B2A1A), fontWeight: FontWeight.bold)), textDirection: TextDirection.ltr)..layout();
+      final tx = TextPainter(text: TextSpan(text: k == 'trader' ? '⇄' : k == 'raider' ? '!' : '?', style: Ttc.t(11, color: const Color(0xFF3B2A1A), weight: FontWeight.w700, height: 1)), textDirection: TextDirection.ltr)..layout();
       tx.paint(canvas, Offset(m.dx - tx.width / 2, m.dy - tx.height / 2));
       _glows.add((P(i, .35, .62, 2), 24.0, const Color(0xFFFFAA50), .4));
       // 무리를 이끄는 사람 (웹 drawBandTile figureAt: 장사꾼 15 · 약탈자 14 · 그 밖 17)
@@ -818,7 +818,7 @@ class MapPainter extends CustomPainter {
         ..color = const Color(0xFF3B2A1A)
         ..strokeWidth = 1.5;
       canvas.drawCircle(Offset(p.dx, y), 9, _line);
-      final tp = TextPainter(text: TextSpan(text: hp > 0 ? '!' : '?', style: const TextStyle(fontSize: 12, color: Color(0xFF3B2A1A), fontWeight: FontWeight.bold)), textDirection: TextDirection.ltr)..layout();
+      final tp = TextPainter(text: TextSpan(text: hp > 0 ? '!' : '?', style: Ttc.t(12, color: const Color(0xFF3B2A1A), weight: FontWeight.w700, height: 1)), textDirection: TextDirection.ltr)..layout();
       tp.paint(canvas, Offset(p.dx - tp.width / 2, y - tp.height / 2));
       if (hp > 0) {
         _fill.color = const Color(0xBF0D0B08);
@@ -1282,7 +1282,7 @@ class MapPainter extends CustomPainter {
       ..color = const Color(0xFF3B2A1A)
       ..strokeWidth = 1.5;
     canvas.drawCircle(Offset(x, y), 9, _line);
-    final tp = TextPainter(text: const TextSpan(text: '★', style: TextStyle(fontSize: 11, color: Color(0xFF3B2A1A), fontWeight: FontWeight.bold)), textDirection: TextDirection.ltr)..layout();
+    final tp = TextPainter(text: TextSpan(text: '★', style: Ttc.t(11, color: const Color(0xFF3B2A1A), weight: FontWeight.w700, height: 1)), textDirection: TextDirection.ltr)..layout();
     tp.paint(canvas, Offset(x - tp.width / 2, y - tp.height / 2 + .5));
   }
 
@@ -1463,14 +1463,42 @@ class FxLayerController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 한꺼번에 보이는 제목 카드 수: 평소 둘, 대형 재폭풍 중 하나. 넘치는 카드는 줄 세웠다가 앞 카드가 지면 띄운다
+  final List<Toast> _noteQ = [];
+  int get _noteMax => low ? 1 : 2;
+  int get _notesShown => toasts.where((x) => x.h != null).length;
+
   /// 제목이 있는 알림 카드 (웹 note)
   void note(String h, String t, {int ms = 4500}) {
     toasts.removeWhere((x) => x.h == h);
-    toasts.add(Toast(h, t, ms / 1000));
-    while (toasts.length > 3) {
-      toasts.removeAt(0);
+    _noteQ.removeWhere((x) => x.h == h);
+    if (_notesShown >= _noteMax) {
+      _noteQ.add(Toast(h, t, ms / 1000));
+      if (_noteQ.length > 6) _noteQ.removeAt(0);
+    } else {
+      toasts.add(Toast(h, t, ms / 1000));
+      while (toasts.length > 3) {
+        toasts.removeAt(0);
+      }
     }
     notifyListeners();
+  }
+
+  /// 줄 선 카드 올리기 · 넘친 카드(재폭풍이 시작되어 한도가 줄었을 때)는 먼저 온 것부터 흐리게 지운다
+  void _flowNotes() {
+    var over = _notesShown - _noteMax;
+    for (final x in toasts) {
+      if (over <= 0) break;
+      if (x.h == null) continue;
+      if (x.life > .3) x.life = .3;
+      over--;
+    }
+    while (_noteQ.isNotEmpty && _notesShown < _noteMax) {
+      toasts.add(_noteQ.removeAt(0));
+      while (toasts.length > 3) {
+        toasts.removeAt(0);
+      }
+    }
   }
 
   /// 게임에서 나온 연출 신호를 받아 파티클로 바꾼다.
@@ -1524,7 +1552,8 @@ class FxLayerController extends ChangeNotifier {
       t.life -= dt;
     }
     toasts.removeWhere((t) => t.life <= 0);
-    return parts.isNotEmpty || toasts.isNotEmpty;
+    _flowNotes();
+    return parts.isNotEmpty || toasts.isNotEmpty || _noteQ.isNotEmpty;
   }
 }
 

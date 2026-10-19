@@ -108,7 +108,7 @@ const guestArt = {'떠돌이 상인': 0, '길 잃은 가족': 1};
 Widget guestFace(String t, {double size = 40}) {
   final k = guestArt[t];
   final im = Atlas.image('guests.webp');
-  if (k == null || im == null) return Icon(Icons.local_shipping_outlined, size: size * .5, color: const Color(0xFF3B2A1A));
+  if (k == null || im == null) return SvgIcon(Ico.truck, size: size * .5, color: const Color(0xFF3B2A1A));
   // 웹: background 200% auto, 위치 (k*100%, 18%) — 칸 너비만큼 정사각으로 자른 윗부분
   final cw = im.width / 2.0, y = (im.height - cw) * .18;
   return ClipOval(child: Container(color: const Color(0xFFE6D8B6), child: AtlasPic(file: 'guests.webp', src: Rect.fromLTWH(k * cw, y, cw, cw), width: size, height: size)));

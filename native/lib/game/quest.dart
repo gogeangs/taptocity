@@ -73,13 +73,15 @@ extension Quest on Game {
 
   /// 매초: 열기, 데려오기·지하 걸음 확인 (웹 tickQuests)
   void _tickQuests() {
+    // 같은 순간에 여럿이 열리면 알림 카드는 하나로 묶는다 (지도 가운데를 카드가 덮지 않게)
+    final opened = <int>[];
     for (final id in svIds.toList()) {
       final Q = quests[id], r = rec(id);
       if (Q == null || r == null) continue;
       if (r['q'] == null && Game.trustLv(xpOf(id)) >= qUnlock) {
         r['q'] = <String, Object?>{'s': 0};
         svNew = true;
-        fx.add(FxNote('${survivors[id].name}의 이야기가 열렸어요', '‘${Q.t}’ · 생존자 수첩에서 확인해요', ms: 5000));
+        opened.add(id);
         dirty = true;
         continue;
       }
@@ -90,6 +92,13 @@ extension Quest on Game {
       } else if (st['k'] == 'ug' && ((((ugRec['bestWith'] as Map?) ?? const {})['$id'] as num?) ?? 0) >= (st['f'] as num)) {
         qAdvance(id);
       }
+    }
+    if (opened.length == 1) {
+      final id = opened.first;
+      fx.add(FxNote('${survivors[id].name}의 이야기가 열렸어요', '‘${quests[id]!.t}’ · 생존자 수첩에서 확인해요', ms: 5000));
+    } else if (opened.length > 1) {
+      final titles = [for (final id in opened) '‘${quests[id]!.t}’'].join(' · ');
+      fx.add(FxNote('${survivors[opened.first].name} 외 ${opened.length - 1}명의 이야기가 열렸어요', '$titles · 생존자 수첩에서 확인해요', ms: 5000));
     }
   }
 }

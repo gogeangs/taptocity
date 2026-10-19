@@ -748,7 +748,7 @@ class _LivePainter extends CustomPainter {
     tp.paint(canvas, Offset(bx + 8, by + 11.5 - tp.height / 2));
     life.bubbleRect = c.solo ? null : Rect.fromLTWH(bx, by, tw, 28);
     if (!c.solo) {
-      final ar = TextPainter(text: TextSpan(text: '▸', style: Ttc.t(12, color: Ttc.no, weight: FontWeight.w600, height: 1)), textDirection: TextDirection.ltr)..layout();
+      final ar = TextPainter(text: TextSpan(text: '›', style: Ttc.t(14, color: Ttc.no, weight: FontWeight.w600, height: 1)), textDirection: TextDirection.ltr)..layout();
       ar.paint(canvas, Offset(bx + tw - 18, by + 11.5 - ar.height / 2));
     }
   }

@@ -238,7 +238,7 @@ void main() {
               showCuts(tester.element(find.byType(GameScreen)), name, panels);
               await settle();
               for (var k = 0; k < taps; k++) {
-                await tapText('탭해서 계속 ▸');
+                await tapText('탭해서 계속 ›');
               }
             });
           }
@@ -257,7 +257,7 @@ void main() {
             await home();
             showTalk(tester.element(find.byType(GameScreen)), g, g.fragTalk(3, first: true));
             await settle();
-            await tapText('탭해서 계속 ▸');
+            await tapText('탭해서 계속 ›');
           });
           g.S.rest['dayStreak'] = 6;
           g.S.rest['dayLast'] = g.todayKey;
@@ -296,7 +296,7 @@ void main() {
             final t = g.takeFx().whereType<FxTalk>().last;
             showTalk(tester.element(find.byType(GameScreen)), g, t);
             await settle();
-            await tapText('탭해서 계속 ▸');
+            await tapText('탭해서 계속 ›');
           });
           final r0 = g.rec(0)!, xp0 = r0['xp'], bn0 = r0['bondN'], bg0 = r0['bondG'];
           r0['xp'] = trustXp.last + bondCum[2] + 500;
@@ -351,7 +351,7 @@ void main() {
                   Line('me', '나는 랜턴 심지를 조금 낮췄다.'),
                 ], tag: '3장 · 모여드는 사람들', goal: '생존자 3명 모으기'));
             await settle();
-            await tapText('탭해서 계속 ▸');
+            await tapText('탭해서 계속 ›');
             await tapText('건너뛰기');
           });
           // 스킬 바: 다친 사람(붉은 테·남은 시간) · 스킬 대기 배지

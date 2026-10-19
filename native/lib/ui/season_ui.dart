@@ -12,6 +12,7 @@ import '../game/engine.dart';
 import 'atlas.dart';
 import 'cuts_ui.dart';
 import 'portrait.dart';
+import 'profile_ui.dart';
 import 'story_ui.dart';
 import 'survivors.dart';
 import 'sound.dart';
@@ -42,15 +43,17 @@ Widget caseLines(Game g, List<Line> ls) {
   ]);
 }
 
-Widget _csAv(Game g, Object who) {
+/// 사건·선택 창의 작은 얼굴. 나는 대화 창(_avatar)과 같이: 초상화를 골랐으면 그 얼굴, 아니면 랜턴 배지
+Widget _csAv(Game g, Object who, {double sz = 38}) {
   final id = who is String && who.startsWith('npc:') ? null : g.speakerId(who);
   final me = who == 'me' || (id == null && !(who is String && who.startsWith('npc:')));
+  if (me && !g.pfSet) return meLantern(sz);
   return Container(
-    width: 38,
-    height: 38,
-    decoration: BoxDecoration(shape: BoxShape.circle, color: me ? const Color(0xFF3B2A1A) : const Color(0xFFE6D8B6), border: Border.all(color: const Color(0x403B2A1A), width: 1.5)),
+    width: sz,
+    height: sz,
+    decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xFFE6D8B6), border: Border.all(color: const Color(0x403B2A1A), width: 1.5)),
     clipBehavior: Clip.antiAlias,
-    child: id != null ? Portrait(id, width: 38, height: 44) : me ? const Center(child: Text('🏮', style: TextStyle(fontSize: 16))) : npcFace(who as String),
+    child: id != null ? Portrait(id, width: sz, height: sz * 44 / 38) : me ? pfPortrait(g.pfIndex()) : npcFace(who as String),
   );
 }
 
@@ -181,16 +184,41 @@ Widget caseArtBox(int k, {required bool clue, double aspect = 1.5, bool small = 
   );
 }
 
-Future<void> _casePage(BuildContext context, Widget Function(BuildContext ctx) body) => showDialog(
+/// 사건·선택 창. foot(고르는 버튼들)이 있으면 창 아래에 붙여 두고 위 내용만 스크롤한다:
+/// 작은 폰(320×640)에서도 고를 거리가 잘리지 않게. 스크롤 끝은 옅게 흐려 더 있다는 걸 보인다
+Future<void> _casePage(BuildContext context, Widget Function(BuildContext ctx) body, {Widget Function(BuildContext ctx)? foot}) => showDialog(
       context: context,
       barrierDismissible: false,
       barrierColor: const Color(0xC70F161D),
-      builder: (ctx) => Dialog(
-        backgroundColor: Ttc.paper,
-        insetPadding: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Color(0x66EEE5D3))),
-        child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 460), child: SingleChildScrollView(padding: const EdgeInsets.all(18), child: body(ctx))),
-      ),
+      builder: (ctx) {
+        final short = MediaQuery.of(ctx).size.height <= 700;
+        final pad = short ? 14.0 : 18.0;
+        return Dialog(
+          backgroundColor: Ttc.paper,
+          insetPadding: EdgeInsets.all(short ? 12 : 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Color(0x66EEE5D3))),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 460),
+            child: foot == null
+                ? SingleChildScrollView(padding: EdgeInsets.all(pad), child: body(ctx))
+                : Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                    Flexible(
+                      child: ShaderMask(
+                        blendMode: BlendMode.dstIn,
+                        shaderCallback: (r) => LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: const [Color(0xFF000000), Color(0xFF000000), Color(0x00000000)],
+                          stops: [0, r.height <= 16 ? 0 : (r.height - 16) / r.height, 1],
+                        ).createShader(r),
+                        child: SingleChildScrollView(padding: EdgeInsets.fromLTRB(pad, pad, pad, 16), child: body(ctx)),
+                      ),
+                    ),
+                    Padding(padding: EdgeInsets.fromLTRB(pad, 2, pad, pad), child: foot(ctx)),
+                  ]),
+          ),
+        );
+      },
     );
 
 // ======================= 사건 창 (웹 openCase · pickCase) =======================
@@ -213,7 +241,7 @@ Future<void> showCase(BuildContext context, Game g, int k) async {
           ]), style: Ttc.t(12.5, color: Ttc.sepia2, weight: FontWeight.w600, height: 1.4)),
         ),
         caseLines(g, [for (final l in c.x(g)) if (l != null) l]),
-        const SizedBox(height: 4),
+      ]), foot: (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
         Text('어떻게 할까요?', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
         const SizedBox(height: 8),
         for (final p in const ['a', 'b', 'c'])
@@ -257,6 +285,7 @@ Future<void> showChoice(BuildContext context, Game g) async {
         Text(v.tag, style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
         Padding(padding: const EdgeInsets.fromLTRB(0, 2, 0, 10), child: Text(v.title, style: Ttc.t(19, color: Ttc.sepia, weight: FontWeight.w700))),
         caseLines(g, v.lines),
+      ]), foot: (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
         Text('어떻게 할까요?', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
         const SizedBox(height: 8),
         for (var k = 0; k < v.opts.length; k++)
@@ -291,6 +320,7 @@ Future<void> showCrowMeet(BuildContext context, Game g) async {
           Line('npc:crow', '이 길은 우리 길이오. 지나가려면 몫을 내시오.'),
           Line('npc:jin', '…대장, 저 사람들이 그 랜턴 가진 쪽이야.'),
         ]),
+      ]), foot: (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
         Text('어떻게 할까요?', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
         const SizedBox(height: 8),
         _copt('통행료를 낸다', '${ok ? '' : '자재가 모자라요 · '}${g.lootText(c).replaceAll(' +', ' ')}', ok
@@ -393,7 +423,7 @@ class _MorseLampState extends State<MorseLamp> with SingleTickerProviderStateMix
       gs.add(n);
       taps.clear();
       if (gs.join(',') == '3,1,1' && mounted) {
-        showEgg(context, tag: '신호등', body: eggDark(const ['● ● ●　●　●']), note: '깜빡임이 멈췄다. 3, 1, 1. 누군가 시각을 적어 둔 것 같았다.');
+        showEgg(context, tag: '신호등', body: eggDark(const ['● ● ●   ●   ●']), note: '깜빡임이 멈췄다. 3, 1, 1. 누군가 시각을 적어 둔 것 같았다.');
         widget.g.eggGet('b', '세 번, 한 번, 한 번');
       }
     });

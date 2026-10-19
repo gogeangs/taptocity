@@ -196,7 +196,7 @@ class _CutViewState extends State<CutView> {
                 left: 0,
                 right: 0,
                 bottom: 22,
-                child: Center(child: Text('탭해서 계속 ▸', style: Ttc.t(12.5, color: const Color(0x99F3E9D2), weight: FontWeight.w500, height: 1.2))),
+                child: Center(child: Text('탭해서 계속 ›', style: Ttc.t(12.5, color: const Color(0x99F3E9D2), weight: FontWeight.w500, height: 1.2))),
               ),
             ]);
           }),

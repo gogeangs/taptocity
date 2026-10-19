@@ -50,6 +50,10 @@ Widget clockChip(Game g) {
   final night = g.isNight;
   final b = g.S.buff;
   final buffOn = b != null && ((b['t'] as num?) ?? 0) > 0;
+  final buffLabel = '${b?['label'] ?? ''}', buffLeft = ((b?['t'] as num?) ?? 0).ceil();
+  // 행사 칩이 옆에 붙으면 날씨 이름부터 뺀다: 남은 시간(밤까지 2:28)은 좁은 폰에서도 늘 보이게
+  var clock = g.clockText;
+  if (buffOn) clock = clock.replaceFirst('${wxInfo[g.wxK]?.n} · ', '');
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
     decoration: BoxDecoration(
@@ -57,7 +61,8 @@ Widget clockChip(Game g) {
       borderRadius: BorderRadius.circular(99),
       border: Border.all(color: big ? const Color(0xFFAB5145) : const Color(0x2EEEE5D3)),
     ),
-    child: Row(mainAxisSize: MainAxisSize.min, children: [
+    // 행사 칩 자리(남은 초 + 말줄임)는 늘 남겨 둔다: 시계 글자는 그만큼만 넓어질 수 있다
+    child: LayoutBuilder(builder: (context, cons) => Row(mainAxisSize: MainAxisSize.min, children: [
       Container(
         width: 13,
         height: 13,
@@ -71,16 +76,27 @@ Widget clockChip(Game g) {
         child: night ? CustomPaint(painter: _Moon()) : null,
       ),
       const SizedBox(width: 7),
-      Flexible(child: Text(g.clockText, overflow: TextOverflow.ellipsis, style: Ttc.t(11, color: big ? const Color(0xFFF4C1B6) : const Color(0xFFE8E4D9), weight: FontWeight.w500))),
-      if (buffOn) ...[
+      if (!buffOn)
+        Flexible(child: Text(clock, maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(11, color: big ? const Color(0xFFF4C1B6) : const Color(0xFFE8E4D9), weight: FontWeight.w500)))
+      else ...[
+        // 시계 글자는 줄이지 않고, 행사 칩이 먼저 줄어든다 (행사 이름이 말줄임 · 남은 초는 끝까지)
+        ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: cons.maxWidth.isFinite ? math.max(40.0, cons.maxWidth - 13 - 7 - 4 - 58) : double.infinity),
+          child: Text(clock, maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(11, color: big ? const Color(0xFFF4C1B6) : const Color(0xFFE8E4D9), weight: FontWeight.w500)),
+        ),
         const SizedBox(width: 4),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(color: const Color(0x38F3A53A), borderRadius: BorderRadius.circular(99)),
-          child: Text('✦ ${b['label']} ${((b['t'] as num?) ?? 0).ceil()}초', style: Ttc.t(11, color: const Color(0xFFFFD98A), weight: FontWeight.w700, height: 1.2)),
+        Flexible(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(color: const Color(0x38F3A53A), borderRadius: BorderRadius.circular(99)),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Flexible(child: Text(buffLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(11, color: const Color(0xFFFFD98A), weight: FontWeight.w700, height: 1.2))),
+              Text(' $buffLeft초', maxLines: 1, softWrap: false, style: Ttc.t(11, color: const Color(0xFFFFD98A), weight: FontWeight.w700, height: 1.2)),
+            ]),
+          ),
         ),
       ],
-    ]),
+    ])),
   );
 }
 

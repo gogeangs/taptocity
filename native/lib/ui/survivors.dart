@@ -128,7 +128,7 @@ class _SurvBodyState extends State<SurvBody> {
     if (tool == 'auto' && g.autoOpen) {
       final tiles = g.modAt.length, used = g.S.asg.length;
       out.add(autoBox(
-        title: '⚙\uFE0E 자동 배치',
+        title: '자동 배치',
         sub: '일터 $used/$tiles · 딱 맞는 사람을 먼저 앉혀요',
         button: BuyButton('지금 맞추기', width: 84, onTap: () {
           final r = g.autoAssign(true);

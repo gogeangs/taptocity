@@ -127,7 +127,7 @@ class _ExpBodyState extends State<ExpBody> {
           if (g.autoExpOpen) {
             final on = g.S.rest['autoExp'] == true;
             out.add(hl('autoexp', autoBox(
-              title: '⚙\uFE0E 자동 원정',
+              title: '자동 원정',
               sub: on ? '켜짐 · 보낼 수 있는 사람 ${g.expPool.length}명' : '쉬는 사람으로 팀을 꾸려 보내고, 돌아오면 알아서 챙겨요',
               button: const SizedBox.shrink(),
               trailing: toggle(on, () {
@@ -225,7 +225,7 @@ class _ExpBodyState extends State<ExpBody> {
                 ),
                 Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                   if (g.autoExpOpen) ...[
-                    ghostBtn('⚙\uFE0E 자동 팀', () {
+                    ghostBtn('자동 팀', () {
                       final t = g.autoTeam(e, [for (final id in g.svIds) if (!g.busy(id) && !(((g.rec(id)!['hurt'] as num?) ?? 0) > 0)) id]);
                       if (t == null) {
                         widget.toast('보낼 수 있는 사람이 모자라요');

@@ -69,7 +69,7 @@ class SheetPanel extends StatelessWidget {
                   height: 44,
                   alignment: Alignment.center,
                   decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0x173C2B1A)),
-                  child: Text('✕', style: Ttc.t(18, weight: FontWeight.w600, height: 1)),
+                  child: Text('×', style: Ttc.t(20, weight: FontWeight.w600, height: 1)),
                 ),
               ),
             ]),

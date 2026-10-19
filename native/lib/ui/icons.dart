@@ -27,6 +27,13 @@ abstract final class Ico {
   static final drone = _i('<rect x="9" y="10" width="6" height="4" rx="1"/><path d="M9 12H4M15 12h5M4 9h4M16 9h4M12 14v3"/><circle cx="12" cy="18" r="1"/>');
   static const lock =
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+  // 글꼴(ttc-sans)에 없는 기호·Material 아이콘 글꼴(시험 화면에서는 안 실림) 대신 그리는 작은 그림들
+  static const heart =
+      '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
+  static const heartO =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M12 20l-1.2-1.1C6.2 14.7 3.2 12 3.2 8.7 3.2 6 5.3 4 7.9 4c1.5 0 3 .7 4.1 1.9C13.1 4.7 14.6 4 16.1 4c2.6 0 4.7 2 4.7 4.7 0 3.3-3 6-7.6 10.2L12 20z"/></svg>';
+  static final gift = _i('<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12M12 8c-1.5-3-5-4-5-1.5S10 8 12 8zM12 8c1.5-3 5-4 5-1.5S14 8 12 8z"/>');
+  static final truck = _i('<path d="M2 6h11v10H2zM13 9h4l3 3v4h-7"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/>');
   static const check =
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>';
 

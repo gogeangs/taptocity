@@ -84,7 +84,7 @@ extension SupplyExt on Game {
     sfx('chime');
     // 시스템 알림이 아니라 쉘터 사람이 자기 말투로 알려 준다 (바이블 말투 표). 그 사람이 없으면 '나'의 독백
     final say = supplySay(k);
-    fx.add(FxNote(say.$1, '${say.$2}\n지도에서 ✦를 두드려요', ms: 5600));
+    fx.add(FxNote(say.$1, '${say.$2}\n지도에서 반짝이는 더미를 두드려요', ms: 5600));
     _mapChanged();
   }
 

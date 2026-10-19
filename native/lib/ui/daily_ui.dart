@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../game/data.dart';
 import '../game/engine.dart';
+import 'icons.dart';
 import 'story_ui.dart';
 import 'theme.dart';
 import 'widgets.dart';
@@ -26,9 +27,9 @@ Widget streakRow(Game g) {
               border: Border.all(color: k < n ? const Color(0xFFB28540) : k == 6 ? const Color(0xFFC9861A) : const Color(0xFF9A824E), width: k == 6 ? 2 : 1.2),
             ),
             child: k == 6
-                ? Icon(Icons.card_giftcard, size: 12, color: k < n ? const Color(0xFF3B2A1A) : const Color(0xFFC9861A))
+                ? SvgIcon(Ico.gift, size: 12, color: k < n ? const Color(0xFF3B2A1A) : const Color(0xFFC9861A))
                 : k < n
-                    ? const Icon(Icons.check, size: 12, color: Color(0xFF3B2A1A))
+                    ? const SvgIcon(Ico.check, size: 12, color: Color(0xFF3B2A1A))
                     : null,
           ),
           const SizedBox(height: 2),
@@ -69,7 +70,7 @@ List<Widget> dailySection(Game g) {
                 height: 18,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(shape: BoxShape.circle, color: ok ? Ttc.ok : null, border: Border.all(color: ok ? Ttc.ok : const Color(0xFF9A824E), width: 1.2)),
-                child: ok ? const Icon(Icons.check, size: 12, color: Colors.white) : null,
+                child: ok ? const SvgIcon(Ico.check, size: 12, color: Color(0xFFFFFFFF)) : null,
               ),
               const SizedBox(width: 8),
               Expanded(child: Text(t, style: Ttc.t(13, color: ok ? Ttc.sepia2 : Ttc.sepia, weight: FontWeight.w600, height: 1.35))),
@@ -136,7 +137,11 @@ Widget bondBox(BuildContext context, Game g, int id) {
       Row(children: [
         Text('인연 Lv.$b', style: Ttc.t(14, color: const Color(0xFF7A3A1C), weight: FontWeight.w700)),
         const SizedBox(width: 8),
-        for (var k = 1; k <= 5; k++) Icon(k <= b ? Icons.favorite : Icons.favorite_border, size: 13, color: k <= b ? const Color(0xFFC0503A) : const Color(0xFFB79A84)),
+        for (var k = 1; k <= 5; k++)
+          Padding(
+            padding: const EdgeInsets.only(right: 1.5),
+            child: SvgIcon(k <= b ? Ico.heart : Ico.heartO, size: 13, color: k <= b ? const Color(0xFFC0503A) : const Color(0xFFB79A84)),
+          ),
         const Spacer(),
         Text(nx == null ? '가장 깊은 인연' : '${fmt(nx.$1)}/${fmt(nx.$2)}', style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w600)),
       ]),
@@ -162,7 +167,7 @@ Widget bondBox(BuildContext context, Game g, int id) {
             padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
             decoration: BoxDecoration(color: const Color(0xFFF8F3E6), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0x2926333B))),
             child: Row(children: [
-              Icon(Icons.favorite, size: 12, color: const Color(0xFFC0503A).withValues(alpha: .8)),
+              SvgIcon(Ico.heart, size: 12, color: const Color(0xFFC0503A).withValues(alpha: .8)),
               const SizedBox(width: 6),
               Expanded(child: Text('$lv. ${g.bondScene(id, lv).$1}', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w600))),
               Text('다시 보기 ›', style: Ttc.t(11.5, color: Ttc.sepia2)),

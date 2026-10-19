@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:taptocity/game/data.dart';
 import 'package:taptocity/game/engine.dart';
 import 'package:taptocity/ui/atlas.dart';
-import 'package:taptocity/ui/cuts_ui.dart' show cutFile, showCuts;
+import 'package:taptocity/ui/cuts_ui.dart' show CutSeen, caseCut, cutFile, showCuts;
 import 'package:taptocity/ui/game_screen.dart';
 import 'package:taptocity/ui/lines_ui.dart';
 import 'package:taptocity/ui/map_view.dart';
@@ -135,6 +135,26 @@ void _keepTalk(Game g, String tag) {
   final t = g.takeFx().whereType<FxTalk>().where((x) => (x.tag ?? '').startsWith(tag)).lastOrNull;
   if (t == null) throw StateError('‘$tag’ 대화가 열리지 않음');
   g.fx.add(t);
+}
+
+/// 개인 이야기를 이미 열어 둔 것으로: 화면 틱이 '…의 이야기가 열렸어요'·'… 2/3' 알림 카드를 띄워
+/// 찍으려는 알림(불빛 밖 경고·방어 안내)을 가리지 않게. 저절로 넘어가는 걸음(데려오기)도 미리 넘긴다
+void _quietQuests(Game g) {
+  for (final id in g.svIds) {
+    final Q = quests[id], r = g.rec(id);
+    if (Q == null || r == null || r['q'] != null) continue;
+    var s = 0;
+    while (s < Q.steps.length && Q.steps[s]['k'] == 'bond' && g.hasSv((Q.steps[s]['id'] as num).toInt())) {
+      s++;
+    }
+    r['q'] = <String, Object?>{'s': s};
+  }
+}
+
+/// 사건 창을 바로 열리게: 처음 여는 사건은 웹툰 컷(그림을 진짜로 풀어야 해서 시험 시계로는 끝나지 않음)부터 띄우므로 본 것으로 적는다
+void _caseReady(Game g, int k) {
+  g.cutMark(caseCut(k));
+  g.fx.add(FxCase(k));
 }
 
 Future<void> _noAct(Game g) async {}
@@ -348,7 +368,7 @@ void main() {
     // 사건 수첩: 사건 창 → 수첩 → 회상
     g.S.rest['mi'] = stepI('생존자 3명 모으기');
     g.S.rest['storyI'] = g.mi;
-    g.fx.add(const FxCase(0));
+    _caseReady(g, 0);
     await _shot(tester, g, '28-case', act: () async {
       for (var k = 0; k < 8; k++) {
         await tester.pump(const Duration(milliseconds: 100));
@@ -644,7 +664,7 @@ void main() {
       showCuts(_ctx(tester), name, panels);
       await _pumps(tester, 8);
       for (var k = 0; k < taps; k++) {
-        await tester.tap(find.text('탭해서 계속 ▸'));
+        await tester.tap(find.text('탭해서 계속 ›'));
         await _pumps(tester, 8);
       }
     }
@@ -786,6 +806,8 @@ void main() {
       g.wasNight = true;
       g.S.rest['nightCount'] = 3; // darkWarnN(0)과 달라야 그 밤의 첫 경고가 뜬다
       g.S.rest['wx'] = 'normal';
+      _quietQuests(g);
+      g.takeFx();
       final dark = [for (var t = 0; t < N; t++) if (g.S.rev[t] == 1 && !g.litAt(t)) t];
       g.darkTap(dark.isNotEmpty ? dark.first : [for (var t = 0; t < N; t++) if (!g.litAt(t)) t].first);
       if (!g.fx.any((f) => f is FxNote)) throw StateError('불빛 밖 경고가 뜨지 않음');
@@ -832,6 +854,8 @@ void main() {
       g.S.rest['clock'] = 170.0;
       g.wasNight = true;
       g.S.rest['wx'] = 'normal';
+      _quietQuests(g);
+      g.takeFx();
       g.startDefense(); // defs 0 · hintDef1 없음 → '대형 재폭풍이 몰려와요!' 안내
       return g;
     }, act: (g) => _pumps(tester, 20, 100));
@@ -845,7 +869,7 @@ void main() {
     ], tag: '3장 · 모여드는 사람들', goal: '생존자 3명 모으기');
     await shot('64-talk-multi', () => _late()..fx.add(talk4), act: (g) async {
       await waitPage(g);
-      await tester.tap(find.text('탭해서 계속 ▸'));
+      await tester.tap(find.text('탭해서 계속 ›'));
     });
 
     // ===== 좁은 폰 (320×640) =====
@@ -869,7 +893,7 @@ void main() {
       final g = _demo();
       g.S.rest['mi'] = stepI('생존자 3명 모으기');
       g.S.rest['storyI'] = g.mi;
-      g.fx.add(const FxCase(0));
+      _caseReady(g, 0);
       return g;
     }, size: _narrow, act: waitPage);
     await shot('70-narrow-cut', _demo, size: _narrow, act: (g) => cuts('case1', const [0, 1, 2, 3], 3));

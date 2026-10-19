@@ -210,7 +210,7 @@ class _MissionTapeState extends State<MissionTape> {
                         onTap: () => setState(() => open = !open),
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(6, 2, 4, 2),
-                          child: Transform.rotate(angle: open ? math.pi : 0, child: Text('▾', style: Ttc.t(12, color: const Color(0xFFC7CEC9)))),
+                          child: Transform.rotate(angle: open ? math.pi : 0, child: Text('▼', style: Ttc.t(9, color: const Color(0xFFC7CEC9)))),
                         ),
                       ),
                     ),
@@ -389,6 +389,15 @@ Widget sceneArt(String key) {
 const _meSvg =
     '<svg viewBox="0 0 40 40" width="40" height="40" fill="none" stroke="#efe3c4" stroke-width="2" stroke-linejoin="round"><path d="M14 11h12M16 11V8h8v3M13 13h14l-2 17H15z"/><path d="M16 30h8v3h-8z" fill="#efe3c4"/><path d="M20 17c3 3 3 6 0 8-3-2-3-5 0-8z" fill="#ffcf7a" stroke="none"/></svg>';
 
+/// 나(초상화를 아직 고르지 않았을 때)의 작은 랜턴 배지: 대화 창·사건 창·선택 창이 같이 쓴다
+Widget meLantern(double sz) => Container(
+      width: sz,
+      height: sz,
+      decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xFF3A2618), border: Border.all(color: const Color(0x403B2A1A), width: 1.5)),
+      alignment: Alignment.center,
+      child: SvgPicture.string(_meSvg, width: sz * .58, height: sz * .58),
+    );
+
 /// 대화 속 얼굴 (웹 speaker): 만수·유진·하늘·재혁은 표정 그림, 다른 사람은 초상화, 나는 랜턴
 Widget talkFace(Game g, Object who, String t, String? mood, {double w = 84, double h = 98}) {
   if (who is String && who.startsWith('npc:')) {
@@ -477,15 +486,7 @@ class _TalkPageState extends State<_TalkPage> {
     final who = l.who;
     final npc = who is String && who.startsWith('npc:');
     final me = !npc && g.speakerId(who) == null;
-    if (me && !g.pfSet) {
-      return Container(
-        width: sz,
-        height: sz,
-        decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xFF3A2618), border: Border.all(color: const Color(0x403B2A1A), width: 1.5)),
-        alignment: Alignment.center,
-        child: SvgPicture.string(_meSvg, width: 30, height: 30),
-      );
-    }
+    if (me && !g.pfSet) return meLantern(sz);
     return Container(
       width: sz,
       height: sz,
@@ -594,7 +595,7 @@ class _TalkPageState extends State<_TalkPage> {
                   if (n > 1) Text('${k + 1} / $n', style: Ttc.t(12, color: Ttc.sepia2)),
                   if (!last) ...[
                     const SizedBox(width: 10),
-                    Expanded(child: Text('탭해서 계속 ▸', maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(12.5, color: const Color(0xFF9F783F), weight: FontWeight.w600))),
+                    Expanded(child: Text('탭해서 계속 ›', maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(12.5, color: const Color(0xFF9F783F), weight: FontWeight.w600))),
                   ] else
                     const Spacer(),
                   if (canSkip)
@@ -745,7 +746,7 @@ GuideTarget? guideTarget(Game g) {
   if (g.tut != null) return _tutTarget(g);
   // 보급 더미가 있으면 그쪽부터 (앱 시즌 1 다듬기)
   final sp = g.supply;
-  if (sp != null) return GuideTarget(tile: (sp['i'] as num).toInt(), label: '${matOf[sp['k']]?.n ?? '자재'} 모으기 ✦');
+  if (sp != null) return GuideTarget(tile: (sp['i'] as num).toInt(), label: '${matOf[sp['k']]?.n ?? '자재'} 모으기');
   final m = g.mission();
   if (m.done || m.step == null || m.step!.focus == null) return null;
   final st = m.step!, f = st.focus!, S = g.S;
