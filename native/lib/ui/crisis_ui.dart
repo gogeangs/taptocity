@@ -55,7 +55,7 @@ Widget clockChip(Game g) {
   final buffLabel = '${b?['label'] ?? ''}', buffLeft = ((b?['t'] as num?) ?? 0).ceil();
   // 행사 칩이 옆에 붙으면 날씨 이름부터 뺀다: 남은 시간(밤까지 2:28)은 좁은 폰에서도 늘 보이게
   var clock = g.clockText;
-  if (buffOn) clock = clock.replaceFirst('${wxInfo[g.wxK]?.n} · ', '');
+  if (buffOn) clock = clock.split(' · ').last; // 행사 중엔 '새벽까지 0:29'만 남긴다
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
     decoration: BoxDecoration(
@@ -83,7 +83,7 @@ Widget clockChip(Game g) {
       else ...[
         // 시계 글자는 줄이지 않고, 행사 칩이 먼저 줄어든다 (행사 이름이 말줄임 · 남은 초는 끝까지)
         ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: cons.maxWidth.isFinite ? math.max(40.0, cons.maxWidth - 13 - 7 - 4 - 58) : double.infinity),
+          constraints: BoxConstraints(maxWidth: cons.maxWidth.isFinite ? math.max(40.0, cons.maxWidth - 13 - 7 - 4 - 120) : double.infinity),
           child: Text(clock, maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(12.5, color: big ? const Color(0xFFF4C1B6) : const Color(0xFFE8E4D9), weight: FontWeight.w500)),
         ),
         const SizedBox(width: 4),

@@ -249,6 +249,12 @@ class _MissionTapeState extends State<MissionTape> {
                 ),
             ]),
           ),
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * .46),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
           ..._badges(),
           if (g.pedHere) _chip('노친네', widget.onPed, const [Color(0xFF4A3A2A), Color(0xFF7A5A33)], const Color(0xFFF3E2B8), lead: pedFace()),
           if (g.fireOn && g.warm != null)
@@ -284,6 +290,9 @@ class _MissionTapeState extends State<MissionTape> {
                 ),
               ),
             ),
+              ]),
+            ),
+          ),
         ]),
       ),
     );

@@ -1270,7 +1270,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                     builder: (c) {
                       if (g.defn != null || matsOpen) return const SizedBox.shrink();
                       final sqOpen = g.sq != null && g.sqOn && DateTime.now().millisecondsSinceEpoch < g.sqOpenUntil;
-                      final streak = g.dayOn ? streakChip(g, onTap: _openDaily) : null;
+                      final streak = g.dayOn && g.streakShown > 0 ? streakChip(g, onTap: _openDaily) : null;
                       final side = sideQuest(g, onTap: _sqGo);
                       return Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                         if (streak != null || !sqOpen)
