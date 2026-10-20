@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:taptocity/game/data.dart';
 import 'package:taptocity/game/engine.dart';
 import 'package:taptocity/game/state.dart';
+import 'package:taptocity/ui/map_view.dart';
 
 /// 중반 판: 판잣집 넘어 컨테이너(Lv.3), 재폭풍 밤을 배운 뒤(긴장 장치·오늘의 의뢰가 켜짐), 튜토리얼·안내 끝
 Game mk(int seed, List<int> ids, {int lv = 3, num xp = 0}) {
@@ -461,5 +462,17 @@ void main() {
     g2.tick(1);
     expect(g2.dayStreak, 2);
     expect(Game.parseCode(g2.exportCode()), isNotNull);
+  });
+
+  test('텐트 그림 윗부분·이름표를 눌러도 텐트가 잡힌다 (2026-10-20 실기기 신고)', () {
+    final g = Game(Game.fresh(seed: 3, random: math.Random(3)));
+    final cam = Camera();
+    final p = MapPainter(g, cam, cam);
+    final c = tileC(C0);
+    expect(p.bldAt(c), C0); // 칸 가운데
+    expect(p.bldAt(c.translate(0, -30)), C0); // 텐트 몸통 위쪽 (뒤 칸 자리)
+    expect(p.bldAt(c.translate(8, -46)), C0); // 이름표
+    expect(p.bldAt(c.translate(0, -140)), -1); // 한참 위 하늘
+    expect(pickTile(c.translate(0, -30)) == C0, isFalse); // 예전에는 뒤 칸이 잡혔다
   });
 }

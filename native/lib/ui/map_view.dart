@@ -379,8 +379,16 @@ class _MapViewState extends State<MapView> {
         if (ptrs.isEmpty) dragStart = null;
         return;
       }
-      final i = pickTile(toWorld(p.pos));
-      final kind = g.tapTile(i);
+      var i = pickTile(toWorld(p.pos));
+      var kind = g.tapTile(i);
+      if (kind == 'far' || kind == 'none') {
+        // 건물 그림은 칸보다 위로 솟아 있다: 그림 윗부분·이름표를 누르면 뒤 칸이 잡히므로 그림 안이면 그 건물로
+        final j = MapPainter(g, cam, cam).bldAt(w0);
+        if (j >= 0) {
+          i = j;
+          kind = g.tapTile(j);
+        }
+      }
       if (kind == 'far' || kind == 'none') {
         widget.fxLayer.toast('빛이 새는 구름이나 폐허를 두드려 보세요');
       } else {
@@ -1140,6 +1148,27 @@ class MapPainter extends CustomPainter {
   /// 그림의 실제 높이 (웹 TTCFinal·TTCDesign·TTCSettlement 의 *Height): 그리는 폭 × 칸 세로/가로
   static double _artH(Rect? f, double w, {double k = 1, double sub = 0, double min = 10}) => f == null || f.width <= 0 ? 0 : math.max(min, w * f.height / f.width * k - sub);
   static double _propH(int id) => _artH(Atlas.fr(Atlas.propFrames[id]), Atlas.propWidth[id], sub: 13, min: 0);
+
+  /// 누른 곳(세계 좌표)이 건물 그림(칸 마름모 + 위로 솟은 높이 + 이름표) 안이면 그 칸. 앞(아래) 칸부터 본다
+  int bldAt(Offset w) {
+    final i0 = pickTile(w);
+    if (i0 < 0) return -1;
+    final x0 = i0 % W, y0 = i0 ~/ W;
+    for (var dy = 3; dy >= 0; dy--) {
+      for (var dx = 3; dx >= 0; dx--) {
+        final x = x0 + dx, y = y0 + dy;
+        if (x >= W || y >= H) continue;
+        final t = y * W + x;
+        if (g.S.rev[t] != 1) continue;
+        if (!(t == C0 || g.modAtTile(t) != null || g.S.ter[t] == T.lm)) continue;
+        // 쉘터 그림은 칸보다 넓다 (그리는 폭 84~112) → 폭의 절반, 높이는 폭만큼 + 이름표
+        final c = tileC(t), sw = t == C0 ? const [84.0, 84.0, 90.0, 100.0, 112.0][g.S.lv - 1] : TW;
+        final h = t == C0 ? math.max(_bldH(t), sw * .75) + 30 : _bldH(t) + 16;
+        if ((w.dx - c.dx).abs() <= sw * .5 && w.dy <= c.dy + TH * .5 && w.dy >= c.dy - TH * .5 - h) return t;
+      }
+    }
+    return -1;
+  }
 
   /// 칸 위 건물 높이 (웹 bldH 3005): 노선 역 앞을 가리는지 판단할 때 쓴다
   double _bldH(int i) {
