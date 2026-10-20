@@ -1,29 +1,7 @@
 
-══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
-The following TestFailure was thrown running a test:
-쉘터 칸에서 18만큼 위(칸 779)를 눌렀을 때 쉘터 창이 열려야. 화면 글자: 90 | 140 | 40 | 30 | 6 | 60 | Lv.2 판잣집 | ▼ | ☁︎ 흐림 · 낮
-· 밤까지 2:28 | 목재 72개 모으기 | 0/72 | 19 | + | 두드리기 | 생존자 | 원정 | 쉘터 | 라디오 | 일지 | 강도윤: “이 고철 더미가 다 보물이에요.”
-| 강도윤 ×2.0 | 고철 매분 +3 · 목재 +2 | 다음: 고철 매분 +6 · 목재 +4 | 밧줄  | 3 | /4 | 고철  | 40 | 빠른 메뉴 · 자세한 건 쉘터
-화면에서 | 강화 | 강도윤 교체 | 쉘터 화면
-
-When the exception was thrown, this was the stack:
-#0      fail (package:matcher/src/expect/expect.dart:187:31)
-#1      main.<anonymous closure> (file:///home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart:217:9)
-<asynchronous suspension>
-#2      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
-<asynchronous suspension>
-#3      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
-<asynchronous suspension>
-<asynchronous suspension>
-(elided one frame from package:stack_trace)
-
-The test description was:
-  지도 터치 · 건물 그림 윗부분을 눌러도 열린다
-════════════════════════════════════════════════════════════════════════════════════════════════════
-Test failed. See exception logs above.
-The test description was: 지도 터치 · 건물 그림 윗부분을 눌러도 열린다
-
+✅ /home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart: 지도 터치 · 건물 그림 윗부분을 눌러도 열린다
 ✅ /home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart: 화면 사진
 ✅ /home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart: 화면 사진 · 앱 전용 화면과 좁은 폰
 ✅ /home/runner/work/taptocity/taptocity/native/test_screens/qa_ui_test.dart: 모든 화면 훑기
 
+🎉 4 tests passed.

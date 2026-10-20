@@ -110298,24 +110298,28 @@ if(!o&&n!=null){o=p.b
 m=o[a+(b?5:0)]
 return new A.aS(n,A.iJ(m),B.c.O(m[2]*0.2,48,80))}o=A.tu("landmarks.webp")
 return new A.aS(o,A.iJ(B.ym[a+(b?5:0)]),B.as8[a])},
-Zq(a){var s,r,q,p,o,n,m,l,k,j,i,h,g,f,e,d,c,b=A.a8t(a)
-if(b<0)return-1
-s=B.e.J(b,40)
-r=B.e.ah(b,40)
-for(q=a.a,p=this.b,o=a.b,n=3;n>=0;--n)for(m=r+n,l=m>=40,k=3;k>=0;--k){j=s+k
-if(j>=40||l)continue
-i=m*40+j
-if(p.i.d[i]!==1)continue
-h=i===820
-if(!h){g=p.bX.h(0,i)
-f=(g==null?null:p.i.y.h(0,g))!=null||p.i.b[i]===9}else f=!0
-if(!f)continue
-e=A.ci(i,0)
-d=h?B.xT[p.i.x-1]:64
-c=h?Math.max(this.FO(i),d*0.75)+30:this.FO(i)+16
-if(Math.abs(q-e.a)<=d*0.5){h=e.b
-h=o<=h+16&&o>=h-16-c}else h=!1
-if(h)return i}return-1},
+Zq(a3){var s,r,q,p,o,n,m,l,k,j,i,h,g,f,e,d,c,b,a,a0,a1,a2=A.a8t(a3)
+if(a2<0)return-1
+s=B.e.J(a2,40)
+r=B.e.ah(a2,40)
+for(q=a3.a,p=this.b,o=a3.b,n=-1,m=1e9,l=0;l<=3;++l)for(k=r+l,j=k>=40,i=0;i<=3;++i){h=s+i
+if(h>=40||j)continue
+g=k*40+h
+if(p.i.d[g]!==1)continue
+f=g===820
+if(!f){e=p.bX.h(0,g)
+d=(e==null?null:p.i.y.h(0,e))!=null||p.i.b[g]===9}else d=!0
+if(!d)continue
+c=A.ci(g,0)
+b=(f?B.xT[p.i.x-1]:54.4)/2
+a=f?Math.max(this.FO(g),b*1.5)+30:this.FO(g)+16
+a0=Math.abs(q-c.a)
+if(!(a0>b)){f=c.b
+f=o>f+16||o<f-16-a}else f=!0
+if(f)continue
+a1=a0/b-(h+k)*0.001
+if(a1<m){m=a1
+n=g}}return n},
 FO(a){var s,r,q,p,o,n,m,l,k,j,i,h,g=this.b,f=g.i
 if(f.d[a]===0)return 0
 if(a===820)return B.aiK[f.x-1]
