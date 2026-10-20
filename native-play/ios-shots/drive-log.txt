@@ -1,3 +1,4 @@
+Resolving dependencies...
 Downloading packages...
   app_links 6.4.1 (7.2.2 available)
   code_assets 1.2.1 (2.1.0 available)
@@ -17,44 +18,41 @@ Got dependencies!
 14 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
 Running Xcode build...                                          
-Xcode build done.                                           150.3s
-VMServiceFlutterDriver: Connecting to Flutter application at http://127.0.0.1:52571/IRd4rzbTYJU=/
-VMServiceFlutterDriver: Isolate found with number: 4552120367235043
-VMServiceFlutterDriver: Isolate 4552120367235043 is runnable.
+Xcode build done.                                           174.9s
+VMServiceFlutterDriver: Connecting to Flutter application at http://127.0.0.1:54700/D9DNN1yi4kg=/
+VMServiceFlutterDriver: Isolate found with number: 3603190305052947
+VMServiceFlutterDriver: Isolate 3603190305052947 is runnable.
 VMServiceFlutterDriver: Isolate is paused at start.
 VMServiceFlutterDriver: Attempting to resume isolate
 flutter: 00:00 +0: iPhone에서 앱 띄워 보기
 VMServiceFlutterDriver: Connected to Flutter application.
 flutter: ▶ 처음 켜기 (0s)
 VMServiceFlutterDriver: request_data message is taking a long time to complete...
-flutter: ▶ 첫 화면 두드리기 (17s)
-flutter: ▶ 진행 중인 저장으로 켜기 (22s)
-flutter: ▶ 지도 두드리기 (소리) (28s)
-flutter: ▶ 탭 쉘터 (33s)
-flutter: ▶ 쉘터 · 건설 (35s)
-flutter: ▶ 쉘터 · 가공 (35s)
-flutter: ▶ 쉘터 · 연구 (35s)
-flutter: ▶ 쉘터 닫기 (35s)
-flutter: ▶ 탭 일지 (36s)
-flutter: ▶ 일지 · 기록 (38s)
-flutter: ▶ 일지 · 도감 (38s)
-flutter: ▶ 일지 닫기 (38s)
-flutter: ▶ 탭 원정 (39s)
-flutter: ▶ 원정 닫기 (41s)
-flutter: ▶ 탭 라디오 (43s)
-flutter: ▶ 라디오 닫기 (44s)
-flutter: ▶ 탭 생존자 (46s)
-flutter: ▶ 생존자 닫기 (48s)
-flutter: ▶ 설정 (49s)
-flutter: ▶ 설정 닫기 (51s)
-flutter: ▶ 프로필 (52s)
-flutter: ▶ 프로필 닫기 (54s)
-flutter: ▶ 뒤로 갔다 돌아오기 (54s)
-flutter: ▶ 저장 확인 (59s)
-flutter: ▶ 진동 채널 (59s)
-flutter: 00:59 +1: (tearDownAll)
-flutter: 01:09 +2: All tests passed!
--[WFIsolatedShortcutRunner init] Taking sandbox extensions for execution
--[WFIsolatedShortcutRunner init]_block_invoke Sandbox extensions acquired
-Indexing for request: <WFToolKitIndexingRequest: 0x106dc0320>, changeset: .full, priority: 31
+flutter: ▶ 첫 화면 두드리기 (13s)
+flutter: ▶ 진행 중인 저장으로 켜기 (17s)
+flutter: ▶ 지도 두드리기 (소리) (24s)
+flutter: ▶ 탭 쉘터 (29s)
+flutter: ▶ 쉘터 · 건설 (30s)
+flutter: ▶ 쉘터 · 가공 (30s)
+flutter: ▶ 쉘터 · 연구 (30s)
+flutter: ▶ 쉘터 닫기 (30s)
+flutter: ▶ 탭 일지 (32s)
+flutter: ▶ 일지 · 기록 (33s)
+flutter: ▶ 일지 · 도감 (33s)
+flutter: ▶ 일지 닫기 (33s)
+flutter: ▶ 탭 원정 (35s)
+flutter: ▶ 원정 닫기 (37s)
+flutter: ▶ 탭 라디오 (38s)
+flutter: ▶ 라디오 닫기 (40s)
+flutter: ▶ 탭 생존자 (42s)
+flutter: ▶ 생존자 닫기 (43s)
+flutter: ▶ 설정 (45s)
+flutter: ▶ 설정 닫기 (47s)
+flutter: ▶ 프로필 (48s)
+flutter: ▶ 프로필 닫기 (50s)
+flutter: ▶ 뒤로 갔다 돌아오기 (50s)
+flutter: ▶ 저장 확인 (55s)
+flutter: ▶ 진동 채널 (55s)
+flutter: 00:55 +1: (tearDownAll)
+flutter: 01:04 +2: All tests passed!
 All tests passed.
