@@ -1,20 +1,60 @@
-Resolving dependencies...
-Downloading packages...
-  app_links 6.4.1 (7.2.2 available)
-  code_assets 1.2.1 (2.1.0 available)
-  flutter_lints 5.0.0 (6.0.0 available)
-  hooks 2.0.2 (2.2.0 available)
-  lints 5.1.1 (6.1.0 available)
-  material_color_utilities 0.13.0 (0.13.1 available)
-  meta 1.18.3 (1.19.0 available)
-  objective_c 9.5.0 (9.6.2 available)
-  petitparser 7.0.2 (7.1.0 available)
-  record_use 0.6.0 (1.1.1 available)
-  shared_preferences_foundation 2.5.7 (2.6.0 available)
-  test_api 0.7.12 (0.7.15 available)
-  vector_math 2.4.0 (2.4.3 available)
-  xml 7.0.1 (7.1.0 available)
 Got dependencies!
 14 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
 Running Xcode build...                                          
+Xcode build done.                                           153.2s
+VMServiceFlutterDriver: Connecting to Flutter application at http://127.0.0.1:51660/Uqi3EY29YeA=/
+VMServiceFlutterDriver: Isolate found with number: 6772307005521671
+VMServiceFlutterDriver: Isolate 6772307005521671 is runnable.
+VMServiceFlutterDriver: Isolate is paused at start.
+VMServiceFlutterDriver: Attempting to resume isolate
+flutter: 00:00 +0: iPhone에서 앱 띄워 보기
+VMServiceFlutterDriver: Connected to Flutter application.
+flutter: ▶ 처음 켜기 (0s)
+VMServiceFlutterDriver: request_data message is taking a long time to complete...
+flutter: ▶ 첫 화면 두드리기 (15s)
+flutter: ▶ 진행 중인 저장으로 켜기 (20s)
+flutter: ▶ 지도 두드리기 (소리) (27s)
+flutter: ▶ 쉘터 시트 닫기 (39s)
+flutter: ▶ 탭 쉘터 (41s)
+flutter: ▶ 쉘터 · 건설 (45s)
+flutter: ▶ 쉘터 · 가공 (48s)
+flutter: ▶ 쉘터 · 연구 (50s)
+flutter: ▶ 쉘터 닫기 (54s)
+flutter: ▶ 탭 일지 (56s)
+flutter: ▶ 일지 · 기록 (59s)
+flutter: ▶ 일지 · 도감 (61s)
+flutter: ▶ 일지 닫기 (63s)
+flutter: ▶ 탭 원정 (65s)
+flutter: ▶ 원정 닫기 (67s)
+flutter: ▶ 탭 라디오 (68s)
+flutter: ▶ 라디오 닫기 (70s)
+flutter: ▶ 탭 생존자 (72s)
+flutter: ▶ 생존자 닫기 (74s)
+flutter: ▶ 설정 (76s)
+flutter: ▶ 설정 닫기 (78s)
+-[WFIsolatedShortcutRunner init] Taking sandbox extensions for execution
+-[WFIsolatedShortcutRunner init]_block_invoke Sandbox extensions acquired
+Indexing for request: <WFToolKitIndexingRequest: 0x104dc8320>, changeset: .full, priority: 31
+flutter: ▶ 프로필 (79s)
+flutter: ▶ 프로필 닫기 (82s)
+flutter: ▶ 뒤로 갔다 돌아오기 (82s)
+flutter: ▶ 저장 확인 (86s)
+flutter: ▶ 진동 채널 (86s)
+flutter: 01:27 +1: (tearDownAll)
+flutter: 01:32 +2: All tests passed!
+Failed to index parameter type: <WFTagFieldParameter: 0x109fdcee0> in is.workflow.actions.addnewreminder: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFTagFieldParameter) for locale: en
+Failed to index parameter type: <WFSpotlightSearchResultTypePickerParameter: 0x109fa8d80> in is.workflow.actions.spotlightsearch: ActionKit.(unknown context at $104522880).WFParameterStateToolKitConversionError.unknownParameterState(WFMultipleValueParameterState) for locale: en
+Failed to index parameter type: <WFHomeAccessoryPickerParameter: 0x108c6c000> in is.workflow.actions.homeaccessory: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFHomeAccessoryPickerParameter) for locale: en
+Failed to index parameter type: <WFLightroomPresetPickerParameter: 0x109b1b700> in is.workflow.actions.lightroom.import: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.missingIntentDescription for locale: en
+Failed to index parameter type: <WFEvernoteTagsTagFieldParameter: 0x10ad85a00> in is.workflow.actions.evernote.get: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFEvernoteTagsTagFieldParameter) for locale: en
+Failed to index parameter type: <WFDynamicTagFieldParameter: 0x10ae63300> in is.workflow.actions.wordpress.post: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFDynamicTagFieldParameter) for locale: en
+Failed to index parameter type: <WFDynamicTagFieldParameter: 0x10ae63400> in is.workflow.actions.wordpress.post: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFDynamicTagFieldParameter) for locale: en
+Failed to index parameter type: <WFExpandingParameter: 0x10aeb9ce0> in is.workflow.actions.wordpress.post: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFExpandingParameter) for locale: en
+Failed to index parameter type: <WFExpandingParameter: 0x10aeb9dc0> in is.workflow.actions.wordpress.post: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFExpandingParameter) for locale: en
+Failed to index parameter type: <WFEvernoteTagsTagFieldParameter: 0x10afd6b00> in is.workflow.actions.evernote.new: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFEvernoteTagsTagFieldParameter) for locale: en
+Failed to index parameter type: <WFSystemShortcutPickerParameter: 0x10b016ac0> in com.apple.shortcuts.RunShortcutConfigurationIntent: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFSystemShortcutPickerParameter) for locale: en
+Failed to index parameter type: <WFSSHKeyParameter: 0x10b058600> in is.workflow.actions.runsshscript: (extension in ActionKit):__C.WFParameter.ToolKitConversionError.incompatibleParameterType(WFSSHKeyParameter) for locale: en
+Skipping: <WFUnionParameter: 0x10b052a00> in com.apple.mobilecal.CreateEventIntent because union values themselves are not treated as a type
+Skipping: <WFUnionParameter: 0x10b052c00> in com.apple.mobilecal.CreateEventIntent because union values themselves are not treated as a type
+All tests passed.
