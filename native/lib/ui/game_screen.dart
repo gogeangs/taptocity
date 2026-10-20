@@ -1374,6 +1374,20 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                       builder: (c, _) {
                         final tg = _guide!, p0 = _guidePos(tg, bottom);
                         if (p0 == null) return const SizedBox.shrink();
+                        // 아래 탭을 가리킬 땐 말풍선 대신 그 탭에 빛나는 테두리 (2026-10-21 대표님: '원정' 말풍선이 스킬 얼굴을 가림)
+                        final tabK = const {'fSurv': 0, 'fExp': 1, 'radio': 3}[tg.el];
+                        if (tabK != null) {
+                          final tw = (box.maxWidth - 102) / 5;
+                          return Stack(children: [
+                            Positioned(
+                              left: 94 + tw * tabK + 1,
+                              top: box.maxHeight - bottom - 78 + 2,
+                              width: tw - 2,
+                              height: 74,
+                              child: const IgnorePointer(child: _TabGlow()),
+                            ),
+                          ]);
+                        }
                         var label = tg.label;
                         var off = false;
                         if (tg.tile >= 0) {
@@ -1731,6 +1745,34 @@ class LampRingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(LampRingPainter o) => o.p != p || o.fever != fever;
+}
+
+/// 아래 탭 안내: 숨 쉬듯 밝아졌다 어두워지는 호박색 테두리
+class _TabGlow extends StatefulWidget {
+  const _TabGlow();
+  @override
+  State<_TabGlow> createState() => _TabGlowState();
+}
+
+class _TabGlowState extends State<_TabGlow> with SingleTickerProviderStateMixin {
+  late final AnimationController a = AnimationController(vsync: this, duration: const Duration(milliseconds: 1100))..repeat(reverse: true);
+  @override
+  void dispose() {
+    a.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: a,
+        builder: (c, _) => Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Color.lerp(const Color(0x99F3A53A), const Color(0xFFFFD27A), a.value)!, width: 2.5),
+            boxShadow: [BoxShadow(color: const Color(0xFFF3A53A).withValues(alpha: .25 + .35 * a.value), blurRadius: 10 + 8 * a.value)],
+          ),
+        ),
+      );
 }
 
 class _LampArt extends CustomPainter {

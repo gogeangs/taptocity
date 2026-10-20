@@ -256,7 +256,8 @@ class _BuyButtonState extends State<BuyButton> {
           decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(7), border: Border.all(color: bd, width: .8)),
           alignment: Alignment.center,
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(widget.label, style: Ttc.t(widget.hero ? 15.5 : (on ? 13 : 12), color: fg, weight: FontWeight.w700, height: 1.2)),
+            // 글자는 한 줄로 (2026-10-21 '잔치 열 / 기' 줄바꿈 신고): 넘치면 줄이지 않고 글자를 조금 작게
+            FittedBox(fit: BoxFit.scaleDown, child: Text(widget.label, maxLines: 1, softWrap: false, style: Ttc.t(widget.hero ? 15.5 : (on ? 13 : 12), color: fg, weight: FontWeight.w700, height: 1.2))),
             if (widget.why != null)
               widget.hero
                   ? Text(widget.why!, textAlign: TextAlign.center, style: Ttc.t(12, color: fg, weight: FontWeight.w600, height: 1.3))

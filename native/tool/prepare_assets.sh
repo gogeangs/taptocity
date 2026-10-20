@@ -8,7 +8,7 @@ for f in shelters modules module-upgrades exploration-sites landmarks settlement
   gear-tools gear-wear gear-keep line-items world-panorama radio companions peddler \
   founder-expressions crows-kids regional-npcs story-1 story-2 story-3 story-4 story-5 underground-icons player-faceless \
   duty-icons walls research-icons guests survivors-signature-1 survivors-signature-2 \
-  walkers-1 walkers-2 walkers-3 terrain-props ground-tiles lantern-tower line-stations line-stations-factory landmarks-desert landmarks-factory landmarks-snow; do
+  walkers-1 walkers-2 walkers-3 terrain-props ground-tiles lantern-tower line-stations line-stations-factory landmarks-desert landmarks-factory landmarks-snow ash-foes; do
   cp "../assets/illustrated/$f.webp" assets/illustrated/
 done
 # 웹툰 컷 (2×2 네 칸, 앱 전용): 사건·합류 장면

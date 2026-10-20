@@ -88,7 +88,10 @@ class Sound {
       }
       // 자주 쓰는 소리는 미리 읽어 둔다
       if (!kIsWeb) {
-        await AudioCache.instance.loadAll([for (final k in ['tap0', 'tap1', 'hit0', 'hit1', 'get0', 'get1', 'get2', 'reveal', 'chime']) 'sfx/$k.m4a']);
+        await AudioCache.instance.loadAll([for (final k in [..._tapFiles, 'chime']) 'sfx/$k.m4a']);
+        for (final f in _tapFiles) {
+          await _fixedOf(f);
+        }
       }
       _ready = true;
     } catch (_) {
@@ -115,7 +118,7 @@ class Sound {
   static void sfx(String k) {
     if (!_ready || !Prefs.snd || k.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
-    if (now - (_last[k] ?? 0) < (k == 'get' ? 70 : 45)) return;
+    if (now - (_last[k] ?? 0) < (k == 'get' ? 80 : k == 'tap' || k == 'hit' ? 60 : 45)) return;
     _last[k] = now;
     var f = k;
     if (k == 'get') {
@@ -125,11 +128,59 @@ class Sound {
     } else if (_vars[k] != null) {
       f = '$k${_r.nextInt(_vars[k]!)}';
     }
+    if (_tapKeys.contains(k)) {
+      _playTap(f);
+      return;
+    }
     final p = _pool[_pi++ % _pool.length];
     () async {
       try {
         await p.stop();
         await p.play(AssetSource('sfx/$f.m4a'), volume: 1);
+      } catch (_) {}
+    }();
+  }
+
+  // ---------- 두드리기 소리 (2026-10-21 대표님: 연속으로 두드리면 소리가 깨지거나 빠짐) ----------
+  // 예전: 재생기 6개를 돌려 쓰며 매번 멈춤→파일을 새로 불러 최대 음량으로 → 겹치면 찢어지고, 아이폰에서는 늦거나 빠졌다.
+  // 지금: 소리 파일마다 재생기를 하나씩 두고 파일은 한 번만 불러 둔다(처음부터 다시 틀기만). 짧은 사이에 여럿이 겹치면 음량을 낮춘다.
+  static const _tapKeys = {'tap', 'hit', 'get', 'reveal'};
+  static const _tapFiles = ['tap0', 'tap1', 'tap2', 'tap3', 'hit0', 'hit1', 'hit2', 'hit3', 'get0', 'get1', 'get2', 'get3', 'get4', 'get5', 'get6', 'get7', 'reveal'];
+  static final Map<String, AudioPlayer> _fixed = {};
+  static final List<int> _recent = [];
+  static bool get _android => !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
+  static Future<AudioPlayer> _fixedOf(String f) async {
+    final have = _fixed[f];
+    if (have != null) return have;
+    final p = AudioPlayer();
+    _fixed[f] = p;
+    await p.setReleaseMode(ReleaseMode.stop);
+    if (_android) {
+      await p.setPlayerMode(PlayerMode.lowLatency);
+    } else {
+      await p.setSource(AssetSource('sfx/$f.m4a'));
+    }
+    return p;
+  }
+
+  static void _playTap(String f) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    _recent.removeWhere((t) => now - t > 180);
+    _recent.add(now);
+    // 겹칠수록 작게: 혼자 .8 · 둘 .62 · 넷 이상 .45 (합쳐도 찢어지지 않게)
+    final vol = _recent.length >= 4 ? .45 : _recent.length >= 2 ? .62 : .8;
+    () async {
+      try {
+        final p = await _fixedOf(f);
+        if (_android) {
+          await p.stop();
+          await p.play(AssetSource('sfx/$f.m4a'), volume: vol);
+        } else {
+          await p.setVolume(vol);
+          await p.seek(Duration.zero);
+          await p.resume();
+        }
       } catch (_) {}
     }();
   }
@@ -272,7 +323,7 @@ class Sound {
   /// 모든 소리를 멈춘다 (기기 시험이 끝날 때)
   static Future<void> stopAll() async {
     pauseAll(true);
-    for (final p in [..._pool, if (_ma != null) _ma!, if (_mb != null) _mb!]) {
+    for (final p in [..._pool, ..._fixed.values, if (_ma != null) _ma!, if (_mb != null) _mb!]) {
       try {
         await p.stop();
       } catch (_) {}

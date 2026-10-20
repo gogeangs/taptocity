@@ -495,13 +495,38 @@ class _SurvBodyState extends State<SurvBody> {
 Future<void> showPageOf(BuildContext context, Game g, Widget Function(BuildContext ctx) body) => showDialog(
       context: context,
       barrierColor: const Color(0xC70F161D),
+      // 2026-10-21 대표님: 창이 길어 닫는 법을 찾아야 했다 → 오른쪽 위에 늘 보이는 닫기(X), 위아래 여백, 바깥을 눌러도 닫힘
+      barrierDismissible: true,
       builder: (ctx) => Dialog(
         backgroundColor: Ttc.paper,
-        insetPadding: const EdgeInsets.all(16),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 34),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Color(0x66EEE5D3))),
+        clipBehavior: Clip.antiAlias,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 460),
-          child: AnimatedBuilder(animation: g, builder: (c, _) => SingleChildScrollView(padding: const EdgeInsets.all(18), child: body(ctx))),
+          child: Stack(children: [
+            AnimatedBuilder(animation: g, builder: (c, _) => SingleChildScrollView(padding: const EdgeInsets.fromLTRB(18, 18, 18, 18), child: body(ctx))),
+            Positioned(
+              top: 6,
+              right: 6,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => Navigator.of(ctx).maybePop(),
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  alignment: Alignment.center,
+                  child: Container(
+                    width: 34,
+                    height: 34,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: const Color(0xFF2F3F4B), shape: BoxShape.circle, border: Border.all(color: const Color(0xFFEFE3C4), width: 1.5)),
+                    child: Text('×', style: Ttc.t(20, color: const Color(0xFFF3E9D2), weight: FontWeight.w700, height: 1)),
+                  ),
+                ),
+              ),
+            ),
+          ]),
         ),
       ),
     );

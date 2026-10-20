@@ -10,6 +10,7 @@ import 'package:flutter/scheduler.dart';
 import '../data/web_data.g.dart' as web;
 import '../game/data.dart';
 import '../game/engine.dart';
+import 'atlas.dart';
 import 'map_view.dart';
 import 'people.dart';
 import 'sound.dart';
@@ -649,6 +650,9 @@ class _LivePainter extends CustomPainter {
   }
 
   /// 대형 재폭풍 괴물 (웹 drawFoes)
+  // ash-foes.webp 칸 (웹 chapter-design.js ff: x, y, 폭, 높이) — 보통 다가옴 · 보통 공격 · 덩치 다가옴 · 덩치 공격
+  static const _foeFrames = [Rect.fromLTWH(121, 52, 465, 539), Rect.fromLTWH(648, 66, 572, 524), Rect.fromLTWH(33, 635, 575, 573), Rect.fromLTWH(647, 655, 573, 561)];
+
   void _foes(Canvas canvas, double time, List<(Offset, double, Color, double)> glows) {
     final D2 = g.defn;
     if (D2 == null) return;
@@ -680,7 +684,39 @@ class _LivePainter extends CustomPainter {
             ..color = const Color(0xCCFFE6AA));
     }
     final fill = Paint();
+    // 손그림 재 괴물 (웹 chapter-design.js foe): 보통·덩치 × 다가옴·공격. 그림이 아직 없으면 아래 덩어리 그림으로
+    final art = Atlas.image('ash-foes.webp');
+    if (art != null) {
+      for (final f in D2.foes) {
+        if (f.delay > 0) continue;
+        final attack = f.hit > 0, idx = (f.brute ? 2 : 0) + (attack ? 1 : 0), a = _foeFrames[idx];
+        final h = f.brute ? 49.0 : 35.0, w = h * a.width / a.height, bob = math.sin(time / 230 + f.ph) * 1.1;
+        fill.color = const Color(0x590A0805);
+        canvas.drawOval(Rect.fromCenter(center: Offset(f.x, f.y), width: w * .7, height: w * .22), fill);
+        canvas.save();
+        canvas.translate(f.x, f.y + bob);
+        final facing = idx == 3 ? 1.0 : -1.0;
+        canvas.scale((c.dx >= f.x ? 1.0 : -1.0) * facing, 1);
+        canvas.drawImageRect(art, a, Rect.fromLTWH(-w / 2, -h, w, h), Paint()..filterQuality = FilterQuality.medium);
+        canvas.restore();
+        if (attack) {
+          canvas.drawOval(
+              Rect.fromCenter(center: Offset(f.x, f.y - h * .45), width: w * .68, height: h * .54),
+              Paint()
+                ..style = PaintingStyle.stroke
+                ..strokeWidth = 1.6
+                ..color = Color.fromRGBO(255, 224, 161, math.min(.9, f.hit.toDouble())));
+        }
+        glows.add((Offset(f.x, f.y - h * .7), f.brute ? 12.0 : 9.0, const Color(0xFFFF5032), .35));
+        final bw = f.brute ? 40.0 : 28.0;
+        fill.color = const Color(0xB30D0B08);
+        canvas.drawRect(Rect.fromLTWH(f.x - bw / 2, f.y - h - 7, bw, 3.5), fill);
+        fill.color = const Color(0xFFE2644F);
+        canvas.drawRect(Rect.fromLTWH(f.x - bw / 2, f.y - h - 7, bw * math.max(0, f.hp / f.max), 3.5), fill);
+      }
+    }
     for (final f in D2.foes) {
+      if (art != null) break;
       if (f.delay > 0) continue;
       final s = f.brute ? 2.0 : 1.3, bob = math.sin(time / 180 + f.ph) * 2, x = f.x, y = f.y - 10 * s + bob;
       fill.color = const Color(0x590A0805);

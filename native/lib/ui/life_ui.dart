@@ -667,9 +667,21 @@ List<Widget> feastCard(Game g) {
       thumb: icoThumbRes('food'),
       title: '마을 잔치',
       tags: [smallTag(on ? '잔치 중' : left > 0 ? '다음 잔치까지 ${(left / 60000).ceil()}분' : '열 수 있어요')],
-      desc: descText('넉넉한 식량과 장작으로 모두 모여 한 끼 크게 먹어요. 10분간 모든 생산 +25% · 희망 +8 · 모든 생존자 신뢰 +40 · 펫 친밀도 +5'),
+      // 설명은 한 줄, 효과는 작은 칩 (2026-10-21 대표님: 설명이 너무 김)
+      desc: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+        descText('모두 모여 한 끼 크게 먹어요.'),
+        const SizedBox(height: 4),
+        Wrap(spacing: 4, runSpacing: 4, children: [
+          for (final t in const ['10분 생산 +25%', '희망 +8', '신뢰 +40', '펫 +5'])
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(99), border: Border.all(color: const Color(0xFF6F8F4A))),
+              child: Text(t, style: Ttc.t(12, color: Ttc.ok, weight: FontWeight.w600, height: 1.3)),
+            ),
+        ]),
+      ]),
       costs: left > 0 ? null : costWrap(g, c),
-      button: left > 0 ? doneBadge(on ? '잔치 중' : '준비 중') : BuyButton('잔치 열기', onTap: g.canPay(c) ? g.holdFeast : null, why: g.canPay(c) ? null : '자재 부족'),
+      button: left > 0 ? doneBadge(on ? '잔치 중' : '준비 중') : BuyButton('잔치 열기', width: 78, onTap: g.canPay(c) ? g.holdFeast : null, why: g.canPay(c) ? null : '자재 부족'),
     ),
   ];
 }

@@ -210,7 +210,12 @@ class _MapViewState extends State<MapView> {
       return;
     }
     final w = toWorld(p.pos);
-    final i = pickTile(w);
+    var i = pickTile(w);
+    // 폐허 그림도 칸보다 위로 솟아 있다: 누른 칸이 빈 땅이면 그 앞 칸 폐허 그림 안인지 본다 (2026-10-21 대표님: 폐허를 눌러도 잘 안 캐짐)
+    if (i < 0 || g.S.rev[i] != 1 || !(g.siteLive(i) || g.S.camp.containsKey(i) || i == C0 || g.modAtTile(i) != null || g.S.ter[i] == T.lm)) {
+      final sj = MapPainter(g, cam, cam).siteAt(w);
+      if (sj >= 0) i = sj;
+    }
     if (i >= 0 && g.S.rev[i] == 1 && ((g.S.camp[i]?['hp'] as num?) ?? 0) > 0) {
       p.acted = true;
       g.setAim(i);
@@ -861,7 +866,8 @@ class MapPainter extends CustomPainter {
     }
     if (t == T.silo) {
       final v = (((speck[i] * 7.31 + speck2[i] * 3.17) % 1) * 3).floor();
-      _prop(canvas, 4 + v, c, alpha: live ? 1 : .55);
+      // 다 털린 벙커는 닫힌 벙커 그림 (웹 drawBunker live?4+v:7 · 2026-10-21: 앱은 열린 그림을 55%로 흐리게 그려 유령처럼 보였다)
+      _prop(canvas, live ? 4 + v : 7, c);
       if (live) _glows.add((c, 18.0, const Color(0xFFFFC86E), .3));
       return;
     }
@@ -1166,6 +1172,33 @@ class MapPainter extends CustomPainter {
         final ddx = (w.dx - c.dx).abs();
         if (ddx > hw || w.dy > c.dy + TH * .5 || w.dy < c.dy - TH * .5 - h) continue;
         // 여러 그림이 겹치면 누른 곳이 그림 가운데(가로·세로 모두)에 가장 가까운 건물 (같으면 앞 칸)
+        final halfH = (h + TH) / 2, cy = c.dy + TH * .5 - halfH;
+        final d = math.sqrt(math.pow(ddx / hw, 2) + math.pow((w.dy - cy) / halfH, 2)) - (x + y) * .001;
+        if (d < bestD) {
+          bestD = d;
+          best = t;
+        }
+      }
+    }
+    return best;
+  }
+
+  /// 누른 곳(세계 좌표)이 아직 뒤질 게 남은 폐허 그림 안이면 그 칸 (앞 칸부터, 겹치면 그림 가운데에 가까운 쪽). 없으면 -1
+  int siteAt(Offset w) {
+    final i0 = pickTile(w);
+    if (i0 < 0) return -1;
+    final x0 = i0 % W, y0 = i0 ~/ W;
+    var best = -1;
+    var bestD = 1e9;
+    for (var dy = 0; dy <= 2; dy++) {
+      for (var dx = 0; dx <= 2; dx++) {
+        final x = x0 + dx, y = y0 + dy;
+        if (x >= W || y >= H) continue;
+        final t = y * W + x;
+        if (g.S.rev[t] != 1 || !g.siteLive(t)) continue;
+        final c = tileC(t), hw = 28.0, h = math.max(20.0, _bldH(t)) + 10;
+        final ddx = (w.dx - c.dx).abs();
+        if (ddx > hw || w.dy > c.dy + TH * .5 || w.dy < c.dy - TH * .5 - h) continue;
         final halfH = (h + TH) / 2, cy = c.dy + TH * .5 - halfH;
         final d = math.sqrt(math.pow(ddx / hw, 2) + math.pow((w.dy - cy) / halfH, 2)) - (x + y) * .001;
         if (d < bestD) {

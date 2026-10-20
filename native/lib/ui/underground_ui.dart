@@ -474,15 +474,21 @@ class _UgPageState extends State<_UgPage> {
       if (u.shop)
         Padding(
           padding: const EdgeInsets.only(bottom: 8),
+          // 웹: 한 층 상인에게서 기름 2번 · 열쇠 1번까지, 남은 횟수 표시.
+          // 2026-10-21 대표님: '아무것도 살 수 없었다' — 밝은 카드용 버튼(투명 바탕·짙은 글자)이 어두운 지하 창에서 안 보였다 → 호박색 버튼, 못 사면 이유
           child: Row(children: [
-            // 웹: 한 층 상인에게서 기름 2번 · 열쇠 1번까지, 남은 횟수 표시
-            pageBtn('식량 15 → 기름 +8  ${ugShopMax[0] - g.ugShopBuys()[0]}/${ugShopMax[0]}',
-                g.canPay({'food': 15}) && g.ugShopBuys()[0] < ugShopMax[0] ? () => setState(() => g.ugBuy(0)) : null,
-                alt: true),
-            const SizedBox(width: 6),
-            pageBtn('부품 12 → 열쇠 1  ${ugShopMax[1] - g.ugShopBuys()[1]}/${ugShopMax[1]}',
-                g.canPay({'parts': 12}) && g.ugShopBuys()[1] < ugShopMax[1] ? () => setState(() => g.ugBuy(1)) : null,
-                alt: true),
+            for (final (k, cost, give, key) in const [(0, 15, '기름 +8', 'food'), (1, 12, '열쇠 1', 'parts')]) ...[
+              if (k > 0) const SizedBox(width: 6),
+              _shopBtn(
+                '${key == 'food' ? '식량' : '부품'} $cost → $give',
+                g.ugShopBuys()[k] >= ugShopMax[k]
+                    ? '이 층에선 다 샀어요'
+                    : !g.canPay({key: cost})
+                        ? '${key == 'food' ? '식량' : '부품'}이 모자라요'
+                        : '${ugShopMax[k] - g.ugShopBuys()[k]}번 남음',
+                g.canPay({key: cost}) && g.ugShopBuys()[k] < ugShopMax[k] ? () => setState(() => g.ugBuy(k)) : null,
+              ),
+            ],
           ]),
         ),
       // 칸들
@@ -860,3 +866,26 @@ void showUgDiary(BuildContext context, Game g) {
         Row(children: [pageBtn('닫기', () => Navigator.pop(ctx))]),
       ]));
 }
+
+/// 지하 상인 거래 버튼 (어두운 지하 창용: 살 수 있으면 호박색, 아니면 어두운 회색에 이유)
+Widget _shopBtn(String t, String sub, VoidCallback? onTap) => Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 52),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: onTap != null ? Ttc.amber : const Color(0xFF3A4652),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: onTap != null ? const Color(0xFFFFE29A) : const Color(0x33EEE5D3)),
+          ),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            FittedBox(fit: BoxFit.scaleDown, child: Text(t, maxLines: 1, style: Ttc.t(13.5, color: onTap != null ? const Color(0xFF252E36) : const Color(0xFFB9C0BE), weight: FontWeight.w800, height: 1.2))),
+            const SizedBox(height: 2),
+            Text(sub, maxLines: 1, style: Ttc.t(11.5, color: onTap != null ? const Color(0xFF4A3A22) : const Color(0xFF9AA3A1), weight: FontWeight.w600, height: 1.2)),
+          ]),
+        ),
+      ),
+    );

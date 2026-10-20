@@ -26,6 +26,7 @@ class Atlas {
   static const lazyFiles = {
     'guests.webp', 'survivors-signature-1.webp', 'survivors-signature-2.webp',
     'line-stations.webp', 'line-stations-factory.webp', 'landmarks-desert.webp', 'landmarks-factory.webp', 'landmarks-snow.webp',
+    'ash-foes.webp', // 재 괴물 (2026-10-21: 웹 chapter-design.js foe와 같게, 대형 재폭풍에서만)
   };
 
   static Future<void> load() => _loading ??= () async {
