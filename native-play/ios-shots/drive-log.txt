@@ -18,41 +18,41 @@ Got dependencies!
 14 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
 Running Xcode build...                                          
-Xcode build done.                                           174.9s
-VMServiceFlutterDriver: Connecting to Flutter application at http://127.0.0.1:54700/D9DNN1yi4kg=/
-VMServiceFlutterDriver: Isolate found with number: 3603190305052947
-VMServiceFlutterDriver: Isolate 3603190305052947 is runnable.
+Xcode build done.                                           244.7s
+VMServiceFlutterDriver: Connecting to Flutter application at http://127.0.0.1:52046/LDH6F7dCnZk=/
+VMServiceFlutterDriver: Isolate found with number: 811490999219283
+VMServiceFlutterDriver: Isolate 811490999219283 is runnable.
 VMServiceFlutterDriver: Isolate is paused at start.
 VMServiceFlutterDriver: Attempting to resume isolate
 flutter: 00:00 +0: iPhone에서 앱 띄워 보기
 VMServiceFlutterDriver: Connected to Flutter application.
 flutter: ▶ 처음 켜기 (0s)
 VMServiceFlutterDriver: request_data message is taking a long time to complete...
-flutter: ▶ 첫 화면 두드리기 (13s)
-flutter: ▶ 진행 중인 저장으로 켜기 (17s)
-flutter: ▶ 지도 두드리기 (소리) (24s)
-flutter: ▶ 탭 쉘터 (29s)
-flutter: ▶ 쉘터 · 건설 (30s)
-flutter: ▶ 쉘터 · 가공 (30s)
-flutter: ▶ 쉘터 · 연구 (30s)
-flutter: ▶ 쉘터 닫기 (30s)
-flutter: ▶ 탭 일지 (32s)
-flutter: ▶ 일지 · 기록 (33s)
-flutter: ▶ 일지 · 도감 (33s)
-flutter: ▶ 일지 닫기 (33s)
-flutter: ▶ 탭 원정 (35s)
-flutter: ▶ 원정 닫기 (37s)
-flutter: ▶ 탭 라디오 (38s)
-flutter: ▶ 라디오 닫기 (40s)
-flutter: ▶ 탭 생존자 (42s)
-flutter: ▶ 생존자 닫기 (43s)
-flutter: ▶ 설정 (45s)
-flutter: ▶ 설정 닫기 (47s)
-flutter: ▶ 프로필 (48s)
-flutter: ▶ 프로필 닫기 (50s)
-flutter: ▶ 뒤로 갔다 돌아오기 (50s)
-flutter: ▶ 저장 확인 (55s)
-flutter: ▶ 진동 채널 (55s)
-flutter: 00:55 +1: (tearDownAll)
-flutter: 01:04 +2: All tests passed!
+flutter: ▶ 첫 화면 두드리기 (20s)
+flutter: ▶ 진행 중인 저장으로 켜기 (25s)
+flutter: ▶ 지도 두드리기 (소리) (31s)
+flutter: ▶ 탭 쉘터 (38s)
+flutter: ▶ 쉘터 · 건설 (39s)
+flutter: ▶ 쉘터 · 가공 (39s)
+flutter: ▶ 쉘터 · 연구 (39s)
+flutter: ▶ 쉘터 닫기 (39s)
+flutter: ▶ 탭 일지 (41s)
+flutter: ▶ 일지 · 기록 (43s)
+flutter: ▶ 일지 · 도감 (43s)
+flutter: ▶ 일지 닫기 (43s)
+flutter: ▶ 탭 원정 (44s)
+flutter: ▶ 원정 닫기 (46s)
+flutter: ▶ 탭 라디오 (48s)
+flutter: ▶ 라디오 닫기 (49s)
+flutter: ▶ 탭 생존자 (51s)
+flutter: ▶ 생존자 닫기 (52s)
+flutter: ▶ 설정 (54s)
+flutter: ▶ 설정 닫기 (56s)
+flutter: ▶ 프로필 (57s)
+flutter: ▶ 프로필 닫기 (59s)
+flutter: ▶ 뒤로 갔다 돌아오기 (59s)
+flutter: ▶ 저장 확인 (64s)
+flutter: ▶ 진동 채널 (64s)
+flutter: 01:05 +1: (tearDownAll)
+flutter: 01:15 +2: All tests passed!
 All tests passed.
