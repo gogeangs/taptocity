@@ -196,7 +196,14 @@ void main() {
     tester.view.devicePixelRatio = 2;
     final g = _demo();
     final title = 'Lv.${g.S.lv} ${shelterName[g.S.lv - 1]}';
-    for (final up in [0.0, 20.0, 34.0]) {
+    // 쉘터 칸 자체(0)와, 쉘터 그림·이름표 높이에서 뒤 칸이 빈 땅인 곳들 (뒤 칸에 모듈이 있으면 그 모듈이 열리는 게 맞다)
+    final ups = <double>[0];
+    for (var up = 18.0; up <= 64 && ups.length < 4; up += 4) {
+      final t = pickTile(tileC(C0).translate(0, -up));
+      if (t != C0 && t >= 0 && g.S.rev[t] == 1 && g.modAtTile(t) == null && !g.siteLive(t) && g.S.ter[t] != T.lm && !g.S.camp.containsKey(t)) ups.add(up);
+    }
+    expect(ups.length, greaterThan(1), reason: '그림 윗부분에서 누를 곳을 찾아야');
+    for (final up in ups) {
       await tester.pumpWidget(MaterialApp(debugShowCheckedModeBanner: false, theme: Ttc.theme(), home: GameScreen(game: g)));
       await _pumps(tester, 6);
       final mv = find.byType(MapView), cam = tester.widget<MapView>(mv).camera, box = tester.getRect(mv);
