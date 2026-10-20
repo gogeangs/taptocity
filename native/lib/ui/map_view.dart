@@ -379,15 +379,15 @@ class _MapViewState extends State<MapView> {
         if (ptrs.isEmpty) dragStart = null;
         return;
       }
-      var i = pickTile(toWorld(p.pos));
+      // 건물 그림은 칸보다 위로 솟아 앞(아래) 칸 건물이 뒤 칸을 가린다: 누른 곳이 앞 건물 그림 안이면 그 건물이 먼저
+      // (2026-10-20 실기기: 텐트 윗부분·이름표를 누르면 뒤 칸이 잡혀 '구름을 두드려 보세요'만 떴다)
+      var i = pickTile(w0);
+      final j = MapPainter(g, cam, cam).bldAt(w0);
+      if (j >= 0 && j != i && (i < 0 || j % W + j ~/ W > i % W + i ~/ W || g.S.rev[i] == 0)) i = j;
       var kind = g.tapTile(i);
-      if (kind == 'far' || kind == 'none') {
-        // 건물 그림은 칸보다 위로 솟아 있다: 그림 윗부분·이름표를 누르면 뒤 칸이 잡히므로 그림 안이면 그 건물로
-        final j = MapPainter(g, cam, cam).bldAt(w0);
-        if (j >= 0) {
-          i = j;
-          kind = g.tapTile(j);
-        }
+      if ((kind == 'far' || kind == 'none') && j >= 0 && j != i) {
+        i = j;
+        kind = g.tapTile(j);
       }
       if (kind == 'far' || kind == 'none') {
         widget.fxLayer.toast('빛이 새는 구름이나 폐허를 두드려 보세요');
