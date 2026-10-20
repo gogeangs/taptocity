@@ -1,6 +1,6 @@
 // 웹툰 컷 (앱 전용 2026-10-19): assets/illustrated/cuts/*.webp 는 2×2 네 칸(①좌상 ②우상 ③좌하 ④우하) 그림.
 // 한 칸씩 크게, 어두운 바탕 위에 만화 칸처럼 보여 준다. 탭하면 다음 칸, '건너뛰기'로 끝.
-// 효과 글자(소리만)는 칸 모서리에 손글씨처럼 얹는다. 본 컷은 S.rest['cutSeen']에 적어 한 번만 보여 준다.
+// 효과 글자(소리)는 칸 모서리에 손글씨처럼 얹는다. 감정 표현 '…!'은 고비 세 곳에만(cutBeat). 본 컷은 S.rest['cutSeen']에 적어 한 번만 보여 준다.
 // 그림을 못 불러오면 조용히 건너뛴다 — 게임 진행은 이 창을 기다리지 않는다.
 import 'dart:math' as math;
 
@@ -35,6 +35,14 @@ const Map<String, List<CutSfx?>> cutSfx = {
   'join_jin': [('쏴아—', 'tr'), null, null, null],
   'join_miyoung': [('쏴아—', 'tr'), null, ('화륵', 'br'), null],
   'join_jin_choice': [('쏴아—', 'tr'), null, null, ('저벅', 'bl')],
+};
+
+/// 감정 표현 '…!' (2026-10-21 대표님 결정: 효과 글자는 소리 중심, 감정 표현은 시즌 전체에서 고비 세 곳만).
+/// 컷 이름 → (칸 번호, 모서리). 소리 글자와 같은 칸에 있으면 반대쪽 모서리에 둔다
+const Map<String, (int, String)> cutBeat = {
+  'case1': (2, 'tl'), // 랜턴 빛에 발자국과 노란 우산 — 누구인지 알아챈 순간
+  'join_jin_choice': (1, 'tl'), // 진의 손목에 까마귀 문신
+  'join_jaehyuk': (1, 'tl'), // 재혁 손에 발전소 출입증
 };
 
 /// 생존자 id → 합류 컷 (재혁 9는 합류가 아니라 6장 고백 컷이라 여기 없다)
@@ -231,6 +239,25 @@ class _CutViewState extends State<CutView> {
         ),
       );
     }
+    Widget? beat;
+    final bt = cutBeat[widget.name];
+    if (bt != null && bt.$1 == p) {
+      final corner = bt.$2, left = corner == 'tl' || corner == 'bl', top = corner == 'tl' || corner == 'tr';
+      beat = Positioned(
+        left: left ? pw * .06 : null,
+        right: left ? null : pw * .06,
+        top: top ? ph * .06 : null,
+        bottom: top ? null : ph * .07,
+        child: TweenAnimationBuilder<double>(
+          key: ValueKey('beat$i'),
+          tween: Tween<double>(begin: 0, end: 1),
+          duration: const Duration(milliseconds: 520),
+          curve: const Interval(.45, 1, curve: Curves.easeOutBack),
+          builder: (c, k, child) => Opacity(opacity: math.min(1.0, math.max(0.0, k)), child: Transform.scale(scale: .5 + .5 * k, child: child)),
+          child: cutWord('…!', fs * 1.05),
+        ),
+      );
+    }
     return Container(
       width: pw,
       height: ph,
@@ -243,6 +270,7 @@ class _CutViewState extends State<CutView> {
         child: Stack(fit: StackFit.expand, children: [
           CoverPic(f, cutRect(f, p)),
           if (word != null) word,
+          if (beat != null) beat,
         ]),
       ),
     );

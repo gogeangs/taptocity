@@ -739,6 +739,9 @@ void main() {
     await shot('44-cut-case1-4', _demo, act: (g) => cuts('case1', const [0, 1, 2, 3], 3));
     await shot('45-cut-sunrye-2', _demo, act: (g) => cuts('join_sunrye', const [0, 1, 2, 3], 1));
     await shot('46-cut-jin-choice-3', _demo, act: (g) => cuts('join_jin_choice', const [2], 0));
+    // 감정 표현 '…!' (고비 세 곳 중 둘)
+    await shot('73-cut-case1-3-beat', _demo, act: (g) => cuts('case1', const [0, 1, 2, 3], 2));
+    await shot('74-cut-jin-choice-2-beat', _demo, act: (g) => cuts('join_jin_choice', const [0, 1], 1));
 
     // --- 정답 없는 선택 ---
     // (창이 닫힐 때까지 기다리면 안 되므로 await 없이 연다)
