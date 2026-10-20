@@ -372,7 +372,8 @@ class _MapViewState extends State<MapView> {
         widget.onSelect('deco', i0);
         return;
       }
-      final bld = i0 >= 0 && g.S.rev[i0] == 1 && (i0 == C0 || g.modAtTile(i0) != null || g.S.camp.containsKey(i0) || g.S.ter[i0] == T.lm);
+      // 건물 그림 위(칸보다 위로 솟은 부분 포함)에서는 사람을 좁게 잡는다 — 쉘터 둘레를 걷는 사람이 텐트 누르기를 가로채지 않게
+      final bld = (i0 >= 0 && g.S.rev[i0] == 1 && (i0 == C0 || g.modAtTile(i0) != null || g.S.camp.containsKey(i0) || g.S.ter[i0] == T.lm)) || MapPainter(g, cam, cam).bldAt(w0) >= 0;
       final pid = life.personAt(w0, bld ? 9 + 3 / cam.z : 18 + 8 / cam.z);
       if (pid != null) {
         widget.onSelect('person', pid);

@@ -212,7 +212,10 @@ void main() {
       expect(find.text(title), findsNothing, reason: '누르기 전에는 쉘터 창이 없어야');
       await tester.tapAt(p);
       await _pumps(tester, 8);
-      expect(find.text(title), findsWidgets, reason: '쉘터 칸에서 ${up.toInt()}만큼 위를 눌렀을 때 쉘터 창이 열려야');
+      if (find.text(title).evaluate().isEmpty) {
+        final seen = [for (final e in find.byType(Text).evaluate()) (e.widget as Text).data ?? ''].where((t) => t.isNotEmpty).take(40).join(' | ');
+        fail('쉘터 칸에서 ${up.toInt()}만큼 위(칸 ${pickTile(c)})를 눌렀을 때 쉘터 창이 열려야. 화면 글자: $seen');
+      }
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(seconds: 1));
     }
