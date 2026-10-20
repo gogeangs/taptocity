@@ -1,7 +1,29 @@
 
-✅ /home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart: 지도 터치 · 건물 그림 윗부분을 눌러도 열린다
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: <780>
+  Actual: <821>
+모듈 칸 780 그림 가운데를 누르면 그 모듈
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart:203:9)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart line 203
+The test description was:
+  지도 터치 · 건물 그림 윗부분을 눌러도 열린다
+════════════════════════════════════════════════════════════════════════════════════════════════════
+Test failed. See exception logs above.
+The test description was: 지도 터치 · 건물 그림 윗부분을 눌러도 열린다
+
 ✅ /home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart: 화면 사진
 ✅ /home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart: 화면 사진 · 앱 전용 화면과 좁은 폰
 ✅ /home/runner/work/taptocity/taptocity/native/test_screens/qa_ui_test.dart: 모든 화면 훑기
 
-🎉 4 tests passed.
