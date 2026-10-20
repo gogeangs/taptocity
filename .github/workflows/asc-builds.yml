@@ -1,19 +1,29 @@
-# App Store Connect에 올라간 최근 빌드 확인 (읽기 전용)
+# App Store Connect에 올라간 최근 빌드 확인. expire 를 넣으면 그 빌드를 TestFlight에서 만료시킨다 (되돌릴 수 없음)
 name: ASC builds
 
 on:
   workflow_dispatch:
+    inputs:
+      expire:
+        description: '만료시킬 빌드 (예: 2.0.0+100). 비우면 확인만'
+        required: false
+        default: ''
 
 jobs:
   check:
     runs-on: ubuntu-latest
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
     steps:
       - uses: actions/checkout@v4
-      - name: 최근 빌드 읽기
+      - name: 준비
+        run: pip install --quiet pyjwt cryptography requests
+      - name: 빌드 만료
+        if: inputs.expire != ''
         env:
-          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
-        run: |
-          pip install --quiet pyjwt cryptography requests
-          python3 ios/store/asc_builds.py
+          EXP: ${{ inputs.expire }}
+        run: cd ios/store && python3 asc_expire.py "${EXP%%+*}" "${EXP##*+}"
+      - name: 최근 빌드 읽기
+        run: cd ios/store && python3 asc_builds.py

@@ -22,15 +22,21 @@ def get(path):
     return r.json()
 
 
-app = get(f"/v1/apps?filter[bundleId]={BUNDLE}")["data"][0]
-aid = app["id"]
-builds = get(f"/v1/builds?filter[app]={aid}&sort=-uploadedDate&limit=5&include=preReleaseVersion")
-pre = {x["id"]: x["attributes"].get("version") for x in builds.get("included", []) if x["type"] == "preReleaseVersions"}
-lines = []
-for b in builds["data"]:
-    a = b["attributes"]
-    rel = (b.get("relationships", {}).get("preReleaseVersion", {}) or {}).get("data") or {}
-    lines.append(f"{pre.get(rel.get('id'), '?')} ({a.get('version')}) · {a.get('processingState')} · 올림 {a.get('uploadedDate')} · 만료 {a.get('expired')}")
-msg = f"{app['attributes']['name']} 최근 빌드%0A" + "%0A".join(lines)
-print(f"::notice title=asc-builds::{msg}")
-print("\n".join(lines))
+
+def main():
+    app = get(f"/v1/apps?filter[bundleId]={BUNDLE}")["data"][0]
+    aid = app["id"]
+    builds = get(f"/v1/builds?filter[app]={aid}&sort=-uploadedDate&limit=5&include=preReleaseVersion")
+    pre = {x["id"]: x["attributes"].get("version") for x in builds.get("included", []) if x["type"] == "preReleaseVersions"}
+    lines = []
+    for b in builds["data"]:
+        a = b["attributes"]
+        rel = (b.get("relationships", {}).get("preReleaseVersion", {}) or {}).get("data") or {}
+        lines.append(f"{pre.get(rel.get('id'), '?')} ({a.get('version')}) · {a.get('processingState')} · 올림 {a.get('uploadedDate')} · 만료 {a.get('expired')}")
+    msg = f"{app['attributes']['name']} 최근 빌드%0A" + "%0A".join(lines)
+    print(f"::notice title=asc-builds::{msg}")
+    print("\n".join(lines))
+
+
+if __name__ == "__main__":
+    main()
