@@ -1,7 +1,7 @@
 name: taptocity
 description: 탭투시티 — 재 속의 등불 (네이티브)
 publish_to: none
-version: 2.0.0+100
+version: 2.0.0+101
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
