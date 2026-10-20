@@ -110316,27 +110316,28 @@ if(!o&&n!=null){o=p.b
 m=o[a+(b?5:0)]
 return new A.aS(n,A.iK(m),B.c.O(m[2]*0.2,48,80))}o=A.ts("landmarks.webp")
 return new A.aS(o,A.iK(B.yp[a+(b?5:0)]),B.as4[a])},
-Zr(a3){var s,r,q,p,o,n,m,l,k,j,i,h,g,f,e,d,c,b,a,a0,a1,a2=A.a8t(a3)
-if(a2<0)return-1
-s=B.e.J(a2,40)
-r=B.e.ah(a2,40)
-for(q=a3.a,p=this.b,o=a3.b,n=-1,m=1e9,l=0;l<=3;++l)for(k=r+l,j=k>=40,i=0;i<=3;++i){h=s+i
+Zr(a4){var s,r,q,p,o,n,m,l,k,j,i,h,g,f,e,d,c,b,a,a0,a1,a2,a3=A.a8t(a4)
+if(a3<0)return-1
+s=B.e.J(a3,40)
+r=B.e.ah(a3,40)
+for(q=a4.b,p=a4.a,o=this.b,n=-1,m=1e9,l=0;l<=3;++l)for(k=r+l,j=k>=40,i=0;i<=3;++i){h=s+i
 if(h>=40||j)continue
 g=k*40+h
-if(p.i.d[g]!==1)continue
+if(o.i.d[g]!==1)continue
 f=g===820
-if(!f){e=p.bX.h(0,g)
-d=(e==null?null:p.i.y.h(0,e))!=null||p.i.b[g]===9}else d=!0
+if(!f){e=o.bX.h(0,g)
+d=(e==null?null:o.i.y.h(0,e))!=null||o.i.b[g]===9}else d=!0
 if(!d)continue
 c=A.cj(g,0)
-b=f?B.xW[p.i.x-1]/2:34
+b=f?B.xW[o.i.x-1]/2:34
 a=f?Math.max(this.FN(g),b*1.5)+30:this.FN(g)+16
-a0=Math.abs(q-c.a)
+a0=Math.abs(p-c.a)
 if(!(a0>b)){f=c.b
-f=o>f+16||o<f-16-a}else f=!0
+f=q>f+16||q<f-16-a}else f=!0
 if(f)continue
-a1=a0/b-(h+k)*0.001
-if(a1<m){m=a1
+a1=(a+32)/2
+a2=Math.sqrt(Math.pow(a0/b,2)+Math.pow((q-(c.b+16-a1))/a1,2))-(h+k)*0.001
+if(a2<m){m=a2
 n=g}}return n},
 FN(a){var s,r,q,p,o,n,m,l,k,j,i,h,g=this.b,f=g.i
 if(f.d[a]===0)return 0
