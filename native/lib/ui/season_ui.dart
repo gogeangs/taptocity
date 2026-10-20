@@ -54,7 +54,7 @@ Widget _csAv(Game g, Object who, {double sz = 38}) {
     height: sz,
     decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xFFE6D8B6), border: Border.all(color: const Color(0x403B2A1A), width: 1.5)),
     clipBehavior: Clip.antiAlias,
-    child: id != null ? Portrait(id, width: sz, height: sz * 44 / 38) : me ? pfPortrait(g.pfIndex()) : npcFace(who as String),
+    child: id != null ? Portrait(id, width: sz, height: sz * 44 / 38) : me ? pfFace(g.pfIndex()) : npcFace(who as String),
   );
 }
 

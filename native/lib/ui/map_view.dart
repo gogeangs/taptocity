@@ -380,17 +380,12 @@ class _MapViewState extends State<MapView> {
         if (ptrs.isEmpty) dragStart = null;
         return;
       }
-      // 누른 칸이 먼저. 그 칸에 아무것도 없을 때만 건물 그림(칸보다 위로 솟음)을 본다
-      // (2026-10-20 실기기: 텐트 윗부분·이름표를 누르면 뒤 칸이 잡혀 '구름을 두드려 보세요'만 떴다)
+      // 건물 그림이 덮은 곳이면 그 건물 — 여러 그림이 겹치면 누른 곳이 그림 가운데에 가장 가까운 건물 (2026-10-21 대표님: 작업대·텃밭이 겹쳐 누르기 어려움).
+      // 그림이 없는 곳이면 누른 칸 그대로 (2026-10-20: 텐트 윗부분·이름표를 누르면 뒤 칸이 잡혀 '구름을 두드려 보세요'만 떴다)
       var i = pickTile(w0);
-      var kind = g.tapTile(i);
-      if (kind == 'far' || kind == 'none') {
-        final j = MapPainter(g, cam, cam).bldAt(w0);
-        if (j >= 0) {
-          i = j;
-          kind = g.tapTile(j);
-        }
-      }
+      final j = MapPainter(g, cam, cam).bldAt(w0);
+      if (j >= 0) i = j;
+      final kind = g.tapTile(i);
       if (kind == 'far' || kind == 'none') {
         widget.fxLayer.toast('빛이 새는 구름이나 폐허를 두드려 보세요');
       } else {
@@ -1166,7 +1161,7 @@ class MapPainter extends CustomPainter {
         if (g.S.rev[t] != 1) continue;
         if (!(t == C0 || g.modAtTile(t) != null || g.S.ter[t] == T.lm)) continue;
         // 쉘터 그림은 칸보다 넓다 (그리는 폭 84~112) → 폭의 절반, 높이는 폭만큼 + 이름표. 모듈은 위로 갈수록 좁아 폭을 조금 줄인다
-        final c = tileC(t), hw = (t == C0 ? const [84.0, 84.0, 90.0, 100.0, 112.0][g.S.lv - 1] : TW * .85) / 2;
+        final c = tileC(t), hw = t == C0 ? const [84.0, 84.0, 90.0, 100.0, 112.0][g.S.lv - 1] / 2 : 34.0;
         final h = t == C0 ? math.max(_bldH(t), hw * 1.5) + 30 : _bldH(t) + 16;
         final ddx = (w.dx - c.dx).abs();
         if (ddx > hw || w.dy > c.dy + TH * .5 || w.dy < c.dy - TH * .5 - h) continue;
@@ -1497,6 +1492,15 @@ class FxLayerController extends ChangeNotifier {
   /// 대형 재폭풍 중: 알림을 괴물이 나오는 지도 가운데가 아니라 스킬 바 바로 위에 작게 띄운다
   bool low = false;
 
+  /// 건물 설명 창(빠른 메뉴)이 떠 있는 동안 알림을 잠시 숨긴다 (창 안 버튼과 겹치지 않게 · 2026-10-21). 알림 시간은 그대로 흐른다
+  bool _quiet = false;
+  bool get quiet => _quiet;
+  set quiet(bool v) {
+    if (_quiet == v) return;
+    _quiet = v;
+    scheduleMicrotask(notifyListeners);
+  }
+
   void toast(String t) {
     // 같은 안내가 이미 떠 있으면 새로 쌓지 않고 그 안내를 다시 2.6초 보여 준다 (2026-10-20 겹쳐 쌓임 신고)
     final same = toasts.where((x) => x.h == null && x.t == t).toList();
@@ -1652,6 +1656,7 @@ class _FxLayerState extends State<FxLayer> with SingleTickerProviderStateMixin {
       child: Stack(fit: StackFit.expand, children: [
         CustomPaint(painter: _FxPainter(c, widget.camera)),
         // 알림은 지도 아래쪽 (웹 #toasts: 아래에서 196px, 폭 100%-110 최대 340)
+        if (!c.quiet)
         Positioned(
           left: 0,
           right: 0,

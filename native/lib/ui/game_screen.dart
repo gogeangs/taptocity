@@ -1143,6 +1143,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final pad = MediaQuery.of(context).padding;
     final bottom = pad.bottom + 10;
+    fxc.quiet = ringTile >= 0;
     final coachR = _coach >= 0 ? _coachRect() : null;
     if (_coach >= 0 && coachR == null) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? setState(() {}) : null);
     return Scaffold(

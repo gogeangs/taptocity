@@ -268,7 +268,7 @@ void main() {
             await home();
             showTalk(tester.element(find.byType(GameScreen)), g, g.fragTalk(3, first: true));
             await settle();
-            await tapText('탭해서 계속 ›');
+            await tapText('다음 ›');
           });
           g.S.rest['dayStreak'] = 6;
           g.S.rest['dayLast'] = g.todayKey;
@@ -312,7 +312,7 @@ void main() {
             final t = g.takeFx().whereType<FxTalk>().last;
             showTalk(tester.element(find.byType(GameScreen)), g, t);
             await settle();
-            await tapText('탭해서 계속 ›');
+            await tapText('다음 ›');
           });
           // 아침 보고 마지막 줄: 오늘의 할 일 셋이 붙는다
           await visit('$tag · 아침 보고 · 끝 (오늘의 할 일)', () async {
@@ -376,7 +376,7 @@ void main() {
                   Line('me', '나는 랜턴 심지를 조금 낮췄다.'),
                 ], tag: '3장 · 모여드는 사람들', goal: '생존자 3명 모으기'));
             await settle();
-            await tapText('탭해서 계속 ›');
+            await tapText('다음 ›');
             await tapText('건너뛰기');
           });
           // 스킬 바: 다친 사람(붉은 테·남은 시간) · 스킬 대기 배지

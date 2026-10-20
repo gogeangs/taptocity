@@ -1,4 +1,4 @@
-// 둥근 빠른 메뉴 (웹 openRing/buildRing 2488): 건물 위 설명 카드 + 건물 둘레 동그란 버튼
+// 빠른 메뉴 (웹 openRing/buildRing 2488): 건물 설명 창 + 창 안 아래 한 줄 버튼 (2026-10-21 앱: 건물 둘레 동그란 버튼에서 바꿈)
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -19,13 +19,6 @@ final _icons = {
   'x': _ri('<path d="M5 13L14 5l9 8M7 12v11h14V12"/><path d="M12 23v-6h4v6"/>'),
   'line': _ri('<rect x="7" y="4" width="14" height="15" rx="3"/><path d="M7 12h14M10 19l-3 5M18 19l3 5"/><circle cx="10.5" cy="15.5" r="1"/><circle cx="17.5" cy="15.5" r="1"/>'),
 };
-
-List<double> _angles(int n) {
-  if (n == 1) return [90];
-  if (n == 2) return [130, 50];
-  final span = n >= 5 ? 240.0 : 180.0, st = 90 + span / 2;
-  return [for (var k = 0; k < n; k++) st - k * span / (n - 1)];
-}
 
 class _Tok {
   const _Tok(this.icon, this.cap, this.onTap, {this.poor = false, this.lock = false, this.hl, this.go = false});
@@ -127,12 +120,6 @@ class RingMenu extends StatelessWidget {
             const SizedBox(height: 5),
             Wrap(spacing: 4, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [_chip('다음: ${d.fx[m.l + 1]}'), costWrap(g, up)]),
           ],
-          Container(
-            margin: const EdgeInsets.only(top: 6),
-            padding: const EdgeInsets.only(top: 4),
-            decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(0x403B2A1A)))),
-            child: Text('빠른 메뉴 · 자세한 건 쉘터 화면에서', style: Ttc.t(11.5, color: Ttc.sepia2)),
-          ),
         ]);
         if (up != null) {
           toks.add(_Tok('up', '강화', () {
@@ -150,44 +137,47 @@ class RingMenu extends StatelessWidget {
         return const SizedBox.shrink();
       }
 
-      // 건물 화면 위치 (가장자리에서 떨어지게)
+      // 2026-10-21 대표님: 건물 둘레에 흩어진 버튼이 알림·부탁 띠와 겹침 → 버튼을 설명 창 안 아래 한 줄로.
+      // 창은 건물을 가리지 않는 쪽(건물이 화면 아래쪽이면 위, 위쪽이면 아래)에 두고, 내용만큼 늘어난다(넘치면 창 안에서 스크롤)
       final w = tileC(tile);
-      final sx = ((w.dx - cam.x) * cam.z + box.maxWidth / 2).clamp(R + 34, math.max(R + 34, box.maxWidth - R - 34)).toDouble();
-      final an = _angles(toks.length);
-      // 버튼이 랜턴 버튼·탭 줄 위에 오도록 (웹 ringBot - ringDown). 버튼이 없는 링(복구한 랜드마크)도 있다 → 웹 angles(max(1,n))
-      final ringDown = _angles(math.max(1, toks.length)).map((x) => math.sin(x * math.pi / 180)).reduce(math.max) * R + 30 + 24;
-      final lowest = math.min(box.maxHeight - R - 44, box.maxHeight - bottomGuard - ringDown);
-      final sy = ((w.dy - cam.y) * cam.z + box.maxHeight / 2).clamp(R + 40, math.max(R + 40, lowest)).toDouble();
-      final labelW = math.min(300.0, box.maxWidth - 140);
-      final ringTop = sy - R - 30;
-      final low = ringTop - 58 < 140; // 위에 자리가 모자라면 카드는 아래로
+      final by = (w.dy - cam.y) * cam.z + box.maxHeight / 2;
+      final labelW = math.min(360.0, box.maxWidth - 24);
+      final top = by > box.maxHeight * .48;
+      const topY = 58.0;
+      final botY = bottomGuard + 8; // 랜턴 버튼·탭 줄 바로 위 (스킬 바는 창이 떠 있는 동안 숨는다)
+      final room = top ? by - 60 - topY : box.maxHeight - botY - (by + 24);
+      final maxH = math.max(220.0, math.min(room, box.maxHeight - topY - botY - 8));
       return Stack(children: [
         Positioned(
           left: (box.maxWidth - labelW) / 2,
           width: labelW,
-          top: low ? null : 58,
-          bottom: low ? 158 : null,
+          top: top ? topY : null,
+          bottom: top ? null : botY,
           child: ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: math.max(96, low ? box.maxHeight - (sy + R + 60) - 158 : ringTop - 58 - 8)),
+            constraints: BoxConstraints(maxHeight: maxH),
             child: Container(
-              padding: const EdgeInsets.fromLTRB(12, 9, 12, 10),
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
               decoration: BoxDecoration(
                 color: Ttc.paper,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: Ttc.line),
                 boxShadow: const [BoxShadow(color: Color(0x73000000), blurRadius: 16, offset: Offset(0, 6))],
               ),
-              child: SingleChildScrollView(child: label),
+              child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                Flexible(child: SingleChildScrollView(child: label)),
+                if (toks.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Row(children: [
+                    for (var k = 0; k < toks.length; k++) ...[
+                      if (k > 0) const SizedBox(width: 6),
+                      Expanded(child: toks[k].hl == null ? _TokBtn(toks[k]) : hl(toks[k].hl!, _TokBtn(toks[k]), radius: 8)),
+                    ],
+                  ]),
+                ],
+              ]),
             ),
           ),
         ),
-        for (var k = 0; k < toks.length; k++)
-          Positioned(
-            left: sx + math.cos(an[k] * math.pi / 180) * R - 40,
-            top: sy + math.sin(an[k] * math.pi / 180) * R - (toks[k].go ? 30 : 24),
-            width: 80,
-            child: toks[k].hl == null ? _TokBtn(toks[k]) : hl(toks[k].hl!, _TokBtn(toks[k]), radius: 99),
-          ),
       ]);
     });
   }
@@ -211,28 +201,26 @@ class _TokBtn extends StatelessWidget {
   const _TokBtn(this.t);
   final _Tok t;
   @override
-  Widget build(BuildContext context) => GestureDetector(
-        onTap: t.onTap,
-        child: Column(children: [
-          Container(
-            width: t.go ? 60 : 48,
-            height: t.go ? 60 : 48,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: t.go ? const Color(0xFFF0C071) : t.lock ? const Color(0xFF6B5D49) : t.poor ? const Color(0xFFCBBD9B) : Ttc.paper,
-              border: Border.all(color: t.go ? const Color(0xFF2C2217) : t.lock ? const Color(0xFF4A3D2C) : Ttc.sepia, width: 2),
-              boxShadow: t.go
-                  ? const [BoxShadow(color: Color(0x59F0C071), spreadRadius: 3), BoxShadow(color: Color(0x8CFFC86E), blurRadius: 16)]
-                  : const [BoxShadow(color: Color(0x73000000), blurRadius: 12, offset: Offset(0, 5))],
-            ),
-            alignment: Alignment.center,
-            child: SvgIcon(_icons[t.icon]!, size: t.go ? 30 : 26, color: t.go ? const Color(0xFF2C2217) : t.lock ? const Color(0xFF3A2F22) : Ttc.sepia),
-          ),
-          const SizedBox(height: 4),
-          Text(t.cap,
-              textAlign: TextAlign.center,
-              style: Ttc.t(12, color: t.go ? const Color(0xFFFFE2A0) : t.lock ? const Color(0xFFBFAE8F) : t.poor ? const Color(0xFFF0A898) : Ttc.paper, weight: FontWeight.w700, height: 1)
-                  .copyWith(shadows: const [Shadow(color: Colors.black, blurRadius: 3, offset: Offset(0, 1)), Shadow(color: Colors.black, blurRadius: 6)])),
+  Widget build(BuildContext context) {
+    final bg = t.go ? const Color(0xFFF0C071) : t.lock ? const Color(0xFFD9CFBC) : t.poor ? const Color(0xFFE6DCC6) : const Color(0xFF2F3F4B);
+    final fg = t.go ? const Color(0xFF2C2217) : t.lock ? const Color(0xFF8A7D68) : t.poor ? const Color(0xFF9A5A44) : Ttc.paper;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: t.onTap,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 50),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: t.go ? const Color(0xFF2C2217) : t.poor || t.lock ? Ttc.line : const Color(0xFF243039)),
+        ),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: [
+          SvgIcon(_icons[t.icon]!, size: 20, color: fg),
+          const SizedBox(height: 3),
+          Text(t.cap, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: Ttc.t(12.5, color: fg, weight: FontWeight.w700, height: 1.1)),
         ]),
-      );
+      ),
+    );
+  }
 }

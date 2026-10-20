@@ -453,7 +453,7 @@ Widget talkFace(Game g, Object who, String t, String? mood, {double w = 84, doub
   final id = g.speakerId(who);
   final box = BoxDecoration(color: id == null ? const Color(0xFF3A2618) : const Color(0xFFE6D8B6), borderRadius: BorderRadius.circular(8), border: Border.all(color: Ttc.line));
   if (id == null) {
-    if (g.pfSet) return Container(width: w, height: h, decoration: box, clipBehavior: Clip.antiAlias, child: pfPortrait(g.pfIndex()));
+    if (g.pfSet) return Container(width: w, height: h, decoration: box, clipBehavior: Clip.antiAlias, child: (w - h).abs() < 6 ? pfFace(g.pfIndex()) : pfPortrait(g.pfIndex()));
     return Container(width: w, height: h, decoration: box, alignment: Alignment.center, child: SvgPicture.string(_meSvg, width: 40, height: 40));
   }
   const exIds = {0: 0, 2: 1, 7: 2, 9: 3};
@@ -505,18 +505,6 @@ class _TalkPageState extends State<_TalkPage> {
   int k = 0, _said = -1;
   Game get g => widget.g;
   FxTalk get t => widget.t;
-
-  double? _lhCache;
-  double _lineH(BuildContext context, double w, bool small) {
-    if (_lhCache != null) return _lhCache!;
-    final st = Ttc.t(small ? 18 : 20, color: Ttc.sepia, height: 1.6), sc = MediaQuery.textScalerOf(context);
-    var h = 0.0;
-    for (final l in widget.t.lines) {
-      final tp = TextPainter(text: TextSpan(text: l.t, style: st), textDirection: TextDirection.ltr, textScaler: sc)..layout(maxWidth: math.max(100, w));
-      h = math.max(h, tp.height);
-    }
-    return _lhCache = h;
-  }
 
   @override
   Widget build(BuildContext context) => PopScope(canPop: false, child: _page(context));
@@ -626,13 +614,15 @@ class _TalkPageState extends State<_TalkPage> {
                   ),
                 ]),
               ),
-              // 줄이 바뀔 때 창이 들썩이지 않게, 이 대화에서 가장 긴 줄 높이에 맞춘다 (예전: 고정 84 → 한 줄짜리도 아래가 휑했음 · 2026-10-20)
-              ConstrainedBox(
-                constraints: BoxConstraints(minHeight: _lineH(context, math.min(460.0, scr.width - 32) - 40, small)),
+              // 대사 칸은 지금 줄 높이만큼 (2026-10-21: 가장 긴 줄에 맞추던 것 → 짧은 줄에서 아래가 휑했음). 줄이 바뀔 때 높이는 부드럽게
+              AnimatedSize(
+                duration: const Duration(milliseconds: 160),
+                curve: Curves.easeOut,
+                alignment: Alignment.topLeft,
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 180),
                   layoutBuilder: (cur, prev) => Stack(alignment: Alignment.topLeft, children: [...prev, if (cur != null) cur]),
-                  child: Text(l.t, key: ValueKey(k), style: Ttc.t(small ? 18 : 20, color: Ttc.sepia, height: 1.6)),
+                  child: SizedBox(key: ValueKey(k), width: double.infinity, child: Text(l.t, style: Ttc.t(small ? 18 : 20, color: Ttc.sepia, height: 1.6))),
                 ),
               ),
               SizedBox(height: small ? 12 : 18),
@@ -650,21 +640,35 @@ class _TalkPageState extends State<_TalkPage> {
                 padding: const EdgeInsets.only(top: 12),
                 decoration: const BoxDecoration(border: Border(top: BorderSide(color: Ttc.line))),
                 child: Row(children: [
-                  if (n > 1) Text('${k + 1} / $n', style: Ttc.t(12, color: Ttc.sepia2)),
-                  if (!last) ...[
-                    const SizedBox(width: 10),
-                    Expanded(child: Text('탭해서 계속 ›', maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(12.5, color: const Color(0xFF9F783F), weight: FontWeight.w600))),
-                  ] else
-                    const Spacer(),
+                  if (n > 1) Text('${k + 1} / $n', style: Ttc.t(12.5, color: Ttc.sepia2)),
+                  const Spacer(),
+                  // 2026-10-21 대표님: 글자 버튼이 작아 누르기 불편 → 손가락 크기(높이 44) 버튼으로
                   if (canSkip)
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: _skip,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
-                        child: Text('건너뛰기', style: Ttc.t(13, color: Ttc.sepia2, weight: FontWeight.w600).copyWith(decoration: TextDecoration.underline, decorationColor: Ttc.sepia2)),
+                      child: Container(
+                        constraints: const BoxConstraints(minWidth: 84, minHeight: 44),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), border: Border.all(color: Ttc.line, width: 1.2)),
+                        child: Text('건너뛰기', style: Ttc.t(14, color: Ttc.sepia2, weight: FontWeight.w700)),
                       ),
                     ),
+                  if (!last) ...[
+                    if (canSkip) const SizedBox(width: 8),
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _next,
+                      child: Container(
+                        constraints: const BoxConstraints(minWidth: 90, minHeight: 44),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(color: const Color(0xFFEFE2C2), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFC9A46A), width: 1.2)),
+                        child: Text('다음 ›', style: Ttc.t(14, color: const Color(0xFF7A5A2E), weight: FontWeight.w700)),
+                      ),
+                    ),
+                  ],
                   if (last)
                     GestureDetector(
                       onTap: () {

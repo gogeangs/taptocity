@@ -21,6 +21,16 @@ const pfPortraits = [
 /// 초상화 i번 (player-faceless.webp 4칸)
 Widget pfPortrait(int i) => CoverPic('player-faceless.webp', Rect.fromLTWH(i * 514.5 + 8, 8, 498.5, 748), alignY: 0);
 
+/// 동그라미·정사각 자리(대화 카드 얼굴 등)용: 칸 전체 대신 머리 쪽 정사각형만 (2026-10-21 대표님 신고: 왼쪽에 칸 바탕·테두리가 비쳐 얼굴이 치우쳐 보임)
+/// 초상화마다 머리 가운데가 달라 가로 위치를 따로 둔다 (칸 폭 비율)
+const _pfHeadX = [0.56, 0.47, 0.52, 0.5];
+Widget pfFace(int i) {
+  const cw = 498.5, side = cw * .74;
+  final cx = _pfHeadX[i.clamp(0, _pfHeadX.length - 1)] * cw;
+  final x = (cx - side / 2).clamp(14.0, cw - side - 14);
+  return CoverPic('player-faceless.webp', Rect.fromLTWH(i * 514.5 + 8 + x, 8 + 20, side, side), alignY: 0);
+}
+
 /// 머리 단추·대화 속 내 얼굴: 정했으면 초상화, 아니면 랜턴
 Widget pfAvatar(Game g, {double size = 34}) => g.pfSet
     ? Container(

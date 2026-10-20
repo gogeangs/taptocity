@@ -196,6 +196,14 @@ void main() {
     tester.view.devicePixelRatio = 2;
     final g = _demo();
     final title = 'Lv.${g.S.lv} ${shelterName[g.S.lv - 1]}';
+    // 모듈마다: 그 모듈 그림 가운데(칸 가운데 조금 위)를 누르면 이웃 모듈이 아니라 그 모듈이 잡혀야 (2026-10-21 작업대·텃밭 겹침)
+    {
+      final cam0 = Camera(), mp = MapPainter(g, cam0, cam0);
+      for (final t in g.modAt.keys) {
+        expect(mp.bldAt(tileC(t).translate(0, -14)), t, reason: '모듈 칸 $t 그림 가운데를 누르면 그 모듈');
+      }
+      expect(mp.bldAt(tileC(C0).translate(0, -14)), C0);
+    }
     // 쉘터 칸 자체(0)와, 쉘터 그림·이름표 높이에서 뒤 칸이 빈 땅인 곳들 (뒤 칸에 모듈이 있으면 그 모듈이 열리는 게 맞다)
     final ups = <double>[0];
     for (var up = 18.0; up <= 64 && ups.length < 4; up += 4) {
@@ -926,7 +934,7 @@ void main() {
     ], tag: '3장 · 모여드는 사람들', goal: '생존자 3명 모으기');
     await shot('64-talk-multi', () => _late()..fx.add(talk4), act: (g) async {
       await waitPage(g);
-      await tester.tap(find.text('탭해서 계속 ›'));
+      await tester.tap(find.text('다음 ›'));
     });
 
     // ===== 좁은 폰 (320×640) =====
