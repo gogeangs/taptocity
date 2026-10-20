@@ -155,7 +155,8 @@ extension Daily on Game {
   int get todayKey => dayKeyOf(Game.nowMs());
 
   /// 오늘의 의뢰가 열리는 때 (긴장 장치와 같게: 튜토리얼·안내 뒤, 재폭풍 밤을 배우고 판잣집이 된 뒤, 첫 동네는 4장 은호가 온 뒤)
-  bool get dayOn => tensionOn;
+  /// 앱 전용 (2026-10-20): 첫 동네는 5장 첫 걸음('지하 구역 2층까지 내려가기')부터. 이미 받아 둔 할 일·연속 기록이 있는 옛 저장은 그대로 연다.
+  bool get dayOn => tensionOn && (S.gen != 0 || mi >= stepI('지하 구역 2층까지 내려가기') || S.rest['dayQ'] != null || dayStreak > 0);
   Map? get dayQ => S.rest['dayQ'] is Map ? S.rest['dayQ'] as Map : null;
   int get dayStreak => ((S.rest['dayStreak'] as num?) ?? 0).toInt();
   int get dayLast => ((S.rest['dayLast'] as num?) ?? 0).toInt();

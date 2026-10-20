@@ -67,11 +67,12 @@ void main() {
   test('중반 판 준비: 긴장 장치·오늘의 의뢰·지하가 열려 있다', () {
     final g = mk(1, [0, 3]);
     expect(g.tensionOn, isTrue);
-    expect(g.dayOn, isTrue);
-    // 앱 전용 (2026-10-20): 첫 동네 지하는 5장 첫 걸음부터 열린다 (그 전엔 닫힘)
+    // 앱 전용 (2026-10-20): 첫 동네 지하·오늘의 할 일은 5장 첫 걸음부터 열린다 (그 전엔 닫힘)
+    expect(g.dayOn, isFalse);
     expect(g.ugOpen, isFalse);
     g.S.rest['mi'] = stepI('지하 구역 2층까지 내려가기');
     expect(g.ugOpen, isTrue);
+    expect(g.dayOn, isTrue);
     g.S.rest['mi'] = stepI('생존자 5명 모으기');
     expect(g.heal, 1);
   });
@@ -248,6 +249,7 @@ void main() {
 
   test('오늘의 의뢰: 7일 연속 → 귀한 장비, 하루 거르면 0부터 (벌 없음), 자정에 새 의뢰', () {
     final g = mk(41, [0, 3, 5, 6]);
+    g.S.rest['mi'] = stepI('지하 구역 2층까지 내려가기');
     expect(g.dayOn, isTrue);
     for (var d = 1; d <= 7; d++) {
       now = ms(d);
@@ -420,6 +422,7 @@ void main() {
 
   test('저장 왕복: 조각·연속 일수·인연·부상이 그대로', () {
     final g = mk(91, [0, 3, 6]);
+    g.S.rest['mi'] = stepI('지하 구역 2층까지 내려가기');
     g.S.rest['conf'] = 'a';
     for (var n = 0; n < 3; n++) {
       g.fragDrop();
