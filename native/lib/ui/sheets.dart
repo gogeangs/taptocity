@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../game/data.dart';
 import '../game/engine.dart';
@@ -733,6 +734,8 @@ class _SettingsBodyState extends State<SettingsBody> {
       if (widget.onSaveNow != null) CloudSection(onSaveNow: widget.onSaveNow!),
       if (widget.onLegacy != null) _row('예전 버전에서 진행 가져오기', '웹 게임이나 예전 탭투시티 앱에서 하던 진행을 이 앱으로 옮겨요', _ghost('가져오기', () => widget.onLegacy!())),
       _row('피드백 보내기', '버그·제안·소감, 무엇이든 개발자에게 바로 전해져요', _ghost('쓰기', () => showFeedback(context, g))),
+      // 웹 설정과 같이 (App Store 심사 전 2026-10-20)
+      _row('개인정보 처리방침', '진행은 기기와 클라우드에 저장돼요 · 광고 없음', _ghost('보기', () => launchUrl(Uri.parse('https://gogeangs.github.io/taptocity/privacy.html'), mode: LaunchMode.externalApplication))),
       for (final (k, n, d) in const [
         ('mus', '음악', '낮과 밤, 재폭풍, 심야 방송에 맞춰 흐르는 배경 음악'),
         ('snd', '소리', '두드리기, 자재 줍기, 라디오 잡음 같은 효과음'),

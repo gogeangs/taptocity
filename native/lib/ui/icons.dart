@@ -42,6 +42,18 @@ abstract final class Ico {
       '<svg viewBox="0 0 24 24"><path d="M12 2c1 4 6 6.5 6 12.5a6 6 0 0 1-12 0c0-3.2 1.8-5.2 3-6.5 0 2 .9 3.2 2 3.5-.8-3.2.1-6.5 1-9.5z" fill="#f08a2c"/><path d="M12 11.5c1.8 1.9 3 3.2 3 5.2a3 3 0 0 1-6 0c0-1.9 1.4-3.2 3-5.2z" fill="#ffd98a"/></svg>';
 
   /// 랜턴 버튼 (웹 #lamp): 진행 고리와 불꽃 크기만 바뀐다
+  /// 웹 두드리기 버튼 (design.js lamp + qa.css #lampRing): 짙은 원 + 밝은 연타 고리. 랜턴은 손그림(shelters.webp 6번째 칸)을 위에 얹는다
+  static String lampRing(double p, bool fever) {
+    final off = (201 * (1 - p.clamp(0, 1))).toStringAsFixed(1);
+    final ring = fever ? '#ffd060' : '#fff3c4';
+    return '<svg viewBox="0 0 74 74">'
+        '<circle cx="37" cy="37" r="32" fill="#26323c" stroke="#efd7a8" stroke-width="1.5"/>'
+        '${fever ? '<circle cx="37" cy="37" r="32" fill="none" stroke="#ffd060" stroke-opacity=".35" stroke-width="9"/>' : ''}'
+        '<circle cx="37" cy="37" r="32" fill="none" stroke="#281c0a" stroke-opacity=".55" stroke-width="7" stroke-linecap="round" transform="rotate(-90 37 37)" stroke-dasharray="201" stroke-dashoffset="$off"/>'
+        '<circle cx="37" cy="37" r="32" fill="none" stroke="$ring" stroke-width="5.5" stroke-linecap="round" transform="rotate(-90 37 37)" stroke-dasharray="201" stroke-dashoffset="$off"/>'
+        '</svg>';
+  }
+
   static String lamp(double p, double flame) {
     final off = (201 * (1 - p.clamp(0, 1))).toStringAsFixed(1);
     return '<svg viewBox="0 0 74 74">'

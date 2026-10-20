@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:app_links/app_links.dart';
 import 'package:flutter/foundation.dart';
@@ -1668,12 +1669,49 @@ class _Lamp extends StatelessWidget {
           boxShadow: [BoxShadow(color: const Color(0xFF775933), offset: Offset(0, down ? 1 : 3))],
         ),
         child: Column(children: [
-          SvgPicture.string(Ico.lamp(p, flame), width: 56, height: 56),
+          // 웹과 같은 손그림 랜턴 (2026-10-20 대표님 선택: 두드리기 버튼만 웹 모양으로). 그림이 아직 없으면 선 그림
+          SizedBox(
+            width: 56,
+            height: 56,
+            child: ValueListenableBuilder<int>(
+              valueListenable: Atlas.version,
+              builder: (c, _, __) {
+                final im = Atlas.image('shelters.webp'), r = Atlas.cell('shelters.webp', 5, 3, 2);
+                if (im == null || r == null) return SvgPicture.string(Ico.lamp(p, flame), width: 56, height: 56);
+                return Stack(children: [
+                  SvgPicture.string(Ico.lampRing(p, fev), width: 56, height: 56),
+                  // 74칸 판의 (14,13)에 46×46 (웹 lamp-art)
+                  Positioned(
+                    left: 56 * 14 / 74,
+                    top: 56 * 13 / 74,
+                    width: 56 * 46 / 74,
+                    height: 56 * 46 / 74,
+                    child: Transform.scale(scale: fev ? 1.08 : 1, child: CustomPaint(painter: _LampArt(im, r.deflate(3)))),
+                  ),
+                ]);
+              },
+            ),
+          ),
           Text(label, style: Ttc.t(12, color: const Color(0xFF252E36), weight: FontWeight.w700, height: 1.2)),
         ]),
       ),
     );
   }
+}
+
+class _LampArt extends CustomPainter {
+  _LampArt(this.im, this.src);
+  final ui.Image im;
+  final Rect src;
+  @override
+  void paint(Canvas canvas, Size size) {
+    // 칸 비율을 지키며 가운데에 (웹 viewBox 기본 xMidYMid meet)
+    final k = math.min(size.width / src.width, size.height / src.height), w = src.width * k, h = src.height * k;
+    canvas.drawImageRect(im, src, Rect.fromLTWH((size.width - w) / 2, (size.height - h) / 2, w, h), Paint()..filterQuality = FilterQuality.medium);
+  }
+
+  @override
+  bool shouldRepaint(_LampArt o) => o.im != im || o.src != src;
 }
 
 class _Tabs extends StatelessWidget {
