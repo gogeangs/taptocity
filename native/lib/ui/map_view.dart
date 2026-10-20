@@ -1165,8 +1165,9 @@ class MapPainter extends CustomPainter {
         final h = t == C0 ? math.max(_bldH(t), hw * 1.5) + 30 : _bldH(t) + 16;
         final ddx = (w.dx - c.dx).abs();
         if (ddx > hw || w.dy > c.dy + TH * .5 || w.dy < c.dy - TH * .5 - h) continue;
-        // 여러 그림이 겹치면 누른 곳이 가운데에 가장 가까운 건물 (같으면 앞 칸)
-        final d = ddx / hw - (x + y) * .001;
+        // 여러 그림이 겹치면 누른 곳이 그림 가운데(가로·세로 모두)에 가장 가까운 건물 (같으면 앞 칸)
+        final halfH = (h + TH) / 2, cy = c.dy + TH * .5 - halfH;
+        final d = math.sqrt(math.pow(ddx / hw, 2) + math.pow((w.dy - cy) / halfH, 2)) - (x + y) * .001;
         if (d < bestD) {
           bestD = d;
           best = t;
