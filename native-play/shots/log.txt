@@ -4,7 +4,7 @@ The following TestFailure was thrown running a test:
 Expected: at least one matching candidate
   Actual: _TextWidgetFinder:<Found 0 widgets with text "Lv.2 판잣집 쉘터": []>
    Which: means none were found but some were expected
-쉘터 칸에서 20만큼 위를 눌렀을 때 쉘터 창이 열려야
+쉘터 칸에서 0만큼 위를 눌렀을 때 쉘터 창이 열려야
 
 When the exception was thrown, this was the stack:
 #4      main.<anonymous closure> (file:///home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart:208:7)
