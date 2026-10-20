@@ -1,0 +1,58 @@
+Resolving dependencies...
+Downloading packages...
+  app_links 6.4.1 (7.2.2 available)
+  code_assets 1.2.1 (2.1.0 available)
+  flutter_lints 5.0.0 (6.0.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  lints 5.1.1 (6.1.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  objective_c 9.5.0 (9.6.2 available)
+  petitparser 7.0.2 (7.1.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  shared_preferences_foundation 2.5.7 (2.6.0 available)
+  test_api 0.7.12 (0.7.15 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+14 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Running Xcode build...                                          
+Xcode build done.                                           338.8s
+VMServiceFlutterDriver: Connecting to Flutter application at http://127.0.0.1:56508/ijnagHbHO7M=/
+VMServiceFlutterDriver: Isolate found with number: 6217678439528871
+VMServiceFlutterDriver: Isolate 6217678439528871 is runnable.
+VMServiceFlutterDriver: Isolate is paused at start.
+VMServiceFlutterDriver: Attempting to resume isolate
+flutter: 00:00 +0: iPhone에서 앱 띄워 보기
+flutter: ▶ 처음 켜기 (0s)
+VMServiceFlutterDriver: Connected to Flutter application.
+VMServiceFlutterDriver: request_data message is taking a long time to complete...
+flutter: ▶ 첫 화면 두드리기 (16s)
+flutter: ▶ 진행 중인 저장으로 켜기 (21s)
+flutter: ▶ 지도 두드리기 (소리) (28s)
+flutter: ▶ 탭 쉘터 (33s)
+flutter: ▶ 쉘터 · 건설 (35s)
+flutter: ▶ 쉘터 · 가공 (35s)
+flutter: ▶ 쉘터 · 연구 (35s)
+flutter: ▶ 쉘터 닫기 (35s)
+flutter: ▶ 탭 일지 (36s)
+flutter: ▶ 일지 · 기록 (38s)
+flutter: ▶ 일지 · 도감 (38s)
+flutter: ▶ 일지 닫기 (38s)
+flutter: ▶ 탭 원정 (39s)
+flutter: ▶ 원정 닫기 (41s)
+flutter: ▶ 탭 라디오 (43s)
+flutter: ▶ 라디오 닫기 (45s)
+flutter: ▶ 탭 생존자 (46s)
+flutter: ▶ 생존자 닫기 (49s)
+flutter: ▶ 설정 (51s)
+flutter: ▶ 설정 닫기 (53s)
+flutter: ▶ 프로필 (54s)
+flutter: ▶ 프로필 닫기 (56s)
+flutter: ▶ 뒤로 갔다 돌아오기 (56s)
+flutter: ▶ 저장 확인 (61s)
+flutter: ▶ 진동 채널 (61s)
+flutter: 01:02 +1: (tearDownAll)
+flutter: 01:12 +2: All tests passed!
+All tests passed.
