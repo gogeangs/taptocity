@@ -309,6 +309,9 @@ extension Crisis on Game {
         final got = give({...scaleCost({'scrap': held * 2, 'wood': held}, lvScale), 'batt': 1});
         S.rest['nights'] = num_('nights') + 1;
         fx.add(FxToast('밤을 버텼어요! 막아낸 재 $held/$nightN${got.isNotEmpty ? ' · ${lootText(got)}' : ''}'));
+      } else if (_edgeTiles().isEmpty) {
+        // 땅을 다 밝히면 재가 내려앉을 가장자리가 없어 nightN이 0 → 밤 수가 멈춰 '한파 사흘 버티기'·'밤 버티기'가 끝나지 않았다 (QA 2026-10-20)
+        S.rest['nights'] = num_('nights') + 1;
       }
       S.rest['shield'] = 0;
       S.ash.removeWhere((k, v) => !(v is Map && v['stuck'] == true));

@@ -493,4 +493,20 @@ void main() {
     }
     expect(n.folded, isTrue);
   });
+
+  test('땅을 다 밝혀도 밤 수가 쌓인다 (한파 사흘 버티기가 멈췄던 QA 사례)', () {
+    final g = mk(11, [0, 1, 2]);
+    for (var i = 0; i < N; i++) {
+      if (g.S.rev[i] == 0) g.reveal(i);
+    }
+    g.recalc();
+    final n0 = g.num_('nights');
+    // 하루 200초 × 4번: 대형 재폭풍 밤이 끼어도 밤 수는 적어도 두 번 늘어야 한다
+    for (var k = 0; k < cycleLen * 4; k++) {
+      Game.nowMs = () => ms(5) + k * 1000;
+      g.tick(1);
+      g.defn = null;
+    }
+    expect(g.num_('nights') - n0, greaterThanOrEqualTo(2));
+  });
 }

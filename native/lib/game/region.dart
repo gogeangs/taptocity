@@ -118,7 +118,7 @@ extension Region on Game {
     final r = S.region, base = num_('arriveWins');
     final light = RegMis('새 동네에 불빛 켜기 · 땅 30칸 밝히기', (g) => g.revCount >= 30, {'wood': 20, 'scrap': 20, 'batt': 1}, '랜턴으로 주변 구름부터 걷어요');
     final shack = RegMis('판잣집 쉘터 다시 세우기', (g) => g.S.lv >= 2, {'cloth': 20, 'food': 20, 'batt': 1}, '함께 온 사람들 덕분에 침상 걱정은 없어요');
-    final fort = RegMis('요새로 키우기', (g) => g.S.lv >= 4, {'wire': 4, 'med': 2, 'batt': 2}, '');
+    final fort = RegMis('요새로 키우기', (g) => g.S.lv >= 4, {'wire': 4, 'med': 2, 'batt': 2}, '모듈 8개와 철판·목재·부품·연료·밧줄이 필요해요'); // 앱: 비어 있던 도움말 채움 (QA 2026-10-20)
     final city = RegMis('불빛의 도시 다시 밝히기', (g) => g.S.lv >= 5, {'batt': 5}, '이 동네에도 등불 탑을 세울 수 있게 돼요');
     final tower = RegMis('이 동네 등불 탑에 불 켜기', (g) => g.towerN >= 5, {'batt': 5, 'med': 3}, '쉘터 화면 ‘건설’ 맨 위 등불 탑에서 쌓아요');
     if (r == 'desert') {

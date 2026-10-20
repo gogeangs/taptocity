@@ -189,6 +189,28 @@ void main() {
     await _fonts();
   });
 
+  // 실기기 신고(2026-10-20 텐트 터치 안 됨) 뒤로: 지도에서 건물 그림 윗부분을 손가락으로 눌러 본다
+  testWidgets('지도 터치 · 건물 그림 윗부분을 눌러도 열린다', (tester) async {
+    await tester.runAsync(() async => Atlas.load());
+    tester.view.physicalSize = const Size(750, 1624);
+    tester.view.devicePixelRatio = 2;
+    final g = _demo();
+    final title = 'Lv.${g.S.lv} ${shelterName[g.S.lv - 1]}';
+    for (final up in [0.0, 20.0, 34.0]) {
+      await tester.pumpWidget(MaterialApp(debugShowCheckedModeBanner: false, theme: Ttc.theme(), home: GameScreen(game: g)));
+      await _pumps(tester, 6);
+      final mv = find.byType(MapView), cam = tester.widget<MapView>(mv).camera, box = tester.getRect(mv);
+      final c = tileC(C0).translate(0, -up);
+      final p = box.center + Offset((c.dx - cam.x) * cam.z, (c.dy - cam.y) * cam.z);
+      expect(find.text(title), findsNothing, reason: '누르기 전에는 쉘터 창이 없어야');
+      await tester.tapAt(p);
+      await _pumps(tester, 8);
+      expect(find.text(title), findsWidgets, reason: '쉘터 칸에서 ${up.toInt()}만큼 위를 눌렀을 때 쉘터 창이 열려야');
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 1));
+    }
+  });
+
   testWidgets('화면 사진', (tester) async {
     await tester.runAsync(() async {
       await Atlas.load();
