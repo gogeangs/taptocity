@@ -156,13 +156,15 @@ extension FeatExt on Game {
     // 웹 tabDots를 먼저 불러 '봤음' 표시(ack)를 그대로 맞춘다. 새 기능 점만 켜진 탭은 뺀다 (기능 카드·안쪽 칸 N 표시가 따로 알린다)
     tabDots(nowMs);
     final out = <int>{};
-    if (svNew || qNew.isNotEmpty) out.add(0);
+    // 새 이야기는 이야기 띠의 '새 이야기 N' 배지가 이미 알린다 → 생존자 탭 점에서는 뺀다 (2026-10-20 점 줄이기)
+    if (svNew) out.add(0);
     if (expMap.values.any((x) => nowMs >= ((x['end'] as num?) ?? 1e15))) out.add(1);
     for (final t in const [2, 3]) {
       if (_tabActDot(t)) out.add(t);
     }
     if (achReady || S.rest['artNew'] != null || S.rest['caseNew'] != null) out.add(4);
-    return {for (final t in const [4, 2, 0, 3, 1]) if (out.contains(t)) t}.take(2).toSet();
+    // 한 번에 하나만: 가장 먼저 할 일 쪽에만 점 (예전 둘 → 2026-10-20 하나)
+    return {for (final t in const [1, 2, 0, 4, 3]) if (out.contains(t)) t}.take(1).toSet();
   }
 
   /// 새 기능 점과 상관없이 그 탭에 할 일이 있나 (쉘터: 지을 것 · 라디오: 건전지)

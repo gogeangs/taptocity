@@ -1,4 +1,6 @@
 // 생존자: 수첩(시트), 상세·구조·손님 창, 배치 목록. 웹 renderSheet('surv'·'assign'), openSurv, openCamp, rescue 를 옮겼다.
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../game/data.dart';
@@ -78,6 +80,7 @@ class SurvBody extends StatefulWidget {
 
 class _SurvBodyState extends State<SurvBody> {
   static String filter = 'all';
+  bool freshOpen = false; // 새 이야기가 여럿이면 한 줄로 접어 둔다 (2026-10-20)
   static String? tool;
   Game get g => widget.g;
 
@@ -210,7 +213,49 @@ class _SurvBodyState extends State<SurvBody> {
     final fresh = g.qNew;
     return ListView(padding: const EdgeInsets.fromLTRB(14, 14, 14, 20), children: [
       // 새로 열린 이야기 (앱 전용 2026-10-20: 지도 위 알림 카드 대신 여기와 이야기 띠의 '새 이야기')
-      if (fresh.isNotEmpty) ...[
+      if (fresh.length > 1 && !freshOpen)
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => setState(() => freshOpen = true),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.fromLTRB(8, 7, 10, 7),
+            decoration: BoxDecoration(color: const Color(0xFFF6EBD0), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0x59B0452A))),
+            child: Row(children: [
+              SizedBox(
+                width: 34 + 20.0 * (math.min(3, fresh.length) - 1),
+                height: 34,
+                child: Stack(children: [
+                  for (var k = math.min(3, fresh.length) - 1; k >= 0; k--)
+                    Positioned(
+                      left: 20.0 * k,
+                      child: Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xFFE6D8B6), border: Border.all(color: const Color(0xFFF6EBD0), width: 2)),
+                        clipBehavior: Clip.antiAlias,
+                        child: Portrait(fresh[k], width: 34, height: 40),
+                      ),
+                    ),
+                ]),
+              ),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Text.rich(
+                  TextSpan(children: [
+                    TextSpan(text: '새 이야기 ${fresh.length}개', style: const TextStyle(fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)])),
+                    TextSpan(text: ' · ${survivors[fresh[0]].name} 외 ${fresh.length - 1}명', style: const TextStyle(color: Color(0xFF4F5A5F))),
+                  ]),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Ttc.t(13.5, color: Ttc.sepia, height: 1.35),
+                ),
+              ),
+              Text('펼치기 ›', style: Ttc.t(13, color: Ttc.rust, weight: FontWeight.w700)),
+            ]),
+          ),
+        ),
+      if (fresh.length == 1 || (fresh.length > 1 && freshOpen)) ...[
         sec('새로 열린 이야기', '${fresh.length}'),
         for (final id in fresh)
           GestureDetector(

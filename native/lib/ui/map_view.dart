@@ -1487,6 +1487,13 @@ class FxLayerController extends ChangeNotifier {
   bool low = false;
 
   void toast(String t) {
+    // 같은 안내가 이미 떠 있으면 새로 쌓지 않고 그 안내를 다시 2.6초 보여 준다 (2026-10-20 겹쳐 쌓임 신고)
+    final same = toasts.where((x) => x.h == null && x.t == t).toList();
+    if (same.isNotEmpty) {
+      same.first.life = 2.6;
+      notifyListeners();
+      return;
+    }
     toasts.add(Toast(null, t, 2.6));
     if (toasts.length > 3) toasts.removeAt(0);
     notifyListeners();
@@ -1660,7 +1667,7 @@ class _FxLayerState extends State<FxLayer> with SingleTickerProviderStateMixin {
                           ? Text(t.t, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: Ttc.t(13, color: Ttc.sepia, height: 1.4))
                           : Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                               Text(t.h!, style: Ttc.serif(c.low ? 12.5 : 13.5, color: Ttc.sepia, weight: FontWeight.w700, height: 1.3)),
-                              if (t.t.isNotEmpty)
+                              if (t.t.isNotEmpty && !t.folded)
                                 Text(t.t, maxLines: c.low ? 2 : 3, overflow: TextOverflow.ellipsis, style: Ttc.t(c.low ? 12.5 : 13, color: Ttc.sepia2, height: c.low ? 1.4 : 1.5)),
                             ]),
                     ),
@@ -1675,10 +1682,14 @@ class _FxLayerState extends State<FxLayer> with SingleTickerProviderStateMixin {
 }
 
 class Toast {
-  Toast(this.h, this.t, this.life);
+  Toast(this.h, this.t, this.life) : max = life;
   final String? h;
   final String t;
   double life;
+  final double max;
+
+  /// 제목 카드는 2.4초 뒤 제목 한 줄로 접힌다 (지도·얼굴 줄을 오래 가리지 않게 · 2026-10-20)
+  bool get folded => h != null && max - life > 2.4;
 }
 
 class _FxPainter extends CustomPainter {

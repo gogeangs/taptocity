@@ -171,12 +171,13 @@ class CostChip extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Stack(children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(5, 3, 8, 6),
+          // 2026-10-20 글자 11 → 12.5 (작아서 읽기 어려웠음)
+          padding: const EdgeInsets.fromLTRB(6, 4, 9, 7),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            if (icon != null) ...[ResIcon(icon!, size: 17), const SizedBox(width: 2)],
-            Text(ok ? '$label ' : '$label ', style: Ttc.t(11, color: ok ? Ttc.sepia2 : Ttc.noText, weight: FontWeight.w500)),
-            Text(fmt(ok ? need : have), style: Ttc.t(11, color: ok ? Ttc.ok : Ttc.noText, weight: FontWeight.w700)),
-            if (!ok) Text('/${fmt(need)}', style: Ttc.t(11, color: Ttc.noText.withValues(alpha: .65), weight: FontWeight.w500)),
+            if (icon != null) ...[ResIcon(icon!, size: 18), const SizedBox(width: 3)],
+            Text('$label ', style: Ttc.t(12.5, color: ok ? Ttc.sepia2 : Ttc.noText, weight: FontWeight.w500, height: 1.2)),
+            Text(fmt(ok ? need : have), style: Ttc.t(12.5, color: ok ? Ttc.ok : Ttc.noText, weight: FontWeight.w700, height: 1.2)),
+            if (!ok) Text('/${fmt(need)}', style: Ttc.t(12.5, color: Ttc.noText.withValues(alpha: .7), weight: FontWeight.w500, height: 1.2)),
           ]),
         ),
         Positioned(

@@ -725,7 +725,6 @@ class _SettingsBodyState extends State<SettingsBody> {
       ]);
     }
     return ListView(padding: _bodyPad, children: [
-      Text('네이티브 미리보기 · 8단계', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
       GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => setState(() => guide = true),

@@ -148,13 +148,8 @@ class _MissionTapeState extends State<MissionTape> {
     final ch = widget.onChoice != null && !choiceShowing && g.choiceView() != null;
     if (nq == 0 && !ch) return const [];
     return [
-      Padding(
-        padding: const EdgeInsets.only(left: 6),
-        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [
-          if (ch) _badge('선택 기다림', widget.onChoice!, Ttc.rust, const Color(0xFFFFF1E6)),
-          if (nq > 0) _badge('새 이야기 $nq', widget.onStories!, Ttc.amber, const Color(0xFF243039)),
-        ]),
-      ),
+      if (ch) _badge('선택 기다림', widget.onChoice!, Ttc.rust, const Color(0xFFFFF1E6)),
+      if (nq > 0) _badge('새 이야기 $nq', widget.onStories!, Ttc.amber, const Color(0xFF243039)),
     ];
   }
 
@@ -203,6 +198,14 @@ class _MissionTapeState extends State<MissionTape> {
         ]),
       ),
     );
+    final chips = <Widget>[
+      ..._badges(),
+      if (g.pedHere) _chip('노친네', widget.onPed, const [Color(0xFF4A3A2A), Color(0xFF7A5A33)], const Color(0xFFF3E2B8), lead: pedFace()),
+      if (g.fireOn && g.warm != null)
+        hl('firechip', _chip('모닥불 ${g.warm!.round()}%', () => g.feedFire(), g.warmTier == 0 ? const [Color(0xFF2D3A45), Color(0xFF4B5D6B)] : const [Color(0xFF6B2F17), Color(0xFFC4652A)],
+            g.warmTier == 0 ? const Color(0xFFDFE8EF) : const Color(0xFFFFE9C7)), radius: 14),
+      if (m.eg && !done && g.canMigrate) _chip('새 동네로', widget.onMig, const [Color(0xFF6B3A1A), Color(0xFFB0452A)], const Color(0xFFFFE2A0), lead: const ResIcon('hope', size: 16)),
+    ];
     return GestureDetector(
       onTap: widget.onGo,
       child: Container(
@@ -213,7 +216,8 @@ class _MissionTapeState extends State<MissionTape> {
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: done ? const Color(0xFFEFC883) : Ttc.line17, width: .8),
         ),
-        child: Row(children: [
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(children: [
           Transform.translate(offset: const Offset(-3, 0), child: lvchip),
           const SizedBox(width: 6),
           Expanded(
@@ -249,18 +253,7 @@ class _MissionTapeState extends State<MissionTape> {
                 ),
             ]),
           ),
-          ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * .46),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerRight,
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-          ..._badges(),
-          if (g.pedHere) _chip('노친네', widget.onPed, const [Color(0xFF4A3A2A), Color(0xFF7A5A33)], const Color(0xFFF3E2B8), lead: pedFace()),
-          if (g.fireOn && g.warm != null)
-            hl('firechip', _chip('모닥불 ${g.warm!.round()}%', () => g.feedFire(), g.warmTier == 0 ? const [Color(0xFF2D3A45), Color(0xFF4B5D6B)] : const [Color(0xFF6B2F17), Color(0xFFC4652A)],
-                g.warmTier == 0 ? const Color(0xFFDFE8EF) : const Color(0xFFFFE9C7)), radius: 14),
-          if (m.eg && !done && g.canMigrate) _chip('새 동네로', widget.onMig, const [Color(0xFF6B3A1A), Color(0xFFB0452A)], const Color(0xFFFFE2A0), lead: const ResIcon('hope', size: 18)),
+          // 받기 버튼만 오른쪽에 (목표 글자가 먼저 보이게 · 2026-10-20 칩은 아래 줄로)
           if (done)
             Padding(
               padding: const EdgeInsets.only(left: 8),
@@ -290,24 +283,28 @@ class _MissionTapeState extends State<MissionTape> {
                 ),
               ),
             ),
-              ]),
+        ]),
+          // 칩(선택 기다림·새 이야기·노친네·모닥불·새 동네로)은 목표 아래 한 줄로 (목표 글자가 잘리지 않게 · 2026-10-20)
+          if (chips.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Wrap(alignment: WrapAlignment.end, spacing: 6, runSpacing: 4, children: chips),
             ),
-          ),
         ]),
       ),
     );
+
   }
 }
 
-/// 이야기 띠 오른쪽의 작은 배지 (위아래로 쌓아 폭을 아낀다)
+/// 이야기 띠 아래 줄의 작은 배지
 Widget _badge(String t, VoidCallback onTap, Color bg, Color fg) => GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 1),
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(99)),
-        child: Text(t, maxLines: 1, softWrap: false, style: Ttc.t(12, color: fg, weight: FontWeight.w700, height: 1.15)),
+        child: Text(t, maxLines: 1, softWrap: false, style: Ttc.t(12.5, color: fg, weight: FontWeight.w700, height: 1)),
       ),
     );
 
@@ -317,8 +314,7 @@ String uiWords(String s) => s.replaceAll('미션을 눌러', '이야기 띠를 �
 Widget _chip(String t, VoidCallback onTap, List<Color> bg, Color fg, {Widget? lead}) => GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(left: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(99),
           gradient: LinearGradient(colors: bg),
@@ -510,6 +506,18 @@ class _TalkPageState extends State<_TalkPage> {
   Game get g => widget.g;
   FxTalk get t => widget.t;
 
+  double? _lhCache;
+  double _lineH(BuildContext context, double w, bool small) {
+    if (_lhCache != null) return _lhCache!;
+    final st = Ttc.t(small ? 18 : 20, color: Ttc.sepia, height: 1.6), sc = MediaQuery.textScalerOf(context);
+    var h = 0.0;
+    for (final l in widget.t.lines) {
+      final tp = TextPainter(text: TextSpan(text: l.t, style: st), textDirection: TextDirection.ltr, textScaler: sc)..layout(maxWidth: math.max(100, w));
+      h = math.max(h, tp.height);
+    }
+    return _lhCache = h;
+  }
+
   @override
   Widget build(BuildContext context) => PopScope(canPop: false, child: _page(context));
 
@@ -618,8 +626,9 @@ class _TalkPageState extends State<_TalkPage> {
                   ),
                 ]),
               ),
+              // 줄이 바뀔 때 창이 들썩이지 않게, 이 대화에서 가장 긴 줄 높이에 맞춘다 (예전: 고정 84 → 한 줄짜리도 아래가 휑했음 · 2026-10-20)
               ConstrainedBox(
-                constraints: BoxConstraints(minHeight: small ? 64 : 84),
+                constraints: BoxConstraints(minHeight: _lineH(context, math.min(460.0, scr.width - 32) - 40, small)),
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 180),
                   layoutBuilder: (cur, prev) => Stack(alignment: Alignment.topLeft, children: [...prev, if (cur != null) cur]),

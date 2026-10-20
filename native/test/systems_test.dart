@@ -475,4 +475,22 @@ void main() {
     expect(p.bldAt(c.translate(0, -140)), -1); // 한참 위 하늘
     expect(pickTile(c.translate(0, -30)) == C0, isFalse); // 예전에는 뒤 칸이 잡혔다
   });
+
+  test('같은 안내는 겹쳐 쌓이지 않고, 제목 카드는 잠시 뒤 제목만 남는다', () {
+    final c = FxLayerController();
+    for (var k = 0; k < 3; k++) {
+      c.toast('빛이 새는 구름이나 폐허를 두드려 보세요');
+    }
+    expect(c.toasts.length, 1);
+    c.toast('다른 안내');
+    expect(c.toasts.length, 2);
+    c.note('박만수 · 부탁 1/3', '대사', ms: 5200);
+    final n = c.toasts.last;
+    expect(n.folded, isFalse);
+    c.step(.1);
+    for (var k = 0; k < 25; k++) {
+      c.step(.1);
+    }
+    expect(n.folded, isTrue);
+  });
 }

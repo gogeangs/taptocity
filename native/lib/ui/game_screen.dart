@@ -1574,7 +1574,8 @@ class _MatTile extends StatelessWidget {
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           ResIcon(k, size: 23, dim: zero),
           const SizedBox(height: 1),
-          Text(fmt(v), style: Ttc.t(12, color: Ttc.matText, weight: FontWeight.w700, height: 1.2)),
+          // 보관 한도가 차면 숫자를 빨갛게 (더 모아도 버려진다는 신호 · 2026-10-20)
+          Text(fmt(v), style: Ttc.t(12, color: full ? const Color(0xFFFF8F6B) : Ttc.matText, weight: FontWeight.w700, height: 1.2)),
         ]),
       ),
     );
@@ -1608,6 +1609,7 @@ class _MatsAll extends StatelessWidget {
                         TextSpan(text: '${m.n} '),
                         TextSpan(text: fmt(g.have(m.k)), style: const TextStyle(fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)])),
                         if (m.tier < 3) TextSpan(text: '/${fmt(g.capOf(m.k))}', style: const TextStyle(color: Color(0xFFCDB993))),
+                        if (m.tier < 3 && g.have(m.k) >= g.capOf(m.k)) const TextSpan(text: '  가득', style: TextStyle(color: Color(0xFFFF8F6B), fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)])),
                       ]), style: Ttc.t(12.5)),
                       Text(m.s2, style: Ttc.t(12, color: const Color(0xFFCDB993))),
                     ]),
