@@ -940,29 +940,21 @@ class MapPainter extends CustomPainter {
   }
 
   /// 아직 뒤질 게 남은 곳 위의 작은 표식 (2026-10-21 대표님 제안 1: 어디를 눌러야 하는지 그림만 보고 찾아야 했다).
-  /// 호박색 아래 화살표 + 남은 횟수 점. 조준 중인 곳은 조준 표시가 대신한다
+  /// 작은 호박색 아래 화살표 하나 (남은 횟수는 조준 표시가 보여 준다). 조준 중인 곳은 조준 표시가 대신한다
   void _digMark(Canvas canvas, int i, Offset c) {
     if (i == g.aim && g.aimValid) return;
-    final site = g.S.site[i];
-    final h = _bldH(i), y = c.dy - math.max(26.0, h) - 4, x = c.dx;
+    final h = _bldH(i), y = c.dy - math.max(24.0, h) - 2, x = c.dx;
     final path = Path()
-      ..moveTo(x - 6, y - 6)
-      ..lineTo(x + 6, y - 6)
-      ..lineTo(x, y + 1)
+      ..moveTo(x - 4.5, y - 5)
+      ..lineTo(x + 4.5, y - 5)
+      ..lineTo(x, y)
       ..close();
-    _fill.color = const Color(0xFFFFD98A);
+    _fill.color = const Color(0xE6FFD98A);
     canvas.drawPath(path, _fill);
     _line
-      ..color = const Color(0xD93B2A1A)
-      ..strokeWidth = 1.4;
+      ..color = const Color(0xB33B2A1A)
+      ..strokeWidth = 1.1;
     canvas.drawPath(path, _line);
-    final n = site == null ? 0 : math.min(5, site.c);
-    if (n > 1) {
-      _fill.color = const Color(0xE6FFE6B0);
-      for (var k = 0; k < n; k++) {
-        canvas.drawCircle(Offset(x - (n - 1) * 2.6 + k * 5.2, y - 10), 1.6, _fill);
-      }
-    }
   }
 
   // ---------- 땅·물 질감 (웹 gtFill: 질감 한 장이 땅 두 칸을 덮고 칸을 넘어 이어진다) ----------
