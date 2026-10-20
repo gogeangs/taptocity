@@ -852,6 +852,7 @@ class _DreadLayerState extends State<DreadLayer> with SingleTickerProviderStateM
 
   /// 조여 오는 동안·번쩍이는 동안만 움직인다 (평소엔 아무것도 그리지 않음)
   void _check() {
+    if (!mounted) return; // 0.95초 뒤 다시 보기가 창이 닫힌 뒤에 올 수 있다
     final g = widget.g;
     if (g.oddHit != _hitAt && DateTime.now().millisecondsSinceEpoch - g.oddHit < 900) {
       _hitAt = g.oddHit;
