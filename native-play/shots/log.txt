@@ -1,6 +1,48 @@
 
 ✅ /home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart: 화면 사진
-✅ /home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart: 화면 사진 · 앱 전용 화면과 좁은 폰
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown running a test:
+AnimationController.stop() called after AnimationController.dispose()
+AnimationController methods should not be used after calling dispose.
+'package:flutter/src/animation/animation_controller.dart':
+Failed assertion: line 888 pos 7: '_ticker != null'
+
+Either the assertion indicates an error in the framework itself, or we should provide substantially
+more information in this error message to help you determine and fix the underlying cause.
+In either case, please report this assertion by filing a bug on GitHub:
+  https://github.com/flutter/flutter/issues/new?template=02_bug.yml
+
+When the exception was thrown, this was the stack:
+#2      AnimationController.stop (package:flutter/src/animation/animation_controller.dart:888:7)
+#3      AnimationController.repeat (package:flutter/src/animation/animation_controller.dart:738:5)
+#4      _DreadLayerState._check (package:taptocity/ui/season_ui.dart:862:35)
+#15     FakeTimer._fire (package:fake_async/fake_async.dart:364:13)
+#16     FakeAsync._fireTimersWhile (package:fake_async/fake_async.dart:247:13)
+#17     FakeAsync.elapse (package:fake_async/fake_async.dart:141:5)
+#18     AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:2254:28)
+#21     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#22     AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:2250:27)
+#23     WidgetTester.pump.<anonymous closure> (package:flutter_test/src/widget_tester.dart:652:53)
+#26     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#27     WidgetTester.pump (package:flutter_test/src/widget_tester.dart:652:27)
+#28     _shot (file:///home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart:183:16)
+<asynchronous suspension>
+#29     main.<anonymous closure>.shot (file:///home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart:653:9)
+<asynchronous suspension>
+#30     main.<anonymous closure> (file:///home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart:828:5)
+<asynchronous suspension>
+#31     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#32     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 17 frames from class _AssertionError, dart:async, and package:stack_trace)
+
+The test description was:
+  화면 사진 · 앱 전용 화면과 좁은 폰
+════════════════════════════════════════════════════════════════════════════════════════════════════
+Test failed. See exception logs above.
+The test description was: 화면 사진 · 앱 전용 화면과 좁은 폰
+
 ✅ /home/runner/work/taptocity/taptocity/native/test_screens/qa_ui_test.dart: 모든 화면 훑기
 
-🎉 3 tests passed.
