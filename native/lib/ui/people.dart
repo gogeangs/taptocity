@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../data/web_data.g.dart' as web;
 import '../game/data.dart';
 import '../game/engine.dart';
+import '../game/voice.dart';
 import 'atlas.dart';
 import 'map_view.dart';
 import 'sound.dart';
@@ -172,9 +173,10 @@ class Life {
           final dk = _decoNear(walk[a]!.x, walk[a]!.y);
           final dt2 = dk == null ? null : web.decoTalk[dk] as List?;
           if (dt2 != null && dt2.isNotEmpty && _r.nextDouble() < .6) {
-            chat = Chat(a, a, 4, [(a, dt2[_r.nextInt(math.min(2, dt2.length))] as String)], solo: true);
+            // 공용 잡담은 그 사람 말투로 (voice.dart · 2026-10-21)
+            chat = Chat(a, a, 4, [(a, voiced(a, dt2[_r.nextInt(math.min(2, dt2.length))] as String))], solo: true);
           } else if (g.isNight) {
-            chat = Chat(a, a, 4, [(a, nl[_r.nextInt(nl.length)])], solo: true);
+            chat = Chat(a, a, 4, [(a, voiced(a, nl[_r.nextInt(nl.length)]))], solo: true);
           } else if (sm.isNotEmpty) {
             chat = Chat(a, a, 4, [(a, sm[_r.nextInt(sm.length)])], solo: true);
           }

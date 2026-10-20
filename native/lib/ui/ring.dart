@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../game/data.dart';
 import '../game/engine.dart';
+import '../game/voice.dart';
 import 'icons.dart';
 import 'map_view.dart';
 import 'story_ui.dart';
@@ -108,7 +109,7 @@ class RingMenu extends StatelessWidget {
         final ashStuck = S.ash['$tile'] is Map && (S.ash['$tile'] as Map)['stuck'] == true;
         label = Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
           _title(d.n, '${m.l + 1}/3단계'),
-          if (say.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 4), child: Text('${wk != null ? '${wk.name}: ' : ''}“$say”', style: Ttc.t(13, color: Ttc.sepia, height: 1.5))),
+          if (say.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 4), child: Text('${wk != null ? '${wk.name}: ' : ''}“${wk != null ? voiced(id!, say) : say}”', style: Ttc.t(13, color: Ttc.sepia, height: 1.5))),
           const SizedBox(height: 5),
           Wrap(spacing: 4, runSpacing: 4, children: [
             if (m.id == 5 && g.have('fuel') <= 0) _chip('연료가 없어 멈춤', bad: true),

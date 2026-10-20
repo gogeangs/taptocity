@@ -7,6 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:taptocity/game/data.dart';
 import 'package:taptocity/game/engine.dart';
 import 'package:taptocity/game/state.dart';
+import 'package:taptocity/game/voice.dart';
+import 'package:taptocity/data/web_data.g.dart' as web;
 import 'package:taptocity/ui/map_view.dart';
 
 /// 중반 판: 판잣집 넘어 컨테이너(Lv.3), 재폭풍 밤을 배운 뒤(긴장 장치·오늘의 의뢰가 켜짐), 튜토리얼·안내 끝
@@ -529,5 +531,18 @@ void main() {
     g.tickStory();
     expect(g.takeFx().whereType<FxTalk>().single.tag, '${survivors[1].name}의 사연 · 신뢰도 3');
     expect(g.S.rest['svStoryQ'], isNull);
+  });
+
+  test('공용 잡담 말투표: 모든 원문이 실제 공용 잡담에 있고, 다섯 사람은 해요체로 끝나지 않는다', () {
+    final pool = <String>{...web.nightLine, for (final v in web.decoTalk.values) ...(v as List).cast<String>(), for (final v in web.say.values) ...(v as List).cast<String>()};
+    for (final e in voiceLines.entries) {
+      for (final k in e.value.keys) {
+        expect(pool.contains(k), isTrue, reason: '${e.key}번 말투표의 원문 "$k"이 공용 잡담에 없음');
+      }
+      for (final t in pool) {
+        final v = voiced(e.key, t);
+        expect(RegExp(r'(요[.!?]?|죠[.!?]?|세요[.!?]?)$').hasMatch(v), isFalse, reason: '${e.key}번: "$v" 가 해요체');
+      }
+    }
   });
 }
