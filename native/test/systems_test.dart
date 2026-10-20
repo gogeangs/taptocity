@@ -509,4 +509,25 @@ void main() {
     }
     expect(g.num_('nights') - n0, greaterThanOrEqualTo(2));
   });
+
+  test('신뢰도가 오르면 그 사람 사연 카드가 한가할 때 뜬다 · 첫 동네 신뢰 4/3배', () {
+    final g = mk(21, [0, 1]);
+    g.takeFx();
+    expect(g.trustK(0), closeTo(4 / 3, 1e-9));
+    g.storyUp(0, 2);
+    g.storyUp(1, 3);
+    g.storyCardAt = 0;
+    g.tickStory();
+    final t = g.takeFx().whereType<FxTalk>().toList();
+    expect(t.length, 1);
+    expect(t.first.tag, '${survivors[0].name}의 사연 · 신뢰도 2');
+    expect(t.first.lines.first.t, survivors[0].story[1]);
+    // 40초 안에는 다음 카드를 띄우지 않는다
+    g.tickStory();
+    expect(g.takeFx().whereType<FxTalk>(), isEmpty);
+    g.storyCardAt -= 41000;
+    g.tickStory();
+    expect(g.takeFx().whereType<FxTalk>().single.tag, '${survivors[1].name}의 사연 · 신뢰도 3');
+    expect(g.S.rest['svStoryQ'], isNull);
+  });
 }

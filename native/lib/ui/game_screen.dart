@@ -384,7 +384,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           if (mounted) showRequestDone(context, g, ev, k, sum);
         });
       case FxTalk():
-        _queue((f.tag ?? '').startsWith('아침 보고') ? 2 : 1, () async {
+        // 아침 보고·사연 카드는 이야기 장면보다 뒤 (2026-10-21 사연 카드)
+        _queue((f.tag ?? '').startsWith('아침 보고') || (f.tag ?? '').contains('의 사연 · 신뢰도') ? 2 : 1, () async {
           // 9장 까마귀 · 대치: 독수리 앞에 선 진 (웹툰 컷 ①② 먼저, 대화 뒤 남기로 한 ③)
           final jin = f.tag == '까마귀 · 대치' && g.hasSv(jinId);
           if (jin) {

@@ -339,7 +339,7 @@ extension Region on Game {
       // 앱 전용 (2026-10-18): 기록 조각·오늘의 의뢰·연속 일수·세는 값 (지하 기록 S.rest['ug']는 아래에서 따로 옮긴다)
       'frags', 'dayQ', 'dayStreak', 'dayLast', 'dayRare', 'giftN', 'ugDown', 'mrN',
       // 앱 전용 (2026-10-20): 아직 안 읽은 새 이야기 (함께 떠나는 사람만 화면에 남는다)
-      'qNew',
+      'qNew', 'svStoryQ',
     ];
     final ns = Game.fresh(random: rnd);
     for (final k in keepKeys) {

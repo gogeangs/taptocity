@@ -188,6 +188,7 @@ class Game extends ChangeNotifier {
   int tutSheet = 0;
   double tutAsh = 0;
   bool tutEnd = false, tutResumed = false, tutCloseSheet = false;
+  int storyCardAt = 0; // 마지막 사연 카드를 띄운 때 (저장하지 않음)
   // 수상한 밤·기척 (season.dart, 저장하지 않음)
   int oddNightSeen = -1, oddUntil = 0, oddDawnT = 0, oddHit = 0, prsNight = -1, lampFlick = 0;
   String? oddPlan;
@@ -1484,6 +1485,19 @@ class Game extends ChangeNotifier {
     _changed();
   }
 
+  /// 첫 동네에서는 신뢰가 4/3배 빨리 쌓인다 = 단계마다 필요한 경험치 ×0.75 (2026-10-21 대표님: 사연이 더 자주). 신뢰도 5 뒤(인연)는 그대로
+  double trustK(int id) => S.gen == 0 && xpOf(id) < trustXp.last ? 4 / 3 : 1;
+
+  /// 신뢰도가 올라 새 사연이 열림: 생존자 탭 점 + 한가할 때 그 사람 얼굴로 사연 카드 하나 (2026-10-21 앱 전용, story.dart tickStory)
+  void storyUp(int id, int lv) {
+    svNew = true;
+    if (lv < 2 || lv > survivors[id].story.length) return;
+    final q = (S.rest['svStoryQ'] as List?) ?? <Object?>[];
+    q.removeWhere((x) => x is List && x[0] == id);
+    q.add(<Object?>[id, lv]);
+    S.rest['svStoryQ'] = q;
+  }
+
   Cost giftCost(int id) => {'food': (6 * math.pow(2.5, trustLv(xpOf(id)) - 1)).ceil()};
   bool gift(int id) {
     final r = rec(id);
@@ -1502,7 +1516,7 @@ class Game extends ChangeNotifier {
     S.rest['giftN'] = num_('giftN') + 1;
     final a = trustLv(xpOf(id));
     if (a > l) {
-      fx.add(FxToast('${survivors[id].name} 신뢰도 $a! 새 사연이 열렸어요'));
+      storyUp(id, a);
       recalc();
     }
     _changed();
@@ -1599,12 +1613,11 @@ class Game extends ChangeNotifier {
       }
       if (atOf(id) < 0 || _truthy(r['away']) || hungry) continue;
       final b = trustLv(xpOf(id));
-      r['xp'] = xpOf(id) + (lmOn('school') ? 1.5 : 1) * trustM;
+      r['xp'] = xpOf(id) + (lmOn('school') ? 1.5 : 1) * trustM * trustK(id);
       final a = trustLv(xpOf(id));
       if (a > b) {
         ch = true;
-        svNew = true; // 웹 tickSurv: 새 사연 → 생존자 탭 점
-        fx.add(FxToast('${survivors[id].name} 신뢰도 $a! 새 사연이 열렸어요'));
+        storyUp(id, a); // 웹 tickSurv: 새 사연 → 생존자 탭 점
       }
     }
     if (ch) recalc();
@@ -1623,11 +1636,10 @@ class Game extends ChangeNotifier {
       final d = dutyOf(id);
       if (d == 'train' && !hungry) {
         final b = trustLv(xpOf(id));
-        rec(id)!['xp'] = xpOf(id) + .5 * trustM;
+        rec(id)!['xp'] = xpOf(id) + .5 * trustM * trustK(id);
         final a = trustLv(xpOf(id));
         if (a > b) {
-          svNew = true;
-          fx.add(FxToast('${survivors[id].name} 신뢰도 $a! 새 사연이 열렸어요'));
+          storyUp(id, a);
           recalc();
         }
       }
@@ -1669,7 +1681,9 @@ class Game extends ChangeNotifier {
       }
     } else if (care.isNotEmpty && !hungry) {
       for (final id in care) {
-        rec(id)!['xp'] = xpOf(id) + .25 * trustM;
+        final b = trustLv(xpOf(id));
+        rec(id)!['xp'] = xpOf(id) + .25 * trustM * trustK(id);
+        if (trustLv(xpOf(id)) > b) storyUp(id, trustLv(xpOf(id)));
       }
     }
   }

@@ -64,7 +64,7 @@ const T = {
   dsets: ev('DSETS'),
   // ---------- 5단계: 이야기 ----------
   // 대사 한 줄 = [말하는 사람(번호·'me'·'g'·'npc:x'), 문구, 조건 키, 표정, 대체 줄]
-  story: ev(`(()=>{const CK=f=>{if(!f)return null;const s=f.toString();const k=({"()=>svIn(9)":'sv9',"()=>!!(S.crow&&S.crow.raid)":'crowRaid',"()=>!!S.sv[10]":'sv10',"()=>!!S.sv[11]":'sv11',"()=>S.conf==='a'&&!!S.sv[9]":'confA',"()=>S.conf==='b'&&!!S.sv[9]":'confB',"()=>!!S.sv[12]":'sv12'})[s];if(!k)throw Error('모르는 조건 '+s);return k;};
+  story: ev(`(()=>{const CK=f=>{if(!f)return null;const s=f.toString();const k=({"()=>svIn(9)":'sv9',"()=>!!(S.crow&&S.crow.raid)":'crowRaid',"()=>!!S.sv[10]":'sv10',"()=>!!S.sv[11]":'sv11',"()=>S.conf==='a'&&!!S.sv[9]":'confA',"()=>S.conf==='b'&&!!S.sv[9]":'confB',"()=>!!S.sv[12]":'sv12',"()=>!!S.sv[6]":'sv6',"()=>!!S.sv[8]":'sv8',"()=>!!S.sv[6]&&!!S.sv[10]":'sv6sv10',"()=>!!S.sv[6]&&!S.sv[10]":'sv6no10'})[s];if(!k)throw Error('모르는 조건 '+s);return k;};
     const L=l=>l?[l[0],l[1],CK(l[2]),l[3]||null,L(l[4])]:null;
     return STORY.map(c=>({ch:c.ch,title:c.title,steps:c.steps.map(s=>({goal:s.goal,rw:s.rw,focus:s.focus||null,hint:s.hint||'',hl:s.hl||null,intro:(s.intro||[]).map(L),outro:(s.outro||[]).map(L)}))}));})()`),
   quickSteps: ev('QUICK_STEPS'),

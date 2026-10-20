@@ -322,6 +322,12 @@ extension Story on Game {
   // ================= 대사 =================
   bool _cond(String c) => switch (c) {
         'crowRaid' => (S.rest['crow'] as Map?)?['raid'] != null && (S.rest['crow'] as Map)['raid'] != 0 && (S.rest['crow'] as Map)['raid'] != false,
+        'sv6' => hasSv(6),
+        'sv8' => hasSv(8),
+        'sv6sv10' => hasSv(6) && hasSv(10),
+        'sv6no10' => hasSv(6) && !hasSv(10),
+        // 공단 동네 마석의 대사 (웹 svIn(9)): 예전에는 빠져 있어 늘 대체 줄로 나왔다 (2026-10-21 발견)
+        'sv9' => hasSv(9),
         'sv10' => hasSv(10),
         'sv11' => hasSv(11),
         'sv12' => hasSv(12),
@@ -443,6 +449,19 @@ extension Story on Game {
       S.rest['storyI'] = mi;
       introStep(mi);
       dirty = true;
+      return;
+    }
+    // 새로 열린 사연: 그 사람 얼굴로 짧은 카드 하나씩, 40초 간격 (앱 전용 2026-10-21 · engine.dart storyUp)
+    final q = S.rest['svStoryQ'] as List?;
+    if (q != null && q.isNotEmpty && Game.nowMs() - storyCardAt > 40000) {
+      final e = q.removeAt(0) as List;
+      final id = (e[0] as num).toInt(), lv = (e[1] as num).toInt();
+      if (q.isEmpty) S.rest.remove('svStoryQ');
+      if (hasSv(id) && lv >= 1 && lv <= survivors[id].story.length) {
+        storyCardAt = Game.nowMs();
+        talk([Line(id, survivors[id].story[lv - 1])], tag: '${survivors[id].name}의 사연 · 신뢰도 $lv');
+        dirty = true;
+      }
     }
   }
 

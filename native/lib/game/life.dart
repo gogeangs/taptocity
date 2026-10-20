@@ -121,11 +121,8 @@ extension Living on Game {
       fav['$id'] = 1;
       n++;
       final tb = Game.trustLv(xpOf(id));
-      rec(id)!['xp'] = xpOf(id) + 30 * trustM;
-      if (Game.trustLv(xpOf(id)) > tb) {
-        svNew = true;
-        fx.add(FxToastLater(1600, '${survivors[id].name} 신뢰도 ${Game.trustLv(xpOf(id))}! 새 사연이 열렸어요'));
-      }
+      rec(id)!['xp'] = xpOf(id) + 30 * trustM * trustK(id);
+      if (Game.trustLv(xpOf(id)) > tb) storyUp(id, Game.trustLv(xpOf(id)));
       // 그 사람이 장식 앞으로 걸어가 한마디 (웹 decoReact → WALK·CHAT)
       favReact.add((id, i, web.favSay['$id'] ?? '좋네요.'));
       // 좋아하는 사람이 여럿이면 0.4초씩 차례로 (웹 400*n)
