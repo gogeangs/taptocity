@@ -506,26 +506,7 @@ Future<void> showPageOf(BuildContext context, Game g, Widget Function(BuildConte
           constraints: const BoxConstraints(maxWidth: 460),
           child: Stack(children: [
             AnimatedBuilder(animation: g, builder: (c, _) => SingleChildScrollView(padding: const EdgeInsets.fromLTRB(18, 18, 18, 18), child: body(ctx))),
-            Positioned(
-              top: 6,
-              right: 6,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => Navigator.of(ctx).maybePop(),
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  alignment: Alignment.center,
-                  child: Container(
-                    width: 34,
-                    height: 34,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(color: const Color(0xFF2F3F4B), shape: BoxShape.circle, border: Border.all(color: const Color(0xFFEFE3C4), width: 1.5)),
-                    child: Text('×', style: Ttc.t(20, color: const Color(0xFFF3E9D2), weight: FontWeight.w700, height: 1)),
-                  ),
-                ),
-              ),
-            ),
+            Positioned(top: 6, right: 6, child: CloseX(onTap: () => Navigator.of(ctx).maybePop())),
           ]),
         ),
       ),

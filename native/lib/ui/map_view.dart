@@ -17,17 +17,30 @@ import '../game/state.dart';
 import 'atlas.dart';
 import 'live.dart';
 import 'people.dart';
+import 'sound.dart';
 import 'theme.dart';
 
 class Camera extends ChangeNotifier {
   double x = 0, y = (CX + CY + 1) * TH / 2 - 10, z = 1.4;
   bool userZoomed = false;
+  static const homeY = (CX + CY + 1) * TH / 2 - 10;
   void set(double nx, double ny, [double? nz]) {
     if (nz != null) userZoomed = true;
     x = nx.clamp(-W * TW / 2, W * TW / 2).toDouble();
     y = ny.clamp(0, (W + H) * TH / 2).toDouble();
-    if (nz != null) z = nz.clamp(.45, 3.2).toDouble();
+    if (nz != null) {
+      z = nz.clamp(.45, 3.2).toDouble();
+      Prefs.keepZoom(z); // 손으로 맞춘 확대는 앱을 다시 켜도 그대로 (2026-10-21)
+    }
     notifyListeners();
+  }
+
+  /// 기본 시점: 쉘터 가운데, 화면 폭에 칸 4.2개 (빈 땅을 두 번 톡톡)
+  void home(double fitZ) {
+    userZoomed = false;
+    Prefs.keepZoom(null);
+    z = fitZ;
+    set(0, homeY);
   }
 }
 
@@ -86,6 +99,17 @@ class _MapViewState extends State<MapView> {
   Offset? dragStart;
   double? pinchD, pinchZ;
   double _framedW = 0;
+  // 빈 땅 두 번 톡톡 → 기본 시점 (2026-10-21)
+  int _emptyT = 0;
+  Offset _emptyP = Offset.zero;
+  double get _fitZ => size.width <= 0 ? 1.4 : (size.width / (TW * 4.2)).clamp(.6, 2.2).toDouble();
+
+  /// 누른 곳에 번지는 동그라미 + 짧은 떨림 (2026-10-21 대표님 제안 2: 건물·폐허·구름 누름 반응을 한 세트로).
+  /// 소리는 각 동작(두드리기·뒤지기·열기)이 낸다. buzz=false면 떨림은 이미 그 동작이 낸 것
+  void _press(Offset screen, int color, {bool buzz = true}) {
+    widget.fxLayer.press(toWorld(screen), color);
+    if (buzz) Sound.tick();
+  }
 
   Game get g => widget.game;
   Camera get cam => widget.camera;
@@ -196,6 +220,7 @@ class _MapViewState extends State<MapView> {
     final ax = ashAt(p.pos);
     if (ax >= 0) {
       p.acted = true;
+      _press(p.pos, 0xFFE2644F, buzz: false);
       g.hitAsh(ax, g.tapPow * (g.fever > 0 ? 2 : 1));
       _after();
       void again() {
@@ -218,6 +243,7 @@ class _MapViewState extends State<MapView> {
     }
     if (i >= 0 && g.S.rev[i] == 1 && ((g.S.camp[i]?['hp'] as num?) ?? 0) > 0) {
       p.acted = true;
+      _press(p.pos, 0xFFCFE6FF, buzz: false);
       g.setAim(i);
       g.hitCamp(i, g.tapPow * (g.fever > 0 ? 2 : 1));
       _after();
@@ -235,6 +261,7 @@ class _MapViewState extends State<MapView> {
     if (i >= 0 && g.S.rev[i] == 1 && g.siteLive(i)) {
       p.acted = true;
       p.site = i;
+      _press(p.pos, 0xFFBEE696, buzz: false);
       g.setAim(i);
       g.hitSite(i, g.tapPow * (g.fever > 0 ? 2 : 1));
       _after();
@@ -248,6 +275,7 @@ class _MapViewState extends State<MapView> {
       p.acted = true;
       p.digging = f;
       p.r0 = revCount;
+      _press(p.pos, 0xFFFFD98A);
       g.setAim(f);
       g.dig(f);
       _after();
@@ -313,6 +341,13 @@ class _MapViewState extends State<MapView> {
     }
   }
 
+  /// 건물·사람·장식을 열 때: 동그라미 + 떨림 + 딸깍
+  void _open(String kind, int tile, Offset at) {
+    _press(at, 0xFFFFF0D2);
+    Sound.sfx('click');
+    widget.onSelect(kind, tile);
+  }
+
   void _up(PointerEvent e, {bool cancel = false}) {
     final p = ptrs.remove(e.pointer);
     if (p == null) return;
@@ -350,7 +385,7 @@ class _MapViewState extends State<MapView> {
         final w = life.pets[pk]!;
         final now = DateTime.now().millisecondsSinceEpoch;
         if (now - (_petPatT[pk] ?? 0) < 1500) {
-          widget.onSelect('pet', petKeys.indexOf(pk));
+          _open('pet', petKeys.indexOf(pk), p.pos);
         } else {
           _petPatT[pk] = now;
           life.heartsAt(w.x, w.y);
@@ -366,22 +401,22 @@ class _MapViewState extends State<MapView> {
       life.petTapT = 0;
       final st = g.stray;
       if (st != null && g.strayVis && (toScreen(tileC((st['i'] as num).toInt(), 6)) - p.pos).distance < math.max(22, 20 * cam.z)) {
-        widget.onSelect('stray', (st['i'] as num).toInt());
+        _open('stray', (st['i'] as num).toInt(), p.pos);
         return;
       }
       if (i0 >= 0 && g.band != null && g.band!['tile'] == i0) {
-        widget.onSelect('band', i0);
+        _open('band', i0, p.pos);
         return;
       }
       if (i0 >= 0 && g.deco.containsKey('$i0')) {
-        widget.onSelect('deco', i0);
+        _open('deco', i0, p.pos);
         return;
       }
       // 건물 그림 위(칸보다 위로 솟은 부분 포함)에서는 사람을 좁게 잡는다 — 쉘터 둘레를 걷는 사람이 텐트 누르기를 가로채지 않게
       final bld = (i0 >= 0 && g.S.rev[i0] == 1 && (i0 == C0 || g.modAtTile(i0) != null || g.S.camp.containsKey(i0) || g.S.ter[i0] == T.lm)) || MapPainter(g, cam, cam).bldAt(w0) >= 0;
       final pid = life.personAt(w0, bld ? 9 + 3 / cam.z : 18 + 8 / cam.z);
       if (pid != null) {
-        widget.onSelect('person', pid);
+        _open('person', pid, p.pos);
         if (ptrs.isEmpty) dragStart = null;
         return;
       }
@@ -392,9 +427,24 @@ class _MapViewState extends State<MapView> {
       if (j >= 0) i = j;
       final kind = g.tapTile(i);
       if (kind == 'far' || kind == 'none') {
-        widget.fxLayer.toast('빛이 새는 구름이나 폐허를 두드려 보세요');
-      } else {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        if (now - _emptyT < 380 && (p.pos - _emptyP).distance < 48) {
+          // 빈 땅을 두 번 톡톡: 쉘터로, 기본 확대로 (2026-10-21 대표님 제안 11)
+          _emptyT = 0;
+          cam.home(_fitZ);
+          widget.fxLayer.toast('쉘터로 돌아왔어요');
+        } else {
+          _emptyT = now;
+          _emptyP = p.pos;
+          widget.fxLayer.press(w0, 0x99EEE5D3);
+          widget.fxLayer.toast('빛이 새는 구름이나 폐허를 두드려 보세요');
+        }
+      } else if (kind == 'dig' || kind == 'site' || kind == 'camphit') {
+        // 손을 떼는 순간 두드림이 된 경우 (보통은 누를 때 먼저 두드린다)
+        _press(p.pos, 0xFFFFD98A, buzz: kind == 'dig');
         widget.onSelect(kind, i);
+      } else {
+        _open(kind, i, p.pos);
       }
       _after();
     }
@@ -862,17 +912,22 @@ class MapPainter extends CustomPainter {
       final v = (((speck[i] * 7.31 + speck2[i] * 3.17) % 1) * 5).floor();
       final f = Atlas.fr(Atlas.siteFrames[kind * 6 + (live ? math.min(4, v) : 5)]);
       _sprite(canvas, Atlas.mapImage('exploration-sites.webp'), f, c, live ? (kind == 0 ? 60.0 : 62.0) : 54.0, 1, dy: 8);
+      if (live) _digMark(canvas, i, c);
       return;
     }
     if (t == T.silo) {
       final v = (((speck[i] * 7.31 + speck2[i] * 3.17) % 1) * 3).floor();
       // 다 털린 벙커는 닫힌 벙커 그림 (웹 drawBunker live?4+v:7 · 2026-10-21: 앱은 열린 그림을 55%로 흐리게 그려 유령처럼 보였다)
       _prop(canvas, live ? 4 + v : 7, c);
-      if (live) _glows.add((c, 18.0, const Color(0xFFFFC86E), .3));
+      if (live) {
+        _glows.add((c, 18.0, const Color(0xFFFFC86E), .3));
+        _digMark(canvas, i, c);
+      }
       return;
     }
     if (site != null && site.k == 'rubble') {
       _prop(canvas, live ? 2 : 3, c);
+      if (live) _digMark(canvas, i, c);
       return;
     }
     // 빈 땅: 쉘터 가까이 나무, 군데군데 풀·덤불·벽돌 (웹 tree / groundDecor, 손그림 terrain-props)
@@ -882,6 +937,32 @@ class MapPainter extends CustomPainter {
       _tree(canvas, .2 + ((speck[i] * 97 + k * .37) % 1) * .6, .2 + ((speck2[i] * 53 + k * .61) % 1) * .6, i, (k + i) % 3 == 0);
     }
     if (trees == 0 || gr > .3) _groundDecor(canvas, i, gr);
+  }
+
+  /// 아직 뒤질 게 남은 곳 위의 작은 표식 (2026-10-21 대표님 제안 1: 어디를 눌러야 하는지 그림만 보고 찾아야 했다).
+  /// 호박색 아래 화살표 + 남은 횟수 점. 조준 중인 곳은 조준 표시가 대신한다
+  void _digMark(Canvas canvas, int i, Offset c) {
+    if (i == g.aim && g.aimValid) return;
+    final site = g.S.site[i];
+    final h = _bldH(i), y = c.dy - math.max(26.0, h) - 4, x = c.dx;
+    final path = Path()
+      ..moveTo(x - 6, y - 6)
+      ..lineTo(x + 6, y - 6)
+      ..lineTo(x, y + 1)
+      ..close();
+    _fill.color = const Color(0xFFFFD98A);
+    canvas.drawPath(path, _fill);
+    _line
+      ..color = const Color(0xD93B2A1A)
+      ..strokeWidth = 1.4;
+    canvas.drawPath(path, _line);
+    final n = site == null ? 0 : math.min(5, site.c);
+    if (n > 1) {
+      _fill.color = const Color(0xE6FFE6B0);
+      for (var k = 0; k < n; k++) {
+        canvas.drawCircle(Offset(x - (n - 1) * 2.6 + k * 5.2, y - 10), 1.6, _fill);
+      }
+    }
   }
 
   // ---------- 땅·물 질감 (웹 gtFill: 질감 한 장이 땅 두 칸을 덮고 칸을 넘어 이어진다) ----------
@@ -1518,6 +1599,16 @@ class _Particle {
 
 class FxLayerController extends ChangeNotifier {
   final List<_Particle> parts = [];
+
+  /// 누른 자리에 번지는 동그라미 (세계 좌표, 색, 남은 시간)
+  final List<(Offset, int, double)> rings = [];
+  static const ringLife = .34;
+  void press(Offset w, int color) {
+    rings.add((w, color, ringLife));
+    if (rings.length > 8) rings.removeAt(0);
+    notifyListeners();
+  }
+
   final List<Toast> toasts = [];
   Size viewSize = Size.zero;
   final math.Random _r = math.Random();
@@ -1547,6 +1638,9 @@ class FxLayerController extends ChangeNotifier {
     if (toasts.length > 3) toasts.removeAt(0);
     notifyListeners();
   }
+
+  /// 줄 서서 기다리는 제목 카드 수 (맨 아래 '알림 N개 더')
+  int get waiting => _noteQ.length;
 
   /// 한꺼번에 보이는 제목 카드 수: 평소 둘, 대형 재폭풍 중 하나. 넘치는 카드는 줄 세웠다가 앞 카드가 지면 띄운다
   final List<Toast> _noteQ = [];
@@ -1637,8 +1731,12 @@ class FxLayerController extends ChangeNotifier {
       t.life -= dt;
     }
     toasts.removeWhere((t) => t.life <= 0);
+    for (var k = 0; k < rings.length; k++) {
+      rings[k] = (rings[k].$1, rings[k].$2, rings[k].$3 - dt);
+    }
+    rings.removeWhere((r) => r.$3 <= 0);
     _flowNotes();
-    return parts.isNotEmpty || toasts.isNotEmpty || _noteQ.isNotEmpty;
+    return parts.isNotEmpty || toasts.isNotEmpty || _noteQ.isNotEmpty || rings.isNotEmpty;
   }
 }
 
@@ -1699,28 +1797,15 @@ class _FxLayerState extends State<FxLayer> with SingleTickerProviderStateMixin {
           child: Center(
             child: SizedBox(
               width: math.min(c.low ? 300 : 340, math.max(0, MediaQuery.of(context).size.width - (c.low ? 40 : 110))).toDouble(),
+              // 알림이 여럿이면 가장 새 알림 하나만 크게, 나머지는 한 줄로 작게 (2026-10-21 대표님 제안 10)
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                for (final t in c.toasts)
-                  Opacity(
-                    opacity: t.life.clamp(0, .3) / .3,
-                    child: Container(
-                      width: t.h != null ? double.infinity : null,
-                      margin: const EdgeInsets.only(top: 6),
-                      padding: t.h != null ? (c.low ? const EdgeInsets.fromLTRB(9, 5, 10, 5) : const EdgeInsets.fromLTRB(8, 6, 11, 6)) : const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEEE5D3),
-                        borderRadius: BorderRadius.circular(9),
-                        border: Border.all(color: Ttc.line),
-                        boxShadow: const [BoxShadow(color: Color(0x2E000000), blurRadius: 14, offset: Offset(0, 4))],
-                      ),
-                      child: t.h == null
-                          ? Text(t.t, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: Ttc.t(13, color: Ttc.sepia, height: 1.4))
-                          : Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                              Text(t.h!, style: Ttc.serif(c.low ? 12.5 : 13.5, color: Ttc.sepia, weight: FontWeight.w700, height: 1.3)),
-                              if (t.t.isNotEmpty && !t.folded)
-                                Text(t.t, maxLines: c.low ? 2 : 3, overflow: TextOverflow.ellipsis, style: Ttc.t(c.low ? 12.5 : 13, color: Ttc.sepia2, height: c.low ? 1.4 : 1.5)),
-                            ]),
-                    ),
+                for (var k = 0; k < c.toasts.length; k++) _toast(c, c.toasts[k], main: k == c.toasts.length - 1),
+                if (c.waiting > 0)
+                  Container(
+                    margin: const EdgeInsets.only(top: 5),
+                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2),
+                    decoration: BoxDecoration(color: const Color(0xCC242D36), borderRadius: BorderRadius.circular(9)),
+                    child: Text('알림 ${c.waiting}개 더', style: Ttc.t(11, color: const Color(0xFFE7E4DC), weight: FontWeight.w600, height: 1.3)),
                   ),
               ]),
             ),
@@ -1729,6 +1814,42 @@ class _FxLayerState extends State<FxLayer> with SingleTickerProviderStateMixin {
       ]),
     );
   }
+}
+
+Widget _toast(FxLayerController c, Toast t, {required bool main}) {
+  final double op = t.life.clamp(0.0, .3) / .3;
+  if (!main) {
+    // 앞선 알림: 제목(없으면 글) 한 줄, 작고 옅게
+    return Opacity(
+      opacity: op * .78,
+      child: Container(
+        margin: const EdgeInsets.only(top: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 3),
+        decoration: BoxDecoration(color: const Color(0xE6EEE5D3), borderRadius: BorderRadius.circular(8), border: Border.all(color: Ttc.line)),
+        child: Text(t.h ?? t.t, maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(11.5, color: Ttc.sepia2, weight: t.h != null ? FontWeight.w700 : FontWeight.w400, height: 1.3)),
+      ),
+    );
+  }
+  return Opacity(
+    opacity: op,
+    child: Container(
+      width: t.h != null ? double.infinity : null,
+      margin: const EdgeInsets.only(top: 6),
+      padding: t.h != null ? (c.low ? const EdgeInsets.fromLTRB(9, 5, 10, 5) : const EdgeInsets.fromLTRB(8, 6, 11, 6)) : const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEEE5D3),
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: Ttc.line),
+        boxShadow: const [BoxShadow(color: Color(0x2E000000), blurRadius: 14, offset: Offset(0, 4))],
+      ),
+      child: t.h == null
+          ? Text(t.t, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: Ttc.t(13, color: Ttc.sepia, height: 1.4))
+          : Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+              Text(t.h!, style: Ttc.serif(c.low ? 12.5 : 13.5, color: Ttc.sepia, weight: FontWeight.w700, height: 1.3)),
+              if (t.t.isNotEmpty && !t.folded) Text(t.t, maxLines: c.low ? 2 : 3, overflow: TextOverflow.ellipsis, style: Ttc.t(c.low ? 12.5 : 13, color: Ttc.sepia2, height: c.low ? 1.4 : 1.5)),
+            ]),
+    ),
+  );
 }
 
 class Toast {
@@ -1754,6 +1875,16 @@ class _FxPainter extends CustomPainter {
     canvas.scale(cam.z);
     canvas.translate(-cam.x, -cam.y);
     final paint = Paint();
+    final ring = Paint()..style = PaintingStyle.stroke;
+    for (final (w, col, life) in c.rings) {
+      final f = 1 - (life / FxLayerController.ringLife).clamp(0.0, 1.0).toDouble(), a = 1 - f;
+      ring
+        ..strokeWidth = (3.2 - f * 1.8) / cam.z
+        ..color = Color(col).withValues(alpha: a * .9);
+      canvas.drawOval(Rect.fromCenter(center: w, width: (14 + f * 40) / cam.z, height: (9 + f * 26) / cam.z), ring);
+      paint.color = Color(col).withValues(alpha: a * .22);
+      canvas.drawOval(Rect.fromCenter(center: w, width: (10 + f * 24) / cam.z, height: (6 + f * 15) / cam.z), paint);
+    }
     for (final p in c.parts) {
       final a = (p.life / p.max).clamp(0.0, 1.0).toDouble();
       if (p.text != null) {

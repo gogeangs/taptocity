@@ -742,6 +742,22 @@ void main() {
     // 감정 표현 '…!' (고비 세 곳 중 둘)
     await shot('73-cut-case1-3-beat', _demo, act: (g) => cuts('case1', const [0, 1, 2, 3], 2));
     await shot('74-cut-jin-choice-2-beat', _demo, act: (g) => cuts('join_jin_choice', const [0, 1], 1));
+    // 2026-10-21 대표님 제안 8: 돌아왔을 때 요약 카드 (모인 자재 · 나은 사람 · 원정 · 새 이야기 · 보상)
+    await shot('75-return-card', () {
+      final g = _late();
+      g.takeFx();
+      g.fx.add(FxOffline(2 * 3600 + 14 * 60.0, const {'wood': 120, 'scrap': 80, 'food': 40}, healed: const [1], expBack: 1, stories: 2, claim: true, visitor: true));
+      return g;
+    }, act: waitPage);
+    // 제안 10: 알림이 여럿이면 새 알림 하나만 크게 · 제안 1: 뒤질 곳 위 표식
+    await shot('76-notice-stack', _demo, act: (g) async {
+      g.fx.add(const FxNote('박만수 · 부탁 1/3', '창고 옆 폐허에서 쓸 만한 판자를 찾아 줘요', ms: 9000));
+      g.fx.add(const FxToast('식량이 모자라요'));
+      g.fx.add(const FxNote('원정 귀환 · 버려진 마트', '진, 순례 · 건전지 +2 · 고철 +40', ms: 9000));
+      for (var k = 0; k < 6; k++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    });
 
     // --- 정답 없는 선택 ---
     // (창이 닫힐 때까지 기다리면 안 되므로 await 없이 연다)

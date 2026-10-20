@@ -336,8 +336,15 @@ void main() {
     expect(g.rec(6)!['hurt'], 0);
     expect(g.rec(0)!['hurt'], 0);
     expect(g.rec(0)!.containsKey('slow'), isFalse);
-    final mr = g.takeFx().whereType<FxTalk>().where((f) => (f.tag ?? '').startsWith('아침 보고')).toList();
+    final fx0 = g.takeFx();
+    final mr = fx0.whereType<FxTalk>().where((f) => (f.tag ?? '').startsWith('아침 보고')).toList();
     expect(mr.length, 1);
+    // 돌아왔을 때 요약 카드: 아침 보고 뒤에, 나은 사람과 비운 시간 (2026-10-21 제안 8)
+    final rt = fx0.whereType<FxOffline>().toList();
+    expect(rt.length, 1);
+    expect(fx0.indexOf(rt.first) > fx0.indexOf(mr.first), isTrue);
+    expect(rt.first.seconds, closeTo(2000, 1e-6));
+    expect(rt.first.healed, containsAll([6, 0]));
     expect(mr.first.lines.any((l) => l.t.contains(shortName(6))), isTrue, reason: mr.first.lines.map((l) => l.t).join(' / '));
     expect(g.num_('mrN'), 1);
   });
@@ -494,6 +501,20 @@ void main() {
       c.step(.1);
     }
     expect(n.folded, isTrue);
+  });
+
+  test('누른 자리 동그라미는 잠깐 번졌다 사라지고, 넘친 제목 카드는 기다림 수로 보인다', () {
+    final c = FxLayerController();
+    c.press(const Offset(10, 20), 0xFFFFD98A);
+    expect(c.rings.length, 1);
+    expect(c.step(.1), isTrue);
+    c.step(.3);
+    expect(c.rings, isEmpty);
+    for (var k = 0; k < 4; k++) {
+      c.note('제목 $k', '글');
+    }
+    expect(c.toasts.where((t) => t.h != null).length, 2);
+    expect(c.waiting, 2);
   });
 
   test('땅을 다 밝혀도 밤 수가 쌓인다 (한파 사흘 버티기가 멈췄던 QA 사례)', () {

@@ -50,7 +50,13 @@ class SheetPanel extends StatelessWidget {
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(children: [
-          Container(
+          // 머리줄을 아래로 쓸어내려도 닫힌다 (2026-10-21 창 닫기 통일)
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onVerticalDragEnd: (d) {
+              if ((d.primaryVelocity ?? 0) > 280) onClose();
+            },
+            child: Container(
             color: Ttc.btn,
             padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
             child: Row(children: [
@@ -63,17 +69,9 @@ class SheetPanel extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Expanded(child: Text(title, style: Ttc.t(17, weight: FontWeight.w700))),
-              GestureDetector(
-                onTap: onClose,
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  alignment: Alignment.center,
-                  decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0x173C2B1A)),
-                  child: Text('×', style: Ttc.t(20, weight: FontWeight.w600, height: 1)),
-                ),
-              ),
+              CloseX(onTap: onClose),
             ]),
+          ),
           ),
           Expanded(child: child),
         ]),
@@ -572,10 +570,11 @@ Future<void> showPage(BuildContext context, {required String tag, required Strin
         backgroundColor: Ttc.paper,
         insetPadding: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Color(0x66EEE5D3))),
-        child: Padding(
+        child: Stack(children: [
+          Padding(
           padding: const EdgeInsets.all(20),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(tag, style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
+            Padding(padding: const EdgeInsets.only(right: 30), child: Text(tag, style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600))),
             const SizedBox(height: 4),
             Text(title, style: Ttc.t(23, color: Ttc.sepia, weight: FontWeight.w700)),
             const SizedBox(height: 10),
@@ -593,6 +592,8 @@ Future<void> showPage(BuildContext context, {required String tag, required Strin
             ),
           ]),
         ),
+          Positioned(top: 6, right: 6, child: CloseX(onTap: () => Navigator.pop(ctx))),
+        ]),
       ),
     );
 

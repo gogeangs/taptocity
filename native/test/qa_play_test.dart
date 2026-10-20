@@ -388,7 +388,7 @@ void main() {
     run(g, qa, 40, 9);
     try {
       g.offline(Game.nowMs() + 8 * 3600 * 1000);
-      // 30분 넘게 비웠으면 따로 창 대신 아침 보고 (앱 전용)
+      // 30분 넘게 비웠으면 아침 보고 + 돌아왔을 때 요약 카드 (앱 전용)
       final mr = g.takeFx().whereType<FxTalk>().where((f) => (f.tag ?? '').startsWith('아침 보고')).toList();
       qa.note('아침 보고: ${mr.isEmpty ? '없음' : mr.first.lines.map((l) => l.t).join(' / ')}');
       check(g, qa, '오프라인 뒤');

@@ -82,7 +82,6 @@ Future<void> showLnPrep(BuildContext context, Game g) async {
   var go = false;
   await showDialog(
     context: context,
-    barrierDismissible: false,
     barrierColor: const Color(0xC70F161D),
     builder: (ctx) => Dialog(
       backgroundColor: Ttc.paper,
@@ -93,10 +92,10 @@ Future<void> showLnPrep(BuildContext context, Game g) async {
         child: StatefulBuilder(builder: (ctx, set) {
           final free = g.lnFree, t = _lnTeam, T = g.lnTown, m = g.lnMult, c = g.lnCost(t.length), pk = g.lnPerks(t);
           final (rp, why) = g.lnRecommend(free);
-          return SingleChildScrollView(
+          return Stack(children: [SingleChildScrollView(
             padding: const EdgeInsets.all(18),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
-              Text('끊긴 노선 · ${T.n}', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
+              Padding(padding: const EdgeInsets.only(right: 34), child: Text('끊긴 노선 · ${T.n}', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600))),
               Padding(padding: const EdgeInsets.fromLTRB(0, 4, 0, 8), child: Text('누구와 갈까요?', style: Ttc.t(20, color: Ttc.sepia, weight: FontWeight.w700))),
               if (free.length > 2)
                 MCard(
@@ -178,7 +177,9 @@ Future<void> showLnPrep(BuildContext context, Game g) async {
                     padding: const EdgeInsets.only(top: 6),
                     child: Text(t.isEmpty ? '함께 갈 사람을 골라 주세요' : '식량이 모자라요', textAlign: TextAlign.center, style: Ttc.t(12, color: Ttc.no))),
             ]),
-          );
+          ),
+          Positioned(top: 6, right: 6, child: CloseX(onTap: () => Navigator.pop(ctx))),
+          ]);
         }),
       ),
     ),

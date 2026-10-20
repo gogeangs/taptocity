@@ -29,8 +29,21 @@ class Prefs {
       calm = m['calm'] == true;
       big = m['big'] == true;
       eco = m['eco'] == true;
+      final z = m['zoom'];
+      zoom = z is num ? z.toDouble() : null;
     } catch (_) {}
   }
+
+  /// 손으로 맞춘 지도 확대 (null이면 화면 폭에 맞춤). 손가락을 움직이는 동안 자주 바뀌니 0.6초 모아 저장
+  static double? zoom;
+  static Timer? _zt;
+  static void keepZoom(double? z) {
+    zoom = z;
+    _zt?.cancel();
+    _zt = Timer(const Duration(milliseconds: 600), _write);
+  }
+
+  static void _write() => Storage.setRaw(_key, jsonEncode({'snd': snd, 'mus': mus, 'vib': vib, 'calm': calm, 'big': big, 'eco': eco, if (zoom != null) 'zoom': zoom})).catchError((Object _) {});
 
   static bool get(String k) => switch (k) { 'snd' => snd, 'mus' => mus, 'vib' => vib, 'calm' => calm, 'big' => big, _ => eco };
 
@@ -49,7 +62,7 @@ class Prefs {
       default:
         eco = !eco;
     }
-    Storage.setRaw(_key, jsonEncode({'snd': snd, 'mus': mus, 'vib': vib, 'calm': calm, 'big': big, 'eco': eco}));
+    _write();
     version.value++;
     if (k == 'snd' && snd) Sound.sfx('chime');
     if (k == 'vib' && vib) Sound.buzz();
@@ -145,7 +158,7 @@ class Sound {
   // 예전: 재생기 6개를 돌려 쓰며 매번 멈춤→파일을 새로 불러 최대 음량으로 → 겹치면 찢어지고, 아이폰에서는 늦거나 빠졌다.
   // 지금: 소리 파일마다 재생기를 하나씩 두고 파일은 한 번만 불러 둔다(처음부터 다시 틀기만). 짧은 사이에 여럿이 겹치면 음량을 낮춘다.
   static const _tapKeys = {'tap', 'hit', 'get', 'reveal'};
-  static const _tapFiles = ['tap0', 'tap1', 'tap2', 'tap3', 'hit0', 'hit1', 'hit2', 'hit3', 'get0', 'get1', 'get2', 'get3', 'get4', 'get5', 'get6', 'get7', 'reveal'];
+  static const _tapFiles = ['click0', 'click1', 'click2', 'tap0', 'tap1', 'tap2', 'tap3', 'hit0', 'hit1', 'hit2', 'hit3', 'get0', 'get1', 'get2', 'get3', 'get4', 'get5', 'get6', 'get7', 'reveal'];
   static final Map<String, AudioPlayer> _fixed = {};
   static final List<int> _recent = [];
   static bool get _android => !kIsWeb && defaultTargetPlatform == TargetPlatform.android;

@@ -500,3 +500,31 @@ String? hurtLeft(Game g, int id) {
   final sec = rate <= 0 ? hurt : hurt / rate;
   return sec >= 60 ? '${(sec / 60).ceil()}분' : '${math.max(1, sec.ceil())}초';
 }
+
+/// 모든 창의 닫기 단추 (2026-10-21 대표님: 창마다 닫는 곳이 달라 찾아야 했다).
+/// 어두운 동그라미 34 + 크림색 테두리 · 누르는 자리는 44. 창 오른쪽 위 같은 자리에 둔다
+class CloseX extends StatelessWidget {
+  const CloseX({super.key, required this.onTap});
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) => Semantics(
+        button: true,
+        label: '닫기',
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: Container(
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
+            child: Container(
+              width: 34,
+              height: 34,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(color: const Color(0xFF2F3F4B), shape: BoxShape.circle, border: Border.all(color: const Color(0xFFEFE3C4), width: 1.5)),
+              child: Text('×', style: Ttc.t(20, color: const Color(0xFFF3E9D2), weight: FontWeight.w700, height: 1)),
+            ),
+          ),
+        ),
+      );
+}

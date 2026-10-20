@@ -75,10 +75,21 @@ class FxRescue extends Fx {
   final String via;
 }
 
+/// 돌아왔을 때 요약 카드 (2026-10-21 대표님 제안 8: 비운 사이 일을 한 장에)
 class FxOffline extends Fx {
-  const FxOffline(this.seconds, this.got);
+  const FxOffline(this.seconds, this.got, {this.healed = const [], this.expBack = 0, this.stories = 0, this.claim = false, this.visitor = false});
+  /// 실제로 비운 시간 (자재는 8시간까지만 모인다)
   final double seconds;
   final Map<String, int> got;
+  final List<int> healed;
+  /// 돌아와 짐을 풀기를 기다리는 원정대 수
+  final int expBack;
+  /// 아직 안 본 새 이야기 수
+  final int stories;
+  /// 미션 보상을 받을 수 있음
+  final bool claim;
+  /// 쉘터 앞에 손님
+  final bool visitor;
 }
 
 /// 고정 무늬값 (웹 2148: speck, speck2) — 지도 꾸밈과 드론 순서에 쓴다.
@@ -2128,10 +2139,19 @@ class Game extends ChangeNotifier {
       }
       if (healed.isNotEmpty) recalc();
     }
-    if (away >= 1800 && tut == null && !tutPending && onb != 1) {
-      morningReport(el, got, healed);
-    } else if (got.isNotEmpty) {
-      fx.add(FxOffline(el, got));
+    final quiet = tut != null || tutPending || onb == 1;
+    if (away >= 1800 && !quiet) morningReport(el, got, healed);
+    // 1분 넘게 비웠으면 무엇이 쌓였는지 한 장에 (아침 보고가 있으면 그 뒤에)
+    if (away >= 60 && !quiet) {
+      final now = Game.nowMs();
+      final back = expMap.values.where((x) => now >= ((x['end'] as num?) ?? 1e15)).length;
+      final f = FxOffline(away, got,
+          healed: healed,
+          expBack: back,
+          stories: qNew.length,
+          claim: mission().done,
+          visitor: S.camp.values.any((c) => c['visit'] == true));
+      if (got.isNotEmpty || healed.isNotEmpty || back > 0 || f.stories > 0 || f.claim || f.visitor) fx.add(f);
     }
     S.t = nowMs;
   }

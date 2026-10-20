@@ -77,6 +77,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     fxc.onFx = _onFx;
+    // 손으로 맞춘 확대를 그대로 (2026-10-21 대표님 제안 11)
+    final z0 = Prefs.zoom;
+    if (z0 != null) {
+      cam.z = z0.clamp(.45, 3.2).toDouble();
+      cam.userZoomed = true;
+    }
     FeatNav.go = _featGo;
     Portrait.sigWorn = g.sigWorn;
     Atlas.onTint = () => g.mapVersion.value++;
@@ -365,7 +371,17 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             sheet = null;
             _closeRing();
           });
+          _preDef ??= (cam.x, cam.y, cam.z, cam.userZoomed);
           _frameDefense();
+        } else {
+          // 대형 재폭풍이 지나가면 보던 자리·확대로 되돌린다 (2026-10-21 제안 11)
+          final p = _preDef;
+          _preDef = null;
+          if (p != null) {
+            cam.z = p.$3;
+            cam.userZoomed = p.$4;
+            cam.set(p.$1, p.$2);
+          }
         }
       case FxKidGrown(:final n):
         Future.delayed(const Duration(milliseconds: 200), () {
@@ -462,16 +478,80 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       case FxLevelUp(:final lv):
         Sound.buzzMid();
         _stamp(lv);
-      case FxOffline(:final seconds, :final got):
-        final h = seconds ~/ 3600, m = (seconds % 3600 / 60).round();
-        _queue(2, () => showPage(context,
-            tag: '돌아오셨군요',
-            title: '${h > 0 ? '$h시간 ' : ''}$m분 동안',
-            body: '모인 자재 · ${got.entries.map((e) => '${matOf[e.key]!.n} +${e.value}').join(' · ')}',
-            button: '좋아요'));
+      case FxOffline():
+        _queue(2, () => _returnPage(f));
       default:
         break;
     }
+  }
+
+  /// 돌아왔을 때 요약 카드 (2026-10-21 대표님 제안 8): 모인 자재 · 나은 사람 · 돌아온 원정대 · 새 이야기 · 받을 보상 · 손님.
+  /// 할 일이 있는 줄은 누르면 그 화면으로 간다
+  Future<void> _returnPage(FxOffline f) {
+    final sec = f.seconds, d = sec ~/ 86400, h = sec % 86400 ~/ 3600, m = (sec % 3600 / 60).round();
+    final when = d > 0 ? '$d일 ${h > 0 ? '$h시간 ' : ''}' : '${h > 0 ? '$h시간 ' : ''}${h == 0 || m > 0 ? '$m분 ' : ''}';
+    void go(BuildContext ctx, VoidCallback act) {
+      Navigator.of(ctx).maybePop();
+      Future.delayed(const Duration(milliseconds: 220), () {
+        if (mounted) act();
+      });
+    }
+
+    Widget row(String icon, String text, {String? btn, VoidCallback? onTap}) {
+      final r = Container(
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+        constraints: const BoxConstraints(minHeight: 44),
+        decoration: BoxDecoration(color: const Color(0xFFEDE6D6), borderRadius: BorderRadius.circular(8), border: Border.all(color: Ttc.line)),
+        child: Row(children: [
+          SvgIcon(icon, size: 18, color: Ttc.sepia2),
+          const SizedBox(width: 9),
+          Expanded(child: Text(text, style: Ttc.t(13.5, color: Ttc.sepia, height: 1.45))),
+          if (btn != null) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(color: Ttc.amber, borderRadius: BorderRadius.circular(7), border: Border.all(color: const Color(0x73252E36))),
+              child: Text(btn, style: Ttc.t(12.5, color: const Color(0xFF252E36), weight: FontWeight.w700, height: 1.2)),
+            ),
+          ],
+        ]),
+      );
+      return onTap == null ? r : GestureDetector(behavior: HitTestBehavior.opaque, onTap: onTap, child: r);
+    }
+
+    return showPageOf(
+        context,
+        g,
+        (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
+              Text('돌아오셨군요', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
+              const SizedBox(height: 4),
+              Padding(padding: const EdgeInsets.only(right: 34), child: Text('$when동안 쉘터는', style: Ttc.t(22, color: Ttc.sepia, weight: FontWeight.w700))),
+              if (f.got.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Text(sec > 8 * 3600 ? '모인 자재 (8시간까지만 모여요)' : '모인 자재', style: Ttc.t(12.5, color: Ttc.sepia2, weight: FontWeight.w600)),
+                const SizedBox(height: 6),
+                Wrap(spacing: 6, runSpacing: 6, children: [
+                  for (final e in f.got.entries)
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(6, 4, 9, 4),
+                      decoration: BoxDecoration(color: const Color(0xFFF3EEE2), borderRadius: BorderRadius.circular(14), border: Border.all(color: Ttc.line)),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        ResIcon(e.key, size: 18),
+                        const SizedBox(width: 4),
+                        Text('${matOf[e.key]?.n ?? e.key} +${e.value}', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w600, height: 1.2)),
+                      ]),
+                    ),
+                ]),
+              ],
+              if (f.healed.isNotEmpty) row(Ico.heart, '${f.healed.map((id) => survivors[id].name).join(', ')} — 다 나았어요'),
+              if (f.expBack > 0) row(Ico.exp, '원정대 ${f.expBack}팀이 돌아와 짐을 풀기를 기다려요', btn: '원정 보기', onTap: () => go(ctx, () => _open(const SheetSpec('exp')))),
+              if (f.stories > 0) row(Ico.surv, '새 이야기 ${f.stories}개가 생겼어요', btn: '보기', onTap: () => go(ctx, _openStories)),
+              if (f.claim) row(Ico.check, '미션 보상을 받을 수 있어요', btn: '받기', onTap: () => go(ctx, _goMission)),
+              if (f.visitor) row(Ico.home, '쉘터 앞에 손님이 와 있어요'),
+              const SizedBox(height: 14),
+              Row(children: [pageBtn('좋아요', () => Navigator.of(ctx).maybePop())]),
+            ]));
   }
 
   // ---------- 화면 둘러보기 (웹 onbTour): 가리킬 곳 ----------
@@ -961,6 +1041,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         }
     }
   }
+
+  (double, double, double, bool)? _preDef;
 
   /// 대형 재폭풍: 쉘터를 화면 아래쪽에 두고, 괴물이 나오는 타원을 화면 크기에 맞춘다 (웹 frameDefense)
   void _frameDefense() {
