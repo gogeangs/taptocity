@@ -1677,9 +1677,11 @@ class _Lamp extends StatelessWidget {
               valueListenable: Atlas.version,
               builder: (c, _, __) {
                 final im = Atlas.image('shelters.webp'), r = Atlas.cell('shelters.webp', 5, 3, 2);
-                if (im == null || r == null) return SvgPicture.string(Ico.lamp(p, flame), width: 56, height: 56);
+                final ring = Positioned.fill(child: CustomPaint(painter: LampRingPainter(p, fev)));
+                if (im == null || r == null) return Stack(children: [SvgPicture.string(Ico.lamp(0, flame).replaceAll('stroke="#f3a53a"', 'stroke="none"'), width: 56, height: 56), ring]);
                 return Stack(children: [
-                  SvgPicture.string(Ico.lampRing(p, fev), width: 56, height: 56),
+                  SvgPicture.string(Ico.lampDisc, width: 56, height: 56),
+                  ring,
                   // 74칸 판의 (14,13)에 46×46 (웹 lamp-art)
                   Positioned(
                     left: 56 * 14 / 74,
@@ -1697,6 +1699,36 @@ class _Lamp extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 연타 고리 (웹 #lampRing: 0이면 비어 있고 연타할수록 시계 방향으로 찬다 · 피버는 노란 빛)
+class LampRingPainter extends CustomPainter {
+  LampRingPainter(this.p, this.fever);
+  final double p;
+  final bool fever;
+  @override
+  void paint(Canvas canvas, Size size) {
+    final k = size.width / 74, c = Offset(37 * k, 37 * k), r = 32 * k;
+    final rect = Rect.fromCircle(center: c, radius: r);
+    if (fever) {
+      canvas.drawCircle(c, r, Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 9 * k
+        ..color = const Color(0x59FFD060));
+    }
+    final sweep = 2 * math.pi * p.clamp(0, 1);
+    if (sweep <= 0.001) return;
+    Paint pen(Color col, double w) => Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = w * k
+      ..color = col;
+    canvas.drawArc(rect, -math.pi / 2, sweep, false, pen(const Color(0x8C281C0A), 7));
+    canvas.drawArc(rect, -math.pi / 2, sweep, false, pen(fever ? const Color(0xFFFFD060) : const Color(0xFFFFF3C4), 5.5));
+  }
+
+  @override
+  bool shouldRepaint(LampRingPainter o) => o.p != p || o.fever != fever;
 }
 
 class _LampArt extends CustomPainter {

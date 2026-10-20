@@ -43,16 +43,8 @@ abstract final class Ico {
 
   /// 랜턴 버튼 (웹 #lamp): 진행 고리와 불꽃 크기만 바뀐다
   /// 웹 두드리기 버튼 (design.js lamp + qa.css #lampRing): 짙은 원 + 밝은 연타 고리. 랜턴은 손그림(shelters.webp 6번째 칸)을 위에 얹는다
-  static String lampRing(double p, bool fever) {
-    final off = (201 * (1 - p.clamp(0, 1))).toStringAsFixed(1);
-    final ring = fever ? '#ffd060' : '#fff3c4';
-    return '<svg viewBox="0 0 74 74">'
-        '<circle cx="37" cy="37" r="32" fill="#26323c" stroke="#efd7a8" stroke-width="1.5"/>'
-        '${fever ? '<circle cx="37" cy="37" r="32" fill="none" stroke="#ffd060" stroke-opacity=".35" stroke-width="9"/>' : ''}'
-        '<circle cx="37" cy="37" r="32" fill="none" stroke="#281c0a" stroke-opacity=".55" stroke-width="7" stroke-linecap="round" transform="rotate(-90 37 37)" stroke-dasharray="201" stroke-dashoffset="$off"/>'
-        '<circle cx="37" cy="37" r="32" fill="none" stroke="$ring" stroke-width="5.5" stroke-linecap="round" transform="rotate(-90 37 37)" stroke-dasharray="201" stroke-dashoffset="$off"/>'
-        '</svg>';
-  }
+  /// 두드리기 버튼 바탕 원 (연타 고리는 flutter_svg가 stroke-dashoffset을 안 그려서 LampRingPainter로 따로 그린다)
+  static const lampDisc = '<svg viewBox="0 0 74 74"><circle cx="37" cy="37" r="32" fill="#26323c" stroke="#efd7a8" stroke-width="1.5"/></svg>';
 
   static String lamp(double p, double flame) {
     final off = (201 * (1 - p.clamp(0, 1))).toStringAsFixed(1);
