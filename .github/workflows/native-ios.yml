@@ -159,7 +159,7 @@ jobs:
           # 시뮬레이터 시험(flutter drive)이 Generated.xcconfig 의 FLUTTER_TARGET 을 시험 파일로 바꿔 둔다.
           # 그대로 아카이브하면 시험 앱이 올라간다(2.0.0+100 사고) → 진짜 앱(lib/main.dart)으로 다시 맞추고 확인한다
           err() { echo "::error title=$1::$(tail -40 "$2" | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}')"; exit 1; }
-          flutter build ios --release --config-only -t lib/main.dart > "$RUNNER_TEMP/cfg.log" 2>&1 || err config "$RUNNER_TEMP/cfg.log"
+          flutter build ios --release --config-only --no-codesign -t lib/main.dart > "$RUNNER_TEMP/cfg.log" 2>&1 || err config "$RUNNER_TEMP/cfg.log"
           tgt=$(grep '^FLUTTER_TARGET=' ios/Flutter/Generated.xcconfig | cut -d= -f2)
           echo "FLUTTER_TARGET=$tgt"
           case "$tgt" in *lib/main.dart) ;; *) echo "::error title=target::아카이브 대상이 lib/main.dart가 아님: $tgt"; exit 1;; esac
