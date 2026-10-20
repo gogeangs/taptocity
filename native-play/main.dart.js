@@ -109588,20 +109588,16 @@ c=s.aBc(r,d?9+3/p.e.c:18+8/p.e.c)
 if(c!=null){a2.a.u5("person",c)
 if(a3.a===0)a2.x=null
 return}b=A.a8t(r)
-s=a2.a
+a=a2.a.c.a3f(b)
+if(a==="far"||a==="none"){s=a2.a
 p=s.c
 s=s.e
-a=new A.Gp(p,s,B.K4,s).asp(r)
-s=a>=0
-p=!1
-if(s)if(a!==b)p=b<0||B.e.J(a,40)+B.e.ah(a,40)>B.e.J(b,40)+B.e.ah(b,40)||a2.a.c.i.d[b]===0
-if(p)b=a
-a0=a2.a.c.a3f(b)
-if((a0==="far"||a0==="none")&&s&&a!==b){a0=a2.a.c.a3f(a)
-b=a}s=a0==="far"||a0==="none"
+a0=new A.Gp(p,s,B.K4,s).asp(r)
+if(a0>=0){a=a2.a.c.a3f(a0)
+b=a0}}s=a==="far"||a==="none"
 p=a2.a
 if(s)p.r.dl("\ube5b\uc774 \uc0c8\ub294 \uad6c\ub984\uc774\ub098 \ud3d0\ud5c8\ub97c \ub450\ub4dc\ub824 \ubcf4\uc138\uc694")
-else p.u5(a0,b)
+else p.u5(a,b)
 a2.j6()}s=a3.a
 if(s<2)a2.y=null
 if(s===0)a2.x=null
