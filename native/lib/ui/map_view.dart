@@ -1156,20 +1156,29 @@ class MapPainter extends CustomPainter {
     final i0 = pickTile(w);
     if (i0 < 0) return -1;
     final x0 = i0 % W, y0 = i0 ~/ W;
-    for (var dy = 3; dy >= 0; dy--) {
-      for (var dx = 3; dx >= 0; dx--) {
+    var best = -1;
+    var bestD = 1e9;
+    for (var dy = 0; dy <= 3; dy++) {
+      for (var dx = 0; dx <= 3; dx++) {
         final x = x0 + dx, y = y0 + dy;
         if (x >= W || y >= H) continue;
         final t = y * W + x;
         if (g.S.rev[t] != 1) continue;
         if (!(t == C0 || g.modAtTile(t) != null || g.S.ter[t] == T.lm)) continue;
-        // 쉘터 그림은 칸보다 넓다 (그리는 폭 84~112) → 폭의 절반, 높이는 폭만큼 + 이름표
-        final c = tileC(t), sw = t == C0 ? const [84.0, 84.0, 90.0, 100.0, 112.0][g.S.lv - 1] : TW;
-        final h = t == C0 ? math.max(_bldH(t), sw * .75) + 30 : _bldH(t) + 16;
-        if ((w.dx - c.dx).abs() <= sw * .5 && w.dy <= c.dy + TH * .5 && w.dy >= c.dy - TH * .5 - h) return t;
+        // 쉘터 그림은 칸보다 넓다 (그리는 폭 84~112) → 폭의 절반, 높이는 폭만큼 + 이름표. 모듈은 위로 갈수록 좁아 폭을 조금 줄인다
+        final c = tileC(t), hw = (t == C0 ? const [84.0, 84.0, 90.0, 100.0, 112.0][g.S.lv - 1] : TW * .85) / 2;
+        final h = t == C0 ? math.max(_bldH(t), hw * 1.5) + 30 : _bldH(t) + 16;
+        final ddx = (w.dx - c.dx).abs();
+        if (ddx > hw || w.dy > c.dy + TH * .5 || w.dy < c.dy - TH * .5 - h) continue;
+        // 여러 그림이 겹치면 누른 곳이 가운데에 가장 가까운 건물 (같으면 앞 칸)
+        final d = ddx / hw - (x + y) * .001;
+        if (d < bestD) {
+          bestD = d;
+          best = t;
+        }
       }
     }
-    return -1;
+    return best;
   }
 
   /// 칸 위 건물 높이 (웹 bldH 3005): 노선 역 앞을 가리는지 판단할 때 쓴다
