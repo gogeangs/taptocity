@@ -200,7 +200,7 @@ void main() {
     {
       final cam0 = Camera(), mp = MapPainter(g, cam0, cam0);
       for (final t in g.modAt.keys) {
-        expect(mp.bldAt(tileC(t).translate(0, -14)), t, reason: '모듈 칸 $t 그림 가운데를 누르면 그 모듈');
+        expect(mp.bldAt(tileC(t).translate(0, -30)), t, reason: '모듈 칸 $t 그림 위쪽 가운데를 누르면 (앞 모듈이 아니라) 그 모듈');
       }
       expect(mp.bldAt(tileC(C0).translate(0, -14)), C0);
     }
