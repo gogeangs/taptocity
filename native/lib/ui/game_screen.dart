@@ -1372,10 +1372,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                       final side = sideQuest(g, onTap: _sqGo);
                       final hasSide = g.sq != null && g.sqOn;
                       return Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                        Row(mainAxisSize: MainAxisSize.min, children: [
+                        // 좁은 폰에서 한 줄에 다 안 들어가면 다음 줄로 넘긴다 (320폭: 날씨가 붙은 시계만으로 꽉 찬다)
+                        Wrap(spacing: 6, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
                           clock,
-                          if (streak != null) ...[const SizedBox(width: 6), streak],
-                          if (!sqOpen && hasSide) ...[const SizedBox(width: 6), Flexible(child: side)],
+                          if (streak != null) streak,
+                          if (!sqOpen && hasSide) ConstrainedBox(constraints: BoxConstraints(maxWidth: math.max(120, box.maxWidth - 84)), child: side),
                         ]),
                         if (sqOpen) ...[
                           const SizedBox(height: 6),
