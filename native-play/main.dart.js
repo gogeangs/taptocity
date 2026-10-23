@@ -32560,7 +32560,7 @@ n.Q="\uc9c0\ud558 "+(r+1)+"\uce35\uc73c\ub85c \ub0b4\ub824\uac14\ub2e4."
 a.i.k3.k(0,"ugDown",A.F(a,"ugDown")+1)
 A.bbX(a)
 if(r>=5){q=a.a3.aj()
-q=q<(r<=$.kU()?0.2:0.1)}else q=!1
+q=q<(r<=$.kU()?0.45:0.1)}else q=!1
 if(q){p=A.b6m(a)
 if(p>=0)n.Q=n.Q+(" \xb7 \uacc4\ub2e8\ucc38\uc5d0\uc11c \uae30\ub85d \uc870\uac01\uc744 \uc8fc\uc6e0\ub2e4: **"+B.dl[p].b+"** (\uc62c\ub77c\uac00\uba74 \uc77d\uc744 \uc218 \uc788\uc5b4\uc694)")}a.bn("reveal")
 a.aB()
