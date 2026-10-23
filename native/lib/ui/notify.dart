@@ -109,7 +109,7 @@ class Notify {
         fk = k;
       }
     }
-    if (full != null && full! * 1000 > 300000) out.add((now + (full! * 1000).round(), '창고가 가득 찼어요', '${matOf[fk]?.n ?? '자재'}가 더 쌓이지 않아요. 쓰러 와요'));
+    if (full != null && full * 1000 > 300000) out.add((now + (full * 1000).round(), '창고가 가득 찼어요', '${matOf[fk]?.n ?? '자재'}가 더 쌓이지 않아요. 쓰러 와요'));
     return out;
   }
 }
