@@ -34060,7 +34060,7 @@ a=$.bbm
 a=a==null?null:a.$0()
 if(a==null)a=A.G(["app","native"],e,t.z)
 s=9
-return A.w(A.xU(A.G(["id","c"+d+c,"cat","crash","text",b,"at",f,"ver","2.0.0","dev",a],e,t.z)),$async$Ik)
+return A.w(A.xU(A.G(["id","c"+d+c,"cat","crash","text",b,"at",f,"ver","2.0.1","dev",a],e,t.z)),$async$Ik)
 case 9:p=2
 s=6
 break
@@ -34264,7 +34264,7 @@ case 1:return A.I(q,r)}})
 return A.J($async$PA,r)},
 bfR(a,b){var s,r=b==null?null:A.cu(b,null),q=A.q(t.N,t.z)
 q.k(0,"app","native")
-q.k(0,"ua","TaptocityNative/2.0.0 (native)")
+q.k(0,"ua","TaptocityNative/2.0.1 (native)")
 if(r!=null){s=r.a
 q.k(0,"scr",""+B.c.aa(s.a)+"x"+B.c.aa(s.b)+"@"+A.i(r.b))}q.k(0,"lv",a.i.x)
 q.k(0,"gen",a.i.fr)
@@ -106173,7 +106173,7 @@ m.k(0,"id",B.e.hZ(n,36)+B.e.hZ(B.e.J(n*7919,2176782336),36))
 m.k(0,"cat",o.a)
 m.k(0,"text",j>800?B.f.a0(k,0,800):k)
 m.k(0,"at",n)
-m.k(0,"ver","2.0.0")
+m.k(0,"ver","2.0.1")
 if(o.b)m.k(0,"dev",A.bfR(p.c,p.e))
 s=3
 return A.w(A.xU(m),$async$$0)
