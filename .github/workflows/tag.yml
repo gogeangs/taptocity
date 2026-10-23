@@ -22,8 +22,8 @@ jobs:
         with:
           fetch-depth: 0
       - run: |
-          set -e
           sha="${{ inputs.sha }}"; [ -n "$sha" ] || sha=$(git rev-parse HEAD)
-          git tag "${{ inputs.tag }}" "$sha"
-          git push origin "${{ inputs.tag }}"
+          out=$( { git tag "${{ inputs.tag }}" "$sha" && git push origin "${{ inputs.tag }}"; } 2>&1 ); r=$?
+          m=$(echo "$out" | tail -15 | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}')
+          if [ $r -ne 0 ]; then echo "::error title=tag::$m"; exit 1; fi
           echo "::notice title=tag::${{ inputs.tag }} → $sha"
