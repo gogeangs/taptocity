@@ -165,8 +165,10 @@ class _MissionTapeState extends State<MissionTape> {
   String? get _now {
     if (g.tut != null || g.mission().done) return null;
     final t = guideTarget(g)?.label;
-    if (t == null || t.isEmpty || t == '쉘터' || t == '모듈') return null;
-    return t;
+    if (t != null && t.isNotEmpty && t != '쉘터' && t != '모듈') return t;
+    // 화살표가 쉘터·모듈만 가리킬 때는 이 걸음의 귀띔 (예: '밧줄은 작업대에서 천으로 만들어요')
+    final sub = g.mission().sub;
+    return sub.isEmpty ? null : uiWords(sub);
   }
 
   @override
