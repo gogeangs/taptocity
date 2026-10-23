@@ -1,0 +1,78 @@
+# 구글 플레이 올리기 (손으로 실행). 서명된 번들(.aab)을 만들어 지정한 트랙에 올리거나, 이미 올린 빌드를 다른 트랙으로 내보낸다.
+# 필요한 저장소 시크릿: TTC_KEYSTORE_B64·TTC_KEYSTORE_PASS·TTC_KEY_ALIAS·TTC_KEY_PASS (업로드 키), PLAY_SA_JSON (서비스 계정 키)
+# 프로덕션 출시는 대표님이 휴대폰에서 내부 테스트를 확인한 뒤에만.
+name: Play
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'upload(빌드해서 올리기) 또는 promote(올린 빌드를 다른 트랙으로)'
+        default: upload
+      track:
+        description: 'internal · alpha · beta · production'
+        default: internal
+      status:
+        description: 'completed(바로 배포) 또는 draft(초안)'
+        default: completed
+      version_code:
+        description: 'promote일 때 내보낼 versionCode'
+        default: ''
+
+concurrency:
+  group: play
+  cancel-in-progress: false
+
+jobs:
+  play:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install fonttools brotli pillow google-auth requests
+
+      - uses: actions/setup-java@v5
+        if: inputs.mode == 'upload'
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        if: inputs.mode == 'upload'
+        with:
+          channel: stable
+          cache: true
+
+      - name: 번들 만들기
+        if: inputs.mode == 'upload'
+        working-directory: native
+        env:
+          B64: ${{ secrets.TTC_KEYSTORE_B64 }}
+          TTC_KEYSTORE_PASS: ${{ secrets.TTC_KEYSTORE_PASS }}
+          TTC_KEY_ALIAS: ${{ secrets.TTC_KEY_ALIAS }}
+          TTC_KEY_PASS: ${{ secrets.TTC_KEY_PASS }}
+        run: |
+          set +e +o pipefail
+          if [ -z "$B64" ]; then echo "::error title=play::업로드 키 시크릿이 없어요"; exit 1; fi
+          echo "$B64" | base64 -d > "$RUNNER_TEMP/upload.keystore"
+          export TTC_KEYSTORE="$RUNNER_TEMP/upload.keystore"
+          tool/prepare_assets.sh
+          flutter create --org kr.co.itso --project-name taptocity --platforms android,web . >/dev/null
+          rm -f test/widget_test.dart
+          python3 tool/platform_setup.py
+          flutter build appbundle --release 2>&1 | tee ../out.txt; s=${PIPESTATUS[0]}
+          if [ $s -ne 0 ]; then m=$(tail -60 ../out.txt | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}'); echo "::error title=aab::$m"; exit $s; fi
+          ls -la build/app/outputs/bundle/release/
+
+      - name: 플레이에 올리기
+        env:
+          PLAY_SA_JSON: ${{ secrets.PLAY_SA_JSON }}
+        run: |
+          if [ -z "$PLAY_SA_JSON" ]; then echo "::error title=play::PLAY_SA_JSON 시크릿이 없어요"; exit 1; fi
+          if [ "${{ inputs.mode }}" = "upload" ]; then A=native/build/app/outputs/bundle/release/app-release.aab; else A="${{ inputs.version_code }}"; fi
+          python3 android/store/play_upload.py "${{ inputs.mode }}" "$A" "${{ inputs.track }}" "${{ inputs.status }}" android/store/release_notes_ko.txt
