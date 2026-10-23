@@ -55,6 +55,7 @@ extension SupplyExt on Game {
     final lk = goalLack;
     if (lk == null || defn != null) {
       S.rest['lackS'] = 0;
+      if (lk == null) S.rest['stuckS'] = 0;
       return;
     }
     final k = lk.$1;
@@ -64,8 +65,23 @@ extension SupplyExt on Game {
     }
     final s = num_('lackS') + 1;
     S.rest['lackS'] = s;
+    // 같은 목표에 막힌 시간 (모자란 자재가 바뀌어도 이어진다). 오래 막히면 보급이 더 자주·더 많이 (2026-10-23 QA: 고비마다 15분+)
+    final m = mission().txt;
+    if (S.rest['stuckM'] != m) {
+      S.rest['stuckM'] = m;
+      S.rest['stuckS'] = 0;
+    }
+    final stuck = num_('stuckS') + 1;
+    S.rest['stuckS'] = stuck;
+    final long = stuck >= 480;
     final now = Game.nowMs();
-    if (s < 90 || uiModal || now - num_('supplyAt') < 240000) return;
+    // 보급 사이에는 어디서 구하는지 한 번 알려 준다 (사람 말투, 4분에 한 번)
+    if (s >= 150 && !uiModal && now - num_('lackTipAt') >= 240000) {
+      S.rest['lackTipAt'] = now;
+      final t = lackTip(k);
+      fx.add(FxNote(t.$1, t.$2, ms: 5600));
+    }
+    if (s < 90 || uiModal || now - num_('supplyAt') < (long ? 150000 : 240000)) return;
     var best = -1;
     var bd = 1e9;
     for (var j = 0; j < N; j++) {
@@ -77,7 +93,7 @@ extension SupplyExt on Game {
       }
     }
     if (best < 0) return;
-    final n = math.max(matOf[k]!.tier == 2 ? 4 : 10, (lk.$2 * .6).ceil());
+    final n = math.max(matOf[k]!.tier == 2 ? 4 : 10, (lk.$2 * (long ? .75 : .6)).ceil());
     S.rest['supply'] = <String, Object?>{'i': best, 'k': k, 'n': n};
     S.rest['supplyAt'] = now;
     S.rest['lackS'] = 0;
@@ -104,6 +120,24 @@ extension SupplyExt on Game {
     } else {
       sp['n'] = n;
     }
+  }
+
+  /// 모자란 자재를 어디서 구하는지: 쉘터 사람이 자기 말투로 (그 사람이 없으면 '나'의 메모). 제목에 지금 얼마나 모자란지
+  (String, String) lackTip(String k) {
+    const lines = <String, List<(int, String)>>{
+      'plate': [(6, '철판은 작업대에서 고철 두드려 펴면 돼. 쉘터 ‘가공’ 칸이야.'), (0, '철판이 모자라면 작업대에 고철부터 올려놓자고.')],
+      'rope': [(5, '밧줄? 천 몇 장 꼬면 돼. 작업대 가공 칸에 있어.'), (0, '밧줄은 작업대에서 천으로 꼬자고.')],
+      'wire': [(9, '전선은 작업대 2단계에서 조립하거나, 벙커 안쪽을 뒤져 보세요.'), (10, '전선이라면 벙커나 먼 원정이 빨라요.')],
+      'med': [(2, '약품은 작업대 3단계에서 달이거나, 상점·아파트 원정에서 구해 와요.')],
+      'parts': [(9, '부품은 폐차랑 벙커를 뒤지거나, 원정을 보내면 돼요.'), (0, '부품은 폐차 뜯는 게 제일이지. 원정도 보내 보자고.')],
+      'fuel': [(1, '연료는 벙커랑 주유소요! 원정 보내도 가져와요.'), (8, '주유소나 벙커 쪽을 뒤져 봐요. 원정도 돼요.')],
+    };
+    final c = goalCost, need = c?[k] ?? 0, h = have(k).floor();
+    final head = '${matOf[k]!.n} $h/${need.round()}';
+    for (final (id, t) in lines[k] ?? const <(int, String)>[]) {
+      if (hasSv(id) && !busy(id)) return ('$head · ${survivors[id].name}', '“$t”');
+    }
+    return ('$head · 모자라요', '${matOf[k]!.src}. 오래 막히면 근처에 보급 더미가 생겨요');
   }
 
   /// 보급 더미를 알려 주는 사람과 한마디: 자재마다 그걸 알아볼 사람들, 앞사람부터 지금 무리에 있는 사람

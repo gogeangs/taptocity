@@ -156,7 +156,7 @@ List<Widget> fragSection(BuildContext context, Game g) {
         opacity: .5,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Text('남은 조각 ${frags.length - got.length}개 · 깊은 지하 어딘가', style: Ttc.t(12.5, color: Ttc.sepia2)),
+          child: Text('남은 조각 ${frags.length - got.length}개 · 지하 5층 아래 어딘가', style: Ttc.t(12.5, color: Ttc.sepia2)),
         ),
       ),
   ];

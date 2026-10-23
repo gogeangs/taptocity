@@ -233,7 +233,7 @@ void main() {
   testWidgets('화면 사진', (tester) async {
     await tester.runAsync(() async {
       await Atlas.load();
-      for (final f in ['story-1.webp', 'story-2.webp', 'story-3.webp', 'story-4.webp', 'story-5.webp', 'founder-expressions.webp', 'underground-icons.webp', 'crows-kids.webp', 'regional-npcs.webp', 'player-faceless.webp']) {
+      for (final f in ['story-1.webp', 'story-2.webp', 'story-3.webp', 'story-4.webp', 'story-5.webp', 'founder-expressions.webp', 'underground-icons.webp', 'crows-kids.webp', 'regional-npcs.webp', 'player-faceless.webp', 'peddler-expressions.webp']) {
         await Atlas.ensure(f);
       }
     });

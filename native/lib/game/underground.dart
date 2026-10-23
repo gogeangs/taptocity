@@ -17,6 +17,9 @@ const List<int> ugCks = web.ugCk;
 /// 이야기로 정해 둔 마지막 층 (마지막 지하 기록이 놓이는 층 = 17). 그 아래는 끝없는 지하 (앱 전용 2026-10-18)
 final int ugDeep = ugDiaries.fold(15, (a, d) => math.max(a, d.$1));
 
+/// 기록 조각이 나오기 시작하는 층
+const fragFrom = 5;
+
 /// 끝없는 지하의 세기: 마지막 층에서 한 층 내려갈 때마다 +12% (세 배까지)
 double ugDeepK(int f) => f <= ugDeep ? 1 : math.min(3.0, 1 + .12 * (f - ugDeep));
 
@@ -327,8 +330,9 @@ extension Underground on Game {
         u.msg = '지하 ${u.floor + 1}층으로 내려갔다.';
         S.rest['ugDown'] = num_('ugDown') + 1;
         _ugFloor();
-        // 끝없는 지하: 한 층을 지나 내려갈 때마다 8% 확률로 그날 밤의 기록 조각
-        if (from > ugDeep && rnd.nextDouble() < .08) {
+        // 그날 밤의 기록 조각: 5층부터 계단을 내려갈 때마다 (2026-10-23 대표님: 본편에서 절반쯤 보게 — 예전엔 15층 아래 8%라 엔딩까지 0~1편).
+        // 이야기 층(5~15층)은 20%, 그 아래 끝없는 지하는 10%. 나머지는 엔딩 뒤 깊은 지하·10층마다 재괴물에서
+        if (from >= fragFrom && rnd.nextDouble() < (from <= ugDeep ? .2 : .1)) {
           final k = fragDrop();
           if (k >= 0) u.msg += ' · 계단참에서 기록 조각을 주웠다: **${frags[k].$2}** (올라가면 읽을 수 있어요)';
         }

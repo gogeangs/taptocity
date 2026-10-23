@@ -128,10 +128,10 @@ class _ProfileBodyState extends State<ProfileBody> {
             ('막아낸 대형 재폭풍', '${g.num_('defWins').toInt()}번', g.num_('defWins') <= 0 ? '세 번째 밤마다 와요' : null),
             ('버틴 밤', '${g.num_('nights').toInt()}밤', g.num_('nights') <= 0 ? '첫 밤을 넘기면 쌓여요' : null),
             ('이주', '${S.gen}번', S.gen <= 0 ? '불빛의 도시를 완성하면' : null),
-            ('모은 유물', '${g.relics.length}개', g.relics.isEmpty ? '폐허·지하·원정에서 찾아요' : null),
+            ('모은 유물', '${g.relics.length}개', g.relics.isEmpty ? '폐허·지하·원정에서' : null),
             ('받은 업적', '$achN/${achList.length}', null),
             ('가장 깊이', '지하 ${g.ugBest}층', g.ugBest <= 0 ? '지하 구역이 열리면' : null),
-            ('그날 밤의 기록 조각', '${g.fragsGot.length}/${frags.length}', g.fragsGot.isEmpty ? '아주 깊은 지하에서' : null),
+            ('그날 밤의 기록 조각', '${g.fragsGot.length}/${frags.length}', g.fragsGot.isEmpty ? '지하 5층부터' : null),
             ('오늘의 할 일 연속', '${g.streakShown}일', g.streakShown <= 0 ? '오늘의 할 일을 다 하면' : null),
             ('인연을 맺은 사람', '${g.bondN}명', g.bondN <= 0 ? '신뢰도 5 다음부터' : null),
           ];
@@ -146,7 +146,7 @@ class _ProfileBodyState extends State<ProfileBody> {
                   if (hint == null)
                     Text(b, style: Ttc.serif(16, color: Ttc.sepia, weight: FontWeight.w700, height: 1.2))
                   else
-                    Text(hint, maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(13, color: Ttc.sepia2, weight: FontWeight.w600, height: 1.4)),
+                    Text(hint, maxLines: 2, overflow: TextOverflow.ellipsis, style: Ttc.t(13, color: Ttc.sepia2, weight: FontWeight.w600, height: 1.4)),
                   const SizedBox(height: 2),
                   Text(a, style: Ttc.t(12, color: Ttc.sepia2)),
                 ]),

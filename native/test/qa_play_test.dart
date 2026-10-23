@@ -352,7 +352,7 @@ void run(Game g, Qa qa, int minutes, int seed, {bool stopAtEnd = true}) {
     if (stopAtEnd && g.S.rest['ehEnd'] != null) break;
   }
   final st = g.S.rest['stat'] is Map ? g.S.rest['stat'] as Map : const {};
-  qa.note('끝: 부상 ${st['hurtN'] ?? 0} · 선택 ${st['choiceN'] ?? 0} · ${g.S.gen}번째 동네 · Lv.${g.S.lv} · 생존자 ${g.S.sv.length} · 걸음 ${g.mi}/${steps.length} · 동네 미션 ${g.rmi} · 밤 ${g.num_('nights')} · 막은 폭풍 ${g.num_('defWins')} · 지하 최고 ${g.ugBest}층 · 조각 ${g.fragsGot.length} · 인연 ${g.bondN} · 연속 ${g.dayStreak}일 · 탑 ${g.towerN} · 보급 더미 $supplies번 · 시뮬 ${simMs ~/ 60000}분');
+  qa.note('끝: 부상 ${st['hurtN'] ?? 0} · 선택 ${st['choiceN'] ?? 0} · ${g.S.gen}번째 동네 · Lv.${g.S.lv} · 생존자 ${g.S.sv.length} · 걸음 ${g.mi}/${steps.length} · 동네 미션 ${g.rmi} · 밤 ${g.num_('nights')} · 막은 폭풍 ${g.num_('defWins')} · 지하 최고 ${g.ugBest}층 · 계단 ${g.num_('ugDown').toInt()}번 · 조각 ${g.fragsGot.length} · 인연 ${g.bondN} · 연속 ${g.dayStreak}일 · 탑 ${g.towerN} · 보급 더미 $supplies번 · 시뮬 ${simMs ~/ 60000}분');
 }
 
 void main() {

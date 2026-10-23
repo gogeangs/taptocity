@@ -823,7 +823,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     }
     switch (f) {
       case 'center':
-        toShelter(hlS.contains('craft') || hlS.contains('data-cb') ? 1 : 0);
+        // 철판·밧줄이 모자라 막혔으면 바로 가공 칸으로 (2026-10-23 QA)
+        final gl = g.goalLack;
+        toShelter(hlS.contains('craft') || hlS.contains('data-cb') || (gl != null && matOf[gl.$1]?.tier == 1 && g.wbL >= 1) ? 1 : 0);
         return;
       case 'fExp':
         _open(const SheetSpec('exp'));

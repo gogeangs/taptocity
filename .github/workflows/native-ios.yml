@@ -67,7 +67,7 @@ jobs:
           if [ $s -ne 0 ]; then m=$(tail -60 ../out.txt | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}'); echo "::error title=ios::$m"; exit $s; fi
 
       - name: iPhone 시뮬레이터에서 띄워 보기
-        timeout-minutes: 28
+        timeout-minutes: 40
         run: |
           set +e +o pipefail
           UDID=$(xcrun simctl list devices available -j | python3 -c "

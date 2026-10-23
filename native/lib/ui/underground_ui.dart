@@ -50,7 +50,7 @@ Widget ugCard(BuildContext context, Game g) {
       Text('기름이 버티는 만큼 깊이. ${last > 1 ? '다음엔 지난번 멈춘 $last층부터 시작해요.' : '다음엔 멈춘 층부터 다시 시작해요.'}', style: Ttc.t(13, color: Ttc.sepia2, height: 1.6)),
       // 끝없는 지하 (앱 전용): 이야기의 마지막 층에 닿으면 알려 준다
       if (best >= ugDeep)
-        Text('$ugDeep층 아래로도 길이 끝없이 이어져요. 10층마다 깊은 곳의 재괴물이 그날 밤의 기록 조각을 지켜요 · 조각 ${g.ugFragN}/${frags.length}',
+        Text('$ugDeep층 아래로도 길이 끝없이 이어져요. 10층마다 깊은 곳의 재괴물이 기록 조각을 지켜요 (5층부터 계단참에서도) · 조각 ${g.ugFragN}/${frags.length}',
             style: Ttc.t(12.5, color: const Color(0xFF7A4A1C), weight: FontWeight.w600, height: 1.55)),
       ...() {
         final qs = [for (final id in g.svIds) if (g.qStep(id) != null && (g.qStep(id)!['k'] == 'find' || g.qStep(id)!['k'] == 'ug')) survivors[id].name];
