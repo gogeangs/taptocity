@@ -331,8 +331,8 @@ extension Underground on Game {
         S.rest['ugDown'] = num_('ugDown') + 1;
         _ugFloor();
         // 그날 밤의 기록 조각: 5층부터 계단을 내려갈 때마다 (2026-10-23 대표님: 본편에서 절반쯤 보게 — 예전엔 15층 아래 8%라 엔딩까지 0~1편).
-        // 이야기 층(5~15층)은 20%, 그 아래 끝없는 지하는 10%. 나머지는 엔딩 뒤 깊은 지하·10층마다 재괴물에서
-        if (from >= fragFrom && rnd.nextDouble() < (from <= ugDeep ? .2 : .1)) {
+        // 이야기 층(5~15층)은 45%(엔딩까지 이 구간을 10번 남짓 내려간다), 그 아래 끝없는 지하는 10%. 나머지는 엔딩 뒤 깊은 지하·10층마다 재괴물에서
+        if (from >= fragFrom && rnd.nextDouble() < (from <= ugDeep ? .45 : .1)) {
           final k = fragDrop();
           if (k >= 0) u.msg += ' · 계단참에서 기록 조각을 주웠다: **${frags[k].$2}** (올라가면 읽을 수 있어요)';
         }
