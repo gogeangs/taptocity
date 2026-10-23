@@ -1,4 +1,5 @@
-// 자동 생성 — native/tool/gen_data.cjs 가 웹 버전(index.html)에서 뽑은 값이에요. 직접 고치지 마세요.
+// 게임 데이터 원본 (2026-10-23부터). 처음엔 native/tool/gen_data.cjs 가 웹 버전(index.html)에서 뽑았지만,
+// 웹은 시즌 1 그대로 얼려 두기로 해서 이제 앱 데이터는 이 파일을 직접 고친다. gen_data.cjs 로 다시 만들면 앱에서 고친 내용이 사라진다.
 // ignore_for_file: type=lint
 
 const W = 40;

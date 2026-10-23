@@ -631,7 +631,6 @@ extension Story on Game {
   ];
 
   bool get towerOpen => S.gen != 0 ? S.lv >= 5 : (stepI('등불 탑 토대 놓기') >= 0 && mi >= stepI('등불 탑 토대 놓기'));
-  List<TowerStep> get towerSteps => _towerBase;
 
   TowerStep towerNext() {
     final n = towerN, T = _towerBase;

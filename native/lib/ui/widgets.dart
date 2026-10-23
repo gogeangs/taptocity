@@ -160,19 +160,6 @@ Widget moduleThumb(int id, int l, {double w = 78, double h = 88, bool gray = fal
 
 Widget coreThumb(int lv, {double w = 78, double h = 88}) => AtlasPic(file: 'shelters.webp', src: Atlas.cell('shelters.webp', (lv - 1).clamp(0, 4), 3, 2), width: w, height: h);
 
-/// 아이콘 썸네일 (웹 .th.ico)
-Widget icoThumb(String svg) => Container(
-      width: 56,
-      height: 56,
-      margin: const EdgeInsets.symmetric(horizontal: 11, vertical: 16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        gradient: const RadialGradient(center: Alignment(0, -.2), colors: [Color(0xFFF3E6C6), Color(0xFFDCC9A0)]),
-      ),
-      alignment: Alignment.center,
-      child: SvgIcon(svg, size: 26, color: Ttc.sepia),
-    );
-
 /// 비용 칩 (.cost.cc): 가진 만큼 아래 막대가 차오른다
 class CostChip extends StatelessWidget {
   const CostChip({super.key, required this.label, required this.have, required this.need, this.icon, this.alert = true});

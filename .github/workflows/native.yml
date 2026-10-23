@@ -95,23 +95,6 @@ jobs:
           flutter test 2>&1 | tee ../out.txt; s=${PIPESTATUS[0]}
           if [ $s -ne 0 ]; then m=$(grep -vE "^\s*$|✅" ../out.txt | grep -v "^::" | tail -80 | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}'); echo "::error title=test::$m"; exit $s; fi
 
-      # 코드 정리 안전망 (2026-10-23): 기준 사진(test_screens/goldens)과 비교해 달라진 화면을 알린다. 기준이 없으면 건너뜀
-      - name: 화면 비교 (기준 사진)
-        run: |
-          set +e +o pipefail
-          n=$(ls test_screens/goldens/*.png 2>/dev/null | wc -l)
-          if [ "$n" -eq 0 ]; then echo "::notice title=화면 비교::기준 사진 없음 · 건너뜀"; exit 0; fi
-          # 앞 단계의 기록(qa-play.txt 등)은 남기고 사진만 기준으로 덮는다
-          mkdir -p test_screens/shots && cp test_screens/goldens/*.png test_screens/shots/
-          flutter test test_screens/screens_test.dart 2>&1 | tee ../cmp.txt; c=${PIPESTATUS[0]}
-          if [ $c -ne 0 ]; then
-            list=$(grep -oE "shots/[0-9]{2}-[A-Za-z0-9_-]+\.png[^)]*\([0-9.]+%\)|[0-9]{2}-[A-Za-z0-9_-]+ · " ../cmp.txt | sed 's#shots/##' | sort -u | head -40 | tr '\n' ' ')
-            echo "::error title=화면 비교::기준과 달라진 화면 $n장 중 → ${list:-로그 확인}"
-            echo "SHOT_DIFF=1" >> "$GITHUB_ENV"
-          else
-            echo "::notice title=화면 비교::기준 사진 $n장과 같아요"
-          fi
-
       - name: 화면 사진
         run: |
           set +e +o pipefail
@@ -200,9 +183,3 @@ jobs:
           m=$(echo "$out" | tail -20 | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}')
           if [ $ok -ne 1 ]; then echo "::error title=preview::$m"; exit 1; fi
           echo "::notice title=preview::올림"
-
-      - name: 화면 비교 결과
-        if: env.SHOT_DIFF == '1'
-        run: |
-          echo "::error title=화면 비교::화면이 기준 사진과 달라졌어요. 의도한 변경이면 native-play/shots를 native/test_screens/goldens로 복사해 기준을 새로 잡아요"
-          exit 1

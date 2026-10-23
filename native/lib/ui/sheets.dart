@@ -600,10 +600,6 @@ Future<void> showPage(BuildContext context, {required String tag, required Strin
 
 Future<void> showDiary(BuildContext context, int k) => showPage(context, tag: '목격자의 일기 · ${k + 1}/7', title: diaries[k].$1, body: diaries[k].$2);
 
-Widget comingBody(String title, String stage) => ListView(padding: _bodyPad, children: [
-      emptyBox(SvgIcon(Ico.lock, size: 26, color: Ttc.sepia2), '$title 화면은 $stage에서 옮겨요', '지금 미리보기는 지도 밝히기·뒤지기·쉘터 짓기까지예요.'),
-    ]);
-
 // ======================= 설정 =======================
 class SettingsBody extends StatefulWidget {
   const SettingsBody(this.g, {super.key, required this.onReset, this.onTut, this.onSaveNow, this.onLegacy});

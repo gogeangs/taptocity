@@ -1012,7 +1012,6 @@ class Game extends ChangeNotifier {
   }
 
   // ================= 등급·별 (웹 3261–3282) =================
-  int maxGrade(int id) => math.min(3, survivors[id].grade + 2);
   Cost starCost(int id) {
     final g = gradeOf(id), s = starOf(id), k = g + 1;
     return scaleCost({'food': 8 * s * k, 'parts': 3 * s * k, 'batt': s >= 3 ? 1 : 0, 'med': g >= 2 && s >= 4 ? 1 : 0});

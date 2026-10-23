@@ -311,7 +311,6 @@ extension Outside on Game {
     }
   }
 
-  bool get anyExpBack => expMap.values.any((x) => Game.nowMs() >= (x['end'] as num));
 }
 
 // ================= 라디오: 주파수 탐색 (웹 3111–3155) =================

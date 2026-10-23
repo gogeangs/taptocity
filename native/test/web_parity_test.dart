@@ -1,5 +1,6 @@
-// 웹 버전과 같은 결과가 나오는지 확인한다.
+// 엔진 결과가 기준값과 같은지 확인한다 (회귀 시험).
 // 기준값(test/fixtures/web_core.json)은 tool/gen_data.cjs가 웹 코드를 직접 돌려서 만든 것이다.
+// 2026-10-23 웹은 얼려 두기로 했다: 앱 규칙을 일부러 바꾸면 이 시험의 해당 항목을 앱 기준으로 고친다 (웹을 다시 돌려 맞추지 않는다).
 import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:io';

@@ -9,7 +9,6 @@ class FxPetNew extends Fx {
 
 const petKeys = ['dog', 'cat', 'crow', 'goat', 'hog', 'fox', 'turtle', 'owl', 'fennec', 'bot', 'bear'];
 const collarColors = [0xFFD9483B, 0xFF3F6FA0, 0xFFE0B441, 0xFF6B8F4A, 0xFF8A5A9A, 0xFFF1ECE0];
-const collarNames = ['빨강', '파랑', '노랑', '초록', '보라', '하양'];
 const petXp = [0, 20, 60, 130, 250];
 const setHope = {'park': 5, 'square': 4};
 const feastCd = 20 * 60 * 1000, feastT = 600;

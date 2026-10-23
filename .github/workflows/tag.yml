@@ -22,6 +22,7 @@ jobs:
         with:
           fetch-depth: 0
       - run: |
+          set +e
           sha="${{ inputs.sha }}"; [ -n "$sha" ] || sha=$(git rev-parse HEAD)
           out=$( { git tag "${{ inputs.tag }}" "$sha" && git push origin "${{ inputs.tag }}"; } 2>&1 ); r=$?
           m=$(echo "$out" | tail -15 | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}')

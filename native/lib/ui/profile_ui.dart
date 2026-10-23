@@ -31,16 +31,6 @@ Widget pfFace(int i) {
   return CoverPic('player-faceless.webp', Rect.fromLTWH(i * 514.5 + 8 + x, 8 + 20, side, side), alignY: 0);
 }
 
-/// 머리 단추·대화 속 내 얼굴: 정했으면 초상화, 아니면 랜턴
-Widget pfAvatar(Game g, {double size = 34}) => g.pfSet
-    ? Container(
-        width: size,
-        height: size * 1.17,
-        decoration: BoxDecoration(color: const Color(0xFFE6D8B6), borderRadius: BorderRadius.circular(8)),
-        clipBehavior: Clip.antiAlias,
-        child: pfPortrait(g.pfIndex()))
-    : SvgPicture.string(Ico.profileLamp, width: size, height: size);
-
 String _fmtT(num s0) {
   final s = s0.floor(), h = s ~/ 3600, m = s % 3600 ~/ 60;
   return h > 0 ? '$h시간 $m분' : '$m분';

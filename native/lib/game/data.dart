@@ -253,7 +253,6 @@ final Map<String, (String, int)> gearCell = {
 };
 const slotKeys = ['tool', 'wear', 'keep'];
 const slotName = {'tool': '도구', 'wear': '옷', 'keep': '소지품'};
-final List<Cost> gradeUpCost = [for (final c in web.gup) _cost(c)];
 
 /// 효과 이름 (웹 EFFN)
 String effName(String k, double v) {

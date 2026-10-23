@@ -1,3 +1,9 @@
+// [얼려 둠 · 2026-10-23] 웹 버전(시즌 1)은 그대로 두고, 앱 데이터는 lib/data/web_data.g.dart 를 직접 고친다.
+// 이 도구로 다시 만들면 앱에서 고친 내용이 사라지므로, 꼭 필요할 때만 TTC_REGEN=1 을 붙여 실행한다.
+if (process.env.TTC_REGEN !== '1') {
+  console.error('gen_data.cjs 는 얼려 둔 도구예요. 앱 데이터는 lib/data/web_data.g.dart 를 직접 고쳐요. (정말 다시 만들려면 TTC_REGEN=1)');
+  process.exit(1);
+}
 // 웹 버전에서 데이터 표와 비교 기준값을 뽑아 네이티브 코드로 옮긴다.
 //   node native/tool/gen_data.cjs
 // 결과: native/lib/data/web_data.g.dart (표), native/test/fixtures/web_core.json (테스트 기준값)
