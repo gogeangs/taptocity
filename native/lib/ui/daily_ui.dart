@@ -33,7 +33,7 @@ Widget streakRow(Game g) {
                     : null,
           ),
           const SizedBox(height: 2),
-          Text('${k + 1}일', style: Ttc.t(10, color: k == n - 1 && today ? Ttc.rust : Ttc.sepia2, weight: k == n - 1 && today ? FontWeight.w700 : FontWeight.w500)),
+          Text('${k + 1}일', style: Ttc.t(11, color: k == n - 1 && today ? Ttc.rust : Ttc.sepia2, weight: k == n - 1 && today ? FontWeight.w700 : FontWeight.w500)),
         ]),
       ),
     ],

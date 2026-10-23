@@ -175,10 +175,13 @@ Widget icoThumb(String svg) => Container(
 
 /// 비용 칩 (.cost.cc): 가진 만큼 아래 막대가 차오른다
 class CostChip extends StatelessWidget {
-  const CostChip({super.key, required this.label, required this.have, required this.need, this.icon});
+  const CostChip({super.key, required this.label, required this.have, required this.need, this.icon, this.alert = true});
   final String label;
   final num have, need;
   final String? icon;
+
+  /// 모자랄 때 빨갛게 (false면 옅은 베이지: 여럿이 모자랄 때 가장 많이 모자란 하나만 빨갛게 · 2026-10-23 UI)
+  final bool alert;
   @override
   Widget build(BuildContext context) {
     final ok = have >= need;
@@ -190,11 +193,12 @@ class CostChip extends StatelessWidget {
   }
 
   Widget _chip(bool ok, double p) {
+    final red = !ok && alert, soft = !ok && !alert;
     return Container(
       decoration: BoxDecoration(
-        color: ok ? const Color(0x09252E36) : Ttc.noBg,
+        color: ok ? const Color(0x09252E36) : soft ? const Color(0xFFEDE3CC) : Ttc.noBg,
         borderRadius: BorderRadius.circular(5),
-        border: ok ? Border.all(color: Ttc.line) : null,
+        border: ok ? Border.all(color: Ttc.line) : soft ? Border.all(color: const Color(0x33A2793A)) : null,
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(children: [
@@ -203,9 +207,9 @@ class CostChip extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(6, 4, 9, 7),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             if (icon != null) ...[ResIcon(icon!, size: 18), const SizedBox(width: 3)],
-            Text('$label ', style: Ttc.t(12.5, color: ok ? Ttc.sepia2 : Ttc.noText, weight: FontWeight.w500, height: 1.2)),
-            Text(fmt(ok ? need : have), style: Ttc.t(12.5, color: ok ? Ttc.ok : Ttc.noText, weight: FontWeight.w700, height: 1.2)),
-            if (!ok) Text('/${fmt(need)}', style: Ttc.t(12.5, color: Ttc.noText.withValues(alpha: .7), weight: FontWeight.w500, height: 1.2)),
+            Text('$label ', style: Ttc.t(12.5, color: red ? Ttc.noText : Ttc.sepia2, weight: FontWeight.w500, height: 1.2)),
+            Text(fmt(ok ? need : have), style: Ttc.t(12.5, color: ok ? Ttc.ok : red ? Ttc.noText : const Color(0xFF7A5A28), weight: FontWeight.w700, height: 1.2)),
+            if (!ok) Text('/${fmt(need)}', style: Ttc.t(12.5, color: (red ? Ttc.noText : const Color(0xFF7A5A28)).withValues(alpha: .7), weight: FontWeight.w500, height: 1.2)),
           ]),
         ),
         Positioned(
@@ -216,7 +220,7 @@ class CostChip extends StatelessWidget {
           child: Container(
             color: const Color(0x1A3B2A1A),
             alignment: Alignment.centerLeft,
-            child: FractionallySizedBox(widthFactor: p, child: Container(color: ok ? Ttc.ok : Ttc.no)),
+            child: FractionallySizedBox(widthFactor: p, child: Container(color: ok ? Ttc.ok : red ? Ttc.no : const Color(0xFFC9973F))),
           ),
         ),
       ]),
@@ -296,9 +300,20 @@ Future<void> showMatHelp(BuildContext context, String k, num have, num need) {
 
 Widget costWrap(Game g, Cost c, {List<Widget> lead = const []}) {
   final items = c.entries.toList()..sort((a, b) => (g.have(a.key) >= a.value ? 1 : 0) - (g.have(b.key) >= b.value ? 1 : 0));
+  // 여럿이 모자라면 가장 많이 모자란(모인 비율이 가장 낮은) 하나만 빨갛게, 나머지는 옅게 — 무엇부터 모을지 한눈에 (2026-10-23 UI)
+  String? worst;
+  var wf = 2.0;
+  for (final e in items) {
+    if (e.value <= 0 || g.have(e.key) >= e.value) continue;
+    final f = g.have(e.key) / e.value;
+    if (f < wf) {
+      wf = f;
+      worst = e.key;
+    }
+  }
   return Wrap(spacing: 5, runSpacing: 4, children: [
     ...lead,
-    for (final e in items) CostChip(label: matOf[e.key]?.n ?? e.key, have: g.have(e.key), need: e.value, icon: e.key),
+    for (final e in items) CostChip(label: matOf[e.key]?.n ?? e.key, have: g.have(e.key), need: e.value, icon: e.key, alert: e.key == worst),
   ]);
 }
 
@@ -361,7 +376,7 @@ class _BuyButtonState extends State<BuyButton> {
                   // 좁은 버튼: 두 줄 이유('철판 42\n더 필요')를 버튼 폭에 맞춰 줄인다
                   : FittedBox(
                       fit: BoxFit.scaleDown,
-                      child: Text(widget.why!, textAlign: TextAlign.center, style: Ttc.t(10.5, color: fg.withValues(alpha: .85), weight: FontWeight.w600, height: 1.2)),
+                      child: Text(widget.why!, textAlign: TextAlign.center, style: Ttc.t(11, color: fg.withValues(alpha: .85), weight: FontWeight.w600, height: 1.2)),
                     ),
           ]),
         ),
@@ -455,7 +470,7 @@ class MCard extends StatelessWidget {
 
 Widget descText(String t) => Text(t, style: Ttc.t(13, color: Ttc.sepia2, height: 1.5));
 Widget smallTag(String t) => Text(t, style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w500));
-Widget newTag() => Text('새로 짓기', style: Ttc.t(10, color: const Color(0xFF58716A), weight: FontWeight.w500));
+Widget newTag() => Text('새로 짓기', style: Ttc.t(11, color: const Color(0xFF58716A), weight: FontWeight.w500));
 
 /// 웹 .sec: 굵은 소제목 + 작은 설명 + 오른쪽으로 이어지는 선
 Widget sec(String t, [String? small]) => Padding(
@@ -575,6 +590,25 @@ Widget emptyBox(Widget icon, String t, String d) => Container(
         Text(d, textAlign: TextAlign.center, style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
       ]),
     );
+
+/// 좁은 칸의 빈 상태: 작은 그림 + 무엇을 하면 채워지는지 (2026-10-23 UI: 회색 글 한 줄뿐이었다)
+Widget emptyHint(String t, String how, {bool dark = false}) => Row(mainAxisSize: MainAxisSize.min, children: [
+      Container(
+        width: 28,
+        height: 28,
+        decoration: BoxDecoration(shape: BoxShape.circle, color: dark ? const Color(0x22F3E2B8) : const Color(0x123B2A1A)),
+        alignment: Alignment.center,
+        child: SvgPicture.string('<svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.8" stroke-linejoin="round"><path d="M4 9l2-4h12l2 4v10H4z"/><path d="M4 9h16M10 13h4"/></svg>',
+            width: 16, height: 16, colorFilter: ColorFilter.mode(dark ? const Color(0xFFCDB993) : Ttc.sepia2, BlendMode.srcIn)),
+      ),
+      const SizedBox(width: 8),
+      Flexible(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+          Text(t, style: Ttc.t(12.5, color: dark ? const Color(0xFFD9CDB2) : Ttc.sepia, weight: FontWeight.w600, height: 1.3)),
+          Text(how, style: Ttc.t(11.5, color: dark ? const Color(0xFF9A8A70) : Ttc.sepia2, height: 1.35)),
+        ]),
+      ),
+    ]);
 
 /// 모자란 첫 자재를 '철판 42 더 필요'처럼 (좁은 버튼은 두 줄로). 다 있으면 null
 String? lackText(Game g, Cost c, {bool short = false}) {

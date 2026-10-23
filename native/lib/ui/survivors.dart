@@ -37,7 +37,7 @@ Widget gradeTag(Game g, int id, {bool base = false}) {
       Text.rich(TextSpan(children: [
         TextSpan(text: '★' * st, style: const TextStyle(color: Color(0xFFE0A020))),
         TextSpan(text: '★' * (5 - st), style: const TextStyle(color: Color(0x383B2A1A))),
-      ]), style: const TextStyle(fontSize: 12, letterSpacing: -1)),
+      ]), style: const TextStyle(fontSize: 14, letterSpacing: -1)),
     ],
   ]);
 }
@@ -448,7 +448,7 @@ class _SurvBodyState extends State<SurvBody> {
               margin: const EdgeInsets.only(right: 6),
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(color: const Color(0xFFE7EDE3), borderRadius: BorderRadius.circular(4), border: Border.all(color: const Color(0xFFB7C6BC))),
-              child: Text('강화 추천', style: Ttc.t(9, color: const Color(0xFF4E6A5B), weight: FontWeight.w600, height: 1)),
+              child: Text('강화 추천', style: Ttc.t(11, color: const Color(0xFF4E6A5B), weight: FontWeight.w600, height: 1)),
             ),
           Text('›', style: Ttc.t(22, color: Ttc.sepia2)),
         ]),

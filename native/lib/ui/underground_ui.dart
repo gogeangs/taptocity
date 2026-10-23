@@ -252,7 +252,7 @@ Widget ugMem(Game g, int id, {required bool on, required bool rec, String? why, 
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
               decoration: BoxDecoration(color: const Color(0xFFE0B441), borderRadius: BorderRadius.circular(99)),
-              child: Text('추천', style: Ttc.t(10, color: const Color(0xFF3B2A1A), weight: FontWeight.w700, height: 1)),
+              child: Text('추천', style: Ttc.t(11, color: const Color(0xFF3B2A1A), weight: FontWeight.w700, height: 1)),
             ),
           ],
           if (on) ...[const SizedBox(width: 6), Text('✓', style: Ttc.t(13, color: const Color(0xFF5A3510), weight: FontWeight.w700))],
@@ -526,7 +526,7 @@ class _UgPageState extends State<_UgPage> {
         decoration: BoxDecoration(color: const Color(0xFF283440), borderRadius: BorderRadius.circular(7), border: Border.all(color: const Color(0x1FEEE5D3))),
         child: Wrap(spacing: 5, runSpacing: 5, crossAxisAlignment: WrapCrossAlignment.center, children: [
           Text('챙긴 것', style: Ttc.t(11.5, color: const Color(0xFF9A8A70), weight: FontWeight.w600)),
-          if (u.carry.values.every((v) => v <= 0) && u.gear.isEmpty) Text('아직 없어요', style: Ttc.t(12, color: const Color(0xFF9A8A70))),
+          if (u.carry.values.every((v) => v <= 0) && u.gear.isEmpty) emptyHint('아직 없어요', '칸을 밝히면 찾은 것이 여기 쌓여요', dark: true),
           for (final e in u.carry.entries)
             if (e.value > 0)
               Container(

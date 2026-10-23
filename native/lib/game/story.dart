@@ -683,6 +683,7 @@ extension Story on Game {
     give({'batt': first ? 10 : 5});
     recalc();
     fx.add(FxBurst(C0, 0xFFFFF4C8, 40));
+    fx.add(const FxCelebrate());
     fx.add(FxNote(first ? '등불 탑에 첫 불이 들어왔어요' : '이 동네에도 등불 탑이 켜졌어요', '모든 생산 +10% · 이제 탑을 한 층씩 계속 올릴 수 있어요', ms: 6000));
   }
 

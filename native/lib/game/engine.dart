@@ -59,6 +59,11 @@ class FxDiary extends Fx {
   final int k;
 }
 
+/// 큰 고비를 넘긴 순간의 빛 연출 (등불 탑 점화 · 2026-10-23 UI). 증축은 FxLevelUp이 같은 연출을 부른다
+class FxCelebrate extends Fx {
+  const FxCelebrate();
+}
+
 class FxLevelUp extends Fx {
   const FxLevelUp(this.lv);
   final int lv;

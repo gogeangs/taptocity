@@ -531,8 +531,8 @@ class PetsBody extends StatelessWidget {
                 Text(p == null ? (P['hidden'] == true ? '??? · 히든' : '???') : p['n'] as String,
                     maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(12.5, color: Ttc.sepia, weight: FontWeight.w700)),
                 Text(p == null ? (P['hidden'] == true ? (P['how'] as String? ?? '') : '떠돌이 발자국을 찾아봐요') : '${P['n']} · 친밀도 ${g.petLv(k)}',
-                    maxLines: 3, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: Ttc.t(10.5, color: Ttc.sepia2, height: 1.35)),
-                if (g.petOn == k) Text('동행', style: Ttc.t(10.5, color: Ttc.ok, weight: FontWeight.w700)),
+                    maxLines: 3, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: Ttc.t(11, color: Ttc.sepia2, height: 1.35)),
+                if (g.petOn == k) Text('동행', style: Ttc.t(11, color: Ttc.ok, weight: FontWeight.w700)),
               ]),
             );
             return p == null ? card : GestureDetector(onTap: () => onPet(k), child: card);

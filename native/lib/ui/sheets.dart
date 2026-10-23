@@ -891,7 +891,7 @@ class _CraftBtnState extends State<CraftBtn> {
               ? Column(mainAxisSize: MainAxisSize.min, children: [
                   Text('+${fmt(_made)}', style: Ttc.t(16, color: Ttc.darkBtnText, weight: FontWeight.w800, height: 1)),
                   const SizedBox(height: 2),
-                  Text('만드는 중', style: Ttc.t(10.5, color: Ttc.darkBtnText.withValues(alpha: .75), weight: FontWeight.w600, height: 1)),
+                  Text('만드는 중', style: Ttc.t(11, color: Ttc.darkBtnText.withValues(alpha: .75), weight: FontWeight.w600, height: 1)),
                 ])
               : Column(mainAxisSize: MainAxisSize.min, children: [
                   Text('만들기', style: Ttc.t(on ? 13 : 12, color: on ? Ttc.darkBtnText : Ttc.offBtnText, weight: FontWeight.w700, height: 1.2)),

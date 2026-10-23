@@ -493,6 +493,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       case FxLevelUp(:final lv):
         Sound.buzzMid();
         _stamp(lv);
+        fxc.celebrate(tileC(C0, 30));
       case FxOffline():
         _queue(2, () => _returnPage(f));
       default:
@@ -1340,14 +1341,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                     ],
                   ]),
                 ),
-                // 시계 (웹 #clock)
-                Positioned(
-                  left: 10,
-                  top: 12,
-                  right: 116,
-                  // 대형 재폭풍 동안은 숨긴다: 아래 방어 막대가 같은 말을 하는 머리가 된다
-                  child: Align(alignment: Alignment.centerLeft, child: KeyedSubtree(key: _kClock, child: Every(g: g, builder: (c) => g.defn != null ? const SizedBox.shrink() : clockChip(g)))),
-                ),
+                // 시계(웹 #clock)는 아래 '시계 줄' 맨 앞에 (2026-10-23 UI: 시계 알약과 부탁 띠를 한 줄로 — 지도를 덮는 줄을 하나 줄였다)
                 // 대형 재폭풍 막대 (시계 자리, 오른쪽 위 버튼은 비켜서)
                 Positioned(
                   left: 10,
@@ -1361,27 +1355,30 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                     ),
                   ),
                 ),
-                // 시계 아래 왼쪽 줄 (앱 전용 2026-10-20): 연속 칩 · 생존자의 부탁 띠(접힘 한 줄, 누르면 펼침) · 손님 부탁. 지도 가운데는 비워 둔다
+                // 시계 줄 (앱 전용 2026-10-20 · 10-23 한 줄로): 시계 · 연속 칩 · 생존자의 부탁 띠(접힘 한 줄, 누르면 펼침), 그 아래 손님 부탁. 지도 가운데는 비워 둔다
                 Positioned(
-                  left: 12,
+                  left: 10,
                   right: 64,
-                  top: 50,
+                  top: 12,
                   child: Every(
                     g: g,
                     builder: (c) {
-                      if (g.defn != null || matsOpen) return const SizedBox.shrink();
+                      // 대형 재폭풍 동안은 숨긴다: 방어 막대가 같은 말을 하는 머리가 된다
+                      if (g.defn != null) return const SizedBox.shrink();
+                      final clock = KeyedSubtree(key: _kClock, child: clockChip(g));
+                      if (matsOpen) return Align(alignment: Alignment.centerLeft, child: clock);
                       final sqOpen = g.sq != null && g.sqOn && DateTime.now().millisecondsSinceEpoch < g.sqOpenUntil;
                       final streak = g.dayOn && g.streakShown > 0 ? streakChip(g, onTap: _openDaily) : null;
                       final side = sideQuest(g, onTap: _sqGo);
+                      final hasSide = g.sq != null && g.sqOn;
                       return Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                        if (streak != null || !sqOpen)
-                          Row(mainAxisSize: MainAxisSize.min, children: [
-                            if (streak != null) streak,
-                            if (streak != null && !sqOpen && g.sq != null && g.sqOn) const SizedBox(width: 6),
-                            if (!sqOpen) Flexible(child: side),
-                          ]),
+                        Row(mainAxisSize: MainAxisSize.min, children: [
+                          clock,
+                          if (streak != null) ...[const SizedBox(width: 6), streak],
+                          if (!sqOpen && hasSide) ...[const SizedBox(width: 6), Flexible(child: side)],
+                        ]),
                         if (sqOpen) ...[
-                          if (streak != null) const SizedBox(height: 6),
+                          const SizedBox(height: 6),
                           SizedBox(width: math.min(300, box.maxWidth - 84), child: side),
                         ],
                         if (g.evCur >= 0) ...[
@@ -1677,21 +1674,44 @@ class _MatTile extends StatelessWidget {
   }
 
   Widget _tile(num v, bool zero, bool full) {
+    final cap = g.capOf(k), f = cap <= 0 ? 0.0 : (v / cap).clamp(0.0, 1.0).toDouble();
     return Opacity(
       opacity: zero ? .7 : 1,
       child: Container(
         height: 45,
-        padding: const EdgeInsets.fromLTRB(2, 3, 2, 4),
-        decoration: BoxDecoration(
-          color: const Color(0x0BEEE5D3),
-          borderRadius: BorderRadius.circular(6),
-          border: full ? const Border(bottom: BorderSide(color: Ttc.amber, width: 2)) : null,
-        ),
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          ResIcon(k, size: 23, dim: zero),
-          const SizedBox(height: 1),
-          // 보관 한도가 차면 숫자를 빨갛게 (더 모아도 버려진다는 신호 · 2026-10-20)
-          Text(fmt(v), style: Ttc.t(12, color: full ? const Color(0xFFFF8F6B) : Ttc.matText, weight: FontWeight.w700, height: 1.2)),
+        // 2026-10-23 UI: 어두운 칸에 어두운 그림이라 고철·목재가 잘 안 보였다 → 칸을 한 톤 밝히고 그림 뒤에 옅은 빛
+        decoration: BoxDecoration(color: const Color(0x1AEEE5D3), borderRadius: BorderRadius.circular(6)),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(children: [
+          Positioned.fill(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(2, 3, 2, 5),
+              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Container(
+                  decoration: const BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(colors: [Color(0x40F3E2B8), Color(0x00F3E2B8)])),
+                  child: ResIcon(k, size: 23, dim: zero),
+                ),
+                const SizedBox(height: 1),
+                // 보관 한도가 차면 숫자를 빨갛게 (더 모아도 버려진다는 신호 · 2026-10-20)
+                Text(fmt(v), style: Ttc.t(12, color: full ? const Color(0xFFFF8F6B) : Ttc.matText, weight: FontWeight.w700, height: 1.2)),
+              ]),
+            ),
+          ),
+          // 창고가 얼마나 찼는지 얇은 막대 (가득이면 붉게)
+          Positioned(
+            left: 4,
+            right: 4,
+            bottom: 2,
+            height: 2,
+            child: Container(
+              decoration: BoxDecoration(color: const Color(0x22EEE5D3), borderRadius: BorderRadius.circular(1)),
+              alignment: Alignment.centerLeft,
+              child: FractionallySizedBox(
+                widthFactor: f,
+                child: Container(decoration: BoxDecoration(color: full ? const Color(0xFFFF8F6B) : const Color(0xB3DFA54B), borderRadius: BorderRadius.circular(1))),
+              ),
+            ),
+          ),
         ]),
       ),
     );

@@ -201,7 +201,7 @@ class _MissionTapeState extends State<MissionTape> {
           ),
           const SizedBox(height: 3),
           if (ready)
-            Text('증축 가능 ›', style: Ttc.t(10, color: const Color(0xFF243039), weight: FontWeight.w700, height: 1))
+            Text('증축 가능 ›', style: Ttc.t(11, color: const Color(0xFF243039), weight: FontWeight.w700, height: 1))
           else
             Container(
               width: 54,
@@ -330,7 +330,7 @@ Widget _badge(String t, VoidCallback onTap, Color bg, Color fg, {String? more}) 
         child: Text.rich(
             TextSpan(children: [
               TextSpan(text: t),
-              if (more != null) TextSpan(text: ' $more', style: Ttc.t(10.5, color: fg.withValues(alpha: .7), weight: FontWeight.w600, height: 1)),
+              if (more != null) TextSpan(text: ' $more', style: Ttc.t(11, color: fg.withValues(alpha: .7), weight: FontWeight.w600, height: 1)),
             ]),
             maxLines: 1,
             softWrap: false,

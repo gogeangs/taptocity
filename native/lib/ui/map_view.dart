@@ -1595,6 +1595,21 @@ class FxLayerController extends ChangeNotifier {
   /// 누른 자리에 번지는 동그라미 (세계 좌표, 색, 남은 시간)
   final List<(Offset, int, double)> rings = [];
   static const ringLife = .34;
+
+  /// 큰 고비를 넘긴 순간 (증축·등불 탑 점화): 쉘터에서 번지는 빛 고리 셋과 금빛 불티 (2026-10-23 UI)
+  final List<(Offset, double)> halos = [];
+  static const haloLife = 1.6;
+  void celebrate(Offset w) {
+    for (var k = 0; k < 3; k++) {
+      halos.add((w, haloLife + k * .28));
+    }
+    for (var k = 0; k < 36; k++) {
+      final a = _r.nextDouble() * math.pi * 2, sp = 40 + _r.nextDouble() * 110;
+      parts.add(_Particle(w, Offset(math.cos(a) * sp, math.sin(a) * sp * .55 - 90), k.isEven ? 0xFFFFE6A0 : 0xFFFFC86E, .9 + _r.nextDouble() * .6));
+    }
+    if (parts.length > 160) parts.removeRange(0, parts.length - 160);
+    notifyListeners();
+  }
   void press(Offset w, int color) {
     rings.add((w, color, ringLife));
     if (rings.length > 8) rings.removeAt(0);
@@ -1701,6 +1716,9 @@ class FxLayerController extends ChangeNotifier {
             final a = _r.nextDouble() * math.pi * 2, sp = 20 + _r.nextDouble() * 50;
             parts.add(_Particle(Offset(x, y), Offset(math.cos(a) * sp, math.sin(a) * sp * .6 - 40), color, .5 + _r.nextDouble() * .3));
           }
+        case FxCelebrate():
+          Sound.sfx('chime');
+          celebrate(tileC(C0, 30));
         case FxFloatAt(:final x, :final y, :final text, :final color):
           parts.add(_Particle(Offset(x, y), const Offset(0, -26), color, 1.1, text: text));
         default:
@@ -1727,8 +1745,12 @@ class FxLayerController extends ChangeNotifier {
       rings[k] = (rings[k].$1, rings[k].$2, rings[k].$3 - dt);
     }
     rings.removeWhere((r) => r.$3 <= 0);
+    for (var k = 0; k < halos.length; k++) {
+      halos[k] = (halos[k].$1, halos[k].$2 - dt);
+    }
+    halos.removeWhere((h) => h.$2 <= 0);
     _flowNotes();
-    return parts.isNotEmpty || toasts.isNotEmpty || _noteQ.isNotEmpty || rings.isNotEmpty;
+    return parts.isNotEmpty || toasts.isNotEmpty || _noteQ.isNotEmpty || rings.isNotEmpty || halos.isNotEmpty;
   }
 }
 
@@ -1868,6 +1890,17 @@ class _FxPainter extends CustomPainter {
     canvas.translate(-cam.x, -cam.y);
     final paint = Paint();
     final ring = Paint()..style = PaintingStyle.stroke;
+    for (final (w, life) in c.halos) {
+      // 늦게 시작하는 고리는 수명이 길다: 수명이 haloLife를 넘는 동안은 아직 안 보인다
+      if (life > FxLayerController.haloLife) continue;
+      final f = 1 - (life / FxLayerController.haloLife).clamp(0.0, 1.0).toDouble(), a = (1 - f) * .85;
+      ring
+        ..strokeWidth = 4 * (1 - f) + 1
+        ..color = Color.fromRGBO(255, 222, 150, a);
+      canvas.drawOval(Rect.fromCenter(center: w, width: 60 + f * 340, height: 34 + f * 190), ring);
+      paint.color = Color.fromRGBO(255, 230, 170, a * .25);
+      canvas.drawOval(Rect.fromCenter(center: w, width: 40 + f * 220, height: 22 + f * 120), paint);
+    }
     for (final (w, col, life) in c.rings) {
       final f = 1 - (life / FxLayerController.ringLife).clamp(0.0, 1.0).toDouble(), a = 1 - f;
       ring

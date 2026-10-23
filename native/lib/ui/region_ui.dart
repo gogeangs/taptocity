@@ -65,8 +65,8 @@ Widget _mpk(int id, String small, {bool on = false, bool rec = false, String? em
             _round(id, 44, border: on ? const Color(0xFFE0B441) : const Color(0x4D3B2A1A)),
             const SizedBox(height: 4),
             Text(s.name, style: Ttc.t(13, color: fg, weight: FontWeight.w700, height: 1.2)),
-            Text(small, textAlign: TextAlign.center, style: Ttc.t(10.5, color: on ? const Color(0xFFD9D4C8) : Ttc.sepia2, height: 1.25)),
-            if (em != null && em.isNotEmpty) Text(em, textAlign: TextAlign.center, style: Ttc.t(10.5, color: on ? const Color(0xFFF3D9A0) : const Color(0xFF8A5A12), weight: FontWeight.w500, height: 1.3)),
+            Text(small, textAlign: TextAlign.center, style: Ttc.t(11, color: on ? const Color(0xFFD9D4C8) : Ttc.sepia2, height: 1.25)),
+            if (em != null && em.isNotEmpty) Text(em, textAlign: TextAlign.center, style: Ttc.t(11, color: on ? const Color(0xFFF3D9A0) : const Color(0xFF8A5A12), weight: FontWeight.w500, height: 1.3)),
           ]),
         ),
         if (rec)
@@ -78,7 +78,7 @@ Widget _mpk(int id, String small, {bool on = false, bool rec = false, String? em
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(color: const Color(0xFFE0B441), borderRadius: BorderRadius.circular(99)),
-                child: Text('추천', style: Ttc.t(10, color: const Color(0xFF3B2A1A), weight: FontWeight.w700, height: 1)),
+                child: Text('추천', style: Ttc.t(11, color: const Color(0xFF3B2A1A), weight: FontWeight.w700, height: 1)),
               ),
             ),
           ),
@@ -820,7 +820,7 @@ List<Widget> radioRegion(BuildContext context, Game g, {VoidCallback? onRoute}) 
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(color: (tc ?? Ttc.sepia2).withValues(alpha: .12), borderRadius: BorderRadius.circular(4)),
-              child: Text(tn, style: Ttc.t(10.5, color: tc ?? Ttc.sepia2, weight: FontWeight.w700, height: 1.1)),
+              child: Text(tn, style: Ttc.t(11, color: tc ?? Ttc.sepia2, weight: FontWeight.w700, height: 1.1)),
             ),
           ],
           desc: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

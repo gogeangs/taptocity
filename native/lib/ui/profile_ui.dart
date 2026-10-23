@@ -184,7 +184,7 @@ class _ProfileBodyState extends State<ProfileBody> {
           const SizedBox(width: 16),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Text('얼굴 없는 등불지기', style: Ttc.t(10, color: const Color(0xFF68736B))),
+              Text('얼굴 없는 등불지기', style: Ttc.t(11, color: const Color(0xFF68736B))),
               Text(pfPortraits[sel].$1, style: Ttc.t(17, color: const Color(0xFF2D393C), weight: FontWeight.w700)),
               Text(dirty ? '아직 저장하지 않은 모습이에요' : '현재 선택된 모습이에요', style: Ttc.t(11.5, color: Ttc.sepia2)),
               const SizedBox(height: 6),

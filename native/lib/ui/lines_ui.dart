@@ -108,7 +108,7 @@ Future<void> showLnPrep(BuildContext context, Game g) async {
                   }),
                 ),
               if (free.isEmpty)
-                descText('쉬는 생존자가 없어요')
+                emptyHint('쉬는 생존자가 없어요', '일터에서 빼거나 원정에서 돌아오면 함께 갈 수 있어요')
               else
                 Wrap(spacing: 6, runSpacing: 6, children: [
                   for (final id in free)
@@ -447,7 +447,7 @@ class _LnPageState extends State<_LnPage> with SingleTickerProviderStateMixin {
               margin: const EdgeInsets.only(top: 12),
               padding: const EdgeInsets.only(top: 10),
               decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(0x333B2A1A)))),
-              child: carry.isEmpty ? Text('아직 챙긴 게 없어요', style: Ttc.t(13, color: Ttc.sepia2)) : Wrap(spacing: 10, runSpacing: 6, children: carry),
+              child: carry.isEmpty ? emptyHint('아직 챙긴 게 없어요', '역을 지나며 주운 물건이 여기 쌓여요') : Wrap(spacing: 10, runSpacing: 6, children: carry),
             ),
             if (L.phase == 'pick' || L.phase == 'hazard') ...[
               const SizedBox(height: 10),
