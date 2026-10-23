@@ -1,0 +1,29 @@
+# 출시 꼬리표(태그) 달기 (손으로 실행): 이 세션에서는 태그를 바로 올릴 수 없어 워크플로로 단다
+name: Tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '예: v2.0.1'
+        required: true
+      sha:
+        description: '태그를 달 커밋 (비우면 main 맨 끝)'
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: |
+          set -e
+          sha="${{ inputs.sha }}"; [ -n "$sha" ] || sha=$(git rev-parse HEAD)
+          git tag "${{ inputs.tag }}" "$sha"
+          git push origin "${{ inputs.tag }}"
+          echo "::notice title=tag::${{ inputs.tag }} → $sha"
