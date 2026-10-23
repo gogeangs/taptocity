@@ -18,4 +18,41 @@ Got dependencies!
 14 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
 Running Xcode build...                                          
-Xcode build done.                                           307.1s
+Xcode build done.                                           224.3s
+VMServiceFlutterDriver: Connecting to Flutter application at http://127.0.0.1:55920/INuXlqXlH50=/
+VMServiceFlutterDriver: Isolate found with number: 1948966471517523
+VMServiceFlutterDriver: Isolate 1948966471517523 is runnable.
+VMServiceFlutterDriver: Isolate is paused at start.
+VMServiceFlutterDriver: Attempting to resume isolate
+flutter: 00:00 +0: iPhone에서 앱 띄워 보기
+VMServiceFlutterDriver: Connected to Flutter application.
+flutter: ▶ 처음 켜기 (0s)
+VMServiceFlutterDriver: request_data message is taking a long time to complete...
+flutter: ▶ 첫 화면 두드리기 (16s)
+flutter: ▶ 진행 중인 저장으로 켜기 (21s)
+flutter: ▶ 지도 두드리기 (소리) (27s)
+flutter: ▶ 탭 쉘터 (32s)
+flutter: ▶ 쉘터 · 건설 (34s)
+flutter: ▶ 쉘터 · 가공 (34s)
+flutter: ▶ 쉘터 · 연구 (34s)
+flutter: ▶ 쉘터 닫기 (34s)
+flutter: ▶ 탭 일지 (36s)
+flutter: ▶ 일지 · 기록 (37s)
+flutter: ▶ 일지 · 도감 (37s)
+flutter: ▶ 일지 닫기 (37s)
+flutter: ▶ 탭 원정 (39s)
+flutter: ▶ 원정 닫기 (41s)
+flutter: ▶ 탭 라디오 (43s)
+flutter: ▶ 라디오 닫기 (45s)
+flutter: ▶ 탭 생존자 (46s)
+flutter: ▶ 생존자 닫기 (48s)
+flutter: ▶ 설정 (50s)
+flutter: ▶ 설정 닫기 (52s)
+flutter: ▶ 프로필 (53s)
+flutter: ▶ 프로필 닫기 (56s)
+flutter: ▶ 뒤로 갔다 돌아오기 (56s)
+flutter: ▶ 저장 확인 (61s)
+flutter: ▶ 진동 채널 (61s)
+flutter: 01:02 +1: (tearDownAll)
+flutter: 01:14 +2: All tests passed!
+All tests passed.
