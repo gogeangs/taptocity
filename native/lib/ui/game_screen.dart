@@ -1685,7 +1685,7 @@ class _MatTile extends StatelessWidget {
         child: Stack(children: [
           Positioned.fill(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(2, 3, 2, 5),
+              padding: const EdgeInsets.fromLTRB(2, 2, 2, 4),
               child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Container(
                   decoration: const BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(colors: [Color(0x40F3E2B8), Color(0x00F3E2B8)])),
