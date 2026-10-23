@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'game/engine.dart';
 import 'report.dart';
 import 'game/storage.dart';
+import 'ui/notify.dart';
 import 'ui/atlas.dart';
 import 'ui/game_screen.dart';
 import 'ui/sound.dart';
@@ -29,6 +30,7 @@ Future<void> start({bool cloud = true}) async {
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Colors.transparent, statusBarIconBrightness: Brightness.light));
   await Prefs.load();
+  await Notify.init();
   await Atlas.load();
   final saved = await Storage.load();
   GameScreen.firstRun = saved == null;

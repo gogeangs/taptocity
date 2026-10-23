@@ -14,7 +14,7 @@ import '../game/storage.dart';
 /// 설정 (웹 SET, 'taptocity-settings')
 class Prefs {
   Prefs._();
-  static bool snd = true, mus = true, vib = true, calm = false, big = false, eco = false;
+  static bool snd = true, mus = true, vib = true, calm = false, big = false, eco = false, noti = true;
   static final ValueNotifier<int> version = ValueNotifier(0);
   static const _key = 'taptocity-settings';
 
@@ -29,6 +29,7 @@ class Prefs {
       calm = m['calm'] == true;
       big = m['big'] == true;
       eco = m['eco'] == true;
+      noti = m['noti'] != false;
       final z = m['zoom'];
       zoom = z is num ? z.toDouble() : null;
     } catch (_) {}
@@ -43,9 +44,9 @@ class Prefs {
     _zt = Timer(const Duration(milliseconds: 600), _write);
   }
 
-  static void _write() => Storage.setRaw(_key, jsonEncode({'snd': snd, 'mus': mus, 'vib': vib, 'calm': calm, 'big': big, 'eco': eco, if (zoom != null) 'zoom': zoom})).catchError((Object _) {});
+  static void _write() => Storage.setRaw(_key, jsonEncode({'snd': snd, 'mus': mus, 'vib': vib, 'calm': calm, 'big': big, 'eco': eco, 'noti': noti, if (zoom != null) 'zoom': zoom})).catchError((Object _) {});
 
-  static bool get(String k) => switch (k) { 'snd' => snd, 'mus' => mus, 'vib' => vib, 'calm' => calm, 'big' => big, _ => eco };
+  static bool get(String k) => switch (k) { 'snd' => snd, 'mus' => mus, 'vib' => vib, 'calm' => calm, 'big' => big, 'noti' => noti, _ => eco };
 
   static void toggle(String k) {
     switch (k) {
@@ -59,6 +60,8 @@ class Prefs {
         calm = !calm;
       case 'big':
         big = !big;
+      case 'noti':
+        noti = !noti;
       default:
         eco = !eco;
     }

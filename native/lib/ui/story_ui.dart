@@ -117,12 +117,15 @@ class _PulseState extends State<_Pulse> with SingleTickerProviderStateMixin {
 
 // ======================= 미션 띠 (웹 #tape, design.css 16–18) =======================
 class MissionTape extends StatefulWidget {
-  const MissionTape(this.g, {super.key, required this.onLv, required this.onGo, required this.onPed, required this.onMig, required this.ping, this.onStories, this.onChoice});
+  const MissionTape(this.g, {super.key, required this.onLv, required this.onGo, required this.onPed, required this.onMig, required this.ping, this.onStories, this.onChoice, this.onDaily});
   final Game g;
   final VoidCallback onLv, onGo, onPed, onMig;
 
   /// '새 이야기 N' 배지 · '선택 기다림' 칩 (앱 전용 2026-10-20)
   final VoidCallback? onStories, onChoice;
+
+  /// 첫 30분: '오늘의 할 일' 칩 (2026-10-23 UX — 일지 안쪽에 있어 처음엔 몰랐다)
+  final VoidCallback? onDaily;
   final int ping; // 받기 버튼을 잠깐 흔든다 (웹 pingEl)
   @override
   State<MissionTape> createState() => _MissionTapeState();
@@ -146,11 +149,24 @@ class _MissionTapeState extends State<MissionTape> {
     if (g.tut != null) return const [];
     final nq = widget.onStories == null ? 0 : g.qNew.length;
     final ch = widget.onChoice != null && !choiceShowing && g.choiceView() != null;
-    if (nq == 0 && !ch) return const [];
+    if (nq == 0 && !ch && !_dailyChip) return const [];
     return [
       if (ch) _badge('선택 기다림', widget.onChoice!, Ttc.rust, const Color(0xFFFFF1E6)),
-      if (nq > 0) _badge('새 이야기 $nq', widget.onStories!, Ttc.amber, const Color(0xFF243039)),
+      // 숫자가 커지면 오히려 손이 안 간다: '새 이야기'를 크게, 남은 수는 작게 (누르면 하나씩 바로 열림)
+      if (nq > 0) _badge('새 이야기', widget.onStories!, Ttc.amber, const Color(0xFF243039), more: nq > 1 ? '+${nq - 1}' : null),
+      if (_dailyChip) _badge('오늘의 할 일 ${g.dayList.where((x) => x.$4).length}/${g.dayList.length}', widget.onDaily!, const Color(0xFF3B4A55), const Color(0xFFF0E7D6)),
     ];
+  }
+
+  /// 첫 30분 동안, 오늘의 할 일을 다 하기 전까지
+  bool get _dailyChip => widget.onDaily != null && g.num_('playT') < 1800 && g.dayList.isNotEmpty && !g.dayAllDone;
+
+  /// 지금 할 일 한 줄 (길잡이 화살표와 같은 말): 목표 글만으로는 무엇을 누를지 모를 때 (2026-10-23 UX)
+  String? get _now {
+    if (g.tut != null || g.mission().done) return null;
+    final t = guideTarget(g)?.label;
+    if (t == null || t.isEmpty || t == '쉘터' || t == '모듈') return null;
+    return t;
   }
 
   @override
@@ -243,6 +259,11 @@ class _MissionTapeState extends State<MissionTape> {
                 maxLines: done ? 2 : (open ? 4 : 1),
                 overflow: TextOverflow.ellipsis,
               ),
+              if (!open && _now != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text('지금 › $_now', maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(12, color: const Color(0xFFE8C77A), weight: FontWeight.w600, height: 1.3)),
+                ),
               if (open && !done)
                 Padding(
                   padding: const EdgeInsets.only(top: 3),
@@ -298,13 +319,20 @@ class _MissionTapeState extends State<MissionTape> {
 }
 
 /// 이야기 띠 아래 줄의 작은 배지
-Widget _badge(String t, VoidCallback onTap, Color bg, Color fg) => GestureDetector(
+Widget _badge(String t, VoidCallback onTap, Color bg, Color fg, {String? more}) => GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(99)),
-        child: Text(t, maxLines: 1, softWrap: false, style: Ttc.t(12.5, color: fg, weight: FontWeight.w700, height: 1)),
+        child: Text.rich(
+            TextSpan(children: [
+              TextSpan(text: t),
+              if (more != null) TextSpan(text: ' $more', style: Ttc.t(10.5, color: fg.withValues(alpha: .7), weight: FontWeight.w600, height: 1)),
+            ]),
+            maxLines: 1,
+            softWrap: false,
+            style: Ttc.t(12.5, color: fg, weight: FontWeight.w700, height: 1)),
       ),
     );
 

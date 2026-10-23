@@ -28,6 +28,7 @@ import 'gear.dart';
 import 'icons.dart';
 import 'life_ui.dart';
 import 'map_view.dart';
+import 'notify.dart';
 import 'outside_ui.dart';
 import 'season_ui.dart';
 import 'sheets.dart';
@@ -84,6 +85,18 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       cam.userZoomed = true;
     }
     FeatNav.go = _featGo;
+    // 모자란 자재 칩 → 쉘터 가공 칸 (작업대가 있을 때)
+    MatNav.canCraft = () => g.wbL >= 1;
+    MatNav.openCraft = () {
+      if (!mounted || g.wbL < 1) return;
+      ShelterBody.tab = 1;
+      g.sheetOpened('shelter', seg: 'craft');
+      setState(() {
+        sheet = const SheetSpec('shelter');
+        matsOpen = false;
+        _closeRing();
+      });
+    };
     Portrait.sigWorn = g.sigWorn;
     Atlas.onTint = () => g.mapVersion.value++;
     onTalkLine = _endingLine;
@@ -326,9 +339,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       Sound.pauseAll(true);
       g.dirty = true;
       _save();
+      Notify.schedule(g);
       if (GameScreen.cloudOn) _cloudUp();
     } else if (s == AppLifecycleState.resumed && _clock == null) {
       _burstStart();
+      Notify.clear();
       g.offline(DateTime.now().millisecondsSinceEpoch);
       fxc.pull(g);
       g.poke();
@@ -1100,17 +1115,15 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     }
   }
 
-  /// 이야기 띠의 '새 이야기 N': 한 사람이면 그 사람의 이야기 탭, 여럿이면 생존자 수첩 맨 위 목록
+  /// 이야기 띠의 '새 이야기': 먼저 생긴 이야기 하나를 바로 연다. 다 보면 다음 것이 칩에 남는다
+  /// (2026-10-23 UX: 예전엔 여럿이면 생존자 수첩 목록 — '새 이야기 12'처럼 쌓여 손이 안 갔다)
   void _openStories() {
     if (pageWatch.n > 0) return;
     final ids = g.qNew;
-    if (ids.length == 1) {
-      _close();
-      survTab = 'story';
-      _survPage(ids.first);
-    } else if (ids.isNotEmpty && sheet?.kind != 'surv') {
-      _open(const SheetSpec('surv'));
-    }
+    if (ids.isEmpty) return;
+    _close();
+    survTab = 'story';
+    _survPage(ids.first);
   }
 
   /// 이야기 띠의 '선택 기다림': 닫아 둔 선택 창을 다시
@@ -1262,6 +1275,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             onProfile: () => sheet?.kind == 'profile' ? _close() : _open(const SheetSpec('profile')),
             onStories: _openStories,
             onChoice: _openChoice,
+            onDaily: _openDaily,
           ),
         ),
         Expanded(
@@ -1581,13 +1595,14 @@ class _Header extends StatelessWidget {
       required this.onProfile,
       required this.onStories,
       required this.onChoice,
+      required this.onDaily,
       this.matsKey,
       this.tapeKey});
   final Game g;
   final Key? matsKey, tapeKey;
   final double top;
   final int ping;
-  final VoidCallback onSettings, onMats, onShelter, onPed, onGo, onMig, onProfile, onStories, onChoice;
+  final VoidCallback onSettings, onMats, onShelter, onPed, onGo, onMig, onProfile, onStories, onChoice, onDaily;
 
   @override
   Widget build(BuildContext context) {
@@ -1617,7 +1632,7 @@ class _Header extends StatelessWidget {
           ]),
         ),
         const SizedBox(height: 6),
-        KeyedSubtree(key: tapeKey, child: MissionTape(g, onLv: onShelter, onGo: onGo, onPed: onPed, onMig: onMig, onStories: onStories, onChoice: onChoice, ping: ping)),
+        KeyedSubtree(key: tapeKey, child: MissionTape(g, onLv: onShelter, onGo: onGo, onPed: onPed, onMig: onMig, onStories: onStories, onChoice: onChoice, onDaily: onDaily, ping: ping)),
       ]),
     );
   }

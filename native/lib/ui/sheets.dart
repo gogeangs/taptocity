@@ -19,6 +19,7 @@ import 'sound.dart';
 import 'story_ui.dart';
 import 'region_ui.dart';
 import 'lines_ui.dart';
+import 'notify.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -650,6 +651,7 @@ class _SettingsBodyState extends State<SettingsBody> {
     'vib': '<rect x="8" y="3" width="8" height="18" rx="2"/><path d="M4 8v8M20 8v8"/>',
     'calm': '<path d="M3 12h4l2-5 4 10 2-5h6"/>',
     'big': '<path d="M4 19L9 5l5 14M6 14h6"/><path d="M15 19l3-8 3 8M16 16h4"/>',
+    'noti': '<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
     'eco': '<rect x="3" y="7" width="16" height="10" rx="2"/><path d="M22 11v2"/><path d="M11 9l-2 3h4l-2 3"/>',
   };
 
@@ -658,7 +660,10 @@ class _SettingsBodyState extends State<SettingsBody> {
     final on = Prefs.get(k);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => setState(() => Prefs.toggle(k)),
+      onTap: () => setState(() {
+        Prefs.toggle(k);
+        if (k == 'noti' && Prefs.noti) Notify.ask(force: true);
+      }),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Ttc.line))),
@@ -744,6 +749,7 @@ class _SettingsBodyState extends State<SettingsBody> {
         ('calm', '움직임 줄이기', '흔들림·깜빡임 같은 애니메이션을 줄여요'),
         ('eco', '절전 모드', '화면을 덜 자주, 조금 덜 선명하게 그려 휴대폰이 덜 뜨거워지고 배터리가 오래가요'),
         ('big', '글자 크게', '앱 전체 글자를 1.15배로 키워 읽기 쉽게 해요'),
+        ('noti', '휴대폰 알림', '앱을 닫아 둔 동안 원정대가 돌아오거나 창고가 가득 차면 알려 줘요 · 두 개까지, 밤에는 아침으로 미뤄요'),
       ])
         _setRow(k, n, d),
       sec('저장'),

@@ -441,12 +441,14 @@ class _SurvBodyState extends State<SurvBody> {
               }(), style: Ttc.t(12, color: hurt ? Ttc.no : Ttc.ok, weight: FontWeight.w600, height: 1.4)),
             ]),
           ),
-          if (g.canPromote(id))
+          // '강화 추천'은 강화가 바로 효과를 내는 사람에게만: 스킬 바에 있거나 딱 맞는 일터에서 일하는 사람 (2026-10-23 UX: 모든 줄에 붙어 신호가 안 됐다).
+          // 그 밖에 강화할 수 있는 사람은 위 '강화 가능' 거르기로 본다
+          if (g.canPromote(id) && upWorth(g, id))
             Container(
               margin: const EdgeInsets.only(right: 6),
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(color: const Color(0xFFE7EDE3), borderRadius: BorderRadius.circular(4), border: Border.all(color: const Color(0xFFB7C6BC))),
-              child: Text('강화 가능', style: Ttc.t(9, color: const Color(0xFF4E6A5B), weight: FontWeight.w600, height: 1)),
+              child: Text('강화 추천', style: Ttc.t(9, color: const Color(0xFF4E6A5B), weight: FontWeight.w600, height: 1)),
             ),
           Text('›', style: Ttc.t(22, color: Ttc.sepia2)),
         ]),
@@ -769,28 +771,38 @@ Widget needList(Game g, Cost c) {
   ]);
 }
 
+/// 강화가 바로 효과를 내는 사람: 스킬 바에 있거나, 딱 맞는 일터에서 일하는 중
+bool upWorth(Game g, int id) {
+  if (g.party.contains(id)) return true;
+  final at = g.atOf(id), m = at >= 0 ? g.modAtTile(at) : null;
+  return m != null && survivors[id].match.contains(m.id);
+}
+
 Widget _growTab(Game g, int id, ({double m, double w, double cd}) p, BuildContext ctx) {
   final gr = g.gradeOf(id), mg = gr, n = g.nextStep(id), tl = Game.trustLv(g.xpOf(id));
-  Widget tile(String b, String s) => Expanded(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-          decoration: BoxDecoration(color: Ttc.surface, borderRadius: BorderRadius.circular(7), border: Border.all(color: Ttc.line)),
-          child: Column(children: [
-            Text(b, style: Ttc.serif(17, color: Ttc.sepia, weight: FontWeight.w700, height: 1.1)),
-            const SizedBox(height: 2),
-            Text(s, style: Ttc.t(11, color: Ttc.sepia2)),
-          ]),
-        ),
-      );
   return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
     const SizedBox(height: 4),
-    Row(children: [
-      tile('×${p.m.toStringAsFixed(2)}', '특기 효과'),
-      const SizedBox(width: 6),
-      tile('×${(2 + p.w).toStringAsFixed(2)}', '딱 맞는 일터'),
-      const SizedBox(width: 6),
-      tile('-${((1 - p.cd) * 100).round()}%', '스킬 대기'),
-    ]),
+    // 숫자만으로는 뜻을 알기 어려워 문장으로 (2026-10-23 UX). 숫자는 오른쪽에 작게
+    () {
+      final cd = ((1 - p.cd) * 100).round(), mt = survivors[id].match.map((b) => mods[b]?.n).whereType<String>().join('·');
+      Widget row(String t, String v) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5),
+            child: Row(children: [
+              Expanded(child: Text(t, style: Ttc.t(13, color: Ttc.sepia, height: 1.45))),
+              const SizedBox(width: 8),
+              Text(v, style: Ttc.serif(15, color: Ttc.sepia2, weight: FontWeight.w700, height: 1.2)),
+            ]),
+          );
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(color: Ttc.surface, borderRadius: BorderRadius.circular(10), border: Border.all(color: Ttc.line)),
+        child: Column(children: [
+          row(p.m > 1.005 ? '특기가 기본보다 ${((p.m - 1) * 100).round()}% 더 잘 들어요' : '특기는 아직 기본 세기예요 (강화하면 세져요)', '×${p.m.toStringAsFixed(2)}'),
+          row(mt.isEmpty ? '어느 일터에서든 같은 만큼 일해요' : '$mt에서 일하면 ${(2 + p.w).toStringAsFixed(1)}배로 일해요', '×${(2 + p.w).toStringAsFixed(2)}'),
+          row(cd > 0 ? '스킬을 $cd% 더 빨리 다시 써요' : '스킬 다시 쓰기는 기본 빠르기예요', '-$cd%'),
+        ]),
+      );
+    }(),
     const SizedBox(height: 12),
     Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),

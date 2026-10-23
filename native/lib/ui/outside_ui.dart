@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../game/data.dart';
 import '../game/engine.dart';
 import 'atlas.dart';
+import 'notify.dart';
 import 'crisis_ui.dart';
 import 'gear.dart';
 import 'people.dart';
@@ -240,7 +241,10 @@ class _ExpBodyState extends State<ExpBody> {
                   BuyButton('출발', onTap: team.length < e.min
                       ? null
                       : () {
-                          if (g.sendExp(e.key, team, pet: pk) != null) setState(() => planKey = null);
+                          if (g.sendExp(e.key, team, pet: pk) != null) {
+                            setState(() => planKey = null);
+                            Notify.ask(); // 처음 원정을 보낼 때 한 번: 돌아오면 알려 드릴까요
+                          }
                         }),
                 ]),
               ]));

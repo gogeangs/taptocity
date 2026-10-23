@@ -45,6 +45,21 @@ def android():
         # MainActivity 의 첫 intent-filter 뒤에
         i = s.find('</intent-filter>')
         s = s[:i + len('</intent-filter>')] + '\n' + link + s[i + len('</intent-filter>'):]
+    # 휴대폰 알림 (flutter_local_notifications): 알림 권한 · 예약 알림 받기 · 다시 켜졌을 때 다시 걸기
+    if 'POST_NOTIFICATIONS' not in s:
+        s = s.replace('<application', '<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n'
+                      '    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>\n    <application', 1)
+    if 'ScheduledNotificationReceiver' not in s:
+        rcv = ('        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"/>\n'
+               '        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">\n'
+               '            <intent-filter>\n'
+               '                <action android:name="android.intent.action.BOOT_COMPLETED"/>\n'
+               '                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>\n'
+               '                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>\n'
+               '                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>\n'
+               '            </intent-filter>\n'
+               '        </receiver>\n')
+        s = s.replace('    </application>', rcv + '    </application>', 1)
     # 세로 고정
     if 'android:screenOrientation' not in s:
         s = s.replace('android:name=".MainActivity"', 'android:name=".MainActivity"\n            android:screenOrientation="portrait"', 1)
@@ -64,6 +79,15 @@ def android():
             continue
         s = rd(g)
         kts = name.endswith('.kts')
+        # 알림 플러그인이 요구하는 core library desugaring
+        if 'CoreLibraryDesugaring' not in s and 'coreLibraryDesugaring' not in s:
+            if kts:
+                s = s.replace('compileOptions {', 'compileOptions {\n        isCoreLibraryDesugaringEnabled = true', 1)
+                s += '\ndependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")\n}\n'
+            else:
+                s = s.replace('compileOptions {', 'compileOptions {\n        coreLibraryDesugaringEnabled true', 1)
+                s += '\ndependencies {\n    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"\n}\n'
+            print('desugaring 켬')
         if os.environ.get('TTC_KEYSTORE') and 'ttcUpload' not in s:
             if kts:
                 cfg = ('    signingConfigs {\n'

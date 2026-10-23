@@ -183,6 +183,13 @@ class CostChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final ok = have >= need;
     final p = need <= 0 ? 1.0 : (have / need).clamp(0, 1).toDouble();
+    final chip = _chip(ok, p);
+    // 모자란 자재 칩을 누르면 어디서 구하는지 (2026-10-23 UX: 빨간 칩을 눌러도 아무 일이 없었다)
+    if (ok || icon == null || matOf[icon!] == null) return chip;
+    return GestureDetector(behavior: HitTestBehavior.opaque, onTap: () => showMatHelp(context, icon!, have, need), child: chip);
+  }
+
+  Widget _chip(bool ok, double p) {
     return Container(
       decoration: BoxDecoration(
         color: ok ? const Color(0x09252E36) : Ttc.noBg,
@@ -218,6 +225,75 @@ class CostChip extends StatelessWidget {
 }
 
 /// 비용 묶음 (모자란 것 먼저)
+/// 모자란 자재 안내에서 쓰는 화면 이동 (게임 화면이 단다)
+class MatNav {
+  MatNav._();
+  /// 쉘터 화면의 가공 칸 열기 (작업대가 있을 때만 달림)
+  static VoidCallback? openCraft;
+  static bool Function()? canCraft;
+}
+
+/// 모자란 자재: 지금 얼마나 모자란지 · 어디서 구하는지 · (철판·밧줄) 가공 칸 바로 열기
+Future<void> showMatHelp(BuildContext context, String k, num have, num need) {
+  final m = matOf[k]!;
+  final craft = m.tier == 1 && MatNav.openCraft != null && (MatNav.canCraft?.call() ?? false);
+  return showDialog(
+    context: context,
+    barrierColor: const Color(0x990F161D),
+    builder: (ctx) => Dialog(
+      backgroundColor: Ttc.paper,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: Color(0x66EEE5D3))),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(children: [
+            ResIcon(k, size: 28),
+            const SizedBox(width: 8),
+            Expanded(child: Text(m.n, style: Ttc.t(17, color: Ttc.sepia, weight: FontWeight.w700))),
+            Text('${fmt(have)}/${fmt(need)}', style: Ttc.t(14, color: Ttc.noText, weight: FontWeight.w700)),
+          ]),
+          const SizedBox(height: 4),
+          Text('${fmt(need - have)} 더 있어야 해요', style: Ttc.t(12.5, color: Ttc.sepia2)),
+          const SizedBox(height: 10),
+          Text(m.src, style: Ttc.t(14, color: Ttc.sepia, height: 1.55)),
+          const SizedBox(height: 14),
+          Row(children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => Navigator.pop(ctx),
+                child: Container(
+                  height: 44,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0x47252E36))),
+                  child: Text('알겠어요', style: Ttc.t(13.5, color: const Color(0xFF252E36), weight: FontWeight.w700)),
+                ),
+              ),
+            ),
+            if (craft) ...[
+              const SizedBox(width: 8),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    MatNav.openCraft?.call();
+                  },
+                  child: Container(
+                    height: 44,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: Ttc.amber, borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0x73252E36))),
+                    child: Text('가공 칸 열기', style: Ttc.t(13.5, color: const Color(0xFF252E36), weight: FontWeight.w700)),
+                  ),
+                ),
+              ),
+            ],
+          ]),
+        ]),
+      ),
+    ),
+  );
+}
+
 Widget costWrap(Game g, Cost c, {List<Widget> lead = const []}) {
   final items = c.entries.toList()..sort((a, b) => (g.have(a.key) >= a.value ? 1 : 0) - (g.have(b.key) >= b.value ? 1 : 0));
   return Wrap(spacing: 5, runSpacing: 4, children: [

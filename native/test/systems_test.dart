@@ -10,6 +10,7 @@ import 'package:taptocity/game/state.dart';
 import 'package:taptocity/game/voice.dart';
 import 'package:taptocity/data/web_data.g.dart' as web;
 import 'package:taptocity/ui/map_view.dart';
+import 'package:taptocity/ui/notify.dart';
 
 /// 중반 판: 판잣집 넘어 컨테이너(Lv.3), 재폭풍 밤을 배운 뒤(긴장 장치·오늘의 의뢰가 켜짐), 튜토리얼·안내 끝
 Game mk(int seed, List<int> ids, {int lv = 3, num xp = 0}) {
@@ -501,6 +502,22 @@ void main() {
       c.step(.1);
     }
     expect(n.folded, isTrue);
+  });
+
+  test('휴대폰 알림 계획: 원정 귀환·창고 가득, 밤에는 아침 8시로', () {
+    final g = mk(31, [0, 1, 5]);
+    final now = DateTime(2026, 10, 23, 14).millisecondsSinceEpoch;
+    g.expMap; // 원정 칸 만들기
+    (g.S.rest['exp'] as Map)['mall'] = <String, Object?>{'end': now + 3600000, 'team': [1]};
+    g.recalc();
+    final p = Notify.plan(g, now);
+    expect(p.any((e) => e.$2 == '원정대가 돌아왔어요' && e.$1 == now + 3600000), isTrue, reason: p.toString());
+    for (final e in p) {
+      expect(e.$1, greaterThan(now + 300000));
+    }
+    expect(Notify.quiet(DateTime(2026, 10, 23, 23, 10)), DateTime(2026, 10, 24, 8));
+    expect(Notify.quiet(DateTime(2026, 10, 24, 3)), DateTime(2026, 10, 24, 8));
+    expect(Notify.quiet(DateTime(2026, 10, 24, 13)), DateTime(2026, 10, 24, 13));
   });
 
   test('누른 자리 동그라미는 잠깐 번졌다 사라지고, 넘친 제목 카드는 기다림 수로 보인다', () {
