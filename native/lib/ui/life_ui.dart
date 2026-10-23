@@ -40,12 +40,13 @@ void showPedPage(BuildContext context, Game g, void Function(String) toast) {
       _tag('떠돌이 장사꾼 · ${g.pedVisits}번째 방문'),
       _h3('노친네'),
       Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // 방문 횟수에 맞는 표정 (2026-10-23 표정 그림)
         Container(
-          width: 64,
-          height: 64,
+          width: 76,
+          height: 76,
           decoration: BoxDecoration(color: const Color(0xFFEFE3C4), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0x593B2A1A), width: 2)),
           clipBehavior: Clip.antiAlias,
-          child: AtlasPic(file: 'peddler.webp', src: Atlas.image('peddler.webp') == null ? null : const Rect.fromLTWH(300, 30, 520, 520), width: 64, height: 64),
+          child: pedExpr(pedMood(g.pedVisits), w: 76, h: 76),
         ),
         const SizedBox(width: 10),
         Expanded(child: Text('“${g.pedLine}”', style: Ttc.t(13.5, color: const Color(0xFF8A7458), height: 1.6))),

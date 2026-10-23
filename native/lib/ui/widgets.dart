@@ -114,13 +114,34 @@ Widget guestFace(String t, {double size = 40}) {
   return ClipOval(child: Container(color: const Color(0xFFE6D8B6), child: AtlasPic(file: 'guests.webp', src: Rect.fromLTWH(k * cw, y, cw, cw), width: size, height: size)));
 }
 
-/// 노친네 얼굴 (웹 .pedface: peddler.webp 50% 12% / 180%) 동그랗게
+/// 노친네 얼굴 (웹 .pedface: peddler.webp 50% 12% / 180%) 동그랗게. 표정 그림이 불려 오면 ① 기본 웃음 얼굴로 덮는다
 Widget pedFace({double size = 18}) => Container(
       width: size,
       height: size,
       decoration: const BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: Color(0x99EFE3C4), spreadRadius: 1)]),
-      child: ClipOval(child: AtlasPic(file: 'peddler.webp', src: const Rect.fromLTWH(227.6, 116, 568.9, 568.9), width: size, height: size)),
+      child: ClipOval(
+          child: Stack(fit: StackFit.expand, children: [
+        AtlasPic(file: 'peddler.webp', src: const Rect.fromLTWH(227.6, 116, 568.9, 568.9), width: size, height: size),
+        const CoverPic('peddler-expressions.webp', Rect.fromLTWH(185, 45, 395, 395)),
+      ])),
     );
+
+/// 노친네 표정 (peddler-expressions.webp 2×2, 2026-10-23): 0 기본 웃음 · 1 해 지기 전 서두름 · 2 셔터 소리에 움찔 · 3 고백의 죄책감.
+/// 방문 횟수에 맞춘다 (바이블: 2번째 '자리를 잡으면 안 되는 사람' · 3번째 창고 문 소리 · 5번째 셔터 고백)
+int pedMood(int visits) => switch (visits) { 2 => 1, 3 => 2, 5 => 3, _ => 0 };
+
+/// 노친네 표정 칸 (그림이 아직 없으면 예전 반신 초상)
+Widget pedExpr(int k, {double w = 64, double h = 64}) {
+  const cell = 627.0;
+  return SizedBox(
+    width: w,
+    height: h,
+    child: Stack(fit: StackFit.expand, children: [
+      AtlasPic(file: 'peddler.webp', src: Atlas.image('peddler.webp') == null ? null : const Rect.fromLTWH(300, 30, 520, 520), width: w, height: h),
+      CoverPic('peddler-expressions.webp', Rect.fromLTWH((k % 2) * cell + 4, (k ~/ 2) * cell + 4, cell - 8, cell - 8), alignY: 0),
+    ]),
+  );
+}
 
 /// 웹 UGI 선 아이콘 (열쇠·자물쇠·지도)
 const keySvg = '<svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3M21 12v2"/></svg>';

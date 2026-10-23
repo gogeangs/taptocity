@@ -26,6 +26,7 @@ class Atlas {
   static const lazyFiles = {
     'guests.webp', 'survivors-signature-1.webp', 'survivors-signature-2.webp',
     'line-stations.webp', 'line-stations-factory.webp', 'landmarks-desert.webp', 'landmarks-factory.webp', 'landmarks-snow.webp',
+    'peddler-expressions.webp', // 노친네 표정 2×2 (2026-10-23, 노친네가 올 때만)
     'ash-foes.webp', // 재 괴물 (2026-10-21: 웹 chapter-design.js foe와 같게, 대형 재폭풍에서만)
   };
 

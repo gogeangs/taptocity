@@ -8,6 +8,7 @@ import 'package:taptocity/game/engine.dart';
 import 'package:taptocity/ui/atlas.dart';
 import 'package:taptocity/ui/cuts_ui.dart' show CutSeen, caseCut, cutFile, showCuts;
 import 'package:taptocity/ui/game_screen.dart';
+import 'package:taptocity/ui/life_ui.dart' show showPedPage;
 import 'package:taptocity/ui/lines_ui.dart';
 import 'package:taptocity/ui/map_view.dart';
 import 'package:taptocity/ui/season_ui.dart' show showChoice;
@@ -678,7 +679,7 @@ void main() {
       await Atlas.load();
       for (final f in [
         'story-1.webp', 'story-2.webp', 'story-3.webp', 'story-4.webp', 'story-5.webp', 'founder-expressions.webp', 'underground-icons.webp', 'crows-kids.webp', 'regional-npcs.webp',
-        'player-faceless.webp', 'guests.webp', 'survivors-signature-1.webp', 'survivors-signature-2.webp',
+        'player-faceless.webp', 'guests.webp', 'survivors-signature-1.webp', 'survivors-signature-2.webp', 'peddler-expressions.webp',
       ]) {
         await Atlas.ensure(f);
       }
@@ -749,6 +750,19 @@ void main() {
       g.fx.add(FxOffline(2 * 3600 + 14 * 60.0, const {'wood': 120, 'scrap': 80, 'food': 40}, healed: const [1], expBack: 1, stories: 2, claim: true, visitor: true));
       return g;
     }, act: waitPage);
+    // 2026-10-23 노친네 표정: 3번째 방문(움찔) · 5번째 방문(셔터 고백)
+    for (final v in const [3, 5]) {
+      await shot('77-peddler-visit$v', () {
+        final g = _demo();
+        g.S.lv = 4;
+        g.S.rest['ped'] = <String, Object?>{'next': 0, 'here': g.num_('day'), 'stock': [], 'visits': v, 'bought': 0};
+        g.takeFx();
+        return g;
+      }, act: (g) async {
+        showPedPage(_ctx(tester), g, (_) {});
+        await _pumps(tester, 10);
+      });
+    }
     // 제안 10: 알림이 여럿이면 새 알림 하나만 크게 · 제안 1: 뒤질 곳 위 표식
     await shot('76-notice-stack', _demo, act: (g) async {
       g.fx.add(const FxNote('박만수 · 부탁 1/3', '창고 옆 폐허에서 쓸 만한 판자를 찾아 줘요', ms: 9000));
