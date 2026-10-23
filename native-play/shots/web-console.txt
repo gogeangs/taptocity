@@ -1,11 +1,11 @@
 [debug] Injecting <script> tag. Using callback.
 [warn] WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost
-[warn] [.WebGL-0xdfc014cac00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
-[warn] [.WebGL-0xdfc014cac00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
-[warn] [.WebGL-0xdfc014cac00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
-[warn] [.WebGL-0xdfc014cac00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)
-[timing] 첫 화면까지 4.5초
-[http 404] https://firestore.googleapis.com/v1/projects/taptocity-bd5d1/databases/(default)/documents/saves/oajXCbAYjreVWwlLq6ltADczMZm2
+[warn] [.WebGL-0xac01007600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
+[warn] [.WebGL-0xac01007600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
+[warn] [.WebGL-0xac01007600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
+[warn] [.WebGL-0xac01007600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)
+[timing] 첫 화면까지 5.7초
+[http 404] https://firestore.googleapis.com/v1/projects/taptocity-bd5d1/databases/(default)/documents/saves/Caj59CaLpBYAuyBKupQjZm1Zpsr2
 [error] Failed to load resource: the server responded with a status of 404 ()
 [timing] 받은 양 20.6MB
 [debug] Injecting <script> tag. Using callback.
