@@ -9,7 +9,7 @@ import 'game/storage.dart';
 
 class Report {
   Report._();
-  static const ver = '2.0.0';
+  static const ver = '2.0.1';
   static Map<String, dynamic> Function()? dev;
   static final Set<String> _seen = {};
   static bool off = false;
