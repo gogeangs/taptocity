@@ -101,7 +101,8 @@ jobs:
           set +e +o pipefail
           n=$(ls test_screens/goldens/*.png 2>/dev/null | wc -l)
           if [ "$n" -eq 0 ]; then echo "::notice title=화면 비교::기준 사진 없음 · 건너뜀"; exit 0; fi
-          rm -rf test_screens/shots && mkdir -p test_screens/shots && cp test_screens/goldens/*.png test_screens/shots/
+          # 앞 단계의 기록(qa-play.txt 등)은 남기고 사진만 기준으로 덮는다
+          mkdir -p test_screens/shots && cp test_screens/goldens/*.png test_screens/shots/
           flutter test test_screens/screens_test.dart 2>&1 | tee ../cmp.txt; c=${PIPESTATUS[0]}
           if [ $c -ne 0 ]; then
             list=$(grep -oE "shots/[0-9]{2}-[A-Za-z0-9_-]+\.png[^)]*\([0-9.]+%\)|[0-9]{2}-[A-Za-z0-9_-]+ · " ../cmp.txt | sed 's#shots/##' | sort -u | head -40 | tr '\n' ' ')
@@ -110,7 +111,6 @@ jobs:
           else
             echo "::notice title=화면 비교::기준 사진 $n장과 같아요"
           fi
-          rm -rf test_screens/shots
 
       - name: 화면 사진
         run: |
@@ -184,6 +184,7 @@ jobs:
           [ -d /tmp/ios-shots ] && mv /tmp/ios-shots native-play/ios-shots
           rm -rf native-play/canvaskit   # 엔진(CanvasKit)은 구글 CDN에서 받으므로 저장소에 올리지 않는다
           mkdir -p native-play/shots && cp native/test_screens/shots/*.png native/test_screens/shots/*.txt native/test_screens/shots/*.csv native-play/shots/ 2>/dev/null || true
+          mkdir -p native-play/saves && cp native/test_screens/saves/*.json native-play/saves/ 2>/dev/null || true
           echo "파일 $(find native-play -type f | wc -l)개"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

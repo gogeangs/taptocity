@@ -304,6 +304,10 @@ void roundTrip(Game g, Qa qa) {
   }
 }
 
+/// 저장 호환 시험용 저장본 (시드 1만): 20분 · 동네마다 이주 직후 · 엔딩 (2026-10-23 코드 정리 안전망).
+/// CI가 native-play/saves/ 로 올리고, 고정본은 test/fixtures/saves/ 에 둔다
+final Map<String, String> snaps = {};
+
 /// 한 판: 시뮬레이션 분 수만큼
 void run(Game g, Qa qa, int minutes, int seed, {bool stopAtEnd = true}) {
   final r = math.Random(seed);
@@ -349,8 +353,13 @@ void run(Game g, Qa qa, int minutes, int seed, {bool stopAtEnd = true}) {
       final live = [for (var i = 0; i < N; i++) if (g.siteLive(i)) i].length;
       qa.note('⏸ 15분째 같은 목표: ${g.S.gen}동네 · ${m.txt} / ${m.sub} (Lv.${g.S.lv}, 생존자 ${g.S.sv.length}, 밝힌 땅 ${g.revCount}, 폐허 $live, 캠프 ${g.S.camp.length}, 모듈 ${g.S.mods.length}) · $mats');
     }
+    if (paceSeed == 1) {
+      if (sec == 20 * 60) snaps['s1-20min'] = g.toJsonString();
+      if (g.S.gen > 0 && !snaps.containsKey('s1-town${g.S.gen}')) snaps['s1-town${g.S.gen}'] = g.toJsonString();
+    }
     if (stopAtEnd && g.S.rest['ehEnd'] != null) break;
   }
+  if (paceSeed == 1 && stopAtEnd) snaps['s1-end'] = g.toJsonString();
   final st = g.S.rest['stat'] is Map ? g.S.rest['stat'] as Map : const {};
   qa.note('끝: 부상 ${st['hurtN'] ?? 0} · 선택 ${st['choiceN'] ?? 0} · ${g.S.gen}번째 동네 · Lv.${g.S.lv} · 생존자 ${g.S.sv.length} · 걸음 ${g.mi}/${steps.length} · 동네 미션 ${g.rmi} · 밤 ${g.num_('nights')} · 막은 폭풍 ${g.num_('defWins')} · 지하 최고 ${g.ugBest}층 · 계단 ${g.num_('ugDown').toInt()}번 · 조각 ${g.fragsGot.length} · 인연 ${g.bondN} · 연속 ${g.dayStreak}일 · 탑 ${g.towerN} · 보급 더미 $supplies번 · 시뮬 ${simMs ~/ 60000}분');
 }
@@ -362,6 +371,8 @@ void main() {
     Directory('test_screens/shots').createSync(recursive: true);
     File('test_screens/shots/qa-play.txt').writeAsStringSync('${out.join('\n')}\n');
     File('test_screens/shots/qa-pace.csv').writeAsStringSync('${pace.join('\n')}\n');
+    Directory('test_screens/saves').createSync(recursive: true);
+    snaps.forEach((k, v) => File('test_screens/saves/$k.json').writeAsStringSync(v));
   });
 
   for (final seed in [1, 2, 3]) {
