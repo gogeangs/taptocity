@@ -142,7 +142,7 @@ class _ExpBodyState extends State<ExpBody> {
           out.add(ugCard(context, g));
           out.add(lnCardWidget(context, g));
           final em = g.expMap;
-          for (final e in exps) {
+          for (final e in g.expList) {
             if (!g.expOpen(e)) {
               locks.add('${e.name} · ${e.lock}');
               continue;

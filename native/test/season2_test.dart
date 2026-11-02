@@ -81,6 +81,7 @@ void main() {
         g.S.m[k] = math.max(g.S.m[k] ?? 0, 200);
       }
       g.S.rest['expDone'] = g.num_('expDone') + 1;
+      g.s2['trips'] = ((g.s2['trips'] as num?) ?? 0) + 6;
       _night(g);
       _drain(g, log);
     }
@@ -112,5 +113,62 @@ void main() {
     for (var k = 0; k < 60; k++) {
       again.tick(.5);
     }
+  });
+
+  test('두드리기 없음 · 사람 보내기 · 먼 원정', () {
+    Game.tutFlag = true;
+    final g = _load();
+    final log = <String>[];
+    // 저수지 둑에 닿을 때까지
+    for (var r = 0; r < 60 && g.s2St < 1; r++) {
+      g.s2TickIntro();
+      _drain(g, log);
+      final m = g.mission();
+      if (m.go) {
+        g.migrate(g.svIds.toList());
+      } else if (m.done) {
+        g.claimMission();
+      } else {
+        for (final id in g.s2Missing) {
+          g.s2Call(id);
+        }
+        _night(g);
+      }
+      _drain(g, log);
+    }
+    expect(g.S.region, 'reservoir');
+    expect(g.s2NoTap, isTrue);
+    expect(g.S.sig, isEmpty);
+    // 탑 빛 안쪽은 밝혀져 있다
+    final inside = [for (var i = 0; i < N; i++) if (dist(i) <= 4) i];
+    expect(inside.every((i) => g.S.rev[i] == 1), isTrue);
+    // 구름을 두드려도 걷히지 않는다
+    final rev0 = g.revCount;
+    for (final f in g.frontier.take(5).toList()) {
+      expect(g.tapTile(f), 'far');
+      g.dig(f);
+    }
+    expect(g.revCount, rev0);
+    // 폐허를 누르면 사람 보내기
+    final site = [for (var i = 0; i < N; i++) if (g.S.rev[i] == 1 && g.siteLive(i)) i];
+    expect(site, isNotEmpty, reason: '탑 빛 안쪽에 폐허가 있어야 함');
+    expect(g.tapTile(site.first), 'send');
+    final pool = g.s2SendPool;
+    expect(pool, isNotEmpty);
+    final id = pool.first, have0 = g.S.got.values.fold<num>(0, (a, v) => a + v);
+    expect(g.s2Send(id, site.first), isTrue);
+    expect(g.busy(id), isTrue);
+    for (var k = 0; k < 205; k++) {
+      g.s2TickSec();
+    }
+    expect((g.s2['trips'] as num?) ?? 0, greaterThanOrEqualTo(1));
+    expect(g.S.got.values.fold<num>(0, (a, v) => a + v), greaterThan(have0));
+    // 저장 → 다시 읽어도 보낸 사람이 그대로
+    final again = Game(GameState.fromJson(jsonDecode(g.toJsonString()) as Map<String, dynamic>)!);
+    expect(again.s2SendIds.contains(id) || !again.busy(id), isTrue);
+    // 먼 원정은 30분·1시간·2시간
+    expect(g.expList.map((e) => e.key).toList(), ['s2near', 's2far', 's2deep']);
+    final c = g.expCalc(g.expList.first, [pool.last]);
+    expect(c.t, greaterThanOrEqualTo(1200));
   });
 }

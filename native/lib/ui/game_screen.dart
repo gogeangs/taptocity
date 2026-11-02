@@ -940,6 +940,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   // 랜턴 버튼: 누르면 한 번, 누르고 있으면 계속 (웹 lampRepeat)
   void _lampPress() {
+    // 시즌 2: 꺼진 랜턴. 평소에는 눌러도 구름을 걷지 않는다 (대형 재폭풍 때는 시즌 1 그대로)
+    if (g.s2NoTap && g.defn == null) {
+      fxc.toast('탑 빛 안쪽은 사람들이 다녀와요 · 폐허를 눌러 사람을 보내요');
+      return;
+    }
     _close();
     setState(() => _lampDown = true);
     _lampR0 = g.S.rev.fold(0, (a, v) => a + v);
@@ -1068,6 +1073,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         showBandPage(context, g);
       case 'deco':
         showDecoTile(context, g, tile);
+      case 'send':
+        showS2Send(context, g, tile);
       case 'module':
       case 'landmark':
         if (_ringClosedAt == tile) {

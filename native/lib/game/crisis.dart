@@ -309,7 +309,7 @@ extension Crisis on Game {
         final got = give({...scaleCost({'scrap': held * 2, 'wood': held}, lvScale), 'batt': 1});
         S.rest['nights'] = num_('nights') + 1;
         fx.add(FxToast('밤을 버텼어요! 막아낸 재 $held/$nightN${got.isNotEmpty ? ' · ${lootText(got)}' : ''}'));
-      } else if (_edgeTiles().isEmpty) {
+      } else if (_edgeTiles().isEmpty || s2NoTap) {
         // 땅을 다 밝히면 재가 내려앉을 가장자리가 없어 nightN이 0 → 밤 수가 멈춰 '한파 사흘 버티기'·'밤 버티기'가 끝나지 않았다 (QA 2026-10-20)
         S.rest['nights'] = num_('nights') + 1;
       }
@@ -321,7 +321,8 @@ extension Crisis on Game {
     final p = phase;
     if ((p > dayLen - 10 && p < dayLen + .5) || p > cycleLen - 10.5) _mapChanged();
     wasNight = n;
-    if (n && stormOn && defn == null) {
+    // 시즌 2: 밤의 붉은 재는 두드리지 않는다 (밤 당번이 지킨다)
+    if (n && stormOn && defn == null && !s2NoTap) {
       spawnT -= dt;
       if (spawnT <= 0) {
         spawnT = math.max(2.2, 6 - S.lv * .6) * (shield ? 1.8 : 1);

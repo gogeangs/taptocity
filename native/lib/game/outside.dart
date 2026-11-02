@@ -22,7 +22,7 @@ final List<ExpInfo> exps = [
     ExpInfo(e['key'] as String, e['name'] as String, (e['t'] as num).toDouble(), (e['risk'] as num).toDouble(), (e['mult'] as num).toDouble(),
         {for (final x in (e['loot'] as Map).entries) x.key as String: x.value as num}, e['reveal'] as int, e['min'] as int, e['lock'] as String, e['desc'] as String, e['open'] as String),
 ];
-ExpInfo? expOf(String k) => exps.where((e) => e.key == k).firstOrNull;
+ExpInfo? expOf(String k) => exps.where((e) => e.key == k).firstOrNull ?? s2Exps.where((e) => e.key == k).firstOrNull;
 
 class ExpCalc {
   const ExpCalc(this.t, this.risk, this.mult, this.perks);
@@ -148,6 +148,7 @@ extension Outside on Game {
     for (final id in svIds) {
       final r = rec(id)!;
       final a = r['away'];
+      if (a == 's2send' && s2SendMap.containsKey('$id')) continue;
       if (a != null && a != false && !(m[a] is Map && ((m[a] as Map)['team'] as List).contains(id))) r['away'] = false;
     }
     m.forEach((k, x) {
@@ -298,7 +299,7 @@ extension Outside on Game {
       if (now >= (expMap[k]!['end'] as num)) claimExp(k, quiet: true);
     }
     final sent = <String>[];
-    for (final e in exps.reversed) {
+    for (final e in expList.reversed) {
       if (!expOpen(e) || expMap.containsKey(e.key)) continue;
       final team = autoTeam(e);
       if (team == null) continue;

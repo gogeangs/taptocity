@@ -59,6 +59,13 @@ String? regionLook(String? r) => switch (r) {
 /// 이주한 동네 번호 → 시즌 2 동네 (저장본에서 맞춘다. townName·노선도가 쓴다)
 final Map<int, String> s2GenRegion = {};
 
+/// 시즌 2 먼 원정 (season2-numbers.md 3절). 원정 시간은 expCalc가 ×0.6 하므로 실제 30분·1시간·2시간이 되게 적는다
+const List<ExpInfo> s2Exps = [
+  ExpInfo('s2near', '가까운 폐허', 3000, .10, 1, {'scrap': 42, 'parts': 24, 'fuel': 24}, 0, 1, '', '30분 · 한두 명. 멈춘 차들 사이에 부품과 연료가 있어요.', '탑 빛이 끝나는 곳까지 걸어가 멈춘 차들을 뒤졌다.'),
+  ExpInfo('s2far', '먼 폐허', 6000, .20, 1, {'cloth': 48, 'food': 72, 'wood': 42, 'med': 6}, 0, 2, '', '1시간 · 두세 명. 생활 물자가 남은 마을이에요.', '재구름 너머 불 꺼진 마을로 들어갔다.'),
+  ExpInfo('s2deep', '깊은 곳', 12000, .30, 1, {'parts': 66, 'fuel': 54, 'plate': 30, 'wire': 12}, 0, 3, '', '2시간 · 세 명. 재가 가장 짙은 곳, 귀한 것이 남아 있어요.', '재가 무릎까지 쌓인 길을 셋이 한 줄로 걸었다.'),
+];
+
 /// 시즌 2 사건 다섯 (사건 10~14, 번호 k = 9~13). 웹툰 컷은 cuts/case10~14
 final List<CaseInfo> s2Cases = [
   CaseInfo(
@@ -346,6 +353,10 @@ extension Season2 on Game {
     final o = m.outro?.call(this) ?? const <Line>[];
     if (o.isNotEmpty) talk(o, tag: _s2Tag, chain: true, noskip: m.k == 'final', after: m.k == 'final' ? 's2black' : null);
     if (m.k != null) _s2After(m.k!);
+    if (s2St == 0 && s2I == 1) {
+      // 만수의 "넌 좀 앉아 있어" 뒤: 사람 보내기 열림 (안내 카드)
+      fx.add(const FxNote('사람 보내기', '탑 빛 안쪽은 사람들이 다녀와요. 폐허를 누르고 사람을 고르면 끝. 마을의 하루가 지나면 돌아와요.', ms: 7000));
+    }
     dirty = true;
   }
 
@@ -361,13 +372,18 @@ extension Season2 on Game {
           if (!hasSv(id) && !isDead(id)) rescue(id, 'visit');
         }
       case 'net1':
-      case 'net2':
+      case 'lamp':
       case 'ring':
         s2F[k] = 1;
         S.hopeB += 2;
         recalc();
-      case 'c10':
+        _s2Widen(k == 'ring' ? 3 : 2);
       case 'jh':
+        s2F['net2'] = 1;
+        _s2Widen(2);
+        s2F['dawn'] = k;
+        s2F['dawnN'] = n;
+      case 'c10':
       case 'c12':
       case 'c13':
       case 'eh':
@@ -488,6 +504,10 @@ extension Season2 on Game {
     s2['iI'] = -1;
     // 잃는 규칙(시즌 1 그대로): 도착 뒤 첫 대형 재폭풍·습격 새벽 (동네 미션 1번째부터 세는 조건을 맞춘다)
     S.rest['rmi'] = 1;
+    // 두드리기 없음: 탑 빛 안쪽은 처음부터 재가 걷혀 있다 (구조 신호는 없다 · 저수지 사람은 이야기로 합류)
+    S.sig.clear();
+    s2['send'] = <String, Object?>{};
+    _s2Light(5);
     if (region == 'hometown') {
       // 쉘터는 그대로 서 있었다: 요새(Lv.4)로 시작한다 (11/02 대표님 결정. 시즌 1 앱이 떠난 동네의 지도를 남기지 않아 지도는 새로)
       S.lv = math.max(S.lv, 4);
@@ -529,6 +549,151 @@ extension Season2 on Game {
         'plant': '재가 가장 깊은 쪽으로, 빛줄기를 따라 걸었다.',
       }[region] ??
       '';
+
+  // ================= 2차 · 경영 놀이 (2026-11-02) =================
+  /// 두드리기 없음: 산골의 아침에 만수가 "넌 좀 앉아 있어"라고 한 뒤부터 (대형 재폭풍의 괴물 막기는 시즌 1 그대로)
+  bool get s2NoTap => s2On && (s2St >= 1 || s2I >= 1 || s2Done);
+
+  /// 탑 빛 반경 (무대 동네에서 재가 걷힌 거리). 도착 5칸, 점화·연결마다 넓어진다
+  int get s2LightR => ((s2['lr'] as num?) ?? 5).toInt();
+
+  /// 탑 빛 안쪽을 밝힌다 (소리·불꽃 없이)
+  void _s2Light(int r) {
+    s2['lr'] = r;
+    final snd = onSfx;
+    onSfx = null;
+    final f0 = fx.length;
+    for (var i = 0; i < N; i++) {
+      if (S.rev[i] == 0 && dist(i) <= r + .01) reveal(i);
+    }
+    onSfx = snd;
+    if (fx.length > f0) fx.removeRange(f0, fx.length);
+    _rebuildFrontier();
+    _mapChanged();
+  }
+
+  void _s2Widen(int by) {
+    if (!s2Town) return;
+    _s2Light(s2LightR + by);
+    fx.add(FxNote('탑 빛이 넓어졌어요', '빛 안쪽의 땅이 늘었어요 · 사람을 보낼 곳이 많아져요', ms: 4500));
+  }
+
+  // ---------- 사람 보내기 (가까운 땅 · 한 명씩 · 마을 하루 동안 다녀옴) ----------
+  static const s2SendT = 200.0;
+  Map get s2SendMap {
+    if (s2['send'] is! Map) s2['send'] = <String, Object?>{};
+    return s2['send'] as Map;
+  }
+
+  List<int> get s2SendIds => [for (final k in s2SendMap.keys) int.parse('$k')];
+  int? s2SentTo(int tile) {
+    for (final e in s2SendMap.entries) {
+      if ((e.value as Map)['t'] == tile) return int.parse('${e.key}');
+    }
+    return null;
+  }
+
+  /// 보낼 수 있는 사람: 일터에 없고 쉬는 사람 (이야기 동료는 원정·보내기에 나가지 않는다)
+  List<int> get s2SendPool => [for (final id in svIds) if (!s2Comps.contains(id) && atOf(id) < 0 && !busy(id)) id];
+
+  /// 그 땅에 맞는 사람 하나 (정찰·운전이면 더 많이 가져온다)
+  int? s2SendPick(int tile) {
+    final p = s2SendPool;
+    if (p.isEmpty) return null;
+    p.sort((a, b) => (_s2Fit(b) ? 1 : 0) - (_s2Fit(a) ? 1 : 0));
+    return p.first;
+  }
+
+  bool _s2Fit(int id) => roleOf(id).contains('scout') || roleOf(id).contains('drive');
+
+  bool s2Send(int id, int tile) {
+    if (!s2NoTap || !hasSv(id) || busy(id) || atOf(id) >= 0 || s2Comps.contains(id)) return false;
+    if (S.rev[tile] != 1 || !siteLive(tile) || s2SentTo(tile) != null) return false;
+    s2SendMap['$id'] = <String, Object?>{'t': tile, 'left': s2SendT};
+    rec(id)!['away'] = 's2send';
+    sfx('tap');
+    if (s2F['sendTold'] == null) {
+      s2F['sendTold'] = 1;
+      fx.add(const FxNote('사람 보내기', '탑 빛 안쪽은 사람들이 다녀와요. 사람을 누르고, 땅을 누르면 끝. 마을의 하루가 지나면 돌아와요.', ms: 6500));
+    } else {
+      fx.add(FxToast('${jo(survivors[id].name, '이', '가')} 폐허로 갔어요 · 마을 하루 뒤 돌아와요'));
+    }
+    recalc();
+    _changed();
+    return true;
+  }
+
+  void s2Recall(int id) {
+    if (s2SendMap.remove('$id') == null) return;
+    final r = rec(id);
+    if (r != null) r['away'] = false;
+    recalc();
+    _changed();
+  }
+
+  /// 한 번 다녀온 몫: 그 폐허를 세 번 뒤진 만큼 (맞는 사람이면 네 번)
+  void _s2Trip(int id, int tile, {bool quiet = false}) {
+    final s = S.site[tile];
+    if (s == null || s.c <= 0) return;
+    final n = _s2Fit(id) ? 4 : 3;
+    for (var k = 0; k < n && s.c > 0; k++) {
+      s.c--;
+      haul(tile, s);
+    }
+    if (s.c <= 0) {
+      s.hp = siteHp(s).toDouble();
+      s.rt = 0;
+    }
+    if (hasSv(id)) rec(id)!['xp'] = xpOf(id) + 6;
+    s2['trips'] = ((s2['trips'] as num?) ?? 0) + 1;
+  }
+
+  /// 매초: 보낸 사람들이 다녀오고, 폐허가 비면 쉰다
+  void s2TickSec([double dt = 1]) {
+    if (!s2On) return;
+    if (s2SendMap.isEmpty) return;
+    for (final k in s2SendMap.keys.toList()) {
+      final id = int.parse('$k'), x = s2SendMap[k] as Map, t = (x['t'] as num).toInt();
+      if (!hasSv(id)) {
+        s2SendMap.remove(k);
+        continue;
+      }
+      x['left'] = ((x['left'] as num?) ?? s2SendT) - dt;
+      if ((x['left'] as num) > 0) continue;
+      _s2Trip(id, t);
+      if (siteLive(t)) {
+        x['left'] = s2SendT;
+      } else {
+        s2Recall(id);
+        fx.add(FxToast('${jo(survivors[id].name, '이', '가')} 돌아왔어요 · 그 폐허는 다 털었어요'));
+      }
+      _mapChanged();
+      dirty = true;
+    }
+  }
+
+  /// 꺼 둔 동안 (최대 8시간, 시즌 1 누적 규칙 그대로): 그동안 다녀온 횟수만큼
+  void s2Offline(double sec) {
+    if (!s2On || s2SendMap.isEmpty) return;
+    final trips = (sec / s2SendT).floor();
+    if (trips <= 0) return;
+    final snd = onSfx;
+    onSfx = null;
+    final f0 = fx.length;
+    for (final k in s2SendMap.keys.toList()) {
+      final id = int.parse('$k'), t = ((s2SendMap[k] as Map)['t'] as num).toInt();
+      for (var n = 0; n < trips && siteLive(t); n++) {
+        _s2Trip(id, t, quiet: true);
+      }
+      if (!siteLive(t)) s2Recall(id);
+    }
+    onSfx = snd;
+    if (fx.length > f0) fx.removeRange(f0, fx.length);
+  }
+
+  // ---------- 먼 원정 (조 · 실제 시간 30분~2시간) ----------
+  /// 지금 동네의 원정 목록: 시즌 2 무대 동네에서는 먼 원정 셋
+  List<ExpInfo> get expList => s2Town ? s2Exps : exps;
 
   // ================= 말하는 사람 고르기 =================
   /// 첫 동네 출신 일반 생존자 한 명 (이야기 동료·저수지 사람 빼고)
@@ -624,7 +789,7 @@ extension Season2 on Game {
                   const Line(_g, '나눠 먹는 법부터 정해야겠구먼.'),
                 ],
             outro: (g) => const [Line(_me, '배급표가 관리소 문에 붙었다. 누군가 그 아래 작게 적었다. "고마워요."')]),
-        S2Step('얼음 밑의 길 · 원정 한 번 보내기', '원정 탭에서 원정대를 보내요', (g) => g._s2Rel('exp', g.num_('expDone')),
+        S2Step('얼음 밑의 길 · 원정 한 번 보내기', '원정 탭에서 먼 원정을 보내요 · 30분부터', (g) => g._s2Rel('exp', g.num_('expDone')),
             rw: const {'food': 40, 'parts': 10},
             intro: (g) => const [Line(32, '얼음 밑으로 물길이 하나 살아 있어요. 그걸 따라가면 하류 마을 창고가 나와요.', fb: Line(_me, '얼음 밑으로 물길 하나가 살아 있었다. 따라가면 하류 마을이었다.'))],
             outro: (g) => const [Line(32, '봐요, 얼음이 거짓말은 안 해요.', fb: Line(_me, '하류 창고는 털리지 않은 채였다.'))]),
@@ -636,7 +801,7 @@ extension Season2 on Game {
                   Line('npc:ped', '산 밑 옛 연구소에 밤에도 불이 안 꺼진답디다. 누가 켜 두는지는 몰라요.'),
                 ],
             outro: (g) => const [Line(_me, '노친네가 떠난 자리에 손수레 바퀴 자국이 산 쪽으로 이어졌다.')]),
-        S2Step('연구소 쪽 정찰 조 · 원정 한 번 보내기', '원정 탭에서 원정대를 보내요. 돌아오면 다음 길이 보여요',
+        S2Step('연구소 쪽 정찰 조 · 원정 한 번 보내기', '원정 탭에서 먼 원정을 보내요 · 돌아오면 다음 길이 보여요',
             (g) => g._s2Rel('exp', g.num_('expDone')) && g.caseRec(9)?['p'] != null,
             rw: const {'batt': 2},
             intro: (g) => const [Line(_me, '정찰 조가 돌아오기를 기다리는 사이, 무전이 며칠째 조용했다.')],
@@ -664,6 +829,7 @@ extension Season2 on Game {
         S2Step('꺼지지 않는 불 · 연료 30 · 부품 15', '자재가 모이면 받기를 눌러 랜턴으로 시험등을 깨워요', (g) => true,
             cost: const {'fuel': 30, 'parts': 15},
             rw: const {'batt': 1},
+            k: 'lamp',
             intro: (g) => const [
                   Line(9, '옥상 시험등이에요. 이렇게 오래 켜져 있을 리가 없는데….'),
                   Line(13, '예전엔 발전소 실험로가 아주 약하게 내던 빛에 답했을 거예요. 그 빛은… 제가 심지를 꺼낸 날 꺼졌고요.'),
@@ -727,7 +893,7 @@ extension Season2 on Game {
                 ],
               ];
             }),
-        S2Step('지하 서고 · 원정 한 번 보내기', '원정 탭에서 원정대를 보내요', (g) => g._s2Rel('exp', g.num_('expDone')),
+        S2Step('지하 서고 · 원정 한 번 보내기', '원정 탭에서 먼 원정을 보내요 · 30분부터', (g) => g._s2Rel('exp', g.num_('expDone')),
             rw: const {'parts': 15, 'wire': 4},
             intro: (g) => const [Line(9, '지하에 봉인된 서고가 있어요. 거기 기록이 있으면… 그날이 왜 그렇게 됐는지 알 수 있을지도 몰라요.')],
             outro: (g) => const [
@@ -909,7 +1075,8 @@ extension Season2 on Game {
                   Line(_g, '여기선 불 하나 꺼지면 끝이구먼. 캠프부터 단단히.'),
                 ],
             outro: (g) => const [Line(_me, '캠프에 불이 들어왔다. 재의 벽은 그대로였지만, 발밑은 보였다.')]),
-        S2Step('무너진 천장 치우기 · 밤 둘 넘기기', '사람들이 며칠에 걸쳐 판넬을 치워요', (g) => g._s2Rel('night', g.num_('nights'), 2),
+        S2Step('무너진 천장 치우기 · 사람 보내기 6번', '폐허를 눌러 사람을 보내 둬요 · 다녀올 때마다 판넬을 조금씩 치워요',
+            (g) => g._s2Rel('trips', (g.s2['trips'] as num?) ?? 0, 6),
             rw: const {'plate': 10},
             intro: (g) => const [Line(13, '제어실 천장 판넬이 그날 무너졌어요. 그 밑에… 운전 기록계가 있어요.')],
             outro: (g) {

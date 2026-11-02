@@ -258,7 +258,7 @@ class _MapViewState extends State<MapView> {
       p.hold = Timer(const Duration(milliseconds: 320), again);
       return;
     }
-    if (i >= 0 && g.S.rev[i] == 1 && g.siteLive(i)) {
+    if (i >= 0 && g.S.rev[i] == 1 && g.siteLive(i) && !g.s2NoTap) {
       p.acted = true;
       p.site = i;
       _press(p.pos, 0xFFBEE696, buzz: false);
@@ -271,7 +271,7 @@ class _MapViewState extends State<MapView> {
     final onBld = i >= 0 && g.S.rev[i] == 1 && (i == C0 || g.modAtTile(i) != null || g.S.camp.containsKey(i) || g.S.ter[i] == T.lm);
     final f = frontierAt(p.pos);
     final onLand = i >= 0 && g.S.rev[i] == 1;
-    if (f >= 0 && !onBld && (!onLand || (toScreen(tileC(f, 12)) - p.pos).distance < TW * .38 * cam.z)) {
+    if (f >= 0 && !onBld && !g.s2NoTap && (!onLand || (toScreen(tileC(f, 12)) - p.pos).distance < TW * .38 * cam.z)) {
       p.acted = true;
       p.digging = f;
       p.r0 = revCount;
@@ -437,7 +437,7 @@ class _MapViewState extends State<MapView> {
           _emptyT = now;
           _emptyP = p.pos;
           widget.fxLayer.press(w0, 0x99EEE5D3);
-          widget.fxLayer.toast('빛이 새는 구름이나 폐허를 두드려 보세요');
+          widget.fxLayer.toast(g.s2NoTap ? '탑 빛 안쪽의 폐허를 누르면 사람을 보내요' : '빛이 새는 구름이나 폐허를 두드려 보세요');
         }
       } else if (kind == 'dig' || kind == 'site' || kind == 'camphit') {
         // 손을 떼는 순간 두드림이 된 경우 (보통은 누를 때 먼저 두드린다)

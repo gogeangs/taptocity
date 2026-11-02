@@ -1576,6 +1576,7 @@ class Game extends ChangeNotifier {
 
   String statusOf(int id) {
     final r = rec(id)!;
+    if (r['away'] == 's2send') return '폐허에 다녀오는 중';
     if (_truthy(r['away'])) return '원정 중';
     if (((r['hurt'] as num?) ?? 0) > 0) return '다쳐서 쉬는 중';
     final at = atOf(id);
@@ -1720,6 +1721,7 @@ class Game extends ChangeNotifier {
   }
 
   bool hitSite(int i, double amt) {
+    if (s2NoTap) return false;
     final s = S.site[i];
     if (s == null || s.c <= 0) return false;
     darkTap(i);
@@ -1772,6 +1774,7 @@ class Game extends ChangeNotifier {
 
   /// 구름 칸 하나를 두드린다 (웹 dig 2459)
   void dig(int i) {
+    if (s2NoTap) return;
     sfx('tap');
     holdHint(i);
     final x = i % W;
@@ -1817,6 +1820,9 @@ class Game extends ChangeNotifier {
   /// 지도를 손가락으로 두드림. 무엇을 했는지 돌려준다.
   String tapTile(int i) {
     if (i < 0) return 'none';
+    // 시즌 2: 두드리지 않는다. 폐허를 누르면 사람 보내기, 구름은 그대로
+    if (s2NoTap && S.rev[i] == 1 && siteLive(i)) return 'send';
+    if (s2NoTap && S.rev[i] != 1) return 'far';
     if (S.rev[i] == 1) {
       if (siteLive(i)) {
         setAim(i);
@@ -2092,6 +2098,7 @@ class Game extends ChangeNotifier {
       _tickTension();
       _tickBond();
       _tickDaily();
+      s2TickSec();
       if (S.droneLv > 0 || overT > 0) {
         final i = frontierNearest();
         if (i >= 0) {
@@ -2127,6 +2134,7 @@ class Game extends ChangeNotifier {
   void offline(int nowMs) {
     final away = (nowMs - S.t) / 1000;
     final el = math.min(8 * 3600, away).toDouble();
+    s2Offline(el);
     var got = <String, int>{};
     if (el > 60 && perMin > 0) got = give({for (final e in prod.entries) e.key: e.value * el / 60 * .5});
     // 비운 시간만큼만 쉬어서 낫는다 (켜 둔 동안과 같은 빠르기)

@@ -948,3 +948,50 @@ Widget questBox(Game g, int id) {
     _d('완결 보상: 전용 장비 ‘${gear[Q.gear]?.n ?? Q.gear}’'),
   ]);
 }
+
+// ======================= 시즌 2 · 사람 보내기 (폐허를 눌렀을 때) =======================
+Future<void> showS2Send(BuildContext context, Game g, int tile) {
+  final s = g.S.site[tile];
+  if (s == null) return Future.value();
+  final info = s.k == 'lm' ? null : sites[s.k];
+  final name = s.k == 'lm' ? '랜드마크' : (info?.n ?? '폐허');
+  final drops = s.k == 'lm' ? landmarks[g.S.lm[tile]!.k].drops : (info?.drops ?? const <(String, double)>[]);
+  return showPageOf(context, g, (ctx) {
+    final sent = g.s2SentTo(tile);
+    final pool = g.s2SendPool, pick = g.s2SendPick(tile);
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
+      _tag('사람 보내기'),
+      _h3(name),
+      _d('나오는 것: ${drops.map((d) => matOf[d.$1]?.n ?? d.$1).toSet().join(' · ')} · 남은 몫 ${s.c}/${s.max}'),
+      const SizedBox(height: 10),
+      if (sent != null) ...[
+        _p('${jo(survivors[sent].name, '이', '가')} 이 폐허에 다녀오고 있어요. 마을 하루마다 자재를 가져와요.'),
+        const SizedBox(height: 12),
+        Row(children: [
+          pageBtn('그대로 두기', () => Navigator.pop(ctx), alt: true),
+          const SizedBox(width: 8),
+          pageBtn('불러들이기', () {
+            g.s2Recall(sent);
+            Navigator.pop(ctx);
+          }),
+        ]),
+      ] else if (pool.isEmpty) ...[
+        _p('지금 보낼 수 있는 사람이 없어요. 일터에 있거나, 원정 중이거나, 다친 사람은 보낼 수 없어요.'),
+        const SizedBox(height: 12),
+        Row(children: [pageBtn('닫기', () => Navigator.pop(ctx), alt: true)]),
+      ] else ...[
+        _p('누구를 보낼까요? 마을 하루 뒤에 돌아오고, 폐허가 빌 때까지 계속 다녀와요.'),
+        const SizedBox(height: 8),
+        _grid([
+          for (final id in pool)
+            _mpk(id, survivors[id].job, rec: id == pick, em: g.roleOf(id).contains('scout') || g.roleOf(id).contains('drive') ? '길눈이 밝아요 · 더 많이' : null, onTap: () {
+              Navigator.pop(ctx);
+              g.s2Send(id, tile);
+            }),
+        ]),
+        const SizedBox(height: 12),
+        Row(children: [pageBtn('닫기', () => Navigator.pop(ctx), alt: true)]),
+      ],
+    ]);
+  });
+}
