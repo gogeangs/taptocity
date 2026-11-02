@@ -442,6 +442,9 @@ extension Season2 on Game {
           const Line(_me, '그날부터 은호는 밥을 반쯤 남겼다. 무전실 앞을 지날 땐 걸음이 빨라졌다.'),
         ], tag: '그날 아침');
       case 'c12':
+        // 의심: 등불망을 따라 새로 찾아온 사람 (가장 늦게 합류한 일반 생존자)
+        final nw = [for (final id in svIds) if (!s2Comps.contains(id) && id != 11) id];
+        if (nw.isNotEmpty) s2F['sus12'] = nw.last;
         s2F['tsHurt'] = 1;
         s2TrustAdd(-10);
         final r = rec(12);
@@ -469,6 +472,12 @@ extension Season2 on Game {
 
   /// 사건을 고른 뒤 (pickCase가 부른다)
   void s2Picked(int k) {
+    // 일반 생존자를 추궁하면 의심 지목 단계가 열린다 (이야기 동료와 '나'는 대상 아님)
+    if (caseRec(k)?['p'] == 'a') {
+      if (k == 10 && hasSv(33)) _s2SetSus(33);
+      final n = (s2F['sus12'] as num?)?.toInt();
+      if (k == 11 && n != null) _s2SetSus(n);
+    }
     if (k == 13) {
       // 마을이 닫음: 재혁 사건 장 위에 회색 글씨
       final R = casesMap[caseKeyOf(10)];
@@ -612,7 +621,7 @@ extension Season2 on Game {
   }
 
   /// 보낼 수 있는 사람: 일터에 없고 쉬는 사람 (이야기 동료는 원정·보내기에 나가지 않는다)
-  List<int> get s2SendPool => [for (final id in svIds) if (!s2Comps.contains(id) && atOf(id) < 0 && !busy(id)) id];
+  List<int> get s2SendPool => [for (final id in svIds) if (!s2Comps.contains(id) && atOf(id) < 0 && !busy(id) && rec(id)!['noExp'] == null) id];
 
   /// 그 땅에 맞는 사람 하나 (정찰·운전이면 더 많이 가져온다)
   int? s2SendPick(int tile) {
@@ -931,6 +940,64 @@ extension Season2 on Game {
     (trade['offers'] as List).add(_trMake(x.$1, x.$2));
     _adUse();
     fx.add(const FxToast('무전 거래 제안이 하나 늘었어요'));
+    _changed();
+  }
+
+  // ---------- 의심 지목 (따로 재우기 → 원정에서 빼기 → 내보내기) ----------
+  Map? get s2Sus => (S.rest['s2'] as Map?)?['sus'] as Map?;
+  void _s2SetSus(int id) {
+    if (!hasSv(id) || s2Comps.contains(id)) return;
+    s2['sus'] = <String, Object?>{'id': id, 'st': 0};
+  }
+
+  String? get s2SusNextLabel => switch (((s2Sus?['st'] as num?) ?? -1).toInt()) { 0 => '따로 재우기', 1 => '원정에서 빼기', 2 => '마을에서 내보내기', _ => null };
+
+  void s2SusNext() {
+    final m = s2Sus;
+    if (m == null) return;
+    final id = (m['id'] as num).toInt(), st = ((m['st'] as num?) ?? 0).toInt();
+    if (!hasSv(id)) {
+      s2.remove('sus');
+      return;
+    }
+    final nm = survivors[id].name;
+    // 가까운 사람은 서운해한다 (내보내면 두 배)
+    final f = _deathFriend(id);
+    if (f != null && hasSv(f) && !s2Comps.contains(f)) rec(f)!['xp'] = math.max(0, xpOf(f) - (st >= 2 ? 120 : 60));
+    String say(String base, String malsun, String sunrye, String cheolho) => id == 5 ? malsun : id == 4 ? sunrye : id == 6 ? cheolho : base;
+    switch (st) {
+      case 0:
+        s2TrustAdd(3);
+        fx.add(FxNote('$nm · 따로 재우기', '“${say('…알았어요. 오늘은 저쪽에서 잘게요.', '…알았다. 오늘은 저쪽에서 잔다.', '…알았데이.', '…알았어.')}”\n그날 밤은 다들 조금 편히 잤다.', ms: 6000));
+      case 1:
+        rec(id)!['noExp'] = 1;
+        s2TrustAdd(5);
+        fx.add(FxNote('$nm · 원정에서 빼기', '“저 손 놀리면 미쳐요. …뭐라도 시켜 줘요.”\n원정 조가 한 사람 줄었다.', ms: 6000));
+      default:
+        s2TrustAdd(8);
+        final r = Map<String, Object?>.from(rec(id)!);
+        final at = (r['at'] as num?)?.toInt() ?? -1;
+        if (at >= 0) S.asg.remove(at);
+        s2SendMap.remove('$id');
+        r
+          ..['at'] = -1
+          ..['away'] = false
+          ..['hurt'] = 0
+          ..remove('noExp');
+        S.sv.remove('$id');
+        party = party.where((x) => x != id).toList();
+        final stay = (S.rest['stay'] is Map) ? S.rest['stay'] as Map : (S.rest['stay'] = <String, Object?>{});
+        final t = (stay['${S.gen}'] is Map) ? stay['${S.gen}'] as Map : (stay['${S.gen}'] = <String, Object?>{'region': S.region ?? 'home', 'n': S.gen, 'sv': <String, Object?>{}});
+        (t['sv'] as Map)['$id'] = r;
+        tlog('${jo(nm, '을', '를')} 마을에서 내보냈다.');
+        fx.add(FxNote('$nm · 내보내기', '“${say('…잘 지내요. 진짜로요.', '…밥 잘 챙겨 먹어라.', '…잘 있그래이.', '…간다.')}”\n문이 닫혔다. 아무도 오래 서 있지 않았다.', ms: 6500));
+        s2.remove('sus');
+        recalc();
+        _changed();
+        return;
+    }
+    m['st'] = st + 1;
+    recalc();
     _changed();
   }
 

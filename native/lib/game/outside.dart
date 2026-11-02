@@ -77,7 +77,7 @@ extension Outside on Game {
   /// 보낼 수 있는 사람: 쉬는 사람 중 순찰·아이 돌보기가 아닌 사람 (웹 expPool)
   List<int> get expPool => [
         for (final id in svIds)
-          if (atOf(id) < 0 && !busy(id) && !(((rec(id)!['hurt'] as num?) ?? 0) > 0) && !const ['patrol', 'care'].contains(dutyOf(id))) id
+          if (atOf(id) < 0 && !busy(id) && !(((rec(id)!['hurt'] as num?) ?? 0) > 0) && !const ['patrol', 'care'].contains(dutyOf(id)) && rec(id)!['noExp'] == null) id
       ];
 
   /// 가장 효율 좋은 팀 (웹 autoTeam)

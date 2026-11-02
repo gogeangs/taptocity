@@ -1099,6 +1099,21 @@ Widget s2VillageCard(BuildContext context, Game g, VoidCallback redraw) {
           ('open', '방송을 연다', '믿음·생산이 조금 올라요'),
           ('less', '방송을 줄인다', '밤이 조용해져요'),
         ]),
+      if (g.s2Sus != null && g.hasSv((g.s2Sus!['id'] as num).toInt()) && g.s2SusNextLabel != null) ...[
+        const SizedBox(height: 10),
+        Text('의심받는 사람', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
+        Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Row(children: [
+            Expanded(child: Text('${survivors[(g.s2Sus!['id'] as num).toInt()].name} · 사건 수첩에서 추궁한 사람', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w600))),
+            BuyButton(g.s2SusNextLabel!, width: 112, onTap: () {
+              g.s2SusNext();
+              redraw();
+            }),
+          ]),
+        ),
+        Text('마을 믿음은 오르지만, 가까운 사람은 서운해해요.', style: Ttc.t(12, color: Ttc.sepia2, height: 1.4)),
+      ],
       if (g.s2St >= 1) ...[
         const SizedBox(height: 10),
         Text('하루 한 번 부탁', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
