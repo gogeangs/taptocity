@@ -222,7 +222,7 @@ class _MissionTapeState extends State<MissionTape> {
       if (g.fireOn && g.warm != null)
         hl('firechip', _chip('모닥불 ${g.warm!.round()}%', () => g.feedFire(), g.warmTier == 0 ? const [Color(0xFF2D3A45), Color(0xFF4B5D6B)] : const [Color(0xFF6B2F17), Color(0xFFC4652A)],
             g.warmTier == 0 ? const Color(0xFFDFE8EF) : const Color(0xFFFFE9C7)), radius: 14),
-      if (m.eg && !done && g.canMigrate) _chip('새 동네로', widget.onMig, const [Color(0xFF6B3A1A), Color(0xFFB0452A)], const Color(0xFFFFE2A0), lead: const ResIcon('hope', size: 16)),
+      if ((m.eg || m.go) && !done && g.canMigrate) _chip('새 동네로', widget.onMig, const [Color(0xFF6B3A1A), Color(0xFFB0452A)], const Color(0xFFFFE2A0), lead: const ResIcon('hope', size: 16)),
     ];
     return GestureDetector(
       onTap: widget.onGo,
@@ -421,7 +421,7 @@ class _CoverPainter extends CustomPainter {
   bool shouldRepaint(_CoverPainter old) => old.v != v || old.src != src || old.file != file;
 }
 
-const _storyFiles = ['story-1.webp', 'story-2.webp', 'story-3.webp', 'story-4.webp', 'story-5.webp'];
+const _storyFiles = ['story-1.webp', 'story-2.webp', 'story-3.webp', 'story-4.webp', 'story-5.webp', 'story-6.webp', 'story-7.webp'];
 
 /// 이야기 장면 n번 (웹 story-art.js panelSvg). 그림이 아직 없으면 null.
 Rect? storyRect(int n) {
@@ -437,6 +437,11 @@ String storyFile(int n) => _storyFiles[n ~/ 9];
 int? artFor(List<Line> lines, int k) {
   final line = web.storyArt['line'] as Map, talk = web.storyArt['talk'] as Map;
   final t = lines[k].t;
+  // 시즌 2 장면 (45~62): 그 줄부터 다음 그림 줄 전까지 같은 그림
+  for (var j = k; j >= 0; j--) {
+    final n = s2ArtLine[lines[j].t];
+    if (n != null) return n;
+  }
   if (line[t] != null) return (line[t] as num).toInt();
   for (final l in lines) {
     if (talk[l.t] != null) return (talk[l.t] as num).toInt();
@@ -505,6 +510,7 @@ String _speakerSub(Game g, Object who) {
   if (who is String && who.startsWith('npc:')) return npcName[who.substring(4)]?.$2 ?? '';
   final id = g.speakerId(who);
   if (id == null) return g.title != '등불지기' ? '등불지기 · ${g.title}' : '등불지기';
+  if (who is String && who.startsWith('r:')) return '무전 · ${survivors[id].job}';
   return survivors[id].job;
 }
 
@@ -737,6 +743,29 @@ class _TalkPageState extends State<_TalkPage> {
       );
 }
 
+/// 시즌 2 장면 그림 (story-6 45~53, story-7 54~62): 이 줄이 나오면 그 그림
+const Map<String, int> s2ArtLine = {
+  '머리맡의 랜턴이 미지근했다. 밤새 꺼 두었는데.': 45,
+  '탑 빛 안쪽은 이제 우리가 다녀올게. 넌 좀 앉아 있어.': 46,
+  '탑 빛 안쪽은 이제 우리가 다녀올게요. 좀 앉아 있어요.': 46,
+  '랜턴을 들어 올렸다. 지붕 위 작은 등이 숨을 쉬듯 켜졌다.': 47,
+  '연구소는 산그늘에 엎드려 있었다. 철문에 녹슨 봉인 띠가 감겨 있었다.': 48,
+  '원정 조가 그림을 떼어 왔다. 랜턴을 든 남자와, 그 손을 잡은 작은 아이.': 49,
+  '이거 다 끼우면, 저수지 불빛이랑 이어질 거예요.': 50,
+  '쓰러진 슈퍼 간판. 그날 밤, 여기 왼편에 텐트를 쳤다.': 51,
+  '현관에 섰다. 문고리를 잡으려는데, 다른 손이 무거웠다.': 52,
+  '탑 꼭대기에서 랜턴을 들었다. 빛줄기들이 둥글게 닫혔다.': 53,
+  '새벽 방송은… 전부 전날 녹음한 거예요.': 54,
+  '은호 씨. 아까… 손 떨린다는 거요.': 55,
+  '새벽 세 시마다 밖에 있었던 것도 은호 씨, 방송도 은호 씨예요.': 56,
+  '은호와 미영이 같은 자리에 서 있는 걸 처음 봤다.': 57,
+  '판넬 아래, 먼지 덮인 운전 기록계가 있었다. 종이가 말려 있었다.': 58,
+  '랜턴을 들고 계단을 내려갔다. 아무도 없었다.': 59,
+  '해 질 녘, 독수리가 홀로 찾아왔다. 문설주 앞에서 옛 시그널을 흥얼거렸다. 알아듣는 사람이 없었다.': 60,
+  '…잠깐 앉아도 돼요?': 61,
+  '03:10. 하늘이 잠든 자리. 이불이 발치로 흘러내려 있었다.': 62,
+};
+
 /// 이름 있는 바깥사람 (웹 NPC)
 const Map<String, (String, String)> npcName = {
   'crow': ('독수리', '까마귀 무리의 우두머리'),
@@ -744,6 +773,9 @@ const Map<String, (String, String)> npcName = {
   'desert': ('두식', '사막 급유탑지기'),
   'factory': ('마석', '녹슨 공단 반장'),
   'snow': ('은솔', '산골 분교 선생님'),
+  // 시즌 2
+  'ped': ('노친네', '떠돌이 장사꾼'),
+  'keeper': ('하경수', '수문 관리인'),
 };
 
 // ======================= 6장: 재혁의 고백 (웹 openConf 5075) =======================

@@ -537,7 +537,7 @@ class MapPainter extends CustomPainter {
     'factory': (bg: [0xFF303B42, 0xFF20272E], v: 0xFF252D32, soil: [0x85, 0x8D, 0x8B], ruin: [0x73, 0x7C, 0x7C], green: [0x6D, 0x81, 0x78], paving: [0xA0, 0xA7, 0xA1], w1: [0x3A, 0x5D, 0x66], w2: [0x4B, 0x70, 0x77], fog: [0xFF303C43, 0xFF414F55]),
     'snow': (bg: [0xFF465665, 0xFF293845], v: 0xFF354452, soil: [0xC5, 0xD1, 0xD2], ruin: [0xA8, 0xB8, 0xBF], green: [0xA4, 0xBC, 0xB5], paving: [0xD6, 0xDE, 0xD9], w1: [0x53, 0x7D, 0x94], w2: [0x77, 0x9C, 0xAF], fog: [0xFF3C5060, 0xFF526878]),
   };
-  _Land get _L => _lands[g.S.region] ?? _lands['home']!;
+  _Land get _L => _lands[regionLook(g.S.region)] ?? _lands['home']!;
   Color get bgTop => Color(_L.bg[0]);
   Color get bgBottom => Color(_L.bg[1]);
   Color get voidCol => Color(_L.v);
@@ -729,7 +729,7 @@ class MapPainter extends CustomPainter {
     final n = Offset(c.dx, c.dy - TH / 2), e = Offset(c.dx + TW / 2, c.dy), s = Offset(c.dx, c.dy + TH / 2), w = Offset(c.dx - TW / 2, c.dy);
     if (t == T.water) {
       // 손그림 물 질감 + 물가 (웹 drawTile 2026-10-13)
-      _gtFill(canvas, S.region == 'snow' ? 7 : 3, .88, dia);
+      _gtFill(canvas, regionLook(S.region) == 'snow' ? 7 : 3, .88, dia);
       final shore = [
         if (x > 0 && S.rev[i - 1] == 1 && S.ter[i - 1] != T.water) (n, w),
         if (x < W - 1 && S.rev[i + 1] == 1 && S.ter[i + 1] != T.water) (e, s),
@@ -759,8 +759,9 @@ class MapPainter extends CustomPainter {
       canvas.drawLine(s, e, _line);
       // 땅 질감: 쉘터·모듈 자리는 콘크리트, 그 밖은 동네 흙 (+ 첫 동네 풀밭엔 마른 풀)
       final paved = core || mod != null;
-      final ok = _gtFill(canvas, paved ? 2 : const {'desert': 4, 'factory': 5, 'snow': 6}[S.region] ?? 0, paved ? .82 : .8, dia);
-      if (ok && !paved && S.region == null && g.green[i] > .05) _gtFill(canvas, 1, math.min(.9, g.green[i] * 1.5), dia);
+      final look = regionLook(S.region);
+      final ok = _gtFill(canvas, paved ? 2 : const {'desert': 4, 'factory': 5, 'snow': 6}[look] ?? 0, paved ? .82 : .8, dia);
+      if (ok && !paved && look == null && g.green[i] > .05) _gtFill(canvas, 1, math.min(.9, g.green[i] * 1.5), dia);
     }
     // 구름과 맞닿은 가장자리는 그늘 (웹 edgeFade)
     final edges = [
@@ -1160,6 +1161,10 @@ class MapPainter extends CustomPainter {
     'desert': ('landmarks-desert.webp', [[17, 85, 366, 268], [427, 95, 372, 254], [862, 24, 252, 333], [1189, 66, 384, 283], [1615, 64, 353, 287], [12, 463, 375, 282], [430, 474, 369, 266], [872, 408, 243, 342], [1190, 449, 385, 289], [1616, 446, 352, 294]]),
     'factory': ('landmarks-factory.webp', [[22, 49, 380, 340], [450, 82, 325, 305], [824, 96, 337, 277], [1211, 62, 346, 324], [1599, 95, 364, 288], [22, 403, 381, 344], [449, 427, 329, 319], [823, 450, 338, 276], [1210, 415, 349, 328], [1598, 448, 365, 292]]),
     'snow': ('landmarks-snow.webp', [[6, 81, 412, 312], [442, 115, 363, 270], [836, 83, 335, 297], [1205, 91, 350, 298], [1587, 96, 382, 291], [11, 393, 419, 375], [446, 483, 360, 273], [831, 403, 350, 345], [1202, 417, 357, 346], [1583, 438, 388, 323]]),
+    // 시즌 2 무대 (2026-11-02, 알파 테두리를 잰 값)
+    'reservoir': ('landmarks-reservoir.webp', [[19, 111, 378, 285], [397, 90, 396, 306], [793, 123, 397, 273], [1190, 27, 396, 369], [1586, 155, 372, 241], [19, 400, 378, 366], [397, 400, 396, 351], [793, 400, 397, 357], [1190, 400, 396, 359], [1586, 400, 372, 368]]),
+    'institute': ('landmarks-institute.webp', [[18, 106, 379, 290], [397, 35, 396, 357], [793, 132, 397, 264], [1190, 115, 396, 281], [1586, 136, 383, 260], [18, 400, 379, 369], [397, 408, 396, 357], [793, 400, 397, 368], [1190, 400, 396, 372], [1586, 400, 383, 362]]),
+    'plant': ('landmarks-plant.webp', [[14, 118, 383, 278], [397, 56, 396, 340], [793, 151, 397, 245], [1190, 153, 396, 243], [1586, 177, 385, 219], [15, 400, 382, 369], [397, 400, 396, 362], [793, 400, 397, 375], [1190, 400, 396, 379], [1586, 400, 385, 369]]),
   };
   // line-stations.webp: 4열(첫 동네·사막·공단·설원) × 2행(폐허·복구), 공단은 화물칸이 들어간 line-stations-factory 두 칸을 우선
   static const _ls = [[15, 55, 363, 295], [396, 56, 368, 297], [782, 60, 357, 289], [1159, 58, 362, 295], [14, 432, 364, 299], [399, 432, 368, 299], [783, 436, 356, 293], [1159, 433, 362, 299]];
@@ -1168,7 +1173,7 @@ class MapPainter extends CustomPainter {
   (ui.Image?, Rect?, double) _lmArt(int k, bool ok) {
     final r = g.S.region;
     if (landmarks[k].key == 'station') {
-      final col = const {'desert': 1, 'factory': 2, 'snow': 3}[r] ?? 0;
+      final col = const {'desert': 1, 'factory': 2, 'snow': 3}[regionLook(r)] ?? 0;
       final f2 = Atlas.image('line-stations-factory.webp');
       if (col == 2 && f2 != null) return (f2, Atlas.fr(_lsf[ok ? 1 : 0]), 94.0);
       final ls = Atlas.image('line-stations.webp');

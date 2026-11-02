@@ -18,12 +18,17 @@ class RegionInfo {
   final int big;
 }
 
-final Map<String, RegionInfo> regions = {for (final e in web.regions.entries) e.key: RegionInfo(e.value)};
+final Map<String, RegionInfo> regions = {
+  for (final e in web.regions.entries) e.key: RegionInfo(e.value),
+  for (final e in s2RegionData.entries) e.key: RegionInfo(e.value),
+};
 final List<String> regionOrder = [for (final r in web.regionMisc['order'] as List) r as String];
-String regionOfGen(int g) => g == 0 ? 'home' : regionOrder[(g - 1) % regionOrder.length];
+String regionOfGen(int g) => g == 0 ? 'home' : s2GenRegion[g] ?? regionOrder[(g - 1) % regionOrder.length];
 
 String townName(int g) {
   if (g == 0) return '처음 불을 켠 동네';
+  final s2r = s2GenRegion[g];
+  if (s2r != null) return regions[s2r]?.n ?? '';
   final n = regions[regionOfGen(g)]?.n ?? '';
   final lap = (g - 1) ~/ regionOrder.length;
   return lap > 0 ? '${const ['두', '세', '네', '다섯', '여섯'].elementAtOrNull(lap - 1) ?? '${lap + 1}'} 번째 $n' : n;
@@ -87,7 +92,7 @@ extension Region on Game {
   }
 
   int get rmi => num_('rmi').toInt();
-  String get nextRegion => regionOrder[S.gen % regionOrder.length];
+  String get nextRegion => s2GoNext ?? regionOrder[S.gen % regionOrder.length];
 
   double regScav(String k) {
     var v = reg?.scav[k] ?? 1;
@@ -163,7 +168,7 @@ extension Region on Game {
   }
 
   Mission? get regionMission {
-    if (S.gen == 0 || mi < steps.length) return null;
+    if (S.gen == 0 || mi < steps.length || s2Town) return null;
     final RM = regionMis(), k = rmi;
     if (k >= RM.length) return null;
     final m = RM[k], Q = rq;
@@ -233,7 +238,7 @@ extension Region on Game {
 
   /// 첫 동네는 마지막 걸음('등불 탑에 불 켜기')까지 받은 뒤에 떠난다.
   /// (탑을 켠 직후 받기 전에 떠나면 그 걸음이 새 동네로 따라와 동네 미션이 열리지 않던 문제 · 2026-10-17)
-  bool get canMigrate => S.lv >= 5 && (S.gen != 0 || (S.rest['endSeen'] != null && mi >= steps.length));
+  bool get canMigrate => s2Active ? s2GoNext != null : S.lv >= 5 && (S.gen != 0 || (S.rest['endSeen'] != null && mi >= steps.length));
 
   // ================= 이주 (웹 migrate 4272) =================
   /// 다음 동네에 맞춘 추천 다섯 (웹 migRecommend)
@@ -311,6 +316,7 @@ extension Region on Game {
 
   /// 떠나기. pick = 함께 갈 사람 (최대 다섯, 다섯 이하면 모두)
   void migrate(List<int> pick) {
+    final s2go = s2Active ? s2GoNext : null;
     final old = S, g = old.gen + 1, region = nextRegion;
     _tlogLeft();
     // 진행 중인 교대는 취소하고 건전지를 돌려준다
@@ -319,7 +325,11 @@ extension Region on Game {
       old.rest['swap'] = null;
     }
     final all = [for (final k in old.sv.keys) int.parse(k)];
-    final going = all.length > migMax ? pick.where((id) => old.sv.containsKey('$id')).take(migMax).toList() : all;
+    // 시즌 2: 이야기 동료는 다섯 명 제한과 별개로 늘 함께 간다
+    final comps = s2go != null ? [for (final id in all) if (s2Comps.contains(id)) id] : const <int>[];
+    final going = all.length > migMax + comps.length
+        ? [...comps, ...pick.where((id) => old.sv.containsKey('$id') && !comps.contains(id)).take(migMax)]
+        : all;
     final stayed = <String, Object?>{};
     for (final id in all) {
       if (going.contains(id)) continue;
@@ -340,6 +350,8 @@ extension Region on Game {
       'frags', 'dayQ', 'dayStreak', 'dayLast', 'dayRare', 'giftN', 'ugDown', 'mrN',
       // 앱 전용 (2026-10-20): 아직 안 읽은 새 이야기 (함께 떠나는 사람만 화면에 남는다)
       'qNew', 'svStoryQ',
+      // 시즌 2 (2026-11-02): 이야기 진행·무대 동네·사건 장 표시
+      's2',
     ];
     final ns = Game.fresh(random: rnd);
     for (final k in keepKeys) {
@@ -386,11 +398,22 @@ extension Region on Game {
         if (ns.ter[i] == T.water) ns.ter[i] = rnd.nextDouble() < .3 ? T.ruin : T.ash;
       }
     }
+    if (s2go != null) {
+      final gs = Map<String, Object?>.from((ns.rest['s2'] as Map?)?['gens'] as Map? ?? const {});
+      gs['$g'] = region;
+      if (ns.rest['s2'] is Map) (ns.rest['s2'] as Map)['gens'] = gs;
+      s2GenRegion[g] = region;
+    }
     Game.placeSignals(ns);
     replaceState(ns);
     sfx('level');
     S.rest['wx'] = rollRegionWx() ?? 'normal';
     fx.add(FxMigrated(g, region));
+    if (s2go != null) {
+      _s2Arrive(g, region);
+      _changed();
+      return;
+    }
     final wl = wayLine(g);
     talk([if (wl.isNotEmpty) Line('me', wl), ...(regIntro(0) ?? _lines((web.regionText['talk'] as Map)[region]))],
         card: ('$g번째 동네', regions[region]!.n), goal: regionMis()[0].goal);
@@ -792,6 +815,7 @@ extension Region on Game {
   }
 
   void _regionDawn() {
+    s2Dawn();
     if (swap != null) _swapArrive();
     _trArrive();
     trState();
@@ -1041,6 +1065,11 @@ extension Region on Game {
   /// 매초 (웹 tickRegionStory · tickRegionHidden · tickTownEvents · tickDeathWarn)
   void tickRegionSec() {
     if (S.gen == 0) return;
+    if (s2Town) {
+      // 시즌 2 무대 동네: 시즌 1 동네 이야기·숨은 사람·동네 사건은 쉬고, 잃는 규칙 경고만
+      _tickDeathWarn();
+      return;
+    }
     _tickRegionStory();
     _tickRegionHidden();
     _tickTownEvents();

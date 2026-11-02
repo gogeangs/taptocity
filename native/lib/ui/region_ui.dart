@@ -120,18 +120,28 @@ Widget? migrateBanner(Game g, VoidCallback onTap) {
 List<int>? _migPick;
 
 Future<void> showMigrate(BuildContext context, Game g) {
-  final ids = g.svIds.toList();
-  if (_migPick == null || _migPick!.any((id) => !g.hasSv(id))) _migPick = ids.take(migMax).toList();
+  // 시즌 2: 이야기 동료는 고르는 칸 밖에서 늘 함께 간다
+  final s2go = g.s2Active && g.s2GoNext != null;
+  bool comp(int id) => s2go && s2Comps.contains(id);
+  final ids = [for (final id in g.svIds) if (!comp(id)) id];
+  if (_migPick == null || _migPick!.any((id) => !g.hasSv(id) || comp(id))) _migPick = ids.take(migMax).toList();
   return showPageOf(context, g, (ctx) => StatefulBuilder(builder: (ctx, set) {
-        final region = g.nextRegion, nr = regions[region]!, n = g.S.gen + 1, all = g.svIds.toList(), many = all.length > migMax, nc = g.nextCaller;
+        final region = g.nextRegion, nr = regions[region]!, n = g.S.gen + 1, all = [for (final id in g.svIds) if (!comp(id)) id], many = all.length > migMax, nc = g.nextCaller;
+        final comps = [for (final id in g.svIds) if (comp(id)) id];
         final sel = _migPick!;
-        final (recPick, why) = g.migRecommend(region);
+        final (recPick0, why) = g.migRecommend(region);
+        final recPick = [for (final id in recPick0) if (!comp(id)) id];
         final need = (web.regionMisc['migNeed'] as Map)[region] as Map? ?? const {};
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
           _tag('이주 · $n번째 동네'),
           _h3(nr.n),
           _p('${nc != null ? '${nc.$2} ${nc.$1}의 신호를 따라, 불씨를 나누러 떠나요.' : '불씨를 들고 다음 동네로 떠나요.'} 이 동네의 불은 남는 사람들이 지켜요.'),
           _fx('${nr.d}\n구름이 조금 더 단단해요 (×${(1 + .2 * n).toStringAsFixed(1)})'),
+          if (s2go) _p(g.s2WayLine(region)),
+          if (comps.isNotEmpty) ...[
+            _sec2('함께 가요'),
+            _d('${comps.map((id) => survivors[id].name).join(' · ')}'),
+          ],
           if (many) ...[
             _sec2('함께 갈 사람', '${sel.length}/$migMax'),
             _d('최대 $migMax명까지 데려가요. 남는 사람은 이 동네의 등불을 지키고, 나중에 무전으로 교대할 수 있어요.'),
@@ -869,6 +879,18 @@ List<Widget> radioRegion(BuildContext context, Game g, {VoidCallback? onRoute}) 
     } else {
       for (final x in L) {
         final s = survivors[x.$1], gr = (x.$4['g'] as num?)?.toInt() ?? s.grade;
+        // 시즌 2 · 산골의 아침: 이야기 동료는 건전지 없이, 교대 없이 부른다
+        if (g.s2CanCall(x.$1) || g.s2Calling.contains(x.$1)) {
+          final going = g.s2Calling.contains(x.$1);
+          out.add(MCard(
+            thumb: _face(x.$1),
+            title: s.name,
+            tags: [smallTag(going ? '오는 중 · 새벽에 도착' : '이야기 · 건전지 없이')],
+            desc: descText('${x.$3}에 남아 있어요'),
+            button: going ? const BuyButton('부름', why: '오는 중') : BuyButton('부르기', onTap: () => g.s2Call(x.$1)),
+          ));
+          continue;
+        }
         out.add(MCard(
           thumb: _face(x.$1),
           title: s.name,

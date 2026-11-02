@@ -575,7 +575,7 @@ class _LivePainter extends CustomPainter {
 
   /// 동네마다 하늘빛(아지랑이)과 날리는 것 (웹 HAZE·drawRegionAir)
   void _regionAir(Canvas canvas, Size size) {
-    final r = g.S.region;
+    final r = regionLook(g.S.region);
     if (r == null || g.ug != null) return;
     const haze = {
       'desert': [(255, 214, 150, .16), (255, 190, 120, 0.0)],

@@ -63,6 +63,8 @@ Widget npcFace(String who) {
   final k = who.substring(4);
   if (k == 'jin') return CoverPic('survivors-scouts.webp', const Rect.fromLTWH(826, 6, 808, 946), alignY: 0);
   if (k == 'crow') return CoverPic('crows-kids.webp', const Rect.fromLTWH(6, 6, 674, 750), alignY: 0);
+  if (k == 'keeper') return const Portrait(30, width: 84, height: 98);
+  if (k == 'ped') return const CoverPic('peddler.webp', Rect.fromLTWH(227.6, 60, 568.9, 640), alignY: 0);
   final n = const {'desert': 0, 'factory': 1, 'snow': 2}[k];
   if (n != null) return CoverPic('regional-npcs.webp', Rect.fromLTWH(n * 686.0 + 6, 6, 674, 750), alignY: 0);
   return const SizedBox.shrink();
@@ -139,7 +141,7 @@ Widget _copt(String b, String small, VoidCallback? onTap, {bool hi = false}) => 
 /// 사건 그림 (story-5 36~41번, 동네 사건 42~44번).
 /// 풀리기 전(clue)에는 그림이 답을 보여 주지 않게 어둡게 흐린 '단서' 그림으로 (앱 2026-10-18)
 Widget _caseArt(Game g, int k, {bool clue = false}) {
-  g.markArt(36 + k);
+  if (k < s2Case0) g.markArt(36 + k);
   return Padding(padding: const EdgeInsets.only(bottom: 12), child: caseArtBox(k, clue: clue));
 }
 
@@ -148,9 +150,12 @@ Widget caseArtBox(int k, {required bool clue, double aspect = 1.5, bool small = 
   return ValueListenableBuilder<int>(
     valueListenable: Atlas.version,
     builder: (c, _, __) {
-      final r = storyRect(n);
+      // 시즌 2 사건(10~14)은 그날 아침 웹툰 컷의 첫 칸
+      final cf = cutFile(caseCut(k)), ci = k >= s2Case0 ? Atlas.lazy(cf) : null;
+      if (k >= s2Case0 && ci == null) return const SizedBox.shrink();
+      final r = ci != null ? Rect.fromLTWH(4, 4, ci.width / 2 - 8, ci.height / 2 - 8) : storyRect(n);
       if (r == null) return const SizedBox.shrink();
-      final pic = CoverPic(storyFile(n), r);
+      final pic = CoverPic(ci != null ? cf : storyFile(n), r);
       return Container(
         decoration: BoxDecoration(color: const Color(0xFF35404A), borderRadius: BorderRadius.circular(small ? 8 : 10)),
         clipBehavior: Clip.antiAlias,
@@ -275,6 +280,35 @@ Future<void> showCase(BuildContext context, Game g, int k) async {
       ]));
   if (!fresh || !context.mounted) return;
   await playCutOnce(context, g, '$cut:4', cut, const [3]);
+}
+
+/// 시즌 2 · '마을이 닫음' (시즌 1 '해결' 도장과 다른 모양: 테두리 없이 회색 글씨만)
+Widget _closedStamp() => Transform.rotate(
+      angle: -.12,
+      child: Text('마을이 닫음', style: Ttc.t(13, color: const Color(0xFF8A8479), weight: FontWeight.w700)),
+    );
+
+// ======================= 시즌 2 · 마을 회의 (감싼다 / 지켜본다) =======================
+Future<void> showS2Choice(BuildContext context, Game g, String k) async {
+  if (k != 'meeting' || g.s2F['meet'] != null) return;
+  bool? cover;
+  await _casePage(context, (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text('그날 밤 · 처음 불을 켠 동네', style: Ttc.t(12, color: Ttc.sepia2, weight: FontWeight.w600)),
+        Padding(padding: const EdgeInsets.fromLTRB(0, 2, 0, 10), child: Text('마을 회의', style: Ttc.t(19, color: Ttc.sepia, weight: FontWeight.w700))),
+        caseLines(g, const [Line('me', '다들 은호를 보고 있었다. 은호는 변명하지 않았다.')]),
+      ]), foot: (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
+        Text('어떻게 할까요?', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
+        const SizedBox(height: 8),
+        _copt('은호를 감싼다', '마을 사람들의 믿음이 떨어져요', () {
+          cover = true;
+          Navigator.pop(ctx);
+        }, hi: true),
+        _copt('지켜본다', '은호가 나에게서 멀어져요', () {
+          cover = false;
+          Navigator.pop(ctx);
+        }),
+      ]));
+  g.s2Meeting(cover ?? false);
 }
 
 // ======================= 정답 없는 선택 (앱 전용, game/tension.dart) =======================
@@ -593,9 +627,13 @@ List<Widget> casesTab(BuildContext context, Game g) {
             if (solved) cutReplayButton(context, caseCut(k), const [0, 1, 2, 3]),
           ]),
         ),
-        Positioned(right: 4, top: 0, child: _stamp(solved)),
+        Positioned(right: 4, top: 0, child: R['closed'] != null ? _closedStamp() : _stamp(solved)),
       ]),
     ));
+  }
+  // 시즌 2: 수첩 마지막 장 (무대를 떠나기 전 '내' 글씨로 한 줄씩)
+  if (g.s2On && g.s2Notes.length > 1) {
+    out.add(_entry('수첩 마지막 장', g.s2Notes.join('\n')));
   }
   // 수상한 밤
   final L = g.oddLogList;

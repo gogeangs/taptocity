@@ -124,7 +124,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       Sound.mood(_mood());
       Sound.dim(g.isNight && g.defn == null ? .75 : 1);
       _heartbeat();
-      Atlas.region = g.S.gen != 0 ? g.S.region : null;
+      Atlas.region = g.S.gen != 0 ? regionLook(g.S.region) : null;
       Sound.duck(pageWatch.n > 0 || g.dread);
       if (g.fx.isNotEmpty) fxc.pull(g);
       if (changed) g.poke();
@@ -426,6 +426,14 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           if (f.after == 'endCard') _endMood = 'air';
           await showTalk(context, g, f, onDone: () {
             if (f.goal != null) g.panGuide = DateTime.now().millisecondsSinceEpoch;
+            // 시즌 2 마지막 컷: 딸깍. 블랙.
+            if (f.after == 's2black') {
+              Sound.blackout(5);
+              setState(() => _s2Black = true);
+              Future.delayed(const Duration(milliseconds: 5000), () {
+                if (mounted) setState(() => _s2Black = false);
+              });
+            }
             if (f.after == 'endCard') {
               _endMood = null;
               setState(() => _endCard = true);
@@ -438,6 +446,13 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         _queue(1, () {
           Sound.sfx('mystery');
           return showCase(context, g, k);
+        });
+      case FxCut(:final name, :final panels):
+        _queue(1, () => playCutOnce(context, g, name, name, panels));
+      case FxS2Choice(:final k):
+        _queue(1, () {
+          Sound.sfx('mystery');
+          return showS2Choice(context, g, k);
         });
       case FxCrowMeet():
         _queue(1, () {
@@ -575,6 +590,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   final _kEv = GlobalKey(), _kStage = GlobalKey();
   int _coach = -1;
   bool _endCard = false;
+
+  /// 시즌 2 마지막 컷 뒤 암전 (몇 초)
+  bool _s2Black = false;
   (int, String)? _mig;
   Rect? _coachRect() {
     final k = [_kMats, _kTape, _kClock, _kLamp, _kTabs][_coach];
@@ -1571,6 +1589,16 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                   Storage.setRaw('ttc_legacy_asked', '1');
                 }
               })),
+        if (_s2Black)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Container(
+                color: Colors.black,
+                alignment: Alignment.center,
+                child: Text('딸깍.', style: Ttc.t(15, color: const Color(0x99E9D9B8), weight: FontWeight.w600)),
+              ),
+            ),
+          ),
         if (_mig != null) Positioned.fill(child: MigStamp(_mig!.$1, _mig!.$2, key: ValueKey(_mig), onDone: () => setState(() => _mig = null))),
         if (coachR != null) Positioned.fill(child: CoachOverlay(i: _coach, hole: coachR, onNext: _coachNext, onSkip: () => setState(_coachEnd))),
       ]),

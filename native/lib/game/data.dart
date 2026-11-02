@@ -144,7 +144,28 @@ final List<SurvInfo> survivors = [
       story: [for (final t in s['story'] as List) t as String],
       trait: s['trait'] as String,
     ),
+  // 시즌 2 · 얼어붙은 저수지 둑 사람들 (30~33). 초상은 residents-reservoir.webp 2×2
+  ...s2Residents,
 ];
+
+/// 시즌 2 저수지 사람 넷 (season2-script.md 0절). 동네 사람과 같은 규칙(구조 신호·잃는 규칙)
+const List<SurvInfo> s2Residents = [
+  SurvInfo(id: 30, name: '하경수', age: 52, job: '수문 관리인', src: 'town', d: 6.5, region: 'reservoir', hidden: false, alias: '수문지기', hint: '얼어붙은 저수지 둑에서 만나요',
+      hope: 0, need: null, match: [0, 6], eff: {'craft': 0.15}, grade: 1,
+      story: ['그날부터 수문을 하루도 빼지 않고 열고 닫았다. 물이 얼지 않게.', '깃발이 펄럭이는 쪽을 보면 물이 어느 쪽으로 밀리는지 안다.', '“수문은 열 때보다 닫을 때가 어려워요.”'], trait: '가공할 때 {craft:pc}% 확률로 하나 더'),
+  SurvInfo(id: 31, name: '오순임', age: 64, job: '저수지 매점 주인', src: 'town', d: 7.5, region: 'reservoir', hidden: false, alias: null, hint: '얼어붙은 저수지 둑에서 만나요',
+      hope: 0, need: null, match: [5, 4], eff: {'thrift': 0.12}, grade: 0,
+      story: ['매점 셔터를 끝까지 올려 두었다. 누구든 들어와 라면 하나 끓여 먹으라고.', '벤치에 앉아 컵라면 하나 먹던 손님들 얼굴을 다 기억한다.', '“물 끓었다. 먹고 가.”'], trait: '식량 소비 -{thrift:pc}%'),
+  SurvInfo(id: 32, name: '길태용', age: 40, job: '얼음낚시꾼', src: 'town', d: 8, region: 'reservoir', hidden: false, alias: null, hint: '얼어붙은 저수지 둑에서 만나요',
+      hope: 0, need: null, match: [17], eff: {'food': 0.25}, grade: 0,
+      story: ['얼음 구멍 하나로 둑 위 사람들을 먹여 왔다. 매일 아침 같은 자리.', '밤낚시 할 때 등불 하나면 됐다고 한다.', '“얼음은 거짓말 안 해요.”'], trait: '식량 생산 +{food:pc}%'),
+  SurvInfo(id: 33, name: '서다은', age: 26, job: '수자원 연구 대학원생', src: 'town', d: 9, region: 'reservoir', hidden: false, alias: null, hint: '얼어붙은 저수지 둑에서 만나요',
+      hope: 0, need: null, match: [9, 11], eff: {'hope': 6}, grade: 1,
+      story: ['수위 기록을 날마다 적었다. 누가 읽을지 몰라도.', '풍경 소리로 바람 세기를 적는 법을 안다.', '“기록은 남겨 두면 언젠가 누가 읽어요.”'], trait: '쉘터 희망 +{hope:r}'),
+];
+
+/// 시즌 2 저수지 사람들의 역할 (web.role 뒤에 이어 붙임)
+const Map<int, List<String>> s2Roles = {30: ['mech', 'guard'], 31: ['cook'], 32: ['farm', 'scout'], 33: ['sci']};
 
 /// 구조에 필요한 것 (웹 RESCUE)
 final Map<int, (Cost, String)> rescueNeed = {
@@ -197,6 +218,11 @@ final List<SkillInfo> skills = [
   for (var i = 0; i < web.skills.length; i++)
     SkillInfo(web.skills[i]['n'] as String, (web.skills[i]['cd'] as num).toDouble(), web.skills[i]['d'] as String, web.skillCat[i],
         web.skills[i]['res'] == null ? null : Map<String, Object?>.from(web.skills[i]['res'] as Map)),
+  // 시즌 2 저수지 사람들 (30~33): 동네 사람처럼 res로 효과를 정한다
+  const SkillInfo('수문 열기', 100, '60초간 가공 ×1.3', 'craft', {'k': 'craft', 'give': null, 'heal': false, 'clear': 0, 'hope': false, 'name': '하경수'}),
+  const SkillInfo('라면 한 솥', 110, '60초간 식량 생산 ×1.5', 'food', {'k': 'farm', 'give': null, 'heal': false, 'clear': 0, 'hope': false, 'name': '오순임'}),
+  const SkillInfo('새벽 얼음낚시', 90, '45초간 폐허 뒤지기 수확 ×1.6', 'scav', {'k': 'scav', 'give': null, 'heal': false, 'clear': 0, 'hope': false, 'name': '길태용'}),
+  const SkillInfo('수위 기록', 120, '희망이 잠시 오르고 60초간 모든 생산 +15%', 'all', {'k': 'all', 'give': null, 'heal': false, 'clear': 0, 'hope': true, 'name': '서다은'}),
 ];
 
 class GearInfo {

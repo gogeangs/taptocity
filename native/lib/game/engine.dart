@@ -24,6 +24,7 @@ part 'feat.dart';
 part 'tension.dart';
 part 'bond.dart';
 part 'daily.dart';
+part 's2.dart';
 
 /// 화면 연출(떠오르는 글자·알림·창 열기)을 그림 쪽에 알려 주는 신호.
 sealed class Fx {
@@ -171,6 +172,7 @@ Cost scaleCost(Cost o, [double f = 1]) {
 
 class Game extends ChangeNotifier {
   Game(this.S, {math.Random? random}) : rnd = random ?? math.Random() {
+    s2Sync();
     repairExpeditions();
     _rebuildFrontier();
     recalc();
@@ -192,6 +194,9 @@ class Game extends ChangeNotifier {
   bool uiModal = false, uiSheet = false; // 화면에 창·시트가 열려 있음 (화면 쪽이 매번 알려 준다)
   int panGuide = 0, misDoneAt = 0, miyT = 0, scIdle = 0;
   bool misNudged = false, confShown = false;
+
+  /// 시즌 2: 이번 실행에서 못 고른 사건을 다시 열어 봤나 (저장하지 않음)
+  bool s2Reopened = false;
   UgRun? ug; // 지금 지하 탐사 중 (저장하지 않음)
   /// 새로 온 사람·열린 사연이 있어 생존자 탭에 점 (웹 svNew, 저장하지 않음)
   bool svNew = false;
@@ -2183,6 +2188,7 @@ class Game extends ChangeNotifier {
 
   void replaceState(GameState s) {
     S = s;
+    s2Sync();
     combo = 0;
     fever = 0;
     aim = -1;

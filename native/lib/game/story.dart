@@ -59,10 +59,13 @@ final List<Line> endLines = [for (final l in web.endLines) Line.of(l)!];
 
 /// 지금 띠에 걸린 목표 (웹 mission())
 class Mission {
-  const Mission(this.txt, this.done, this.rw, this.sub, {this.step, this.eg = false, this.reg = false, this.rk});
+  const Mission(this.txt, this.done, this.rw, this.sub, {this.step, this.eg = false, this.reg = false, this.rk, this.s2 = false, this.go = false});
   final String txt, sub;
   final String? rk;
   final bool done, eg, reg;
+
+  /// 시즌 2 걸음 · 다음 무대로 떠나는 걸음 (이주 버튼이 뜬다)
+  final bool s2, go;
   final Cost rw;
   final StepInfo? step;
 }
@@ -262,6 +265,8 @@ extension Story on Game {
       final m = steps[mi];
       return Mission(m.goal, stepDone(m), {...m.rw, 'batt': (m.rw['batt'] ?? 0) + 1}, m.hint, step: m);
     }
+    final s2m = s2Mission;
+    if (s2m != null) return s2m;
     final rm = regionMission;
     if (rm != null) return rm;
     return _egMission();
@@ -333,6 +338,7 @@ extension Story on Game {
         'sv12' => hasSv(12),
         'confA' => conf == 'a' && hasSv(9),
         'confB' => conf == 'b' && hasSv(9),
+        'sv33' => hasSv(33),
         _ => false,
       };
 
@@ -362,6 +368,8 @@ extension Story on Game {
   /// 대사의 말하는 사람 → 생존자 번호(없으면 '나' = null)
   int? speakerId(Object w) {
     var x = w;
+    // 시즌 2: 다른 동네에서 무전으로 들려오는 목소리 ('r:번호')
+    if (x is String && x.startsWith('r:')) return int.tryParse(x.substring(2));
     if (x is int && !hasSv(x)) x = 'g';
     if (x == 'g') return guideId;
     return x is int ? x : null;
@@ -451,6 +459,8 @@ extension Story on Game {
       dirty = true;
       return;
     }
+    // 시즌 2 걸음의 시작 장면 (시즌 1 엔딩 뒤)
+    if (s2On && mi >= steps.length && s2TickIntro()) return;
     // 새로 열린 사연: 그 사람 얼굴로 짧은 카드 하나씩, 40초 간격 (앱 전용 2026-10-21 · engine.dart storyUp)
     final q = S.rest['svStoryQ'] as List?;
     if (q != null && q.isNotEmpty && Game.nowMs() - storyCardAt > 40000) {
@@ -476,6 +486,14 @@ extension Story on Game {
     final st = m.step;
     if (mi < steps.length) {
       S.rest['mi'] = mi + 1;
+    } else if (m.s2) {
+      claimS2();
+      misDoneAt = 0;
+      misNudged = false;
+      fx.add(FxToast('보상: ${lootText(got)}'));
+      recalc();
+      _changed();
+      return;
     } else if (m.reg) {
       claimRegion();
     } else {

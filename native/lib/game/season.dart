@@ -280,8 +280,15 @@ final List<CaseInfo> townCases = [
 ];
 
 /// 사건 번호 k(0~8) → 내용. 6·7·8은 사막·공단·산골
-CaseInfo caseOf(int k) => k < cases.length ? cases[k] : townCases[k - cases.length];
-String caseKeyOf(int k) => k < cases.length ? '$k' : regionOrder[k - cases.length];
+CaseInfo caseOf(int k) => k < cases.length
+    ? cases[k]
+    : k < cases.length + townCases.length
+        ? townCases[k - cases.length]
+        : s2Cases[k - cases.length - townCases.length];
+
+/// 사건 장 열쇠: 0~5 번호, 6~8 동네, 9~13(시즌 2) 번호
+String caseKeyOf(int k) => k < cases.length || k >= cases.length + townCases.length ? '$k' : regionOrder[k - cases.length];
+const s2Case0 = 9;
 
 /// 사건 창 열기 / 고른 결과
 class FxCase extends Fx {
@@ -340,7 +347,11 @@ extension Season on Game {
   Map? caseRec(int k) => casesMap[caseKeyOf(k)] as Map?;
 
   /// 수첩에 보일 사건: 처음 여섯 + 고른 동네 사건 (웹 cKeys)
-  List<int> get caseKeys => [for (var k = 0; k < cases.length; k++) k, for (var j = 0; j < townCases.length; j++) if (caseRec(cases.length + j)?['p'] != null) cases.length + j];
+  List<int> get caseKeys => [
+        for (var k = 0; k < cases.length; k++) k,
+        for (var j = 0; j < townCases.length; j++) if (caseRec(cases.length + j)?['p'] != null) cases.length + j,
+        for (var j = 0; j < s2Cases.length; j++) if (caseRec(s2Case0 + j)?['p'] != null) s2Case0 + j,
+      ];
   Map get egg {
     if (S.rest['egg'] is! Map) S.rest['egg'] = <String, Object?>{};
     return S.rest['egg'] as Map;
@@ -442,6 +453,7 @@ extension Season on Game {
       R['tail'] = 1;
     }
     S.rest['caseNew'] = 1;
+    if (k >= s2Case0) s2Picked(k);
     recalc();
     _changed();
     return (talkLines(ls), out);

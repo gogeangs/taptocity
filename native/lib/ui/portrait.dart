@@ -31,6 +31,7 @@ _Src? _srcFor(int id) {
     return _Src(f, c, r, n);
   }
   if (id >= 18 && id < 30) return _Src('residents.webp', 4, 3, id - 18, inset: const [6, 6, 12, 14]);
+  if (id >= 30 && id < 34) return _Src('residents-reservoir.webp', 2, 2, id - 30, inset: const [6, 6, 12, 12]);
   return null;
 }
 

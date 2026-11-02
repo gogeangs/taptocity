@@ -751,7 +751,7 @@ extension Crisis on Game {
     return ((x - y) * TW / 2, (x + y + 1) * TH / 2 - z);
   }
 
-  bool _isGuard(int id) => id < web.role.length && web.role[id].contains('guard');
+  bool _isGuard(int id) => roleOf(id).contains('guard');
 
   /// 화면 쪽에서 프레임마다 부른다 (웹 tickDefense)
   void tickDefense(double dt) {

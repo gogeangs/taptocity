@@ -32,7 +32,7 @@ class ExpCalc {
 }
 
 extension Outside on Game {
-  List<String> roleOf(int id) => id >= 0 && id < web.role.length ? web.role[id] : const [];
+  List<String> roleOf(int id) => id >= 0 && id < web.role.length ? web.role[id] : s2Roles[id] ?? const [];
   bool hasRole(List<int> team, String r) => team.any((id) => roleOf(id).contains(r));
 
   /// 열려 있는지 (웹 EXPS[].req)

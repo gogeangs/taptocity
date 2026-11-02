@@ -35,6 +35,13 @@ const Map<String, List<CutSfx?>> cutSfx = {
   'join_jin': [('쏴아—', 'tr'), null, null, null],
   'join_miyoung': [('쏴아—', 'tr'), null, ('화륵', 'br'), null],
   'join_jin_choice': [('쏴아—', 'tr'), null, null, ('저벅', 'bl')],
+  // 시즌 2 (season2-dialogue.md 10절)
+  'case10': [('삐걱—', 'tr'), null, ('지지직…', 'br'), null],
+  'case11': [('끼익… 끼익…', 'tr'), null, null, null],
+  'case12': [null, null, null, null],
+  'case13': [('지직…', 'tr'), null, null, null],
+  'case14': [('덜컹', 'tr'), null, null, ('사각', 'br')],
+  's2_counter': [('끄응— 쿵', 'tr'), null, null, null],
 };
 
 /// 감정 표현 '…!' (2026-10-21 대표님 결정: 효과 글자는 소리 중심, 감정 표현은 시즌 전체에서 고비 세 곳만).
@@ -43,6 +50,9 @@ const Map<String, (int, String)> cutBeat = {
   'case1': (2, 'tl'), // 랜턴 빛에 발자국과 노란 우산 — 누구인지 알아챈 순간
   'join_jin_choice': (1, 'tl'), // 진의 손목에 까마귀 문신
   'join_jaehyuk': (1, 'tl'), // 재혁 손에 발전소 출입증
+  // 시즌 2는 두 곳만: 재혁의 아침 둘째 칸, 기록계 셋째 칸
+  'case11': (1, 'tl'),
+  's2_counter': (2, 'tl'),
 };
 
 /// 생존자 id → 합류 컷 (재혁 9는 합류가 아니라 6장 고백 컷이라 여기 없다)
