@@ -170,6 +170,13 @@ jobs:
           xcodebuild -workspace Runner.xcworkspace -scheme Runner -configuration Release -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/Runner.xcarchive" DEVELOPMENT_TEAM="$TEAM" CODE_SIGN_STYLE=Automatic \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" archive > "$RUNNER_TEMP/archive.log" 2>&1 || { grep -E 'error:|ERROR|Error' "$RUNNER_TEMP/archive.log" | tail -30 > "$RUNNER_TEMP/a.err"; tail -15 "$RUNNER_TEMP/archive.log" >> "$RUNNER_TEMP/a.err"; err archive "$RUNNER_TEMP/a.err"; }
+          # 미리 서명돼 온 프레임워크(구글 광고 SDK의 GoogleMobileAds·UserMessagingPlatform 등)는 서명 없이 만든 아카이브와 섞이면
+          # 내보내기 서명에서 'Invalid Signature'가 난다 → 기존 서명을 지우고 내보내기가 한꺼번에 다시 서명하게 한다 (2026-11-03)
+          for f in "$RUNNER_TEMP/Runner.xcarchive/Products/Applications/Runner.app/Frameworks/"*.framework; do
+            [ -d "$f" ] || continue
+            rm -rf "$f/_CodeSignature"
+            codesign --remove-signature "$f" 2>/dev/null || true
+          done
           cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
