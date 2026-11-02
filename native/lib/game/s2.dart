@@ -406,6 +406,12 @@ extension Season2 on Game {
   void s2Dawn() {
     if (!s2On) return;
     _s2CallArrive();
+    if (s2NoTap) {
+      // 마을 하루: 배급 규칙·하늘이(눈 밝은 아이)가 믿음을 바꾼다, 방송 밤 다음 아침의 흔적
+      final d = switch (s2Rule['ration']) { 'equal' => 1, 'work' => -1, 'kids' => 2, _ => 0 } + (hasSv(3) ? 1 : 0);
+      if (d != 0) s2TrustAdd(d);
+      _s2Morning();
+    }
     final k = s2F['dawn'] as String?;
     if (k == null) return;
     if (num_('nights') <= ((s2F['dawnN'] as num?) ?? 0)) return;
@@ -419,6 +425,7 @@ extension Season2 on Game {
           _killSurv(9);
           tlog('재혁을 잃었다.');
         }
+        s2TrustAdd(-15);
         _s2Case(10);
         talk([
           const Line(_me, '무전실 문을 열자 은호가 헤드폰을 쓰고 있었다. 녹음기가 돌고 있었다.'),
@@ -431,6 +438,7 @@ extension Season2 on Game {
         ], tag: '그날 아침');
       case 'c12':
         s2F['tsHurt'] = 1;
+        s2TrustAdd(-10);
         final r = rec(12);
         if (r != null) r['hurt'] = 600;
         _s2Case(11);
@@ -441,6 +449,8 @@ extension Season2 on Game {
           _killSurv(10);
           tlog('은호를 잃었다.');
         }
+        // 마을의 안도 ("범인이 있었고, 이제 끝났다")
+        s2TrustAdd(15);
         s2F['ehDead'] = 1;
         _s2Case(13);
     }
@@ -466,16 +476,16 @@ extension Season2 on Game {
     if (s2F['meet'] != null) return;
     s2F['meet'] = cover ? 'cover' : 'watch';
     if (cover) {
-      for (final id in svIds) {
-        if (!s2Comps.contains(id)) rec(id)!['xp'] = math.max(0, xpOf(id) - 20);
-      }
+      s2TrustAdd(-10);
       talk(const [
         Line(_me, '은호는 우리 사람이라고, 축하 방송은 다 같이 원한 거라고 말했다.'),
         Line(_me, '웅성거림이 가라앉지 않았다.'),
         Line(_me, '은호가 나를 봤다. 고마워하는 얼굴이 아니었다.'),
       ], tag: '마을 회의');
     } else {
+      // 은호가 '나'에게서 멀어진다. 방송 규칙은 '줄인다'로 고정 (발전소에서 풀림)
       if (hasSv(10)) rec(10)!['xp'] = math.max(0, xpOf(10) - 60);
+      s2Rule['air'] = 'less';
       talk(const [
         Line(_me, '당분간 밤 방송은 쉬고, 은호도 밤엔 쉘터 안에 있으라고 했다.'),
         Line(10, '…네. 그게 좋겠어요.'),
@@ -560,13 +570,13 @@ extension Season2 on Game {
   /// 탑 빛 안쪽을 밝힌다 (소리·불꽃 없이)
   void _s2Light(int r) {
     s2['lr'] = r;
-    final snd = onSfx;
-    onSfx = null;
+    final snd = Game.onSfx;
+    Game.onSfx = null;
     final f0 = fx.length;
     for (var i = 0; i < N; i++) {
       if (S.rev[i] == 0 && dist(i) <= r + .01) reveal(i);
     }
-    onSfx = snd;
+    Game.onSfx = snd;
     if (fx.length > f0) fx.removeRange(f0, fx.length);
     _rebuildFrontier();
     _mapChanged();
@@ -651,6 +661,10 @@ extension Season2 on Game {
   /// 매초: 보낸 사람들이 다녀오고, 폐허가 비면 쉰다
   void s2TickSec([double dt = 1]) {
     if (!s2On) return;
+    if (s2NoTap) {
+      if (!isNight && phase > dayLen - 20) _s2Dusk();
+      if (isNight) _s2NightStart();
+    }
     if (s2SendMap.isEmpty) return;
     for (final k in s2SendMap.keys.toList()) {
       final id = int.parse('$k'), x = s2SendMap[k] as Map, t = (x['t'] as num).toInt();
@@ -677,8 +691,8 @@ extension Season2 on Game {
     if (!s2On || s2SendMap.isEmpty) return;
     final trips = (sec / s2SendT).floor();
     if (trips <= 0) return;
-    final snd = onSfx;
-    onSfx = null;
+    final snd = Game.onSfx;
+    Game.onSfx = null;
     final f0 = fx.length;
     for (final k in s2SendMap.keys.toList()) {
       final id = int.parse('$k'), t = ((s2SendMap[k] as Map)['t'] as num).toInt();
@@ -687,8 +701,200 @@ extension Season2 on Game {
       }
       if (!siteLive(t)) s2Recall(id);
     }
-    onSfx = snd;
+    Game.onSfx = snd;
     if (fx.length > f0) fx.removeRange(f0, fx.length);
+  }
+
+  // ---------- 마을 믿음 (0~100) ----------
+  /// 시작값: 기본 60, 시즌 1 사건 수첩에서 감싼 횟수 ×3, 추궁한 횟수 ×−2 (40~80)
+  int get s2Trust {
+    if (s2['trust'] is! num) {
+      var v = 60;
+      for (var k = 0; k < s2Case0; k++) {
+        final p = caseRec(k)?['p'];
+        if (p == 'b') v += 3;
+        if (p == 'a') v -= 2;
+      }
+      s2['trust'] = v.clamp(40, 80);
+    }
+    return (s2['trust'] as num).toInt();
+  }
+
+  void s2TrustAdd(int d, {String? why}) {
+    if (!s2On) return;
+    s2['trust'] = (s2Trust + d).clamp(0, 100);
+    if (why != null) fx.add(FxToast('$why · 마을 믿음 ${d > 0 ? '+' : ''}$d'));
+    recalc();
+  }
+
+  /// 표정 다섯 단계 (0 밝게 웃음 ~ 4 고개 숙임)
+  int get s2Face => s2Trust >= 80 ? 0 : s2Trust >= 60 ? 1 : s2Trust >= 40 ? 2 : s2Trust >= 20 ? 3 : 4;
+  String get s2TrustLine => const ['다들 서로를 믿어요', '사람들이 웃으며 일해요', '조금 조용해졌어요', '말수가 줄었어요', '서로를 피하는 눈치예요'][s2Face];
+  String? get s2TrustFx => s2Trust >= 70 ? '생산이 조금 늘어요' : s2Trust <= 30 ? '생산이 조금 줄어요' : null;
+
+  // ---------- 마을 규칙 ----------
+  Map get s2Rule {
+    if (s2['rule'] is! Map) s2['rule'] = <String, Object?>{};
+    return s2['rule'] as Map;
+  }
+
+  bool s2RuleOpen(String k) => switch (k) {
+        'ration' => s2St > 1 || (s2St == 1 && s2I >= 3),
+        'watch' => s2St >= 2,
+        'air' => s2F['meet'] != null || s2St >= 4,
+        _ => false,
+      };
+
+  /// 마을 회의에서 '지켜본다'를 고르면 방송은 '줄인다'로 고정, 발전소 무대에서 풀린다
+  bool get s2AirLocked => s2F['meet'] == 'watch' && s2St < 4;
+
+  void s2SetRule(String k, String v) {
+    if (!s2RuleOpen(k) || s2Rule[k] == v) return;
+    if (k == 'air' && s2AirLocked && v == 'open') return;
+    final had = s2Rule[k] != null;
+    s2Rule[k] = v;
+    const said = {
+      'equal': '누구도 불평하지 않았다. 일하는 사람들은 조금 배가 고팠다.',
+      'work': '손이 빨라졌다. 아이들과 어른들 사이에 말이 줄었다.',
+      'kids': '매점 앞에 줄이 섰다. 어른들은 한 숟갈씩 덜었다.',
+      'rotate': '밤마다 누군가 깨어 있었다. 아침마다 누군가 졸았다.',
+      'vol': '진이 제일 먼저 손을 들었다.',
+      'none': '다들 푹 잤다.',
+      'open': '쉘터에 노래가 돌아왔다. 다들 조금 웃었다.',
+      'less': '밤이 조용해졌다.',
+    };
+    fx.add(FxNote('마을 규칙', said[v] ?? '', ms: 4500));
+    if (had) s2TrustAdd(-2, why: '규칙이 바뀌어 사람들이 조금 헷갈려해요');
+    recalc();
+    _changed();
+  }
+
+  /// 생산 배율 (recalc 끝에서)
+  void s2AfterRecalc() {
+    if (!s2On) return;
+    var m = 1.0;
+    if (s2Trust >= 70) m *= 1.1;
+    if (s2Trust <= 30) m *= .9;
+    m *= switch (s2Rule['ration']) { 'equal' => .9, 'work' => 1.15, 'kids' => .85, _ => 1.0 };
+    if (s2Rule['watch'] == 'rotate') m *= .95;
+    final now = Game.nowMs();
+    if (((s2F['myUntil'] as num?) ?? 0) > now) m *= 1.5;
+    if (((s2F['airUntil'] as num?) ?? 0) > now) m *= s2F['airFav'] == true ? 1.3 : 1.15;
+    if (m != 1) prod.updateAll((k, v) => v * m);
+  }
+
+  /// 대형 재폭풍 피해 줄임 (밤 당번)
+  double get s2DefRed => !s2On ? 0 : s2Rule['watch'] == 'rotate' ? .3 : s2Rule['watch'] == 'vol' ? .15 : 0;
+
+  // ---------- 하늘이 얕은 밤 · 방송 밤 · 아침의 흔적 ----------
+  /// 무대별 하늘이 얕을 확률 (등불망이 넓어질수록 재가 얕아진다). 발전소(재의 눈)는 없다
+  double get s2ShallowP => switch (s2St) { 1 => s2F['net1'] != null ? .4 : 0.0, 2 => .5, 3 => s2F['ring'] != null ? .7 : .5, _ => 0.0 };
+
+  bool get s2EunhoAlive => hasSv(10) && s2F['ehDead'] == null;
+
+  /// 해 질 녘 예보 (설화, 없으면 은호) · 오늘 밤 방송할지
+  void _s2Dusk() {
+    final day = num_('day');
+    if (s2F['fcDay'] == day) return;
+    s2F['fcDay'] = day;
+    final sh = rnd.nextDouble() < s2ShallowP;
+    s2F['shallow'] = sh;
+    final less = s2Rule['air'] == 'less' || s2AirLocked;
+    s2F['airTonight'] = sh && s2EunhoAlive && (!less || rnd.nextDouble() < .5) && s2St >= 1;
+    if (s2St < 1 || s2St >= 4) {
+      if (s2St >= 4 && hasSv(11) && s2F['logShown'] == null) fx.add(const FxNote('백설화', '“여긴… 하늘을 읽을 수가 없어요. 재가 너무 깊어요.”', ms: 4500));
+      return;
+    }
+    final pick = (List<String> l) => l[rnd.nextInt(l.length)];
+    if (hasSv(11)) {
+      fx.add(FxNote('백설화 · 저녁 예보', '“${sh ? pick(const ['오늘 밤은 하늘이 얕아요.', '구름 결이 가벼워요. 오늘 밤은 하늘이 얕아요.', '재가 덜 내려요. 멀리까지 들릴 거예요.']) : pick(const ['오늘은 하늘이 두꺼워요. 방송은 쉬어도 돼요.', '바람이 재를 몰아와요. 오늘은 일찍 자요.'])}”', ms: 4500));
+    } else if (s2EunhoAlive) {
+      fx.add(FxNote('차은호', '“${sh ? '오늘은 얕네요. 설화 씨가 있었으면 그렇게 말했을 거예요.' : '오늘은 두꺼워요. 쉴게요.'}”', ms: 4500));
+    }
+  }
+
+  /// 밤이 시작될 때: 방송 밤이면 하루 동안 마을이 밝아진다
+  void _s2NightStart() {
+    if (s2F['airTonight'] != true || s2F['airN'] == num_('nightCount')) return;
+    s2F['airN'] = num_('nightCount');
+    final fav = s2F['eFav'] == num_('day');
+    s2F['airFav'] = fav;
+    s2F['airUntil'] = Game.nowMs() + cycleLen * 1000;
+    s2F['aired'] = 1;
+    s2TrustAdd(fav ? 3 : 1);
+    if (fav) fx.add(const FxNote('차은호', '“오늘 밤 한 곡 틀게요. 듣고 싶은 거 있어요?”', ms: 4500));
+    recalc();
+  }
+
+  static const _s2Traces = [
+    ('꺼진 등', '밤새 켜 두는 문 앞 등이 꺼져 있었다. 기름은 그대로였다.'),
+    ('옮겨진 의자', '무전실 의자가 창 쪽으로 돌아가 있었다.'),
+    ('젖은 발자국', '쉘터 밖에서 들어온 발자국. 신발 크기가 나와 비슷하다. 많은 사람이 그렇다.'),
+    ('담요', '아이들 자리에 담요가 한 장 더 덮여 있었다. 누가 덮었는지 아무도 모른다.'),
+    ('랜턴 걸쇠', '랜턴 걸쇠가 반쯤 열려 있었다. 늘 닫아 두는데.'),
+    ('반쯤 탄 쪽지', '모닥불 재 속에 탄 종이 조각. 남은 글씨는 "…시".'),
+    ('끊긴 실', '하늘이가 문에 걸어 둔 종 실이 끊겨 있었다. 종은 울리지 않았다고 했다.'),
+    ('녹음기', '은호의 녹음기 위치가 조금 바뀌어 있었다. 은호는 모르는 척했다.'),
+    ('시계', '내 손목시계가 3분 빨랐다. 어제 맞춰 두었는데.'),
+    ('노크 자국', '창고 문에 손자국이 세 개, 하나, 하나.'),
+    ('순번표', '당번표에 어젯밤 누군가의 서명이 있다. 새벽까지 망루에 있었다.'),
+    ('잠든 자리', '누군가의 담요 위에 아이가 기대 잠들어 있었다. 밤새 움직이지 않은 자국.'),
+  ];
+
+  List get s2Traces {
+    if (s2['traces'] is! List) s2['traces'] = <Object?>[];
+    return s2['traces'] as List;
+  }
+
+  /// 방송 밤 다음 아침: 작은 흔적 (밤 당번을 세우지 않았으면 둘)
+  void _s2Morning() {
+    if (s2F['aired'] != 1) return;
+    s2F.remove('aired');
+    final n = s2Rule['watch'] == 'none' ? 2 : 1;
+    for (var k = 0; k < n; k++) {
+      final used = {for (final t in s2Traces) (t as Map)['k']};
+      final left = [for (final t in _s2Traces) if (!used.contains(t.$1)) t];
+      final t = (left.isEmpty ? _s2Traces : left)[rnd.nextInt((left.isEmpty ? _s2Traces : left).length)];
+      s2Traces.add(<String, Object?>{'k': t.$1, 't': t.$2, 'n': num_('nights'), 'r': regions[S.region]?.n ?? ''});
+      fx.add(FxNote(hasSv(3) ? '아침의 흔적 · 하늘이가 먼저 봤어요' : '아침의 흔적', '${t.$2}\n사건 수첩에 적었어요', ms: 6000));
+    }
+    S.rest['caseNew'] = 1;
+  }
+
+  // ---------- 이야기 동료의 하루 부탁 ----------
+  static const s2FavorIds = [13, 12, 10];
+  String? s2FavorWhy(int id) {
+    if (!s2On || !hasSv(id) || s2St < 1) return '지금은 부탁할 수 없어요';
+    if (s2F['fav$id'] == num_('day')) return '내일 다시';
+    if (id == 12 && s2F['tsHurt'] != null) return '태식은 쉬고 있다';
+    if (id == 12 && !expMap.values.any((x) => Game.nowMs() < (x['end'] as num))) return '나가 있는 원정대가 없어요';
+    if (id == 10 && !(s2F['shallow'] == true && s2F['fcDay'] == num_('day'))) return '오늘은 안 닿아요';
+    if (id == 10 && !s2EunhoAlive) return '은호의 자리';
+    return null;
+  }
+
+  void s2Favor(int id) {
+    if (s2FavorWhy(id) != null) return;
+    s2F['fav$id'] = num_('day');
+    switch (id) {
+      case 13:
+        s2F['myUntil'] = Game.nowMs() + 30 * 60 * 1000;
+        fx.add(const FxNote('탁미영 · 비상 발전', '“출력 올릴게요. 오늘 하루만이에요.”\n30분 동안 마을 생산 ×1.5', ms: 5000));
+      case 12:
+        for (final x in expMap.values) {
+          if (Game.nowMs() < (x['end'] as num)) {
+            x['end'] = Game.nowMs();
+            break;
+          }
+        }
+        fx.add(const FxNote('문태식 · 태엽 감기', '“시간이란 감으면 도는 걸세. 기다려 보게.”\n원정대 하나가 바로 돌아와요', ms: 5000));
+      case 10:
+        s2F['eFav'] = num_('day');
+        s2F['airTonight'] = true;
+        fx.add(const FxNote('차은호 · 심야 방송', '“오늘 밤 한 곡 틀게요. 듣고 싶은 거 있어요?”\n오늘 밤부터 마을 하루 동안 믿음 +3 · 생산 ×1.3', ms: 5000));
+    }
+    recalc();
+    _changed();
   }
 
   // ---------- 먼 원정 (조 · 실제 시간 30분~2시간) ----------

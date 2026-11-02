@@ -771,7 +771,7 @@ extension Crisis on Game {
       final dx = cx - f.x, dy = cy - f.y, d = math.sqrt(dx * dx + dy * dy);
       if (d < 16) {
         f.dead = true;
-        final dmg = (f.brute ? 16 : 7) * (1 - _wallRed[S.walls.clamp(0, 3)]) * petDef;
+        final dmg = (f.brute ? 16 : 7) * (1 - _wallRed[S.walls.clamp(0, 3)]) * petDef * (1 - s2DefRed);
         D2.hp -= dmg;
         D2.shake = 1;
         sfx('hit', buzz: true);

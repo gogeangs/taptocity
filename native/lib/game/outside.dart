@@ -51,8 +51,10 @@ extension Outside on Game {
   ExpCalc expCalc(ExpInfo e, List<int> team, [String? pk]) {
     final px = pk != null && web.pets.containsKey(pk) ? (web.pets[pk]!['exp'] as Map? ?? const {}) : const {};
     double pxv(String k) => ((px[k] as num?) ?? 1).toDouble();
-    final t = e.t * .6 * (1 - expDisc) * (hasRole(team, 'scout') ? .7 : 1) * (hasRole(team, 'drive') ? .85 : 1) * pxv('t');
-    final risk = e.risk * (hasRole(team, 'medic') ? .3 : 1) * (hasRole(team, 'guard') ? .5 : 1) * pxv('risk');
+    // 시즌 2 이야기 동료의 늘 켜진 역할: 만수(길잡이) 원정 시간 −20%, 진(정찰) 부상 위험 ×0.5
+    final s2e = s2Exps.contains(e);
+    final t = e.t * .6 * (1 - expDisc) * (hasRole(team, 'scout') ? .7 : 1) * (hasRole(team, 'drive') ? .85 : 1) * pxv('t') * (s2e && hasSv(0) ? .8 : 1);
+    final risk = e.risk * (hasRole(team, 'medic') ? .3 : 1) * (hasRole(team, 'guard') ? .5 : 1) * pxv('risk') * (s2e && hasSv(jinId) ? .5 : 1);
     final mult = e.mult * (1 + .25 * (team.length - 1)) * (hasRole(team, 'mech') ? 1.25 : 1) * pxv('mult');
     final perks = <String>[
       if (hasRole(team, 'scout')) '정찰: 시간 -30%',
@@ -66,6 +68,8 @@ extension Outside on Game {
       if (hasRole(team, 'art')) '유나: 지도 스케치 30초',
       if (hasRole(team, 'sci')) '재혁: 어둠 +4칸',
       if (pk != null && web.pets.containsKey(pk)) '${petName(pk)}: ${(web.pets[pk]!['expd'] as String).replaceAll('원정 ', '')}',
+      if (s2Exps.contains(e) && hasSv(0)) '만수(길잡이): 시간 -20%',
+      if (s2Exps.contains(e) && hasSv(jinId)) '진(정찰): 부상 위험 절반',
     ];
     return ExpCalc(jsRound(t), risk, mult, perks);
   }

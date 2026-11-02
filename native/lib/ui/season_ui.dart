@@ -635,6 +635,15 @@ List<Widget> casesTab(BuildContext context, Game g) {
   if (g.s2On && g.s2Notes.length > 1) {
     out.add(_entry('수첩 마지막 장', g.s2Notes.join('\n')));
   }
+  // 시즌 2: 아침의 흔적 (방송 밤 다음 아침)
+  final T2 = g.s2On ? g.s2Traces : const [];
+  if (T2.isNotEmpty) {
+    out.add(sec('아침의 흔적', '${T2.length}개'));
+    for (final o in T2) {
+      final m = o as Map;
+      out.add(_entry('${(m['r'] as String?)?.isNotEmpty == true ? '${m['r']} · ' : ''}${m['k']}', '${m['t']}'));
+    }
+  }
   // 수상한 밤
   final L = g.oddLogList;
   if (L.isNotEmpty) {

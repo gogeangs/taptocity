@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:taptocity/game/data.dart';
 import 'package:taptocity/game/engine.dart';
 import 'package:taptocity/game/state.dart';
 
@@ -170,5 +171,17 @@ void main() {
     expect(g.expList.map((e) => e.key).toList(), ['s2near', 's2far', 's2deep']);
     final c = g.expCalc(g.expList.first, [pool.last]);
     expect(c.t, greaterThanOrEqualTo(1200));
+    // 마을 믿음과 규칙
+    final t0 = g.s2Trust;
+    expect(t0, inInclusiveRange(40, 80));
+    expect(g.s2RuleOpen('ration'), isFalse);
+    g.s2TrustAdd(5);
+    expect(g.s2Trust, t0 + 5);
+    final p0 = g.prod['food'] ?? 0;
+    g.s2['i'] = 3;
+    expect(g.s2RuleOpen('ration'), isTrue);
+    g.s2SetRule('ration', 'work');
+    expect(g.s2Rule['ration'], 'work');
+    expect(g.prod['food'] ?? 0, greaterThanOrEqualTo(p0));
   });
 }

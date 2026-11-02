@@ -107,6 +107,8 @@ class _ShelterBodyState extends State<ShelterBody> {
   Widget build(BuildContext context) {
     final S = g.S;
     return ListView(padding: _bodyPad, children: [
+      // 시즌 2: 마을 믿음·규칙·하루 부탁
+      s2VillageCard(context, g, () => setState(() {})),
       Wrap(spacing: 5, runSpacing: 4, children: [
         sumChip([const TextSpan(text: '보관 한도 '), bold(fmt(g.cap))], icon: 'scrap'),
         sumChip([const TextSpan(text: '침상 '), bold('${S.sv.length}/${g.bedsMax}')]),

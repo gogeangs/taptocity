@@ -995,3 +995,104 @@ Future<void> showS2Send(BuildContext context, Game g, int tile) {
     ]);
   });
 }
+
+// ======================= 시즌 2 · 마을 (믿음·규칙·하루 부탁) — 쉘터 창 맨 위 =======================
+Widget s2VillageCard(BuildContext context, Game g, VoidCallback redraw) {
+  if (!g.s2On || !g.s2NoTap) return const SizedBox.shrink();
+  const faces = ['😊', '🙂', '😐', '😟', '😔'];
+  Widget opt(String k, String v, String label, String eff) {
+    final on = g.s2Rule[k] == v, lock = k == 'air' && v == 'open' && g.s2AirLocked;
+    return GestureDetector(
+      onTap: lock
+          ? () => g.fx.add(const FxToast('마을 회의에서 지켜보기로 했어요 · 발전소에서 다시 정해요'))
+          : () {
+              g.s2SetRule(k, v);
+              redraw();
+            },
+      child: Opacity(
+        opacity: lock ? .45 : 1,
+        child: Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(top: 6),
+          padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+          decoration: BoxDecoration(
+            color: on ? const Color(0xFF2F3F4B) : const Color(0xFFFBF7EE),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: on ? const Color(0xFFE0B441) : const Color(0x403B2A1A), width: 1.2),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(label, style: Ttc.t(13.5, color: on ? Colors.white : Ttc.sepia, weight: FontWeight.w700)),
+            Text(eff, style: Ttc.t(12, color: on ? const Color(0xFFD9D4C8) : Ttc.sepia2, height: 1.4)),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  Widget rule(String k, String title, List<(String, String, String)> o) => Padding(
+        padding: const EdgeInsets.only(top: 10),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Text(title, style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
+          for (final x in o) opt(k, x.$1, x.$2, x.$3),
+        ]),
+      );
+
+  Widget favor(int id, String role) {
+    if (!g.hasSv(id) && !(id == 10 && g.s2F['ehDead'] != null)) return const SizedBox.shrink();
+    final why = g.s2FavorWhy(id);
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(children: [
+        Expanded(child: Text('${survivors[id].name} · $role', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w600))),
+        why == null
+            ? BuyButton('부탁', onTap: () {
+                g.s2Favor(id);
+                redraw();
+              })
+            : BuyButton('부탁', why: why),
+      ]),
+    );
+  }
+
+  return Container(
+    margin: const EdgeInsets.only(bottom: 12),
+    padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+    decoration: BoxDecoration(color: const Color(0xFFF3E7CB), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0x59B0452A))),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Row(children: [
+        Text(faces[g.s2Face], style: const TextStyle(fontSize: 26)),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('마을 믿음 · ${g.s2TrustLine}', style: Ttc.t(14, color: Ttc.sepia, weight: FontWeight.w700)),
+            if (g.s2TrustFx != null) Text(g.s2TrustFx!, style: Ttc.t(12, color: Ttc.sepia2)),
+          ]),
+        ),
+      ]),
+      if (g.s2RuleOpen('ration'))
+        rule('ration', '배급', const [
+          ('equal', '똑같이 나눈다', '믿음이 조금씩 올라요 · 생산 −10%'),
+          ('work', '일한 만큼 나눈다', '생산 +15% · 믿음이 조금씩 내려가요'),
+          ('kids', '아이와 다친 사람 먼저', '믿음이 올라요 · 생산 −15%'),
+        ]),
+      if (g.s2RuleOpen('watch'))
+        rule('watch', '밤 당번', const [
+          ('rotate', '돌아가며 선다', '재폭풍 피해 −30% · 생산 −5%'),
+          ('vol', '자원자만 선다', '재폭풍 피해 −15%'),
+          ('none', '세우지 않는다', '변화 없음'),
+        ]),
+      if (g.s2RuleOpen('air'))
+        rule('air', '방송', const [
+          ('open', '방송을 연다', '믿음·생산이 조금 올라요'),
+          ('less', '방송을 줄인다', '밤이 조용해져요'),
+        ]),
+      if (g.s2St >= 1) ...[
+        const SizedBox(height: 10),
+        Text('하루 한 번 부탁', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
+        favor(13, '비상 발전'),
+        favor(12, '태엽 감기'),
+        favor(10, '심야 방송'),
+      ],
+    ]),
+  );
+}

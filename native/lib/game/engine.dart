@@ -593,6 +593,7 @@ class Game extends ChangeNotifier {
     final h = S.sv.length * 3 + e['hope']! + S.hopeB + ht + hopeM + (S.lv - 1) * 4 + S.lm.values.where((l) => l.ok).length * 5;
     hope = jsRound(h);
     _regionAfterRecalc();
+    s2AfterRecalc();
     final rg = S.lv + .5;
     for (var i = 0; i < N; i++) {
       final d = math.max((i % W - CX).abs(), (i ~/ W - CY).abs());
