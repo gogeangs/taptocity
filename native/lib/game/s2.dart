@@ -489,6 +489,8 @@ extension Season2 on Game {
     // 잃는 규칙(시즌 1 그대로): 도착 뒤 첫 대형 재폭풍·습격 새벽 (동네 미션 1번째부터 세는 조건을 맞춘다)
     S.rest['rmi'] = 1;
     if (region == 'hometown') {
+      // 쉘터는 그대로 서 있었다: 요새(Lv.4)로 시작한다 (11/02 대표님 결정. 시즌 1 앱이 떠난 동네의 지도를 남기지 않아 지도는 새로)
+      S.lv = math.max(S.lv, 4);
       // 첫 동네에 남겨 둔 사람들과 다시 만난다
       final st = S.rest['stay'] as Map?;
       final t = st?['0'] as Map?;
@@ -506,8 +508,8 @@ extension Season2 on Game {
         }
         st!.remove('0');
         if (back.isNotEmpty) s2F['back'] = back.first;
-        recalc();
       }
+      recalc();
     }
     const arrive = {
       'reservoir': '산골 눈길을 내려와, 얼어붙은 저수지 둑에 닿았다.',
@@ -799,7 +801,7 @@ extension Season2 on Game {
 
   // ================= 무대 3 · 처음 불을 켠 동네 =================
   List<S2Step> get _s2Home => [
-        S2Step('문설주 앞 · 판잣집 쉘터 세우기', '쉘터를 판잣집으로 키워요', (g) => g.S.lv >= 2,
+        S2Step('문설주 앞에 서기', '잠시 뒤 받기를 눌러요', (g) => true,
             rw: const {'food': 30, 'batt': 1},
             intro: (g) => const [Line(_me, '쉘터 문설주의 이름들이 그대로였다. 바람에 조금 흐려졌을 뿐.')],
             outro: (g) {
