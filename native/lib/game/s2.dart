@@ -243,7 +243,6 @@ extension Season2 on Game {
   }
 
   // ================= 이야기 동료 부르기 (산골의 아침 · 건전지 없이) =================
-  bool _joined(int id) => hasSv(id) || (inStay(id) && !isDead(id));
   List<int> get s2Missing => [for (final id in s2Comps) if (!hasSv(id) && inStay(id) && !isDead(id)) id];
   List<int> get s2Calling => [for (final v in (s2['call'] as List? ?? const [])) (v as num).toInt()];
   bool s2CanCall(int id) => s2Active && s2St == 0 && s2Comps.contains(id) && inStay(id) && !s2Calling.contains(id);
