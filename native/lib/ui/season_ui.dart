@@ -688,8 +688,12 @@ Widget _entry(String n, String p) => Container(
 List<Widget> scenesTab(BuildContext context, Game g) {
   g.artBackfill();
   if (g.S.rest['artNew'] != null) g.S.rest.remove('artNew');
-  final order = [for (final n in web.storyArt['order'] as List) (n as num).toInt()];
-  final cap = web.storyArt['cap'] as List;
+  final order = [
+    for (final n in web.storyArt['order'] as List) (n as num).toInt(),
+    // 시즌 2 장면(45~62): 본 장면부터 뒤에 이어 붙인다 (못 본 칸은 시즌 1 경계를 드러내지 않게 감춘다)
+    for (var n = 45; n <= 62; n++) if (g.artMap['$n'] != null) n,
+  ];
+  final cap = [...(web.storyArt['cap'] as List), for (var n = (web.storyArt['cap'] as List).length; n <= 62; n++) s2ArtCap[n] ?? ''];
   final seen = order.where((n) => g.artMap['$n'] != null).length;
   return [
     sec('회상', '$seen / ${order.length}'),
@@ -750,7 +754,8 @@ List<Widget> scenesTab(BuildContext context, Game g) {
 }
 
 void showScene(BuildContext context, Game g, int n) {
-  final src = g.sceneSource(n), cap = (web.storyArt['cap'] as List)[n] as String;
+  final caps = web.storyArt['cap'] as List;
+  final src = g.sceneSource(n), cap = n < caps.length ? caps[n] as String : s2ArtCap[n] ?? '회상';
   showPageOf(
       context,
       g,
@@ -958,3 +963,11 @@ class _DreadLayerState extends State<DreadLayer> with SingleTickerProviderStateM
         ),
       );
 }
+
+
+/// 시즌 2 장면 이름 (회상 갤러리)
+const Map<int, String> s2ArtCap = {
+  45: '미지근한 랜턴', 46: '넌 좀 앉아 있어', 47: '중계등', 48: '봉인된 철문', 49: '크레용 그림', 50: '렌즈',
+  51: '말뚝 자국', 52: '현관', 53: '닫힌 고리', 54: '녹음된 새벽', 55: '같이 방송하는 거네요', 56: '마을 회의',
+  57: '한 프레임', 58: '운전 기록계', 59: '심장부', 60: '문설주의 시그널', 61: '랜턴을 끄게 해', 62: '03:10',
+};

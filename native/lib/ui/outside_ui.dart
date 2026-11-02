@@ -328,6 +328,7 @@ class RadioBody extends StatelessWidget {
     Widget pullBtn(int n) => Expanded(
         child: hl('pull:$n', BuyButton('$n번 탐색 · 건전지 $n', width: double.infinity, onTap: !open || b < n ? null : () => showPull(context, g, n), why: open ? null : '4장에 열려요'), radius: 7));
     return ListView(padding: const EdgeInsets.fromLTRB(14, 14, 14, 20), children: [
+      if (g.s2On && g.s2F['tapes'] != null) s2TapesCard(g),
       Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(color: Ttc.surface, borderRadius: BorderRadius.circular(10), border: Border.all(color: Ttc.line)),
@@ -569,4 +570,41 @@ class _PullPageState extends State<_PullPage> {
       ]),
     ]);
   }
+}
+
+
+// ======================= 시즌 2 · 은호의 방송 테이프 (라디오 탭 맨 위) =======================
+Widget s2TapesCard(Game g) {
+  final L = [...g.s2TapeLog];
+  return Container(
+    margin: const EdgeInsets.only(bottom: 12),
+    padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+    decoration: BoxDecoration(color: Ttc.surface, borderRadius: BorderRadius.circular(10), border: Border.all(color: Ttc.line)),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Text('은호의 테이프', style: Ttc.t(14, color: Ttc.sepia, weight: FontWeight.w700)),
+      Text('그날그날의 방송을 다시 들을 수 있어요.', style: Ttc.t(12, color: Ttc.sepia2, height: 1.5)),
+      const SizedBox(height: 6),
+      if (L.isEmpty) Text('아직 테이프가 없어요.', style: Ttc.t(13, color: Ttc.sepia2)),
+      for (final o in L.reversed.take(12))
+        Builder(builder: (c) {
+          final m = o as Map, empty = '${m['t']}'.isEmpty;
+          return Container(
+            margin: const EdgeInsets.only(top: 6),
+            padding: const EdgeInsets.fromLTRB(10, 7, 10, 7),
+            decoration: BoxDecoration(color: empty ? const Color(0x0F3B2A1A) : const Color(0xFFF3E7CB), borderRadius: BorderRadius.circular(6)),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('${m['r']} · ${m['d']}일째 밤', style: Ttc.t(11.5, color: Ttc.sepia2, weight: FontWeight.w700)),
+              Text(empty ? '— 녹음 없음 —' : '${m['t']}', style: Ttc.t(13, color: empty ? Ttc.sepia2 : Ttc.sepia, height: 1.5)),
+            ]),
+          );
+        }),
+      if (g.s2St >= 4)
+        Container(
+          margin: const EdgeInsets.only(top: 6),
+          padding: const EdgeInsets.fromLTRB(10, 7, 10, 7),
+          decoration: BoxDecoration(color: const Color(0x0F3B2A1A), borderRadius: BorderRadius.circular(6)),
+          child: Text('발전소 캠프 · 라벨 없음', style: Ttc.t(12, color: Ttc.sepia2)),
+        ),
+    ]),
+  );
 }

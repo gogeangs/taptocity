@@ -1475,6 +1475,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                     key: _kTabs,
                     animation: g,
                     builder: (c, _) => _Tabs(
+                    s2: g.s2NoTap,
                     dots: g.actionDots(Game.nowMs()),
                     on: switch (sheet?.kind) {
                       'surv' => 0,
@@ -1826,8 +1827,9 @@ class _Lamp extends StatelessWidget {
     final fev = g.fever > 0;
     final p = fev ? g.fever / g.feverT : g.combo / g.comboMax;
     final flame = .7 + (fev ? 1 : g.combo / g.comboMax) * .8;
-    final label = g.defn != null ? (fev ? '피버! 막기' : '막기') : fev ? '피버!' : g.combo > 0 ? '연타 ${g.combo.floor()}' : '두드리기';
-    return Transform.translate(
+    final off = g.s2NoTap && g.defn == null; // 시즌 2: 꺼진 랜턴
+    final label = off ? '꺼진 랜턴' : g.defn != null ? (fev ? '피버! 막기' : '막기') : fev ? '피버!' : g.combo > 0 ? '연타 ${g.combo.floor()}' : '두드리기';
+    final lamp = Transform.translate(
       offset: Offset(0, down ? 2 : 0),
       child: Container(
         width: 76,
@@ -1869,6 +1871,7 @@ class _Lamp extends StatelessWidget {
         ]),
       ),
     );
+    return off ? Opacity(opacity: .55, child: ColorFiltered(colorFilter: const ColorFilter.matrix([.33, .33, .33, 0, 0, .33, .33, .33, 0, 0, .33, .33, .33, 0, 0, 0, 0, 0, 1, 0]), child: lamp)) : lamp;
   }
 }
 
@@ -1946,11 +1949,16 @@ class _LampArt extends CustomPainter {
 }
 
 class _Tabs extends StatelessWidget {
-  const _Tabs({required this.on, required this.onTap, this.dots = const {}});
+  const _Tabs({required this.on, required this.onTap, this.dots = const {}, this.s2 = false});
   final int on;
   final Set<int> dots;
   final void Function(int) onTap;
-  static const items = [(Ico.surv, '생존자'), (Ico.exp, '원정'), (Ico.shelter, '쉘터'), (Ico.radio, '라디오'), (Ico.diary, '일지')];
+
+  /// 시즌 2 경영(만수의 말 뒤): 생존자 → 사람, 쉘터 → 마을 (자리는 그대로)
+  final bool s2;
+  static const items0 = [(Ico.surv, '생존자'), (Ico.exp, '원정'), (Ico.shelter, '쉘터'), (Ico.radio, '라디오'), (Ico.diary, '일지')];
+  static const items2 = [(Ico.surv, '사람'), (Ico.exp, '원정'), (Ico.shelter, '마을'), (Ico.radio, '라디오'), (Ico.diary, '일지')];
+  List<(String, String)> get items => s2 ? items2 : items0;
   @override
   Widget build(BuildContext context) => Container(
         height: 78,

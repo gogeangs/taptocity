@@ -353,6 +353,9 @@ extension Season2 on Game {
     final o = m.outro?.call(this) ?? const <Line>[];
     if (o.isNotEmpty) talk(o, tag: _s2Tag, chain: true, noskip: m.k == 'final', after: m.k == 'final' ? 's2black' : null);
     if (m.k != null) _s2After(m.k!);
+    if (s2St == 1 && s2I == 3) {
+      fx.add(const FxNote('마을 규칙', '어떻게 나누고 누가 밤을 지킬지 정해요. 사람들의 믿음이 달라져요 · 마을 탭 맨 위', ms: 7000));
+    }
     if (s2St == 0 && s2I == 1) {
       // 만수의 "넌 좀 앉아 있어" 뒤: 사람 보내기 열림 (안내 카드)
       fx.add(const FxNote('사람 보내기', '탑 빛 안쪽은 사람들이 다녀와요. 폐허를 누르고 사람을 고르면 끝. 마을의 하루가 지나면 돌아와요.', ms: 7000));
@@ -378,6 +381,7 @@ extension Season2 on Game {
         S.hopeB += 2;
         recalc();
         _s2Widen(k == 'ring' ? 3 : 2);
+        if (k == 'net1') fx.add(const FxNote('등불망', '탑과 탑을 빛줄기로 이어요. 이어진 동네끼리 자원과 거래가 흘러요. 재가 얕아지면 라디오도 멀리 닿아요.', ms: 7000));
       case 'jh':
         s2F['net2'] = 1;
         _s2Widen(2);
@@ -392,7 +396,7 @@ extension Season2 on Game {
         s2F['dawnN'] = n;
       case 'tapes':
         s2F['tapes'] = 1;
-        fx.add(const FxNote('은호의 방송 테이프', '은호가 방송 테이프를 모두 내놓았어요. 날짜순으로.', ms: 5200));
+        fx.add(const FxNote('은호의 테이프', '그날그날의 방송을 다시 들을 수 있어요 · 라디오 탭 맨 위', ms: 6000));
       case 'meeting':
         fx.add(const FxS2Choice('meeting'));
       case 'final':
@@ -549,6 +553,9 @@ extension Season2 on Game {
       'plant': '재의 눈을 건너, 발전소 외곽에 닿았다.',
     };
     tlog('불씨를 들고 도착했다.');
+    if (region == 'reservoir') {
+      fx.add(const FxNoteLater(9000, '먼 원정', '먼 곳은 조를 짜서 보내요. 30분에서 2시간 뒤에 돌아와요. 정찰·간호·운전이 섞이면 덜 다쳐요.', ms: 7000));
+    }
     talk([Line(_me, arrive[region] ?? '')], card: ('$g번째 동네', regions[region]?.n ?? ''), goal: s2Steps(s2St).first.goal);
   }
 
@@ -802,6 +809,8 @@ extension Season2 on Game {
     s2F['shallow'] = sh;
     final less = s2Rule['air'] == 'less' || s2AirLocked;
     s2F['airTonight'] = sh && s2EunhoAlive && (!less || rnd.nextDouble() < .5) && s2St >= 1;
+    // 은호가 몰래 방송을 줄이기 시작한 뒤(재혁의 밤 뒤)·방송을 줄인 밤: 날짜만 있는 빈 테이프
+    if (sh && s2EunhoAlive && s2St >= 1 && s2F['airTonight'] != true && (less || s2F['net2'] != null)) _s2Tape(true);
     if (s2St < 1 || s2St >= 4) {
       if (s2St >= 4 && hasSv(11) && s2F['logShown'] == null) fx.add(const FxNote('백설화', '“여긴… 하늘을 읽을 수가 없어요. 재가 너무 깊어요.”', ms: 4500));
       return;
@@ -822,6 +831,7 @@ extension Season2 on Game {
     s2F['airFav'] = fav;
     s2F['airUntil'] = Game.nowMs() + cycleLen * 1000;
     s2F['aired'] = 1;
+    _s2Tape(false);
     s2TrustAdd(fav ? 3 : 1);
     if (fav) fx.add(const FxNote('차은호', '“오늘 밤 한 곡 틀게요. 듣고 싶은 거 있어요?”', ms: 4500));
     recalc();
@@ -851,6 +861,7 @@ extension Season2 on Game {
   void _s2Morning() {
     if (s2F['aired'] != 1) return;
     s2F.remove('aired');
+    if (s2Traces.isEmpty) fx.add(const FxNote('아침의 흔적', '아침에 남은 흔적은 사건 수첩에 쌓여요.', ms: 5000));
     final n = s2Rule['watch'] == 'none' ? 2 : 1;
     for (var k = 0; k < n; k++) {
       final used = {for (final t in s2Traces) (t as Map)['k']};
@@ -873,6 +884,37 @@ extension Season2 on Game {
     final k = s2F['ring'] != null ? 1.5 : 1.0;
     final got = give({for (var j = 0; j < n; j++) spec[j % spec.length]: math.max(1, (cap * .05 * k).round())});
     if (got.isNotEmpty) fx.add(FxNote('등불망 · 이어진 동네에서', lootText(got), ms: 4200));
+  }
+
+  // ---------- 은호의 방송 테이프 (라벨 날짜는 늘 하루 전) ----------
+  List get s2TapeLog {
+    if (s2['tapeLog'] is! List) s2['tapeLog'] = <Object?>[];
+    return s2['tapeLog'] as List;
+  }
+
+  void _s2Tape(bool empty) {
+    final L = s2TapeLog;
+    final day = num_('day');
+    if (L.isNotEmpty && (L.last as Map)['d'] == day - 1) return;
+    String t;
+    if (empty) {
+      t = '';
+    } else if (s2St == 2 && s2F['net2'] != null && s2F['tShort'] == null) {
+      s2F['tShort'] = 1;
+      t = '여기는 심야 방송 한밤. …오늘은 짧게 할게요.';
+    } else if (s2St == 3 && s2F['tHome'] == null) {
+      s2F['tHome'] = 1;
+      t = '여기는 심야 방송 한밤. 우리 동네에 돌아왔습니다. 문설주 앞에서 한 곡.';
+    } else {
+      final pool = <String>[
+        '여기는 심야 방송 한밤. 오늘은 둑 위 바람 소리부터 들려 드릴게요.',
+        hasSv(31) ? '여기는 심야 방송 한밤. 매점 할머니가 신청하신 곡이에요. 제목은 비밀이래요.' : '여기는 심야 방송 한밤. 둑 위 누군가 신청하신 곡이에요.',
+        if (hasSv(3)) '여기는 심야 방송 한밤. 하늘이가 오늘 별을 하나 찾았대요. 그 별한테 보내는 곡.',
+        if (s2St == 2 && hasSv(9)) '여기는 심야 방송 한밤. 재혁 씨가 렌즈 각도 맞추느라 하루 종일 고개를 못 내렸대요. 목 풀리는 곡으로.',
+      ];
+      t = pool[L.length % pool.length];
+    }
+    L.add(<String, Object?>{'d': day - 1, 't': t, 'r': regions[S.region]?.n ?? ''});
   }
 
   // ---------- 이야기 동료의 하루 부탁 ----------
