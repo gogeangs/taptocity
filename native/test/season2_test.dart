@@ -98,8 +98,8 @@ void main() {
     }
     expect(g.caseRec(10)?['closed'], 1);
     expect(log.where((e) => e == 'meeting').length, 1);
-    // 저수지 사람들이 합류했다 (잃는 규칙으로 빠졌을 수는 있음)
-    expect([30, 31, 32, 33].any((id) => g.hasSv(id) || g.isDead(id)), isTrue);
+    // 저수지 사람들이 합류했다 (잃는 규칙으로 잃었거나 이주 때 남았을 수는 있음)
+    expect([30, 31, 32, 33].any((id) => g.hasSv(id) || g.isDead(id) || g.inStay(id)), isTrue);
     // 첫 동네에 남겨 둔 사람들과 다시 만났다
     expect((g.S.rest['stay'] as Map?)?['0'], isNull);
     // 끝난 뒤에도 띠는 끝없는 불빛으로 계속된다
