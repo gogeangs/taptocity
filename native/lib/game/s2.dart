@@ -411,6 +411,7 @@ extension Season2 on Game {
       final d = switch (s2Rule['ration']) { 'equal' => 1, 'work' => -1, 'kids' => 2, _ => 0 } + (hasSv(3) ? 1 : 0);
       if (d != 0) s2TrustAdd(d);
       _s2Morning();
+      _s2NetGift();
     }
     final k = s2F['dawn'] as String?;
     if (k == null) return;
@@ -859,6 +860,19 @@ extension Season2 on Game {
       fx.add(FxNote(hasSv(3) ? '아침의 흔적 · 하늘이가 먼저 봤어요' : '아침의 흔적', '${t.$2}\n사건 수첩에 적었어요', ms: 6000));
     }
     S.rest['caseNew'] = 1;
+  }
+
+  // ---------- 등불망: 이어진 동네에서 마을 하루에 한 번 특산품 ----------
+  /// 이어진 불빛 수 (산골 탑 · 저수지 중계등 · 연구소 시험등 렌즈 · 첫 동네 고리)
+  int get s2NetN => 1 + [s2F['net1'], s2F['net2'], s2F['ring']].where((v) => v != null).length;
+
+  void _s2NetGift() {
+    final n = s2NetN - 1;
+    if (n <= 0) return;
+    const spec = ['wood', 'food', 'parts', 'fuel'];
+    final k = s2F['ring'] != null ? 1.5 : 1.0;
+    final got = give({for (var j = 0; j < n; j++) spec[j % spec.length]: math.max(1, (cap * .05 * k).round())});
+    if (got.isNotEmpty) fx.add(FxNote('등불망 · 이어진 동네에서', lootText(got), ms: 4200));
   }
 
   // ---------- 이야기 동료의 하루 부탁 ----------
