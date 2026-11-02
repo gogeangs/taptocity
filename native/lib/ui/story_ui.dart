@@ -182,6 +182,8 @@ class _MissionTapeState extends State<MissionTape> {
         ? [TextSpan(text: '그날 밤 ', style: Ttc.t(12, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${((tu['i'] as num?) ?? 0) + 1}/${tutSteps.length}  ', style: Ttc.t(12, color: chapC))]
         : c != null
         ? [TextSpan(text: '${c.ch} ', style: Ttc.t(12, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${st!.si + 1}/${c.steps.length}  ', style: Ttc.t(12, color: chapC))]
+        : m.s2
+        ? [TextSpan(text: '${g.s2StageName} ', style: Ttc.t(12, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${g.s2I + 1}/${g.s2StepCount}  ', style: Ttc.t(12, color: chapC))]
         : m.reg
         ? [TextSpan(text: '${g.reg?.n ?? ''} ', style: Ttc.t(12, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${g.rmi + 1}/${g.regionMis().length}  ', style: Ttc.t(12, color: chapC))]
         : [TextSpan(text: '끝없는 불빛 ', style: Ttc.t(12, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${(((S.rest['eg'] as Map?)?['i'] as num?) ?? 0) + 1}  ', style: Ttc.t(12, color: chapC))];

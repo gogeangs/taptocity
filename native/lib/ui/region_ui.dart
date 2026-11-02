@@ -9,6 +9,7 @@ import '../data/web_data.g.dart' as web;
 import '../game/data.dart';
 import '../game/engine.dart';
 import 'ads.dart';
+import 'crisis_ui.dart' show Every;
 import 'portrait.dart';
 import 'season_ui.dart';
 import 'story_ui.dart';
@@ -879,7 +880,9 @@ List<Widget> radioRegion(BuildContext context, Game g, {VoidCallback? onRoute}) 
           if (onRoute != null) GestureDetector(onTap: onRoute, child: Text('노선도 보기 →', style: Ttc.t(12, color: const Color(0xFF8A5A12), weight: FontWeight.w600))),
         ]),
       ))
-      ..add(Padding(padding: const EdgeInsets.only(bottom: 6), child: descText('이전 동네에 남은 사람을 불러요. 대신 여기 한 명이 그 동네로 가서 자리를 지켜요 · 다음 새벽에 도착')));
+      ..add(Padding(padding: const EdgeInsets.only(bottom: 6), child: descText(L.any((x) => g.s2CanCall(x.$1) || g.s2Calling.contains(x.$1))
+          ? '이야기 동료는 건전지 없이, 대신 보내는 사람 없이 불러요 · 다음 새벽에 도착 (새벽까지 ${g.s2DawnLeft})'
+          : '이전 동네에 남은 사람을 불러요. 대신 여기 한 명이 그 동네로 가서 자리를 지켜요 · 다음 새벽에 도착')));
     if (w != null) {
       final inId = (w['inId'] as num).toInt(), outId = (w['outId'] as num).toInt();
       out.add(MCard(
@@ -898,9 +901,9 @@ List<Widget> radioRegion(BuildContext context, Game g, {VoidCallback? onRoute}) 
           out.add(MCard(
             thumb: _face(x.$1),
             title: s.name,
-            tags: [smallTag(going ? '오는 중 · 새벽에 도착' : '이야기 · 건전지 없이')],
-            desc: descText('${x.$3}에 남아 있어요'),
-            button: going ? const BuyButton('부름', why: '오는 중') : BuyButton('부르기', onTap: () => g.s2Call(x.$1)),
+            tags: [going ? Every(g: g, builder: (c) => smallTag('오는 중 · ${g.s2DawnLeft} 뒤 도착')) : smallTag('이야기 · 건전지 없이')],
+            desc: descText(going ? '${x.$3}에서 밤새 걸어오고 있어요' : '${x.$3}에 남아 있어요'),
+            button: going ? Every(g: g, builder: (c) => BuyButton('부름', why: g.s2DawnLeft)) : BuyButton('부르기', onTap: () => g.s2Call(x.$1)),
           ));
           continue;
         }

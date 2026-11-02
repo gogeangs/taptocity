@@ -313,6 +313,15 @@ extension Season2 on Game {
     return Mission(m.goal, done, m.rw, m.hint, s2: true, go: m.go != null);
   }
 
+  String get s2StageName => _s2Tag;
+  int get s2StepCount => s2Steps(s2St).length;
+
+  /// 다음 새벽까지 남은 시간 '1:23' (무전으로 부른 사람이 도착하는 때)
+  String get s2DawnLeft {
+    final left = math.max(0, (cycleLen - phase).ceil());
+    return '${left ~/ 60}:${(left % 60).toString().padLeft(2, '0')}';
+  }
+
   String get _s2Tag => const ['산골의 아침', '얼어붙은 저수지 둑', '옛 국책 연구소', '처음 불을 켠 동네', '발전소'][s2St.clamp(0, 4)];
 
   /// 화면이 비었을 때 걸음 시작 장면 (tickStory가 부른다)
