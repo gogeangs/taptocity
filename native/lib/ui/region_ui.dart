@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../data/web_data.g.dart' as web;
 import '../game/data.dart';
 import '../game/engine.dart';
+import 'ads.dart';
 import 'portrait.dart';
 import 'season_ui.dart';
 import 'story_ui.dart';
@@ -182,10 +183,13 @@ Future<void> showMigrate(BuildContext context, Game g) {
             const SizedBox(width: 8),
             pageBtn('떠나기', many && sel.isEmpty
                 ? null
-                : () {
+                : () async {
                     Navigator.pop(ctx);
-                    g.migrate(many ? [...sel] : all);
+                    final pick = many ? [...sel] : all;
                     _migPick = null;
+                    // 이주 '가는 길' (광고 자리, 첫 동네 이주부터 앱 전체)
+                    await Ads.wayAndAd(context, s2go ? g.s2WayLine(region) : '불씨를 들고 다음 동네로 걸었다. 등 뒤로 탑 불빛이 길게 누웠다.');
+                    g.migrate(pick);
                   }),
           ]),
         ]);
@@ -853,6 +857,15 @@ List<Widget> radioRegion(BuildContext context, Game g, {VoidCallback? onRoute}) 
                   : const BuyButton('보내기', why: '자재 부족'),
         ));
       }
+    }
+    // 시즌 2 보상형 광고: 그날 무전 거래 제안 하나 더
+    if (Ads.on && g.s2On && g.adTradeOk) {
+      out.add(Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: BuyButton('제안 하나 더 받기 · 광고 (오늘 ${g.adLeft}번 남음)', width: double.infinity, onTap: () async {
+          if (await Ads.rewarded(context, g)) g.adTrade();
+        }),
+      ));
     }
   }
   final w = g.swap;

@@ -886,6 +886,54 @@ extension Season2 on Game {
     if (got.isNotEmpty) fx.add(FxNote('등불망 · 이어진 동네에서', lootText(got), ms: 4200));
   }
 
+  // ---------- 보상형 광고 (원할 때만 · 합쳐서 하루 6번, 실제 날짜 기준) ----------
+  static const adMax = 6;
+  String get _adToday {
+    final d = DateTime.fromMillisecondsSinceEpoch(Game.nowMs());
+    return '${d.year}-${d.month}-${d.day}';
+  }
+
+  int get adLeft {
+    final m = S.rest['adDay'];
+    return m is Map && m['d'] == _adToday ? math.max(0, adMax - ((m['n'] as num?) ?? 0).toInt()) : adMax;
+  }
+
+  void _adUse() {
+    final m = S.rest['adDay'];
+    final n = m is Map && m['d'] == _adToday ? ((m['n'] as num?) ?? 0).toInt() : 0;
+    S.rest['adDay'] = <String, Object?>{'d': _adToday, 'n': n + 1};
+    dirty = true;
+  }
+
+  /// 먼 원정 30분 줄이기 (이야기 원정도 가능)
+  bool adExpOk(String key) {
+    final x = expMap[key];
+    return adLeft > 0 && s2Exps.any((e) => e.key == key) && x != null && (x['end'] as num) - Game.nowMs() > 60000;
+  }
+
+  void adExp(String key) {
+    final x = expMap[key];
+    if (x == null) return;
+    x['end'] = math.max(Game.nowMs(), (x['end'] as num) - 30 * 60 * 1000);
+    _adUse();
+    fx.add(FxToast('${expOf(key)?.name ?? ''} 원정이 30분 빨라졌어요'));
+    _changed();
+  }
+
+  /// 무전 거래 제안 하나 더
+  bool get adTradeOk => adLeft > 0 && stayList.isNotEmpty && ((trade['offers'] as List?)?.length ?? 0) < trMax + 2;
+
+  void adTrade() {
+    final L = stayList;
+    if (L.isEmpty) return;
+    final x = L[rnd.nextInt(L.length)];
+    trState();
+    (trade['offers'] as List).add(_trMake(x.$1, x.$2));
+    _adUse();
+    fx.add(const FxToast('무전 거래 제안이 하나 늘었어요'));
+    _changed();
+  }
+
   // ---------- 은호의 방송 테이프 (라벨 날짜는 늘 하루 전) ----------
   List get s2TapeLog {
     if (s2['tapeLog'] is! List) s2['tapeLog'] = <Object?>[];

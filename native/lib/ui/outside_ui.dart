@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../game/data.dart';
 import '../game/engine.dart';
+import 'ads.dart';
 import 'atlas.dart';
 import 'notify.dart';
 import 'crisis_ui.dart';
@@ -164,6 +165,11 @@ class _ExpBodyState extends State<ExpBody> {
                   child: FractionallySizedBox(widthFactor: (1 - left / dur).clamp(0.0, 1.0).toDouble(), child: Container(color: Ttc.amber)),
                 ),
                 if (done) BuyButton('원정 일지 보기', width: double.infinity, onTap: () => g.claimExp(e.key)),
+                // 시즌 2 보상형 광고: 먼 원정 30분 줄이기 (원할 때만 · 하루 6번)
+                if (!done && Ads.on && g.adExpOk(e.key))
+                  BuyButton('30분 줄이기 · 광고 (오늘 ${g.adLeft}번 남음)', width: double.infinity, onTap: () async {
+                    if (await Ads.rewarded(context, g)) g.adExp(e.key);
+                  }),
               ]));
               continue;
             }

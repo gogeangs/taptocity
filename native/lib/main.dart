@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'game/engine.dart';
 import 'report.dart';
 import 'game/storage.dart';
+import 'ui/ads.dart';
 import 'ui/notify.dart';
 import 'ui/atlas.dart';
 import 'ui/game_screen.dart';
@@ -54,6 +56,7 @@ Future<void> start({bool cloud = true}) async {
   }
   runApp(TaptocityApp(game: game));
   Sound.init();
+  unawaited(Ads.init());
 }
 
 class TaptocityApp extends StatelessWidget {
