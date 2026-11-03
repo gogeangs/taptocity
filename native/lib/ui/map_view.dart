@@ -1646,6 +1646,8 @@ class FxLayerController extends ChangeNotifier {
       notifyListeners();
       return;
     }
+    // 짧은 안내는 하나만: 새 안내가 앞 안내를 바꾼다 (2026-11-03 대표님: 말풍선이 겹쳐 떴다)
+    toasts.removeWhere((x) => x.h == null);
     toasts.add(Toast(null, t, 2.6));
     if (toasts.length > 3) toasts.removeAt(0);
     notifyListeners();
@@ -1654,9 +1656,12 @@ class FxLayerController extends ChangeNotifier {
   /// 줄 서서 기다리는 제목 카드 수 (맨 아래 '알림 N개 더')
   int get waiting => _noteQ.length;
 
-  /// 한꺼번에 보이는 제목 카드 수: 평소 둘, 대형 재폭풍 중 하나. 넘치는 카드는 줄 세웠다가 앞 카드가 지면 띄운다
+  /// 한꺼번에 보이는 제목 카드는 하나 (2026-11-03 대표님: 부탁·'모자라요'·원정 귀환이 한꺼번에 겹쳤다). 넘치는 카드는 줄 세웠다가 앞 카드가 지면 띄운다
   final List<Toast> _noteQ = [];
-  int get _noteMax => low ? 1 : 2;
+  int get _noteMax => 1;
+
+  /// 지금 화면에 보이는 알림 하나: 짧은 안내(누른 것에 대한 답)가 먼저, 없으면 제목 카드. 안 보이는 카드는 시간이 멈춘다
+  Toast? get shown => toasts.where((x) => x.h == null).lastOrNull ?? toasts.lastOrNull;
   int get _notesShown => toasts.where((x) => x.h != null).length;
 
   /// 제목이 있는 알림 카드 (웹 note)
@@ -1742,9 +1747,8 @@ class FxLayerController extends ChangeNotifier {
       p.life -= dt;
     }
     parts.removeWhere((p) => p.life <= 0);
-    for (final t in toasts) {
-      t.life -= dt;
-    }
+    final sh = shown;
+    if (sh != null) sh.life -= dt;
     toasts.removeWhere((t) => t.life <= 0);
     for (var k = 0; k < rings.length; k++) {
       rings[k] = (rings[k].$1, rings[k].$2, rings[k].$3 - dt);
@@ -1816,9 +1820,9 @@ class _FxLayerState extends State<FxLayer> with SingleTickerProviderStateMixin {
           child: Center(
             child: SizedBox(
               width: math.min(c.low ? 300 : 340, math.max(0, MediaQuery.of(context).size.width - (c.low ? 40 : 110))).toDouble(),
-              // 알림이 여럿이면 가장 새 알림 하나만 크게, 나머지는 한 줄로 작게 (2026-10-21 대표님 제안 10)
+              // 알림은 한 번에 하나만 (2026-11-03 대표님 · 나머지는 줄 서서 기다린다)
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                for (var k = 0; k < c.toasts.length; k++) _toast(c, c.toasts[k], main: k == c.toasts.length - 1),
+                if (c.shown != null) _toast(c, c.shown!, main: true),
                 if (c.waiting > 0)
                   Container(
                     margin: const EdgeInsets.only(top: 5),

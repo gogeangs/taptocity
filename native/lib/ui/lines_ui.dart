@@ -82,7 +82,7 @@ Future<void> showLnPrep(BuildContext context, Game g) async {
   var go = false;
   await showDialog(
     context: context,
-    barrierColor: const Color(0xC70F161D),
+    barrierColor: Ttc.dim,
     builder: (ctx) => Dialog(
       backgroundColor: Ttc.paper,
       insetPadding: const EdgeInsets.all(16),
@@ -190,7 +190,7 @@ Future<void> showLnPrep(BuildContext context, Game g) async {
 Future<void> showLnRun(BuildContext context, Game g) => showDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: const Color(0xC70F161D),
+      barrierColor: Ttc.dim,
       builder: (ctx) => _LnPage(g),
     );
 

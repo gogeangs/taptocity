@@ -81,7 +81,7 @@ Future<bool> cloudAsk(BuildContext context, String title, String body, String ye
   final r = await showDialog<bool>(
     context: context,
     barrierDismissible: false,
-    barrierColor: const Color(0xB30A0805),
+    barrierColor: Ttc.dim,
     builder: (ctx) => Dialog(
       backgroundColor: const Color(0xFFEFE3C4),
       insetPadding: const EdgeInsets.all(16),

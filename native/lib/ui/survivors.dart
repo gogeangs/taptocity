@@ -244,7 +244,7 @@ class _SurvBodyState extends State<SurvBody> {
                 child: Text.rich(
                   TextSpan(children: [
                     TextSpan(text: '새 이야기 ${fresh.length}개', style: const TextStyle(fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)])),
-                    TextSpan(text: ' · ${survivors[fresh[0]].name} 외 ${fresh.length - 1}명', style: const TextStyle(color: Color(0xFF4F5A5F))),
+                    TextSpan(text: ' · ${survivors[fresh[0]].name} 외 ${fresh.length - 1}명', style: const TextStyle(color: Color(0xFF434D52))),
                   ]),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -281,7 +281,7 @@ class _SurvBodyState extends State<SurvBody> {
                   child: Text.rich(
                     TextSpan(children: [
                       TextSpan(text: '${survivors[id].name}의 이야기', style: const TextStyle(fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)])),
-                      if (quests[id] != null) TextSpan(text: ' · ${quests[id]!.t}', style: const TextStyle(color: Color(0xFF4F5A5F))),
+                      if (quests[id] != null) TextSpan(text: ' · ${quests[id]!.t}', style: const TextStyle(color: Color(0xFF434D52))),
                     ]),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -337,7 +337,7 @@ class _SurvBodyState extends State<SurvBody> {
         padding: const EdgeInsets.only(bottom: 10),
         child: Wrap(spacing: 12, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
           for (var i = 0; i < 4; i++)
-            Row(mainAxisSize: MainAxisSize.min, children: [gradeChip(i), Text(' 효과 ×${fmtX(grades[i].m)}', style: Ttc.t(12.5, color: Ttc.sepia2))]),
+            Row(mainAxisSize: MainAxisSize.min, children: [gradeChip(i), Text(' 효과 ${fmtX(grades[i].m)}배', style: Ttc.t(12.5, color: Ttc.sepia2))]),
           Text('등급은 처음 그대로 · 등급마다 1~5성', style: Ttc.t(13, color: Ttc.sepia2)),
         ]),
       ),
@@ -496,7 +496,7 @@ class _SurvBodyState extends State<SurvBody> {
 // ======================= 창(웹 .page) =======================
 Future<void> showPageOf(BuildContext context, Game g, Widget Function(BuildContext ctx) body) => showDialog(
       context: context,
-      barrierColor: const Color(0xC70F161D),
+      barrierColor: Ttc.dim,
       // 2026-10-21 대표님: 창이 길어 닫는 법을 찾아야 했다 → 오른쪽 위에 늘 보이는 닫기(X), 위아래 여백, 바깥을 눌러도 닫힘
       barrierDismissible: true,
       builder: (ctx) => Dialog(
@@ -548,7 +548,26 @@ Widget _head(Game g, int id, {bool base = false, String? tag}) {
 
 /// 생존자 상세 (웹 openSurv 4604): 머리 + 정보·성장·장비·이야기 탭
 String survTab = 'info';
-String _pct(({double m, double w, double cd}) p) => '특기 효과 ×${p.m.toStringAsFixed(2)} · 딱 맞는 일터 ×${(2 + p.w).toStringAsFixed(2)} · 스킬 대기 -${((1 - p.cd) * 100).round()}%';
+/// 지금 세기를 문장으로 (2026-11-03 대표님: '×1.03 · 스킬 대기 -1%' 같은 숫자 대신)
+String _pct(({double m, double w, double cd}) p) {
+  final m = ((p.m - 1) * 100).round(), cd = ((1 - p.cd) * 100).round();
+  return [
+    m > 0 ? '특기가 기본보다 $m% 세요' : '특기는 기본 세기예요',
+    '딱 맞는 일터에서 ${(2 + p.w).toStringAsFixed(1)}배로 일해요',
+    if (cd > 0) '스킬을 $cd% 빨리 다시 써요',
+  ].join(' · ');
+}
+
+/// 올리면 무엇이 달라지나 (지금 → 다음, 같은 숫자로 계산)
+String _gain(({double m, double w, double cd}) a, ({double m, double w, double cd}) b, String mt) {
+  final m = ((b.m / a.m - 1) * 100).round(), w = (((2 + b.w) / (2 + a.w) - 1) * 100).round(), cd = (((1 - b.cd) - (1 - a.cd)) * 100).round();
+  final out = [
+    if (m > 0) '특기가 지금보다 $m% 세져요',
+    if (w > 0) '${mt.isEmpty ? '딱 맞는 일터' : mt}에서 $w% 더 많이 일해요',
+    if (cd > 0) '스킬을 $cd% 더 빨리 다시 써요',
+  ];
+  return out.isEmpty ? '세기는 그대로예요' : out.join(' · ');
+}
 
 void showSurvPage(BuildContext context, Game g, int id0, {void Function(int id, String slot)? onGear}) {
   var id = id0;
@@ -785,21 +804,18 @@ Widget _growTab(Game g, int id, ({double m, double w, double cd}) p, BuildContex
     // 숫자만으로는 뜻을 알기 어려워 문장으로 (2026-10-23 UX). 숫자는 오른쪽에 작게
     () {
       final cd = ((1 - p.cd) * 100).round(), mt = survivors[id].match.map((b) => mods[b]?.n).whereType<String>().join('·');
-      Widget row(String t, String v) => Padding(
+      // 숫자 칸(×1.03 등)은 빼고 문장만 (2026-11-03 대표님)
+      Widget row(String t) => Padding(
             padding: const EdgeInsets.symmetric(vertical: 5),
-            child: Row(children: [
-              Expanded(child: Text(t, style: Ttc.t(13, color: Ttc.sepia, height: 1.45))),
-              const SizedBox(width: 8),
-              Text(v, style: Ttc.serif(15, color: Ttc.sepia2, weight: FontWeight.w700, height: 1.2)),
-            ]),
+            child: Text(t, style: Ttc.t(13, color: Ttc.sepia, height: 1.45)),
           );
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(color: Ttc.surface, borderRadius: BorderRadius.circular(10), border: Border.all(color: Ttc.line)),
         child: Column(children: [
-          row(p.m > 1.005 ? '특기가 기본보다 ${((p.m - 1) * 100).round()}% 더 잘 들어요' : '특기는 아직 기본 세기예요 (강화하면 세져요)', '×${p.m.toStringAsFixed(2)}'),
-          row(mt.isEmpty ? '어느 일터에서든 같은 만큼 일해요' : '$mt에서 일하면 ${(2 + p.w).toStringAsFixed(1)}배로 일해요', '×${(2 + p.w).toStringAsFixed(2)}'),
-          row(cd > 0 ? '스킬을 $cd% 더 빨리 다시 써요' : '스킬 다시 쓰기는 기본 빠르기예요', '-$cd%'),
+          row(p.m > 1.005 ? '특기가 기본보다 ${((p.m - 1) * 100).round()}% 더 잘 들어요' : '특기는 아직 기본 세기예요 (강화하면 세져요)'),
+          row(mt.isEmpty ? '어느 일터에서든 같은 만큼 일해요' : '$mt에서 일하면 ${(2 + p.w).toStringAsFixed(1)}배로 일해요'),
+          row(cd > 0 ? '스킬을 $cd% 더 빨리 다시 써요' : '스킬 다시 쓰기는 기본 빠르기예요'),
         ]),
       );
     }(),
@@ -819,7 +835,8 @@ Widget _growTab(Game g, int id, ({double m, double w, double cd}) p, BuildContex
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Text(n.$4, style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700, height: 1.4)),
               const SizedBox(height: 2),
-              Text('→ ${_pct(n.$1 == 'star' ? g.pwAt(gr, g.starOf(id) + 1) : g.pwAt(gr + 1, 1))}', style: Ttc.t(13, color: Ttc.sepia2, height: 1.45)),
+              Text('${n.$1 == 'star' ? '성급을 올리면' : '등급을 올리면'} ${_gain(p, n.$1 == 'star' ? g.pwAt(gr, g.starOf(id) + 1) : g.pwAt(gr + 1, 1), survivors[id].match.map((b) => mods[b]?.n).whereType<String>().join('·'))}',
+                  style: Ttc.t(13, color: Ttc.sepia2, height: 1.45)),
               const SizedBox(height: 4),
               Row(children: [
                 Text('신뢰도', style: Ttc.t(12.5, color: tl >= n.$2 ? Ttc.ok : Ttc.no, weight: FontWeight.w700, height: 1.5)),
@@ -894,7 +911,7 @@ Widget _gearTab(Game g, int id, void Function(String slot)? onSlot) {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(G?.n ?? slotName[sl]!, style: Ttc.t(13.5, color: Ttc.sepia, weight: FontWeight.w700)),
                     Text(G == null ? '비어 있음' : '${effText({for (final e in G.eff.entries) e.key: e.value * (fit ? 1.5 : 1)})}${fit ? ' · 잘 맞음' : ''}',
-                        style: Ttc.t(11.5, color: const Color(0xFF56646A), height: 1.4)),
+                        style: Ttc.t(11.5, color: const Color(0xFF4A575C), height: 1.4)),
                   ]),
                 ),
                 Text('›', style: Ttc.t(18, color: Ttc.sepia2)),
@@ -945,7 +962,7 @@ Future<void> showRescuePage(BuildContext context, Game g, int id, String via) =>
         const SizedBox(height: 10),
         Text.rich(
           TextSpan(children: [
-            TextSpan(text: '특기: ${g.traitOf(id)}\n딱 맞는 일터: ${s.match.map((b) => mods[b]!.n).join(', ')} (효과 ×2)'),
+            TextSpan(text: '특기: ${g.traitOf(id)}\n딱 맞는 일터: ${s.match.map((b) => mods[b]!.n).join(', ')} (거기서 두 배로 일해요)'),
             if (bond != null) ...[
               const TextSpan(text: '\n'),
               TextSpan(text: '인연 ‘${bond.name}’ ', style: const TextStyle(fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)])),
@@ -983,7 +1000,7 @@ Widget assignBody(Game g, int tile, {required VoidCallback onDone}) {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
                     decoration: BoxDecoration(color: ok ? const Color(0xFF6F8F4A) : const Color(0xFFB8A680), borderRadius: BorderRadius.circular(99)),
-                    child: Text(ok ? '딱 맞음 ×${(2 + g.pw(id).w).toStringAsFixed(2)}' : '×1.3', style: Ttc.t(11, color: Colors.white)),
+                    child: Text(ok ? '딱 맞음 · ${(2 + g.pw(id).w).toStringAsFixed(1)}배로 일해요' : '1.3배로 일해요', style: Ttc.t(11, color: Colors.white)),
                   ),
                 ]),
                 Text('${s.job} · $where\n${g.traitOf(id)}', style: Ttc.t(13, color: Ttc.sepia2, height: 1.45)),

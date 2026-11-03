@@ -254,7 +254,7 @@ void showRequestPage(BuildContext context, Game g) {
                   Text(o['l'] as String, style: Ttc.t(16, color: Ttc.sepia, weight: FontWeight.w700, height: 1.3)),
                   const SizedBox(height: 7),
                   if (c0.isEmpty)
-                    Text('비용 없음', style: Ttc.t(13, color: const Color(0xFF4F5A5F)))
+                    Text('비용 없음', style: Ttc.t(13, color: const Color(0xFF434D52)))
                   else
                     Wrap(spacing: 4, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
                       if (!ok) Text('자재 부족 ', style: Ttc.t(12, color: Ttc.no, weight: FontWeight.w700)),
@@ -364,7 +364,7 @@ Widget sideQuest(Game g, {required VoidCallback onTap}) {
               TextSpan(children: [
                 const TextSpan(text: '부탁 · ', style: TextStyle(color: Ttc.rust)),
                 TextSpan(text: sqShort(t0.t(n))),
-                if (!done) TextSpan(text: ' ${fmt(p)}/${fmt(n)}', style: const TextStyle(color: Color(0xFF4F5A5F), fontWeight: FontWeight.w600, fontVariations: [FontVariation('wght', 600)])),
+                if (!done) TextSpan(text: ' ${fmt(p)}/${fmt(n)}', style: const TextStyle(color: Color(0xFF434D52), fontWeight: FontWeight.w600, fontVariations: [FontVariation('wght', 600)])),
               ]),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -415,7 +415,7 @@ Widget sideQuest(Game g, {required VoidCallback onTap}) {
             Text.rich(
                 TextSpan(children: [
                   TextSpan(text: '${hasWho ? survivors[who].name : '쉘터'}의 부탁 '),
-                  TextSpan(text: '${g.num_('sqN').toInt() % 3 + 1}/3', style: const TextStyle(color: Color(0xFF4F5A5F), fontWeight: FontWeight.w400, fontVariations: [FontVariation('wght', 400)])),
+                  TextSpan(text: '${g.num_('sqN').toInt() % 3 + 1}/3', style: const TextStyle(color: Color(0xFF434D52), fontWeight: FontWeight.w400, fontVariations: [FontVariation('wght', 400)])),
                 ]),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

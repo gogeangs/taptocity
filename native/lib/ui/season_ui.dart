@@ -132,7 +132,7 @@ Widget _copt(String b, String small, VoidCallback? onTap, {bool hi = false}) => 
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(b, style: Ttc.t(15.5, color: const Color(0xFF26333B), weight: FontWeight.w700, height: 1.3)),
             const SizedBox(height: 4),
-            Text(small, style: Ttc.t(12, color: const Color(0xFF56646A), height: 1.4)),
+            Text(small, style: Ttc.t(12, color: const Color(0xFF4A575C), height: 1.4)),
           ]),
         ),
       ),
@@ -195,7 +195,7 @@ Widget caseArtBox(int k, {required bool clue, double aspect = 1.5, bool small = 
 Future<void> _casePage(BuildContext context, Widget Function(BuildContext ctx) body, {Widget Function(BuildContext ctx)? foot}) => showDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: const Color(0xC70F161D),
+      barrierColor: Ttc.dim,
       builder: (ctx) {
         final short = MediaQuery.of(ctx).size.height <= 700;
         final pad = short ? 14.0 : 18.0;

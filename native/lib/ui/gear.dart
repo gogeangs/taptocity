@@ -171,9 +171,9 @@ class _GearRowState extends State<GearRow> {
                 Text(G.n, style: Ttc.t(15, color: Ttc.sepia, weight: FontWeight.w700, height: 1.35)),
                 gradeChip(G.g),
                 if (only != null && only == id)
-                  badge('전용 ×1.5', grad: _goldGrad, fg: const Color(0xFF3B2A1A))
+                  badge('전용 · 효과 1.5배', grad: _goldGrad, fg: const Color(0xFF3B2A1A))
                 else if (fit)
-                  badge('잘 맞음 ×1.5'),
+                  badge('잘 맞음 · 효과 1.5배'),
               ]),
               const SizedBox(height: 5),
               Wrap(spacing: 4, runSpacing: 4, children: [
@@ -185,7 +185,7 @@ class _GearRowState extends State<GearRow> {
                 Padding(
                   padding: const EdgeInsets.only(top: 6),
                   child: Text.rich(TextSpan(children: [
-                    TextSpan(text: G.d, style: const TextStyle(color: Color(0xFF8A7458))),
+                    TextSpan(text: G.d, style: const TextStyle(color: Color(0xFF6E5C45))),
                     if (more != null) TextSpan(text: '\n$more', style: only != null ? const TextStyle(fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)]) : null),
                   ]), style: Ttc.t(13, color: Ttc.sepia2, height: 1.5)),
                 ),

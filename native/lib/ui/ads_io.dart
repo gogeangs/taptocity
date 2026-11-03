@@ -61,7 +61,7 @@ class Ads {
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      barrierColor: const Color(0xC70F161D),
+      barrierColor: Ttc.dim,
       builder: (ctx) => Dialog(
         backgroundColor: const Color(0xFFF3EEE2),
         insetPadding: const EdgeInsets.symmetric(horizontal: 22),

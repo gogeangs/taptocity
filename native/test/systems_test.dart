@@ -492,13 +492,19 @@ void main() {
       c.toast('빛이 새는 구름이나 폐허를 두드려 보세요');
     }
     expect(c.toasts.length, 1);
+    // 2026-11-03: 짧은 안내는 하나만 (새 안내가 앞 안내를 바꾼다), 화면에는 알림 하나만
     c.toast('다른 안내');
-    expect(c.toasts.length, 2);
+    expect(c.toasts.length, 1);
     c.note('박만수 · 부탁 1/3', '대사', ms: 5200);
     final n = c.toasts.last;
+    expect(c.shown?.t, '다른 안내', reason: '누른 것에 대한 짧은 안내가 먼저 보인다');
     expect(n.folded, isFalse);
-    c.step(.1);
-    for (var k = 0; k < 25; k++) {
+    for (var k = 0; k < 28; k++) {
+      c.step(.1);
+    }
+    expect(c.shown, n, reason: '짧은 안내가 지면 기다리던 제목 카드가 보인다');
+    expect(n.folded, isFalse, reason: '안 보이는 동안은 시간이 멈춘다');
+    for (var k = 0; k < 26; k++) {
       c.step(.1);
     }
     expect(n.folded, isTrue);
@@ -530,8 +536,8 @@ void main() {
     for (var k = 0; k < 4; k++) {
       c.note('제목 $k', '글');
     }
-    expect(c.toasts.where((t) => t.h != null).length, 2);
-    expect(c.waiting, 2);
+    expect(c.toasts.where((t) => t.h != null).length, 1);
+    expect(c.waiting, 3);
   });
 
   test('땅을 다 밝혀도 밤 수가 쌓인다 (한파 사흘 버티기가 멈췄던 QA 사례)', () {

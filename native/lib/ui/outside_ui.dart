@@ -105,6 +105,25 @@ Widget _top(String b, String meta) => Row(crossAxisAlignment: CrossAxisAlignment
       Text(meta, style: Ttc.t(11, color: Ttc.sepia2, weight: FontWeight.w500, height: 1.4)),
     ]);
 
+/// 원정 특기 '정찰: 시간 -30%'를 문장으로 (2026-11-03 대표님: '정찰이 있으면 30% 빨리 돌아와요'). 숫자는 게임 계산 그대로
+String perkSay(String p) {
+  final i = p.indexOf(': ');
+  if (i < 0) return p;
+  final who0 = p.substring(0, i), fx = p.substring(i + 2);
+  const roles = {'정찰', '운전', '간호', '소방', '기술', '요리'};
+  final who = roles.contains(who0) ? '$who0 담당이 있어' : '$who0 덕분에';
+  RegExpMatch? m(String re) => RegExp(re).firstMatch(fx);
+  if (m(r'^(?:원정 )?시간 -(\d+)%$') case final x?) return '$who ${x[1]}% 빨리 돌아와요';
+  if (m(r'^(?:원정 )?전리품 \+(\d+)%$') case final x?) return '$who 전리품을 ${x[1]}% 더 챙겨 와요';
+  if (m(r'^(?:원정 )?부상 위험 -(\d+)%$') case final x?) return '$who 다칠 위험이 ${x[1]}% 줄어요';
+  if (fx == '부상 위험 크게 줄어듦') return '$who 다칠 일이 크게 줄어요';
+  if (fx == '위험 절반' || fx == '부상 위험 절반') return '$who 다칠 위험이 절반으로 줄어요';
+  if (m(r'^동료 신뢰 \+(\d+)$') case final x?) return '$who 돌아오면 동료 신뢰가 ${x[1]} 올라요';
+  if (m(r'^희망 \+(\d+)$') case final x?) return '$who 돌아오면 희망이 ${x[1]} 올라요';
+  if (m(r'^식량 ×([\d.]+) (\d+)초$') case final x?) return '$who 돌아온 뒤 ${x[2]}초 동안 식량이 ${x[1]}배로 모여요';
+  return p;
+}
+
 class ExpBody extends StatefulWidget {
   const ExpBody(this.g, {super.key, required this.toast});
   final Game g;
@@ -227,7 +246,7 @@ class _ExpBodyState extends State<ExpBody> {
                   child: Text(
                       team.isEmpty
                           ? '함께 갈 사람을 골라 주세요'
-                          : '소요 ${g.mmss(c.t.toDouble())} · 부상 위험 ${(c.risk * 100).round()}%${c.perks.isNotEmpty ? '\n${c.perks.join(' · ')}' : ''}\n원정 중에는 일터에서 빠지고 스킬도 못 써요',
+                          : '소요 ${g.mmss(c.t.toDouble())} · 부상 위험 ${(c.risk * 100).round()}%${c.perks.isNotEmpty ? '\n${c.perks.map(perkSay).join('\n')}' : ''}\n원정 중에는 일터에서 빠지고 스킬도 못 써요',
                       style: Ttc.t(13, color: Ttc.sepia2, height: 1.6)),
                 ),
                 Row(mainAxisAlignment: MainAxisAlignment.end, children: [

@@ -343,7 +343,7 @@ Widget ugIcon(String c, {bool done = false}) {
 Future<void> showUg(BuildContext context, Game g) => showDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: const Color(0xD90F161D),
+      barrierColor: Ttc.dim,
       builder: (ctx) => ListenableBuilder(listenable: g, builder: (c, _) => _UgPage(g)),
     );
 
@@ -446,18 +446,17 @@ class _UgPageState extends State<_UgPage> {
         child: Row(children: [
           SizedBox(width: 28, height: 28, child: CustomPaint(painter: _LampIco(oilP < .25 ? const Color(0xFFFF8A70) : const Color(0xFFFFCF7A)))),
           const SizedBox(width: 8),
+          // 2026-11-03 대표님: 막대만으로는 무엇인지 몰랐다 → 굵게, 옆에 '기름 12'
           Expanded(
             child: Container(
-              height: 10,
-              decoration: BoxDecoration(color: const Color(0x73000000), borderRadius: BorderRadius.circular(5)),
+              height: 14,
+              decoration: BoxDecoration(color: const Color(0x73000000), borderRadius: BorderRadius.circular(7), border: Border.all(color: const Color(0x33FFE29A))),
               alignment: Alignment.centerLeft,
-              child: FractionallySizedBox(widthFactor: oilP, child: Container(decoration: BoxDecoration(color: Ttc.amber, borderRadius: BorderRadius.circular(5)))),
+              child: FractionallySizedBox(widthFactor: oilP, child: Container(decoration: BoxDecoration(color: oilP < .25 ? const Color(0xFFE0735A) : Ttc.amber, borderRadius: BorderRadius.circular(7)))),
             ),
           ),
           const SizedBox(width: 8),
-          SizedBox(
-              width: 32,
-              child: Text('${u.oil}', textAlign: TextAlign.right, style: Ttc.t(16, color: oilP < .25 ? const Color(0xFFFF8A70) : const Color(0xFFFFE29A), weight: FontWeight.w800, height: 1))),
+          Text('기름 ${u.oil}', style: Ttc.t(15, color: oilP < .25 ? const Color(0xFFFF8A70) : const Color(0xFFFFE29A), weight: FontWeight.w800, height: 1)),
         ]),
       ),
       // 소식
@@ -494,7 +493,7 @@ class _UgPageState extends State<_UgPage> {
       // 칸들
       Center(
         child: Container(
-          width: math.min(scr.width - 60, short ? 230.0 : 280.0),
+          width: math.min(scr.width - 48, short ? 270.0 : 340.0),
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(color: const Color(0xFF1C2630), borderRadius: BorderRadius.circular(8)),
           child: GridView.count(
@@ -660,7 +659,14 @@ class _DarkCell extends CustomPainter {
   @override
   void paint(Canvas canvas, Size s) {
     final r = RRect.fromRectAndRadius(Offset.zero & s, const Radius.circular(6));
-    canvas.drawRRect(r, Paint()..color = front ? const Color(0xFF34404B) : const Color(0xFF24313E));
+    // 2026-11-03 대표님: 지금 누를 수 있는 칸이 어둠과 구분이 안 됐다 → 한참 밝은 바탕 + 안쪽 빛
+    canvas.drawRRect(r, Paint()..color = front ? const Color(0xFF5E6B74) : const Color(0xFF1F2A35));
+    if (front) {
+      canvas.drawRRect(
+          r,
+          Paint()
+            ..shader = RadialGradient(colors: const [Color(0x66FFD98A), Color(0x00FFD98A)]).createShader(Offset.zero & s));
+    }
     if (!front) {
       canvas.drawRRect(
           r.deflate(.5),
@@ -672,8 +678,8 @@ class _DarkCell extends CustomPainter {
     // 점선 테두리 (웹 1.5px dashed #d3c5a3)
     final p = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5
-      ..color = const Color(0xFFD3C5A3);
+      ..strokeWidth = 2
+      ..color = const Color(0xFFF0D28C);
     final path = Path()..addRRect(r.deflate(.75));
     for (final m in path.computeMetrics()) {
       for (var d = 0.0; d < m.length; d += 7) {

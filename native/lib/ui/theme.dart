@@ -27,10 +27,10 @@ abstract final class Ttc {
   static const heroLine = Color(0xFFC7974E);
   static const lockedCard = Color(0xFFE0E2DB);
   static const segs = Color(0xFFDCE0DC);
-  static const segText = Color(0xFF50595F); // 2026-10-20: 밝은 카드 위 회색 한 단계 짙게 (웹 606970)
+  static const segText = Color(0xFF454E54); // 2026-10-20 · 11-03: 밝은 카드 위 회색 한 단계 더 짙게 (웹 606970)
   static const sepia = Color(0xFF26333B);
-  static const sepia2 = Color(0xFF4F5A5F); // 2026-10-20: 한 단계 짙게 (웹 606B70)
-  static const sumText = Color(0xFF55615F); // 2026-10-20: 한 단계 짙게 (웹 64716F)
+  static const sepia2 = Color(0xFF434D52); // 2026-10-20 · 11-03: 크림 카드 위 설명 글씨 대비를 한 단계 더 (웹 606B70)
+  static const sumText = Color(0xFF4A5553); // 2026-10-20 · 11-03: 한 단계 더 짙게 (웹 64716F)
   static const line = Color(0x2426333B); // rgba(38,51,59,.14)
   static const ok = Color(0xFF4F6E2F);
   static const no = Color(0xFFB0452A);
@@ -49,6 +49,9 @@ abstract final class Ttc {
   static const offBtn = Color(0xFFDCE0DA);
   static const offBtnLine = Color(0xFFC9CFCA);
   static const offBtnText = Color(0xFF727B7C);
+
+  /// 창·페이지를 열 때 뒤를 어둡게 덮는 색 (2026-11-03 모든 창 통일)
+  static const dim = Color(0xC70F161D);
 
   static const sans = 'TTCSans';
 

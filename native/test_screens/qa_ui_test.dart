@@ -88,6 +88,10 @@ void main() {
   tearDownAll(() {
     Directory('test_screens/shots').createSync(recursive: true);
     File('test_screens/shots/qa-ui.txt').writeAsStringSync('${report.join('\n')}\n');
+    // CI 기록에서도 바로 보이게 (사진 묶음은 main에서만 올라간다)
+    for (final l in report) {
+      debugPrint('QA-UI: $l');
+    }
   });
 
   testWidgets('모든 화면 훑기', (tester) async {

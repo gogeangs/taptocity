@@ -49,7 +49,7 @@ void showPedPage(BuildContext context, Game g, void Function(String) toast) {
           child: pedExpr(pedMood(g.pedVisits), w: 76, h: 76),
         ),
         const SizedBox(width: 10),
-        Expanded(child: Text('“${g.pedLine}”', style: Ttc.t(13.5, color: const Color(0xFF8A7458), height: 1.6))),
+        Expanded(child: Text('“${g.pedLine}”', style: Ttc.t(13.5, color: const Color(0xFF6E5C45), height: 1.6))),
       ]),
       const SizedBox(height: 10),
       for (var i = 0; i < st.length; i++)
@@ -72,7 +72,7 @@ void showPedPage(BuildContext context, Game g, void Function(String) toast) {
               if (x['free'] == 1) smallTag('하늘이 몫'),
             ],
             desc: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(x['d'] as String, style: Ttc.t(12, color: const Color(0xFF8A7458), height: 1.5)),
+              Text(x['d'] as String, style: Ttc.t(12, color: const Color(0xFF6E5C45), height: 1.5)),
               descText('$desc${!sold && x['free'] == 1 ? ' · 값 없음' : ''}'),
             ]),
             costs: sold || x['free'] == 1 ? null : costWrap(g, price),

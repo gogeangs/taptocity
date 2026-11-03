@@ -1705,7 +1705,8 @@ class _Header extends StatelessWidget {
         SizedBox(
           height: 45,
           child: Row(children: [
-            KeyedSubtree(key: const ValueKey('pfBtn'), child: _HudBtn(child: g.pfSet ? ClipRRect(borderRadius: BorderRadius.circular(6), child: SizedBox(width: 30, height: 38, child: pfPortrait(g.pfIndex()))) : SvgPicture.string(Ico.profileLamp, width: 34, height: 34), onTap: onProfile)),
+            // 왼쪽 위는 언제나 같은 랜턴 (2026-11-03 대표님: 화면마다 랜턴·초상화가 번갈아 보였다 · 초상화는 프로필 안에서)
+            KeyedSubtree(key: const ValueKey('pfBtn'), child: _HudBtn(child: SvgPicture.string(Ico.profileLamp, width: 34, height: 34), onTap: onProfile)),
             const SizedBox(width: 6),
             Expanded(
               child: GestureDetector(
@@ -1745,24 +1746,92 @@ class _HudBtn extends StatelessWidget {
       );
 }
 
-class _MatTile extends StatelessWidget {
+class _MatTile extends StatefulWidget {
   const _MatTile(this.g, this.k);
   final Game g;
   final String k;
   @override
+  State<_MatTile> createState() => _MatTileState();
+}
+
+/// 꾹 누르면 그 칸 아래에 이름을 크게 (2026-11-03 대표님: 고철과 철판을 그림만으로 헷갈림 · 예전 말풍선은 잘 안 보였다)
+class _MatTileState extends State<_MatTile> {
+  Game get g => widget.g;
+  String get k => widget.k;
+  OverlayEntry? _tip;
+  Timer? _hide;
+
+  void _show() {
+    _hide?.cancel();
+    _tip?.remove();
+    final box = context.findRenderObject() as RenderBox?, ov = Overlay.maybeOf(context);
+    if (box == null || !box.hasSize || ov == null) return;
+    final r = box.localToGlobal(Offset.zero) & box.size, sw = MediaQuery.of(context).size.width;
+    final m = matOf[k], v = g.have(k);
+    const w = 150.0;
+    final left = (r.center.dx - w / 2).clamp(8.0, math.max(8.0, sw - w - 8)).toDouble();
+    _tip = OverlayEntry(
+      builder: (c) => Positioned(
+        left: left,
+        top: r.bottom + 6,
+        width: w,
+        child: IgnorePointer(
+          child: Material(
+            type: MaterialType.transparency,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(10, 7, 10, 8),
+              decoration: BoxDecoration(
+                color: const Color(0xF7141A21),
+                borderRadius: BorderRadius.circular(9),
+                border: Border.all(color: Ttc.amber, width: 1),
+                boxShadow: const [BoxShadow(color: Color(0x99000000), blurRadius: 12, offset: Offset(0, 4))],
+              ),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  ResIcon(k, size: 20),
+                  const SizedBox(width: 6),
+                  Flexible(child: Text(m?.n ?? k, style: Ttc.t(16, color: Ttc.lvText, weight: FontWeight.w800, height: 1.2))),
+                ]),
+                const SizedBox(height: 2),
+                Text('${fmt(v)}${m != null && m.tier < 3 ? ' / 보관 한도 ${fmt(g.capOf(k))}' : ''}', textAlign: TextAlign.center, style: Ttc.t(12, color: Ttc.matText, weight: FontWeight.w600, height: 1.3)),
+              ]),
+            ),
+          ),
+        ),
+      ),
+    );
+    ov.insert(_tip!);
+    Sound.tick();
+  }
+
+  void _later() {
+    _hide?.cancel();
+    _hide = Timer(const Duration(milliseconds: 1400), _drop);
+  }
+
+  void _drop() {
+    _hide?.cancel();
+    _tip?.remove();
+    _tip = null;
+  }
+
+  @override
+  void dispose() {
+    _drop();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final v = g.have(k), zero = v <= 0, full = v >= g.capOf(k), m = matOf[k];
-    // 꾹 누르면 이름·수량·한도 (그림만으로는 무슨 자재인지 모를 수 있어서)
-    return Tooltip(
-      message: '${m?.n ?? k} ${fmt(v)}${m != null && m.tier < 3 ? ' · 보관 한도 ${fmt(g.capOf(k))}' : ''}',
-      triggerMode: TooltipTriggerMode.longPress,
-      preferBelow: true,
-      verticalOffset: 28,
-      waitDuration: Duration.zero,
-      showDuration: const Duration(milliseconds: 1800),
-      decoration: BoxDecoration(color: const Color(0xF2141A21), borderRadius: BorderRadius.circular(7), border: Border.all(color: Ttc.line25, width: .8)),
-      textStyle: Ttc.t(12.5, color: Ttc.matText, weight: FontWeight.w600),
-      child: _tile(v, zero, full),
+    final v = g.have(k), zero = v <= 0, full = v >= g.capOf(k);
+    return Semantics(
+      label: '${matOf[k]?.n ?? k} ${fmt(v)}',
+      child: GestureDetector(
+        onLongPressStart: (_) => _show(),
+        onLongPressEnd: (_) => _later(),
+        onLongPressCancel: _later,
+        child: _tile(v, zero, full),
+      ),
     );
   }
 

@@ -230,7 +230,7 @@ Future<void> showMatHelp(BuildContext context, String k, num have, num need) {
   final craft = m.tier == 1 && MatNav.openCraft != null && (MatNav.canCraft?.call() ?? false);
   return showDialog(
     context: context,
-    barrierColor: const Color(0x990F161D),
+    barrierColor: Ttc.dim,
     builder: (ctx) => Dialog(
       backgroundColor: Ttc.paper,
       insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),

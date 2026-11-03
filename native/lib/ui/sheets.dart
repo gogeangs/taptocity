@@ -568,7 +568,7 @@ class _DiaryBodyState extends State<DiaryBody> {
 /// 웹 .page 모달
 Future<void> showPage(BuildContext context, {required String tag, required String title, required String body, String button = '덮기'}) => showDialog(
       context: context,
-      barrierColor: const Color(0xC70F161D),
+      barrierColor: Ttc.dim,
       builder: (ctx) => Dialog(
         backgroundColor: Ttc.paper,
         insetPadding: const EdgeInsets.all(16),

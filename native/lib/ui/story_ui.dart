@@ -659,7 +659,7 @@ String _speakerSub(Game g, Object who) {
 Future<void> showTalk(BuildContext context, Game g, FxTalk t, {VoidCallback? onDone}) => showDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: const Color(0xC70F161D),
+      barrierColor: Ttc.dim,
       builder: (ctx) => _TalkPage(g, t, onDone: () {
         Navigator.pop(ctx);
         onDone?.call();
@@ -923,7 +923,7 @@ const Map<String, (String, String)> npcName = {
 Future<void> showConf(BuildContext context, Game g) => showDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: const Color(0xC70F161D),
+      barrierColor: Ttc.dim,
       builder: (ctx) {
         final s = survivors[9];
         Widget choice(String b, String small, bool a) => GestureDetector(
@@ -1467,7 +1467,7 @@ List<Widget> guideTab(BuildContext context, Game g) {
 Future<void> showOnboard(BuildContext context, Game g, {required VoidCallback onTour}) => showDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: const Color(0xC70F161D),
+      barrierColor: Ttc.dim,
       builder: (ctx) {
         const st = [
           ('구름 두드리기', '빛이 새는 구름을 두드려 땅을 밝혀요.'),
@@ -1570,7 +1570,7 @@ Widget _pbtn(String t, VoidCallback onTap, {bool alt = false}) => Expanded(
 // ======================= 화면 둘러보기 (웹 onbTour · #coach) =======================
 const coachSteps = [
   ('모은 자재', '누르면 전체 자재와 창고 한도가 보여요.'),
-  ('지금 할 일', '목표를 다 하면 여기서 ‘받기’를 눌러요. 왼쪽 칩은 쉘터 레벨이에요.'),
+  ('지금 할 일', '지금 할 일 한 줄이에요. 목표를 다 하면 이 줄이 ‘받기’가 돼요. 오른쪽 배지에 목표·부탁·오늘의 할 일이 모여 있고, 왼쪽 칩은 쉘터 레벨이에요.'),
   ('낮과 밤', '밤까지 남은 시간과 날씨가 보여요.'),
   ('랜턴 버튼', '조준한 칸을 두드려요. 연달아 두드리면 피버, 수확 두 배.'),
   ('메뉴', '기능은 차례로 열리고, 열릴 때 안내 카드가 떠요.'),

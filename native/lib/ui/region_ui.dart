@@ -138,7 +138,7 @@ Future<void> showMigrate(BuildContext context, Game g) {
           _tag('이주 · $n번째 동네'),
           _h3(nr.n),
           _p('${nc != null ? '${nc.$2} ${nc.$1}의 신호를 따라, 불씨를 나누러 떠나요.' : '불씨를 들고 다음 동네로 떠나요.'} 이 동네의 불은 남는 사람들이 지켜요.'),
-          _fx('${nr.d}\n구름이 조금 더 단단해요 (×${(1 + .2 * n).toStringAsFixed(1)})'),
+          _fx('${nr.d}\n구름이 지난 동네보다 ${(20 * n).round()}% 더 단단해요'),
           if (s2go) _p(g.s2WayLine(region)),
           if (comps.isNotEmpty) ...[
             _sec2('함께 가요'),
@@ -276,7 +276,7 @@ Future<void> showTownChoice(BuildContext context, Game g) {
   return showDialog(
     context: context,
     barrierDismissible: false,
-    barrierColor: const Color(0xC70F161D),
+    barrierColor: Ttc.dim,
     builder: (ctx) {
       Widget opt(String x) {
         final o = C[x] as Map;

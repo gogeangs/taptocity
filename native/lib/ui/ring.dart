@@ -114,12 +114,12 @@ class RingMenu extends StatelessWidget {
           Wrap(spacing: 4, runSpacing: 4, children: [
             if (m.id == 5 && g.have('fuel') <= 0) _chip('연료가 없어 멈춤', bad: true),
             if (ashStuck) _chip('재에 덮여 멈춤 · 두드려 걷어내요', bad: true),
-            if (wk != null) _chip('${wk.name} ×${g.asgMult(tile).toStringAsFixed(1)}', good: true),
+            if (wk != null) _chip('${wk.name} 덕분에 ${g.asgMult(tile).toStringAsFixed(1)}배로 돌아가요', good: true),
             _chip(d.fx[m.l], good: true),
           ]),
           if (up != null) ...[
             const SizedBox(height: 5),
-            Wrap(spacing: 4, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [_chip('다음: ${d.fx[m.l + 1]}'), costWrap(g, up)]),
+            Wrap(spacing: 4, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [_chip('강화하면 ${d.fx[m.l + 1]}'), costWrap(g, up)]),
           ],
         ]);
         if (up != null) {
