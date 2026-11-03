@@ -171,8 +171,9 @@ class _CutViewState extends State<CutView> {
         onTap: _next,
         child: SafeArea(
           child: LayoutBuilder(builder: (c, bc) {
-            final maxW = math.min(bc.maxWidth - 32, 620.0);
-            final maxH = bc.maxHeight - 124;
+            // 2026-11-03 대표님: 가운데 좁은 띠로만 보여 검은 여백이 컸다 → 화면 폭을 꽉 채우고(비율 그대로), 줄 글은 컷 바로 아래
+            final maxW = math.min(bc.maxWidth - 8, 960.0);
+            final maxH = bc.maxHeight - 112;
             var pw = math.max(60.0, maxW), ph = pw / 1.5;
             if (ph > maxH) {
               ph = math.max(40.0, maxH);
@@ -180,24 +181,29 @@ class _CutViewState extends State<CutView> {
             }
             return Stack(children: [
               Center(
-                child: TweenAnimationBuilder<double>(
-                  key: ValueKey('cut$i'),
-                  tween: Tween<double>(begin: 0, end: 1),
-                  duration: const Duration(milliseconds: 280),
-                  curve: Curves.easeOutCubic,
-                  builder: (c, t, child) => Opacity(
-                    opacity: math.min(1.0, math.max(0.0, t)),
-                    child: Transform.translate(offset: Offset(0, (1 - t) * 22), child: child),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  TweenAnimationBuilder<double>(
+                    key: ValueKey('cut$i'),
+                    tween: Tween<double>(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 280),
+                    curve: Curves.easeOutCubic,
+                    builder: (c, t, child) => Opacity(
+                      opacity: math.min(1.0, math.max(0.0, t)),
+                      child: Transform.translate(offset: Offset(0, (1 - t) * 22), child: child),
+                    ),
+                    child: _panel(cutFile(widget.name), p, pw, ph, sfx),
                   ),
-                  child: _panel(cutFile(widget.name), p, pw, ph, sfx),
-                ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: pw,
+                    child: Row(children: [
+                      if (n > 1) Text('${i + 1} / $n', style: Ttc.t(12.5, color: const Color(0xB3F3E9D2), weight: FontWeight.w600, height: 1.2)),
+                      const Spacer(),
+                      Text(i + 1 >= n ? '탭해서 닫기 ›' : '탭해서 계속 ›', style: Ttc.t(13, color: const Color(0xCCF3E9D2), weight: FontWeight.w600, height: 1.2)),
+                    ]),
+                  ),
+                ]),
               ),
-              if (n > 1)
-                Positioned(
-                  left: 18,
-                  top: 16,
-                  child: Text('${i + 1} / $n', style: Ttc.t(12.5, color: const Color(0xB3F3E9D2), weight: FontWeight.w600, height: 1)),
-                ),
               Positioned(
                 right: 4,
                 top: 0,
@@ -209,12 +215,6 @@ class _CutViewState extends State<CutView> {
                     child: Text('건너뛰기', style: Ttc.t(13.5, color: const Color(0xD9F3E9D2), weight: FontWeight.w600, height: 1.2)),
                   ),
                 ),
-              ),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 22,
-                child: Center(child: Text('탭해서 계속 ›', style: Ttc.t(12.5, color: const Color(0x99F3E9D2), weight: FontWeight.w500, height: 1.2))),
               ),
             ]);
           }),

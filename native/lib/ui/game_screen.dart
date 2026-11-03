@@ -731,7 +731,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       }
     }
     if (hlKey.value != k) hlKey.value = k;
-    final tg = sheet != null || ringTile >= 0 || pageWatch.n > 0 || g.defn != null ? null : guideTarget(g);
+    final tg = sheet != null || ringTile >= 0 || _moreOpen || pageWatch.n > 0 || g.defn != null ? null : guideTarget(g);
     if ((tg == null) != (_guide == null) || tg?.el != _guide?.el || tg?.tile != _guide?.tile || tg?.label != _guide?.label) setState(() => _guide = tg);
     // 새 목표를 알린 직후 3초 동안은 카메라를 그쪽으로 천천히 끌어 온다 (웹 updateGuide panGuide)
     if (tg != null && tg.tile >= 0 && g.panGuide > 0 && _stageSize != Size.zero) {
@@ -989,6 +989,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   void _open(SheetSpec s) => setState(() {
+        _moreOpen = false;
         if (s.kind == 'shelter' && g.tut != null) g.tutSheet = 1;
         if (s.kind == 'radio' && sheet != s) eggRadio(context, g);
         sheet = sheet == s ? null : s;
@@ -1049,10 +1050,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   void _close() {
     _camEase?.cancel(); // 손가락이 닿으면 카메라 미끄러짐을 멈춘다 (웹 ptrs.size)
     _ringClosedAt = ringTile;
-    if (sheet != null || matsOpen || ringTile >= 0) {
+    if (sheet != null || matsOpen || ringTile >= 0 || _moreOpen) {
       setState(() {
         sheet = null;
         matsOpen = false;
+        _moreOpen = false;
         _closeRing();
       });
       g.mapVersion.value++;
@@ -1109,11 +1111,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       fxc.pull(g);
       return;
     }
-    if (DateTime.now().millisecondsSinceEpoch >= g.sqOpenUntil) {
-      g.sqOpenUntil = DateTime.now().millisecondsSinceEpoch + 7000;
-      g.poke();
-      return;
-    }
     final who = (q['who'] as num?)?.toInt() ?? -1;
     fxc.toast('${g.hasSv(who) ? '${survivors[who].name}: ' : ''}${(q['say'] as String? ?? '').replaceAll(RegExp(r'^“|”$'), '')}');
     switch (sqTypes[q['k']]?.go) {
@@ -1128,6 +1125,70 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         if (g.evCur >= 0) showRequestPage(context, g);
       default:
         break;
+    }
+  }
+
+  // ---------- 이야기 띠 (2026-11-03 A안) ----------
+  /// 배지 목록이 펼쳐져 있나
+  bool _moreOpen = false;
+  void _toggleMore() => setState(() {
+        _moreOpen = !_moreOpen;
+        if (_moreOpen) {
+          sheet = null;
+          matsOpen = false;
+          _closeRing();
+        }
+      });
+
+  /// '지금' 줄을 눌렀을 때: 받기면 바로 받고, 아니면 그 일 쪽으로
+  void _tapeTap(String k) {
+    if (_moreOpen) setState(() => _moreOpen = false);
+    switch (k) {
+      case 'claim':
+        if (pageWatch.n > 0) return;
+        g.claimMission();
+        fxc.pull(g);
+      case 'sqclaim':
+      case 'sq':
+        _sqGo();
+      case 'storm':
+        fxc.toast('랜턴을 눌러 쉘터로 다가오는 괴물을 막아요');
+      case 'choice':
+        _openChoice();
+      case 'exp':
+        _open(const SheetSpec('exp'));
+      case 'case':
+        DiaryBody.tab = 'case';
+        if (sheet?.kind != 'diary') _open(const SheetSpec('diary'));
+      default:
+        _goMission();
+    }
+  }
+
+  /// 펼친 목록의 한 줄을 눌렀을 때
+  void _tapeItem(String k) {
+    setState(() => _moreOpen = false);
+    switch (k) {
+      case 'goal':
+        _tapeTap(g.mission().done ? 'claim' : 'goal');
+      case 'choice':
+        _openChoice();
+      case 'exp':
+        _open(const SheetSpec('exp'));
+      case 'stories':
+        _openStories();
+      case 'sq':
+        _sqGo();
+      case 'case':
+        _tapeTap('case');
+      case 'daily':
+        _openDaily();
+      case 'ped':
+        _close();
+        showPedPage(context, g, fxc.toast);
+      case 'mig':
+        _close();
+        showMigrate(context, g);
     }
   }
 
@@ -1283,143 +1344,202 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           builder: (c, _) => _Header(
             g,
             matsKey: _kMats,
-            tapeKey: _kTape,
             top: pad.top,
-            ping: _claimPing,
-            onGo: _goMission,
             onSettings: () => _open(const SheetSpec('settings')),
-            onMats: () => setState(() => matsOpen = !matsOpen),
-            onShelter: () => _open(const SheetSpec('shelter')),
-            onPed: () {
-              _close();
-              showPedPage(context, g, fxc.toast);
-            },
-            onMig: () {
-              _close();
-              showMigrate(context, g);
-            },
+            onMats: () => setState(() {
+              matsOpen = !matsOpen;
+              _moreOpen = false;
+            }),
             onProfile: () => sheet?.kind == 'profile' ? _close() : _open(const SheetSpec('profile')),
-            onStories: _openStories,
-            onChoice: _openChoice,
-            onDaily: _openDaily,
           ),
         ),
         Expanded(
-          child: LayoutBuilder(builder: (context, box) {
-            _stageSize = box.biggest;
-            return Container(
-              key: _kStage,
-              color: Ttc.stage,
-              child: Stack(clipBehavior: Clip.hardEdge, children: [
-                Positioned.fill(
-                    child: MapView(
-                        game: g,
-                        camera: cam,
-                        onSelect: _select,
-                        fxLayer: fxc,
-                        onTouch: placing == null ? _close : null,
-                        onPlace: placing == null
-                            ? null
-                            : (i) {
-                                if (i < 0 || !g.decoOk(i)) {
-                                  fxc.toast('쉘터 둘레의 빈 땅을 눌러요');
-                                  return;
-                                }
-                                if (g.placeDeco(placing!, i)) {
-                                  Sound.tick();
-                                  fxc.pull(g);
-                                  if (!g.canPay(g.decoCost(placing!))) {
-                                    setState(() => placing = null);
-                                    g.placingDeco = null;
+          child: LayoutBuilder(builder: (context, outer) {
+            return Stack(children: [
+              Column(children: [
+                // 이야기 띠 (2026-11-03 A안: 레벨 · 지금 한 줄 · 배지 하나). 관리 창은 이 띠까지 덮는다
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: const BoxDecoration(color: Ttc.header, border: Border(bottom: BorderSide(color: Ttc.line12))),
+                  child: AnimatedBuilder(
+                    animation: g,
+                    builder: (c, _) => KeyedSubtree(
+                        key: _kTape,
+                        child: MissionTape(g, onLv: () => _open(const SheetSpec('shelter')), onTap: _tapeTap, onMore: _toggleMore, moreOpen: _moreOpen, ping: _claimPing)),
+                  ),
+                ),
+                Expanded(
+                  child: LayoutBuilder(builder: (context, box) {
+                    _stageSize = box.biggest;
+                    return Container(
+                      key: _kStage,
+                      color: Ttc.stage,
+                      child: Stack(clipBehavior: Clip.hardEdge, children: [
+                        Positioned.fill(
+                            child: MapView(
+                                game: g,
+                                camera: cam,
+                                onSelect: _select,
+                                fxLayer: fxc,
+                                onTouch: placing == null ? _close : null,
+                                onPlace: placing == null
+                                    ? null
+                                    : (i) {
+                                        if (i < 0 || !g.decoOk(i)) {
+                                          fxc.toast('쉘터 둘레의 빈 땅을 눌러요');
+                                          return;
+                                        }
+                                        if (g.placeDeco(placing!, i)) {
+                                          Sound.tick();
+                                          fxc.pull(g);
+                                          if (!g.canPay(g.decoCost(placing!))) {
+                                            setState(() => placing = null);
+                                            g.placingDeco = null;
+                                          }
+                                        } else {
+                                          fxc.toast('자재가 모자라요');
+                                          setState(() => placing = null);
+                                          g.placingDeco = null;
+                                        }
+                                      })),
+                        Positioned.fill(child: DreadLayer(g)),
+                        if (placing != null)
+                          Positioned(
+                            left: 10,
+                            right: 10,
+                            top: 56,
+                            child: placeBar(g, placing!, () {
+                              setState(() => placing = null);
+                              g.placingDeco = null;
+                              g.mapVersion.value++;
+                            }),
+                          ),
+                        // 오른쪽 위: 쉘터로, 카메라 도구
+                        Positioned(
+                          right: 10,
+                          top: 12,
+                          child: Column(children: [
+                            _StageBtn(Ico.home, () => cam.set(0, (CX + CY + 1) * TH / 2 - 10)),
+                            const SizedBox(height: 6),
+                            _StageBtn(Ico.dots, () => setState(() => camOpen = !camOpen)),
+                            if (camOpen) ...[
+                              const SizedBox(height: 6),
+                              _StageBtn(null, () => cam.set(cam.x, cam.y, cam.z * 1.25), text: '+'),
+                              const SizedBox(height: 6),
+                              _StageBtn(null, () => cam.set(cam.x, cam.y, cam.z / 1.25), text: '−'),
+                            ],
+                          ]),
+                        ),
+                        // 시계(웹 #clock)는 아래 '시계 줄' 맨 앞에 (2026-10-23 UI: 시계 알약과 부탁 띠를 한 줄로 — 지도를 덮는 줄을 하나 줄였다)
+                        // 대형 재폭풍 막대 (시계 자리, 오른쪽 위 버튼은 비켜서)
+                        Positioned(
+                          left: 10,
+                          right: 64,
+                          top: 12,
+                          child: Align(
+                            alignment: Alignment.topLeft,
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 350),
+                              child: Every(g: g, ms: 250, builder: (c) => defenseBar(g)),
+                            ),
+                          ),
+                        ),
+                        // 시계 줄 (앱 전용 2026-10-20 · 10-23 한 줄로): 시계 · 연속 칩 · 생존자의 부탁 띠(접힘 한 줄, 누르면 펼침), 그 아래 손님 부탁. 지도 가운데는 비워 둔다
+                        Positioned(
+                          left: 10,
+                          right: 64,
+                          top: 12,
+                          child: Every(
+                            g: g,
+                            builder: (c) {
+                              // 대형 재폭풍 동안은 숨긴다: 방어 막대가 같은 말을 하는 머리가 된다
+                              if (g.defn != null) return const SizedBox.shrink();
+                              final clock = KeyedSubtree(key: _kClock, child: clockChip(g));
+                              if (matsOpen) return Align(alignment: Alignment.centerLeft, child: clock);
+                              final streak = g.dayOn && g.streakShown > 0 ? streakChip(g, onTap: _openDaily) : null;
+                              // 생존자의 부탁 카드는 이야기 띠 배지 목록으로 옮겼다 (2026-11-03 A안)
+                              return Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                                // 좁은 폰에서 한 줄에 다 안 들어가면 다음 줄로 넘긴다 (320폭: 날씨가 붙은 시계만으로 꽉 찬다)
+                                Wrap(spacing: 6, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
+                                  clock,
+                                  if (streak != null) streak,
+                                ]),
+                                if (g.evCur >= 0) ...[
+                                  const SizedBox(height: 8),
+                                  KeyedSubtree(key: _kEv, child: eventButton(g, () => showRequestPage(context, g))),
+                                ],
+                              ]);
+                            },
+                          ),
+                        ),
+                        // 이야기 띠 배지를 누르면 펼쳐지는 목록 (띠 바로 아래, 지도 위에 떠서 지도 크기는 그대로)
+                        if (_moreOpen)
+                          Positioned(
+                            left: 8,
+                            right: 8,
+                            top: 4,
+                            child: AnimatedBuilder(animation: g, builder: (c, _) => TapePanel(g, onItem: _tapeItem)),
+                          ),
+                        if (_guide != null)
+                          Positioned.fill(
+                            child: AnimatedBuilder(
+                              animation: cam,
+                              builder: (c, _) {
+                                final tg = _guide!, p0 = _guidePos(tg, bottom);
+                                if (p0 == null) return const SizedBox.shrink();
+                                // 아래 탭을 가리킬 땐 말풍선 대신 그 탭에 빛나는 테두리 (2026-10-21 대표님: '원정' 말풍선이 스킬 얼굴을 가림)
+                                final tabK = const {'fSurv': 0, 'fExp': 1, 'radio': 3}[tg.el];
+                                // (빛나는 테두리는 탭 줄 위에 그려야 보여서 바깥 층에서 그린다)
+                                if (tabK != null) return const SizedBox.shrink();
+                                var label = tg.label;
+                                var off = false;
+                                if (tg.tile >= 0) {
+                                  off = p0.dx < 50 || p0.dx > box.maxWidth - 50 || p0.dy < 110 || p0.dy > box.maxHeight - 190;
+                                  if (off) {
+                                    final dx = p0.dx - box.maxWidth / 2, dy = p0.dy - box.maxHeight / 2;
+                                    label += ' ${dx.abs() > dy.abs() * 1.3 ? (dx > 0 ? '→' : '←') : (dy > 0 ? '↓' : '↑')}';
                                   }
-                                } else {
-                                  fxc.toast('자재가 모자라요');
-                                  setState(() => placing = null);
-                                  g.placingDeco = null;
                                 }
-                              })),
-                Positioned.fill(child: DreadLayer(g)),
-                if (placing != null)
-                  Positioned(
-                    left: 10,
-                    right: 10,
-                    top: 56,
-                    child: placeBar(g, placing!, () {
-                      setState(() => placing = null);
-                      g.placingDeco = null;
-                      g.mapVersion.value++;
-                    }),
-                  ),
-                // 오른쪽 위: 쉘터로, 카메라 도구
-                Positioned(
-                  right: 10,
-                  top: 12,
-                  child: Column(children: [
-                    _StageBtn(Ico.home, () => cam.set(0, (CX + CY + 1) * TH / 2 - 10)),
-                    const SizedBox(height: 6),
-                    _StageBtn(Ico.dots, () => setState(() => camOpen = !camOpen)),
-                    if (camOpen) ...[
-                      const SizedBox(height: 6),
-                      _StageBtn(null, () => cam.set(cam.x, cam.y, cam.z * 1.25), text: '+'),
-                      const SizedBox(height: 6),
-                      _StageBtn(null, () => cam.set(cam.x, cam.y, cam.z / 1.25), text: '−'),
-                    ],
-                  ]),
+                                final x = p0.dx.clamp(40.0, math.max(40.0, box.maxWidth - 40)), y = p0.dy.clamp(40.0, math.max(40.0, box.maxHeight - 8));
+                                return Stack(children: [
+                                  Positioned(left: x.toDouble(), top: y.toDouble(), child: FractionalTranslation(translation: const Offset(-.5, -1), child: GuideArrow(label, x: x.toDouble(), screenW: box.maxWidth,
+                                          // 화면 밖을 가리키는 안내(쉘터 ← 등)는 눌러서 그쪽으로 (웹 2026-10-15)
+                                          onTap: off ? () => g.panGuide = DateTime.now().millisecondsSinceEpoch : null))),
+                                ]);
+                              },
+                            ),
+                          ),
+                        if (ringTile >= 0)
+                          Positioned.fill(
+                            child: AnimatedBuilder(
+                              animation: Listenable.merge([cam, g]),
+                              builder: (c, _) => RingMenu(
+                                g: g,
+                                cam: cam,
+                                tile: ringTile,
+                                say: ringSay,
+                                bottomGuard: bottom + 86,
+                                toast: fxc.toast,
+                                onClose: _close,
+                                onAssign: () {
+                                  final t = ringTile;
+                                  _open(SheetSpec('assign', tile: t));
+                                },
+                                onShelter: () => _open(const SheetSpec('shelter')),
+                              ),
+                            ),
+                          ),
+                      ]),
+                    );
+                  }),
                 ),
-                // 시계(웹 #clock)는 아래 '시계 줄' 맨 앞에 (2026-10-23 UI: 시계 알약과 부탁 띠를 한 줄로 — 지도를 덮는 줄을 하나 줄였다)
-                // 대형 재폭풍 막대 (시계 자리, 오른쪽 위 버튼은 비켜서)
-                Positioned(
-                  left: 10,
-                  right: 64,
-                  top: 12,
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 350),
-                      child: Every(g: g, ms: 250, builder: (c) => defenseBar(g)),
-                    ),
-                  ),
-                ),
-                // 시계 줄 (앱 전용 2026-10-20 · 10-23 한 줄로): 시계 · 연속 칩 · 생존자의 부탁 띠(접힘 한 줄, 누르면 펼침), 그 아래 손님 부탁. 지도 가운데는 비워 둔다
-                Positioned(
-                  left: 10,
-                  right: 64,
-                  top: 12,
-                  child: Every(
-                    g: g,
-                    builder: (c) {
-                      // 대형 재폭풍 동안은 숨긴다: 방어 막대가 같은 말을 하는 머리가 된다
-                      if (g.defn != null) return const SizedBox.shrink();
-                      final clock = KeyedSubtree(key: _kClock, child: clockChip(g));
-                      if (matsOpen) return Align(alignment: Alignment.centerLeft, child: clock);
-                      final sqOpen = g.sq != null && g.sqOn && DateTime.now().millisecondsSinceEpoch < g.sqOpenUntil;
-                      final streak = g.dayOn && g.streakShown > 0 ? streakChip(g, onTap: _openDaily) : null;
-                      final side = sideQuest(g, onTap: _sqGo);
-                      final hasSide = g.sq != null && g.sqOn;
-                      return Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                        // 좁은 폰에서 한 줄에 다 안 들어가면 다음 줄로 넘긴다 (320폭: 날씨가 붙은 시계만으로 꽉 찬다)
-                        Wrap(spacing: 6, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                          clock,
-                          if (streak != null) streak,
-                          if (!sqOpen && hasSide) ConstrainedBox(constraints: BoxConstraints(maxWidth: math.max(120, box.maxWidth - 84)), child: side),
-                        ]),
-                        if (sqOpen) ...[
-                          const SizedBox(height: 6),
-                          SizedBox(width: math.min(300, box.maxWidth - 84), child: side),
-                        ],
-                        if (g.evCur >= 0) ...[
-                          const SizedBox(height: 8),
-                          KeyedSubtree(key: _kEv, child: eventButton(g, () => showRequestPage(context, g))),
-                        ],
-                      ]);
-                    },
-                  ),
-                ),
+              ]),
                 // 시트
+                // 관리 창은 자원 줄 바로 아래부터 (이야기 띠·레벨까지 덮는다 · 아래 탭 줄은 그대로 보인다 · 2026-11-03)
                 Positioned(
                   left: 0,
                   right: 0,
-                  top: 11,
+                  top: 4,
                   bottom: bottom + 86,
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 220),
@@ -1489,65 +1609,18 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                   ),
                   ),
                 ),
-                if (_guide != null)
-                  Positioned.fill(
-                    child: AnimatedBuilder(
-                      animation: cam,
-                      builder: (c, _) {
-                        final tg = _guide!, p0 = _guidePos(tg, bottom);
-                        if (p0 == null) return const SizedBox.shrink();
-                        // 아래 탭을 가리킬 땐 말풍선 대신 그 탭에 빛나는 테두리 (2026-10-21 대표님: '원정' 말풍선이 스킬 얼굴을 가림)
-                        final tabK = const {'fSurv': 0, 'fExp': 1, 'radio': 3}[tg.el];
-                        if (tabK != null) {
-                          final tw = (box.maxWidth - 102) / 5;
-                          return Stack(children: [
-                            Positioned(
-                              left: 94 + tw * tabK + 1,
-                              top: box.maxHeight - bottom - 78 + 2,
-                              width: tw - 2,
-                              height: 74,
-                              child: const IgnorePointer(child: _TabGlow()),
-                            ),
-                          ]);
-                        }
-                        var label = tg.label;
-                        var off = false;
-                        if (tg.tile >= 0) {
-                          off = p0.dx < 50 || p0.dx > box.maxWidth - 50 || p0.dy < 110 || p0.dy > box.maxHeight - 190;
-                          if (off) {
-                            final dx = p0.dx - box.maxWidth / 2, dy = p0.dy - box.maxHeight / 2;
-                            label += ' ${dx.abs() > dy.abs() * 1.3 ? (dx > 0 ? '→' : '←') : (dy > 0 ? '↓' : '↑')}';
-                          }
-                        }
-                        final x = p0.dx.clamp(40.0, math.max(40.0, box.maxWidth - 40)), y = p0.dy.clamp(40.0, math.max(40.0, box.maxHeight - 8));
-                        return Stack(children: [
-                          Positioned(left: x.toDouble(), top: y.toDouble(), child: FractionalTranslation(translation: const Offset(-.5, -1), child: GuideArrow(label, x: x.toDouble(), screenW: box.maxWidth,
-                                  // 화면 밖을 가리키는 안내(쉘터 ← 등)는 눌러서 그쪽으로 (웹 2026-10-15)
-                                  onTap: off ? () => g.panGuide = DateTime.now().millisecondsSinceEpoch : null))),
-                        ]);
-                      },
-                    ),
-                  ),
-                if (ringTile >= 0)
-                  Positioned.fill(
-                    child: AnimatedBuilder(
-                      animation: Listenable.merge([cam, g]),
-                      builder: (c, _) => RingMenu(
-                        g: g,
-                        cam: cam,
-                        tile: ringTile,
-                        say: ringSay,
-                        bottomGuard: bottom + 86,
-                        toast: fxc.toast,
-                        onClose: _close,
-                        onAssign: () {
-                          final t = ringTile;
-                          _open(SheetSpec('assign', tile: t));
-                        },
-                        onShelter: () => _open(const SheetSpec('shelter')),
-                      ),
-                    ),
-                  ),
+                // 아래 탭 안내: 그 탭에 빛나는 테두리 (2026-10-21 대표님: '원정' 말풍선이 스킬 얼굴을 가림)
+                if (_guide != null && const {'fSurv', 'fExp', 'radio'}.contains(_guide!.el))
+                  () {
+                    final tabK = const {'fSurv': 0, 'fExp': 1, 'radio': 3}[_guide!.el]!, tw = (outer.maxWidth - 102) / 5;
+                    return Positioned(
+                      left: 94 + tw * tabK + 1,
+                      bottom: bottom + 2,
+                      width: tw - 2,
+                      height: 74,
+                      child: const IgnorePointer(child: _TabGlow()),
+                    );
+                  }(),
                 if (matsOpen) Positioned(left: 8, right: 8, top: 4, child: AnimatedBuilder(animation: g, builder: (c, _) => _MatsAll(g))),
                 if (_stampText != null) Center(child: _Stamp(_stampText!)),
                 // 튜토리얼 건너뛰기 (웹 #tutSkip)
@@ -1572,8 +1645,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                           ),
                   ),
                 ),
-              ]),
-            );
+            ]);
           }),
         ),
         ]),
@@ -1616,33 +1688,19 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 }
 
 // ======================= 머리 (자원·설정·할 일 띠) =======================
+// 이야기 띠는 머리 아래 따로 둔다 (관리 창이 그 띠까지 덮도록 · 2026-11-03)
 class _Header extends StatelessWidget {
-  const _Header(this.g,
-      {required this.top,
-      required this.ping,
-      required this.onGo,
-      required this.onSettings,
-      required this.onMats,
-      required this.onShelter,
-      required this.onPed,
-      required this.onMig,
-      required this.onProfile,
-      required this.onStories,
-      required this.onChoice,
-      required this.onDaily,
-      this.matsKey,
-      this.tapeKey});
+  const _Header(this.g, {required this.top, required this.onSettings, required this.onMats, required this.onProfile, this.matsKey});
   final Game g;
-  final Key? matsKey, tapeKey;
+  final Key? matsKey;
   final double top;
-  final int ping;
-  final VoidCallback onSettings, onMats, onShelter, onPed, onGo, onMig, onProfile, onStories, onChoice, onDaily;
+  final VoidCallback onSettings, onMats, onProfile;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(8, top + 8, 8, 0),
-      decoration: const BoxDecoration(color: Ttc.header, border: Border(bottom: BorderSide(color: Ttc.line12))),
+      padding: EdgeInsets.fromLTRB(8, top + 8, 8, 6),
+      color: Ttc.header,
       child: Column(children: [
         SizedBox(
           height: 45,
@@ -1665,8 +1723,6 @@ class _Header extends StatelessWidget {
             KeyedSubtree(key: const ValueKey('setBtn'), child: _HudBtn(child: SvgIcon(Ico.gear, size: 18, color: Ttc.hudText), onTap: onSettings)),
           ]),
         ),
-        const SizedBox(height: 6),
-        KeyedSubtree(key: tapeKey, child: MissionTape(g, onLv: onShelter, onGo: onGo, onPed: onPed, onMig: onMig, onStories: onStories, onChoice: onChoice, onDaily: onDaily, ping: ping)),
       ]),
     );
   }

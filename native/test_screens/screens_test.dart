@@ -297,6 +297,10 @@ void main() {
     g.evLeft = 70;
     g.S.rest['wx'] = 'clear';
     await _shot(tester, g, '12-day-quests');
+    // 2026-11-03 A안: 이야기 띠 배지를 누르면 장 목표·부탁·오늘의 할 일이 한 목록에
+    await _shot(tester, g, '12b-tape-panel', act: () async {
+      await tester.tap(find.byKey(const ValueKey('tapeMore')));
+    });
     await _shot(tester, g, '14-request', act: () async {
       await tester.tap(find.text('고장 난 트럭').first);
     });
@@ -381,7 +385,12 @@ void main() {
       await tester.tap(find.text('꾸미기').last);
     });
     await _shot(tester, g, '21-ped', act: () async {
-      await tester.tap(find.text('노친네').first); // 2026-10-14: 칩 이모지가 손그림 얼굴로 바뀜
+      // 2026-11-03 A안: 노친네 칩은 이야기 띠 배지 목록 안으로 옮겼다
+      await tester.tap(find.byKey(const ValueKey('tapeMore')));
+      for (var k = 0; k < 4; k++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.tap(find.text('노친네').first);
     });
     await _shot(tester, g, '07-ring', act: () async {
       final r = tester.getRect(find.byType(MapView));

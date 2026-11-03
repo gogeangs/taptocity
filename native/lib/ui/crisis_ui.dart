@@ -486,8 +486,13 @@ Widget defenseBar(Game g) {
         decoration: BoxDecoration(color: const Color(0xFF3B4147), borderRadius: BorderRadius.circular(5)),
         clipBehavior: Clip.antiAlias,
         child: Stack(children: [
-          FractionallySizedBox(widthFactor: (D2.hp / 100).clamp(0.0, 1.0).toDouble(), child: Container(color: const Color(0xFFAB5145))),
-          Center(child: Text('쉘터 내구도 ${math.max(0, D2.hp.round())}', style: Ttc.t(12, color: const Color(0xFFFFF4DF), weight: FontWeight.w700, height: 1))),
+          // 높을 땐 호박색, 깎일수록 붉게 (2026-11-03 대표님: 100인데도 빨개서 위험해 보였다)
+          FractionallySizedBox(
+            widthFactor: (D2.hp / 100).clamp(0.0, 1.0).toDouble(),
+            child: Container(color: Color.lerp(const Color(0xFFB8402F), const Color(0xFFD99A3E), ((D2.hp - 25) / 60).clamp(0.0, 1.0).toDouble())),
+          ),
+          Center(child: Text('쉘터 내구도 ${math.max(0, D2.hp.round())}',
+              style: Ttc.t(12, color: const Color(0xFFFFF4DF), weight: FontWeight.w700, height: 1).copyWith(shadows: const [Shadow(color: Color(0xB3000000), blurRadius: 3)]))),
         ]),
       ),
       const SizedBox(height: 5),

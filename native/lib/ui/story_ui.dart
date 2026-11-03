@@ -13,7 +13,9 @@ import 'daily_ui.dart';
 import 'portrait.dart';
 import 'profile_ui.dart';
 import 'season_ui.dart';
+import 'crisis_ui.dart' show sqShort;
 import 'feat_ui.dart';
+import 'icons.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -116,23 +118,149 @@ class _PulseState extends State<_Pulse> with SingleTickerProviderStateMixin {
 }
 
 // ======================= 미션 띠 (웹 #tape, design.css 16–18) =======================
+// 2026-11-03 대표님 결정 'A안': 위쪽은 쉘터 레벨(작게) · '지금 ›' 한 줄(두 줄까지 줄바꿈 · 말줄임 없음) · 오른쪽 배지 하나(할 일 수)만.
+// 장 목표·생존자의 부탁·오늘의 할 일·노친네·새 동네로 같은 칩은 배지를 누르면 펼쳐지는 목록(TapePanel)으로 모았다.
+// 목표를 다 하면 '지금' 줄이 그대로 '받기' 버튼이 된다. 모닥불은 살아 움직이는 눈금이라 띠 안에 작게 남긴다.
+
+/// 장 이름 · 걸음 (예: ('3장', '2/5'))
+(String, String) tapeChap(Game g) {
+  final S = g.S, m = g.mission(), st = m.step, c = st == null ? null : chapters[st.ci];
+  final tu = g.tut;
+  if (tu != null) return ('그날 밤', '${((tu['i'] as num?) ?? 0) + 1}/${tutSteps.length}');
+  if (c != null) return (c.ch, '${st!.si + 1}/${c.steps.length}');
+  if (m.s2) return (g.s2StageName, '${g.s2I + 1}/${g.s2StepCount}');
+  if (m.reg) return (g.reg?.n ?? '', '${g.rmi + 1}/${g.regionMis().length}');
+  return ('끝없는 불빛', '${(((S.rest['eg'] as Map?)?['i'] as num?) ?? 0) + 1}');
+}
+
+/// 지금 할 일 한 줄 (길잡이 화살표와 같은 말): 목표 글만으로는 무엇을 누를지 모를 때 (2026-10-23 UX)
+String? tapeStep(Game g) {
+  if (g.tut != null || g.mission().done) return null;
+  final t = guideTarget(g)?.label;
+  if (t != null && t.isNotEmpty && t != '쉘터' && t != '모듈') return t;
+  // 화살표가 쉘터·모듈만 가리킬 때는 이 걸음의 귀띔 (예: '밧줄은 작업대에서 천으로 만들어요')
+  final sub = g.mission().sub;
+  return sub.isEmpty ? null : uiWords(sub);
+}
+
+/// 돌아와 짐 풀기를 기다리는 원정대 수
+int tapeExpBack(Game g) {
+  final now = Game.nowMs();
+  return g.expMap.values.where((x) => now >= ((x['end'] as num?) ?? 1e15)).length;
+}
+
+/// 시즌 2 아침의 흔적: 사건 수첩에 새로 적힌 것이 있나
+bool tapeTrace(Game g) => g.s2On && g.S.rest['caseNew'] != null && g.s2Traces.isNotEmpty;
+
+/// '지금' 줄에 올릴 것 (종류, 글). 우선순위: 받을 보상 → 위기(대형 재폭풍 · 정답 없는 선택) → 돌아온 원정(시즌 2)
+/// → 장 목표의 다음 걸음 → 아침의 흔적(시즌 2) → 생존자의 부탁. 아무것도 없으면 장 목표 글 그대로
+(String, String) tapeNow(Game g) {
+  final m = g.mission();
+  if (g.tut != null) return ('tut', m.txt);
+  if (m.done) return ('claim', m.txt);
+  final q0 = g.sq, t00 = q0 == null ? null : sqTypes[q0['k']];
+  final (q, t0) = q0 != null && g.sqOn && t00 != null ? (q0, t00) : (null, null);
+  if (q != null && t0 != null && g.sqDone) {
+    final who = (q['who'] as num?)?.toInt() ?? -1;
+    return ('sqclaim', '${g.hasSv(who) ? survivors[who].name : '쉘터'}의 부탁을 다 했어요 · ${sqShort(t0.t(((q['n'] as num?) ?? 1).toInt()))}');
+  }
+  if (g.defn != null) return ('storm', '대형 재폭풍 · 랜턴을 눌러 쉘터로 오는 괴물을 막아요');
+  final cv = choiceShowing ? null : g.choiceView();
+  if (cv != null) {
+    final dl = duskLeft(g);
+    return ('choice', '${cv.title} · 정답 없는 선택${dl != null ? ' · 해 질 때까지 $dl' : ''}');
+  }
+  if (g.s2On) {
+    final n = tapeExpBack(g);
+    if (n > 0) return ('exp', '원정대 $n팀이 돌아와 짐 풀기를 기다려요');
+  }
+  final st = tapeStep(g);
+  if (st != null) return ('goal', st);
+  if (tapeTrace(g)) return ('case', '아침의 흔적이 사건 수첩에 적혔어요');
+  if (q != null && t0 != null) {
+    final n = ((q['n'] as num?) ?? 1).toInt();
+    return ('sq', '${sqShort(t0.t(n))} ${fmt(g.sqProg())}/${fmt(n)}');
+  }
+  return ('goal', m.txt);
+}
+
+/// 펼친 목록의 한 줄
+class TapeItem {
+  const TapeItem(this.k, this.title, {this.tag = '', this.sub = '', this.btn, this.hot = false, this.lead});
+  final String k; // goal · choice · stories · sq · daily · ped · mig · exp · case
+  final String tag, title, sub;
+  final String? btn;
+  final bool hot; // 받을 것 · 급한 것 (호박색 테두리)
+  final Widget? lead;
+}
+
+/// 배지 목록: 장 목표가 맨 위, 그 아래 할 일. 튜토리얼 동안은 비어 있다
+List<TapeItem> tapeItems(Game g) {
+  if (g.tut != null) return const [];
+  final m = g.mission(), st = m.step, c = st == null ? null : chapters[st.ci];
+  final (cn, cp) = tapeChap(g);
+  final out = <TapeItem>[
+    TapeItem('goal', m.txt,
+        tag: '${c != null ? '${c.ch} · ${c.title}' : cn}  $cp',
+        sub: m.done ? '다 했어요 · 눌러서 보상을 받아요' : uiWords(m.sub),
+        btn: m.done ? '받기' : '보기',
+        hot: m.done,
+        lead: _dot(m.done ? Ttc.amber : const Color(0xFF8FA3AE))),
+  ];
+  final cv = choiceShowing ? null : g.choiceView();
+  if (cv != null) {
+    final dl = duskLeft(g);
+    out.add(TapeItem('choice', cv.title, tag: '선택 기다림', sub: dl != null ? '해 질 때까지 $dl · 안 고르면 누군가 대신 정해요' : '', btn: '고르기', hot: true, lead: _dot(Ttc.rust)));
+  }
+  if (g.s2On) {
+    final n = tapeExpBack(g);
+    if (n > 0) out.add(TapeItem('exp', '원정대 $n팀이 돌아왔어요', tag: '원정', sub: '원정 탭에서 짐을 풀어요', btn: '보기', hot: true, lead: _dot(Ttc.amber)));
+  }
+  final nq = g.qNew.length;
+  if (nq > 0) out.add(TapeItem('stories', nq > 1 ? '새 이야기 $nq개' : '새 이야기', tag: '생존자', sub: '먼저 생긴 이야기부터 하나씩 열어요', btn: '보기', lead: _dot(Ttc.amber)));
+  final q = g.sq, t0 = q == null ? null : sqTypes[q['k']];
+  if (q != null && g.sqOn && t0 != null) {
+    final n = ((q['n'] as num?) ?? 1).toInt(), p = g.sqProg(), who = (q['who'] as num?)?.toInt() ?? -1, hasWho = g.hasSv(who);
+    out.add(TapeItem('sq', t0.t(n),
+        tag: '${hasWho ? survivors[who].name : '쉘터'}의 부탁 ${g.num_('sqN').toInt() % 3 + 1}/3',
+        sub: p >= n ? '다 모았어요' : '${fmt(p)}/${fmt(n)}',
+        btn: p >= n ? '받기' : '하러 가기',
+        hot: p >= n,
+        lead: Container(
+          width: 26,
+          height: 26,
+          decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFE6D8B6)),
+          clipBehavior: Clip.antiAlias,
+          child: hasWho ? Portrait(who, width: 26, height: 31) : null,
+        )));
+  }
+  if (tapeTrace(g)) out.add(TapeItem('case', '아침의 흔적', tag: '사건 수첩', sub: '밤사이 남은 흔적을 적어 뒀어요', btn: '보기', lead: _dot(const Color(0xFFC9A46A))));
+  if (g.dayOn && g.dayList.isNotEmpty && !g.dayAllDone) {
+    out.add(TapeItem('daily', '오늘의 할 일 ${g.dayList.where((x) => x.$4).length}/${g.dayList.length}', tag: '일지', sub: '셋을 다 하면 연속 보상', btn: '보기', lead: _dot(const Color(0xFFDFA54B))));
+  }
+  if (g.pedHere) out.add(TapeItem('ped', '노친네', tag: '손님', sub: '수레를 끌고 쉘터 앞에 와 있어요', btn: '보러 가기', lead: pedFace(size: 24)));
+  if ((m.eg || m.go) && !m.done && g.canMigrate) {
+    out.add(TapeItem('mig', '새 동네로', tag: '떠날 준비', sub: '다음 동네로 사람들과 함께 떠날 수 있어요', btn: '보기', lead: const ResIcon('hope', size: 22)));
+  }
+  return out;
+}
+
+Widget _dot(Color c) => Container(width: 10, height: 10, margin: const EdgeInsets.all(8), decoration: BoxDecoration(shape: BoxShape.circle, color: c));
+
 class MissionTape extends StatefulWidget {
-  const MissionTape(this.g, {super.key, required this.onLv, required this.onGo, required this.onPed, required this.onMig, required this.ping, this.onStories, this.onChoice, this.onDaily});
+  const MissionTape(this.g, {super.key, required this.onLv, required this.onTap, required this.onMore, required this.ping, this.moreOpen = false});
   final Game g;
-  final VoidCallback onLv, onGo, onPed, onMig;
+  final VoidCallback onLv, onMore;
 
-  /// '새 이야기 N' 배지 · '선택 기다림' 칩 (앱 전용 2026-10-20)
-  final VoidCallback? onStories, onChoice;
-
-  /// 첫 30분: '오늘의 할 일' 칩 (2026-10-23 UX — 일지 안쪽에 있어 처음엔 몰랐다)
-  final VoidCallback? onDaily;
-  final int ping; // 받기 버튼을 잠깐 흔든다 (웹 pingEl)
+  /// '지금' 줄을 눌렀을 때 (종류: claim · sqclaim · storm · choice · exp · goal · case · sq · tut)
+  final void Function(String k) onTap;
+  final bool moreOpen;
+  final int ping; // 받기 줄을 잠깐 흔든다 (웹 pingEl)
   @override
   State<MissionTape> createState() => _MissionTapeState();
 }
 
 class _MissionTapeState extends State<MissionTape> {
-  static bool open = false;
   Game get g => widget.g;
 
   /// 증축까지 얼마나 모였나 (웹 6270: 자재마다 모인 비율과 모듈 수 비율의 평균)
@@ -144,71 +272,35 @@ class _MissionTapeState extends State<MissionTape> {
     return parts.fold(0.0, (a, v) => a + v) / parts.length;
   }
 
-  /// 새 이야기 · 선택 기다림 (튜토리얼 동안은 없다)
-  List<Widget> _badges() {
-    if (g.tut != null) return const [];
-    final nq = widget.onStories == null ? 0 : g.qNew.length;
-    final ch = widget.onChoice != null && !choiceShowing && g.choiceView() != null;
-    if (nq == 0 && !ch && !_dailyChip) return const [];
-    return [
-      if (ch) _badge('선택 기다림', widget.onChoice!, Ttc.rust, const Color(0xFFFFF1E6)),
-      // 숫자가 커지면 오히려 손이 안 간다: '새 이야기'를 크게, 남은 수는 작게 (누르면 하나씩 바로 열림)
-      if (nq > 0) _badge('새 이야기', widget.onStories!, Ttc.amber, const Color(0xFF243039), more: nq > 1 ? '+${nq - 1}' : null),
-      if (_dailyChip) _badge('오늘의 할 일 ${g.dayList.where((x) => x.$4).length}/${g.dayList.length}', widget.onDaily!, const Color(0xFF3B4A55), const Color(0xFFF0E7D6)),
-    ];
-  }
-
-  /// 첫 30분 동안, 오늘의 할 일을 다 하기 전까지
-  bool get _dailyChip => widget.onDaily != null && g.num_('playT') < 1800 && g.dayList.isNotEmpty && !g.dayAllDone;
-
-  /// 지금 할 일 한 줄 (길잡이 화살표와 같은 말): 목표 글만으로는 무엇을 누를지 모를 때 (2026-10-23 UX)
-  String? get _now {
-    if (g.tut != null || g.mission().done) return null;
-    final t = guideTarget(g)?.label;
-    if (t != null && t.isNotEmpty && t != '쉘터' && t != '모듈') return t;
-    // 화살표가 쉘터·모듈만 가리킬 때는 이 걸음의 귀띔 (예: '밧줄은 작업대에서 천으로 만들어요')
-    final sub = g.mission().sub;
-    return sub.isEmpty ? null : uiWords(sub);
-  }
-
   @override
   Widget build(BuildContext context) {
-    final S = g.S, m = g.mission(), st = m.step, c = st == null ? null : chapters[st.ci];
-    final done = m.done, ready = S.lv < 5 && _lvFrac >= 1;
-    final fg = done ? const Color(0xFF252E36) : const Color(0xFFF0E7D6);
-    final chapC = done ? const Color(0xFF523D24) : Ttc.glow;
-    final tu = g.tut;
-    final chap = tu != null
-        ? [TextSpan(text: '그날 밤 ', style: Ttc.t(12, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${((tu['i'] as num?) ?? 0) + 1}/${tutSteps.length}  ', style: Ttc.t(12, color: chapC))]
-        : c != null
-        ? [TextSpan(text: '${c.ch} ', style: Ttc.t(12, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${st!.si + 1}/${c.steps.length}  ', style: Ttc.t(12, color: chapC))]
-        : m.s2
-        ? [TextSpan(text: '${g.s2StageName} ', style: Ttc.t(12, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${g.s2I + 1}/${g.s2StepCount}  ', style: Ttc.t(12, color: chapC))]
-        : m.reg
-        ? [TextSpan(text: '${g.reg?.n ?? ''} ', style: Ttc.t(12, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${g.rmi + 1}/${g.regionMis().length}  ', style: Ttc.t(12, color: chapC))]
-        : [TextSpan(text: '끝없는 불빛 ', style: Ttc.t(12, color: chapC, weight: FontWeight.w700)), TextSpan(text: '${(((S.rest['eg'] as Map?)?['i'] as num?) ?? 0) + 1}  ', style: Ttc.t(12, color: chapC))];
+    final S = g.S, m = g.mission();
+    final (k, txt) = tapeNow(g);
+    final claim = k == 'claim' || k == 'sqclaim', alarm = k == 'storm' || k == 'choice';
+    final ready = S.lv < 5 && _lvFrac >= 1;
+    // 쉘터 레벨 (작게) · 증축 막대는 굵게 (2026-11-03 대표님: 얇아서 안 보였다)
     final lvchip = GestureDetector(
       onTap: widget.onLv,
       child: Container(
-        constraints: BoxConstraints(minWidth: done ? 0 : 70, maxWidth: 96),
-        padding: done ? const EdgeInsets.symmetric(horizontal: 7, vertical: 4) : const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        constraints: const BoxConstraints(minWidth: 58, maxWidth: 80),
+        padding: const EdgeInsets.fromLTRB(7, 5, 7, 5),
         decoration: BoxDecoration(color: ready ? Ttc.amberBtn : Ttc.lvchip, borderRadius: BorderRadius.circular(7)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
           // 짧은 이름만 ('판잣집 쉘터' → '판잣집'), 그래도 길면 글자를 줄인다 (말줄임 없이)
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: Text(done ? 'Lv.${S.lv}' : 'Lv.${S.lv} ${shelterName[S.lv - 1].replaceAll(RegExp(r'\s*쉘터$'), '')}',
-                maxLines: 1, style: Ttc.t(11.5, color: ready ? const Color(0xFF243039) : Ttc.lvText, weight: FontWeight.w700, height: 1)),
+            child: Text('Lv.${S.lv} ${shelterName[S.lv - 1].replaceAll(RegExp(r'\s*쉘터$'), '')}',
+                maxLines: 1, style: Ttc.t(11, color: ready ? const Color(0xFF243039) : Ttc.lvText, weight: FontWeight.w700, height: 1)),
           ),
-          const SizedBox(height: 3),
+          const SizedBox(height: 4),
           if (ready)
-            Text('증축 가능 ›', style: Ttc.t(11, color: const Color(0xFF243039), weight: FontWeight.w700, height: 1))
+            Text('증축 가능 ›', style: Ttc.t(10.5, color: const Color(0xFF243039), weight: FontWeight.w700, height: 1))
           else
             Container(
-              width: 54,
-              height: 4,
-              decoration: BoxDecoration(color: const Color(0x2EF5EAD0), borderRadius: BorderRadius.circular(99)),
+              width: 48,
+              height: 7,
+              decoration: BoxDecoration(color: const Color(0x2EF5EAD0), borderRadius: BorderRadius.circular(99), border: Border.all(color: const Color(0x33F5EAD0), width: .6)),
               alignment: Alignment.centerLeft,
               child: FractionallySizedBox(
                 widthFactor: _lvFrac.clamp(0, 1).toDouble(),
@@ -218,146 +310,193 @@ class _MissionTapeState extends State<MissionTape> {
         ]),
       ),
     );
-    final chips = <Widget>[
-      ..._badges(),
-      if (g.pedHere) _chip('노친네', widget.onPed, const [Color(0xFF4A3A2A), Color(0xFF7A5A33)], const Color(0xFFF3E2B8), lead: pedFace()),
-      if (g.fireOn && g.warm != null)
-        hl('firechip', _chip('모닥불 ${g.warm!.round()}%', () => g.feedFire(), g.warmTier == 0 ? const [Color(0xFF2D3A45), Color(0xFF4B5D6B)] : const [Color(0xFF6B2F17), Color(0xFFC4652A)],
-            g.warmTier == 0 ? const Color(0xFFDFE8EF) : const Color(0xFFFFE9C7)), radius: 14),
-      if ((m.eg || m.go) && !done && g.canMigrate) _chip('새 동네로', widget.onMig, const [Color(0xFF6B3A1A), Color(0xFFB0452A)], const Color(0xFFFFE2A0), lead: const ResIcon('hope', size: 16)),
-    ];
-    return GestureDetector(
-      onTap: widget.onGo,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 9, top: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: done ? const Color(0xFFDFAA56) : Ttc.tape,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: done ? const Color(0xFFEFC883) : Ttc.line17, width: .8),
+    final (cn, cp) = tapeChap(g);
+    final head = switch (k) {
+      'tut' => '$cn $cp › ',
+      'claim' || 'sqclaim' => '받기 › ',
+      'storm' => '위기 › ',
+      'choice' => '선택 › ',
+      'exp' => '원정 › ',
+      'case' => '흔적 › ',
+      'sq' => '부탁 › ',
+      _ => '지금 › ',
+    };
+    final fg = claim ? const Color(0xFF252E36) : const Color(0xFFF0E7D6);
+    final headC = claim ? const Color(0xFF523D24) : alarm ? const Color(0xFFFFB4A0) : const Color(0xFFE8C77A);
+    // 두 줄 자리를 늘 잡아 둔다: 글이 한 줄↔두 줄로 바뀌어도 띠 높이(= 지도 크기)가 흔들리지 않게. 넘치면 줄바꿈 (말줄임 없음)
+    final line = ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 34),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text.rich(
+          TextSpan(children: [
+            TextSpan(text: head, style: Ttc.t(12.5, color: headC, weight: FontWeight.w700, height: 1.35)),
+            if (claim) TextSpan(text: '✓ ', style: Ttc.t(13, color: Ttc.rust, weight: FontWeight.w700, height: 1.35)),
+            TextSpan(text: txt, style: Ttc.t(13, color: fg, weight: FontWeight.w600, height: 1.35)),
+          ]),
         ),
-        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(children: [
-          Transform.translate(offset: const Offset(-3, 0), child: lvchip),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-              Text.rich(
-                TextSpan(children: [
-                  ...chap,
-                  if (done) TextSpan(text: '✓ ', style: Ttc.t(13, color: Ttc.rust, weight: FontWeight.w600)),
-                  TextSpan(text: m.txt, style: Ttc.t(13, color: fg, weight: FontWeight.w600, height: 1.4)),
-                  if (!done)
-                    WidgetSpan(
-                      alignment: PlaceholderAlignment.middle,
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => setState(() => open = !open),
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(6, 2, 4, 2),
-                          child: Transform.rotate(angle: open ? math.pi : 0, child: Text('▼', style: Ttc.t(9, color: const Color(0xFFC7CEC9)))),
-                        ),
-                      ),
-                    ),
-                ]),
-                maxLines: done ? 2 : (open ? 4 : 1),
-                overflow: TextOverflow.ellipsis,
+      ),
+    );
+    final n = tapeItems(g).length - 1;
+    final badge = g.tut != null
+        ? null
+        : GestureDetector(
+            key: const ValueKey('tapeMore'),
+            behavior: HitTestBehavior.opaque,
+            onTap: widget.onMore,
+            child: Container(
+              constraints: const BoxConstraints(minWidth: 44, minHeight: 36),
+              margin: const EdgeInsets.only(left: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 7),
+              decoration: BoxDecoration(
+                color: widget.moreOpen ? Ttc.tabOn : claim ? const Color(0x33252E36) : const Color(0xFF3B4A55),
+                borderRadius: BorderRadius.circular(9),
+                border: Border.all(color: widget.moreOpen ? Ttc.tabOnLine : Ttc.line20, width: .8),
               ),
-              if (!open && _now != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Text('지금 › $_now', maxLines: 1, overflow: TextOverflow.ellipsis, style: Ttc.t(12, color: const Color(0xFFE8C77A), weight: FontWeight.w600, height: 1.3)),
-                ),
-              if (open && !done)
-                Padding(
-                  padding: const EdgeInsets.only(top: 3),
-                  child: Text.rich(TextSpan(children: [
-                    if (c != null) TextSpan(text: '${c.ch} · ${c.title}', style: const TextStyle(fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)])),
-                    if (m.sub.isNotEmpty) TextSpan(text: '${c != null ? ' — ' : ''}${uiWords(m.sub)}'),
-                  ]), style: Ttc.t(13, color: const Color(0xFFD6DBD7), height: 1.5)),
-                ),
-            ]),
-          ),
-          // 받기 버튼만 오른쪽에 (목표 글자가 먼저 보이게 · 2026-10-20 칩은 아래 줄로)
-          if (done)
-            Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: _Shake(
-                ping: widget.ping,
-                child: hl(
-                  'claim',
-                  GestureDetector(
-                    onTap: () => g.claimMission(),
-                    child: Container(
-                      constraints: const BoxConstraints(minHeight: 36),
-                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                      decoration: BoxDecoration(color: const Color(0x26FFFFFF), borderRadius: BorderRadius.circular(6), border: Border.all(color: const Color(0xFF775A31))),
-                      child: Column(mainAxisSize: MainAxisSize.min, children: [
-                        Text('받기', style: Ttc.t(12.5, color: const Color(0xFF302C26), weight: FontWeight.w700, height: 1.1)),
-                        const SizedBox(height: 2),
-                        Row(mainAxisSize: MainAxisSize.min, children: [
-                          for (final e in m.rw.entries) ...[
-                            ResIcon(e.key, size: 12),
-                            Text('${e.value} ', style: Ttc.t(11.5, color: const Color(0xFF302C26), weight: FontWeight.w700, height: 1.1)),
-                          ],
-                        ]),
-                      ]),
-                    ),
+              child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
+                if (n > 0)
+                  Container(
+                    constraints: const BoxConstraints(minWidth: 20),
+                    height: 20,
+                    padding: const EdgeInsets.symmetric(horizontal: 5),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: Ttc.amber, borderRadius: BorderRadius.circular(99)),
+                    child: Text('$n', style: Ttc.t(12, color: const Color(0xFF243039), weight: FontWeight.w800, height: 1)),
                   ),
-                  radius: 6,
+                Padding(
+                  padding: EdgeInsets.only(left: n > 0 ? 4 : 0),
+                  child: Transform.rotate(angle: widget.moreOpen ? math.pi : 0, child: Text('▼', style: Ttc.t(10, color: claim ? const Color(0xFF3B2A1A) : const Color(0xFFC7CEC9), height: 1))),
                 ),
+              ]),
+            ),
+          );
+    // 모닥불 (살아 움직이는 눈금이라 띠 안에 작게): 누르면 장작을 넣는다
+    final fire = g.fireOn && g.warm != null
+        ? hl(
+            'firechip',
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => g.feedFire(),
+              child: Container(
+                margin: const EdgeInsets.only(left: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 6),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(99),
+                  gradient: LinearGradient(colors: g.warmTier == 0 ? const [Color(0xFF2D3A45), Color(0xFF4B5D6B)] : const [Color(0xFF6B2F17), Color(0xFFC4652A)]),
+                ),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  SvgPicture.string(Ico.flame, width: 13, height: 13),
+                  const SizedBox(width: 3),
+                  Text('${g.warm!.round()}%', style: Ttc.t(12, color: g.warmTier == 0 ? const Color(0xFFDFE8EF) : const Color(0xFFFFE9C7), weight: FontWeight.w700, height: 1)),
+                ]),
               ),
             ),
-        ]),
-          // 칩(선택 기다림·새 이야기·노친네·모닥불·새 동네로)은 목표 아래 한 줄로 (목표 글자가 잘리지 않게 · 2026-10-20)
-          if (chips.isNotEmpty)
+            radius: 14)
+        : null;
+    Widget tape = GestureDetector(
+      onTap: () => widget.onTap(k),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8, top: 4),
+        padding: const EdgeInsets.fromLTRB(7, 6, 6, 6),
+        decoration: BoxDecoration(
+          color: claim ? const Color(0xFFDFAA56) : alarm ? const Color(0xFF433438) : Ttc.tape,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: claim ? const Color(0xFFEFC883) : alarm ? const Color(0xFFAB5145) : Ttc.line17, width: .8),
+        ),
+        child: Row(children: [
+          lvchip,
+          const SizedBox(width: 8),
+          Expanded(child: line),
+          // 받을 보상 (받기 줄의 오른쪽 끝)
+          if (k == 'claim')
             Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Wrap(alignment: WrapAlignment.end, spacing: 6, runSpacing: 4, children: chips),
+              padding: const EdgeInsets.only(left: 6),
+              child: Wrap(spacing: 2, runSpacing: 2, crossAxisAlignment: WrapCrossAlignment.center, children: [
+                for (final e in m.rw.entries)
+                  Row(mainAxisSize: MainAxisSize.min, children: [
+                    ResIcon(e.key, size: 13),
+                    Text('${e.value}', style: Ttc.t(11.5, color: const Color(0xFF302C26), weight: FontWeight.w700, height: 1.1)),
+                  ]),
+              ]),
             ),
+          if (fire != null) fire,
+          if (badge != null) badge,
         ]),
       ),
     );
-
+    if (claim) tape = _Shake(ping: widget.ping, child: hl('claim', tape, radius: 8));
+    return tape;
   }
 }
 
-/// 이야기 띠 아래 줄의 작은 배지
-Widget _badge(String t, VoidCallback onTap, Color bg, Color fg, {String? more}) => GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(99)),
-        child: Text.rich(
-            TextSpan(children: [
-              TextSpan(text: t),
-              if (more != null) TextSpan(text: ' $more', style: Ttc.t(11, color: fg.withValues(alpha: .7), weight: FontWeight.w600, height: 1)),
-            ]),
-            maxLines: 1,
-            softWrap: false,
-            style: Ttc.t(12.5, color: fg, weight: FontWeight.w700, height: 1)),
+/// 배지를 누르면 띠 아래로 펼쳐지는 목록 (지도 위에 떠 있어 지도 크기는 그대로)
+class TapePanel extends StatelessWidget {
+  const TapePanel(this.g, {super.key, required this.onItem});
+  final Game g;
+  final void Function(String k) onItem;
+  @override
+  Widget build(BuildContext context) {
+    final items = tapeItems(g);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+      decoration: BoxDecoration(
+        color: Ttc.header,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Ttc.line25),
+        boxShadow: const [BoxShadow(color: Color(0x99000000), blurRadius: 22, offset: Offset(0, 10))],
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: math.max(160.0, MediaQuery.of(context).size.height * .55)),
+        child: SingleChildScrollView(
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            for (final it in items) _row(it),
+          ]),
+        ),
       ),
     );
+  }
+
+  Widget _row(TapeItem it) => GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => onItem(it.k),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 6),
+          padding: const EdgeInsets.fromLTRB(6, 7, 8, 7),
+          constraints: const BoxConstraints(minHeight: 48),
+          decoration: BoxDecoration(
+            color: it.k == 'goal' ? Ttc.tape : const Color(0xFF29333D),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: it.hot ? Ttc.amber : Ttc.line17, width: it.hot ? 1.2 : .8),
+          ),
+          child: Row(children: [
+            SizedBox(width: 28, child: Center(child: it.lead)),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                if (it.tag.isNotEmpty) Text(it.tag, style: Ttc.t(11.5, color: Ttc.glow, weight: FontWeight.w700, height: 1.3)),
+                Text(it.title, style: Ttc.t(13.5, color: const Color(0xFFF0E7D6), weight: FontWeight.w700, height: 1.35)),
+                if (it.sub.isNotEmpty) Text(it.sub, style: Ttc.t(12, color: const Color(0xFFC9D0CB), height: 1.4)),
+              ]),
+            ),
+            if (it.btn != null) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: it.hot ? Ttc.amber : Colors.transparent,
+                  borderRadius: BorderRadius.circular(7),
+                  border: Border.all(color: it.hot ? const Color(0x73252E36) : Ttc.line25),
+                ),
+                child: Text(it.btn!, style: Ttc.t(12.5, color: it.hot ? const Color(0xFF252E36) : const Color(0xFFE7E4DC), weight: FontWeight.w700, height: 1.2)),
+              ),
+            ],
+          ]),
+        ),
+      );
+}
 
 /// 게임 데이터의 옛 이름('미션')을 화면에서만 지금 이름('이야기')으로
 String uiWords(String s) => s.replaceAll('미션을 눌러', '이야기 띠를 눌러').replaceAll('미션 띠', '이야기 띠').replaceAll('미션', '이야기');
-
-Widget _chip(String t, VoidCallback onTap, List<Color> bg, Color fg, {Widget? lead}) => GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(99),
-          gradient: LinearGradient(colors: bg),
-          boxShadow: const [BoxShadow(color: Color(0x66B0452A), blurRadius: 8, offset: Offset(0, 2))],
-        ),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          if (lead != null) ...[lead, const SizedBox(width: 5)],
-          Text(t, style: Ttc.t(12.5, color: fg, weight: FontWeight.w700, height: 1)),
-        ]),
-      ),
-    );
 
 class _Shake extends StatefulWidget {
   const _Shake({required this.ping, required this.child});
