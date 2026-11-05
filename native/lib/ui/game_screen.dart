@@ -1160,6 +1160,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       case 'case':
         DiaryBody.tab = 'case';
         if (sheet?.kind != 'diary') _open(const SheetSpec('diary'));
+      case 'trace':
+        final L = g.s2TraceTiles;
+        if (L.isEmpty) return;
+        _close();
+        _flyTo(L.first);
+        fxc.toast('반짝이는 곳을 눌러 살펴봐요');
       default:
         _goMission();
     }
@@ -1181,6 +1187,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         _sqGo();
       case 'case':
         _tapeTap('case');
+      case 'trace':
+        _tapeTap('trace');
       case 'daily':
         _openDaily();
       case 'ped':

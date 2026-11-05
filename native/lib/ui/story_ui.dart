@@ -152,6 +152,9 @@ int tapeExpBack(Game g) {
 /// 시즌 2 아침의 흔적: 사건 수첩에 새로 적힌 것이 있나
 bool tapeTrace(Game g) => g.s2On && g.S.rest['caseNew'] != null && g.s2Traces.isNotEmpty;
 
+/// 시즌 2 아침의 흔적: 지도에서 아직 반짝이는 것이 있나
+bool tapeTraceMap(Game g) => g.s2On && g.s2TraceTiles.isNotEmpty;
+
 /// '지금' 줄에 올릴 것 (종류, 글). 우선순위: 받을 보상 → 위기(대형 재폭풍 · 정답 없는 선택) → 돌아온 원정(시즌 2)
 /// → 장 목표의 다음 걸음 → 아침의 흔적(시즌 2) → 생존자의 부탁. 아무것도 없으면 장 목표 글 그대로
 (String, String) tapeNow(Game g) {
@@ -176,6 +179,7 @@ bool tapeTrace(Game g) => g.s2On && g.S.rest['caseNew'] != null && g.s2Traces.is
   }
   final st = tapeStep(g);
   if (st != null) return ('goal', st);
+  if (tapeTraceMap(g)) return ('trace', '지도에 아침의 흔적이 반짝여요 · 눌러서 살펴봐요');
   if (tapeTrace(g)) return ('case', '아침의 흔적이 사건 수첩에 적혔어요');
   if (q != null && t0 != null) {
     final n = ((q['n'] as num?) ?? 1).toInt();
@@ -234,6 +238,7 @@ List<TapeItem> tapeItems(Game g) {
           child: hasWho ? Portrait(who, width: 26, height: 31) : null,
         )));
   }
+  if (tapeTraceMap(g)) out.add(TapeItem('trace', '아침의 흔적', tag: '지도', sub: '밤사이 남은 흔적이 반짝여요', btn: '찾기', lead: _dot(const Color(0xFFFFE678))));
   if (tapeTrace(g)) out.add(TapeItem('case', '아침의 흔적', tag: '사건 수첩', sub: '밤사이 남은 흔적을 적어 뒀어요', btn: '보기', lead: _dot(const Color(0xFFC9A46A))));
   if (g.dayOn && g.dayList.isNotEmpty && !g.dayAllDone) {
     out.add(TapeItem('daily', '오늘의 할 일 ${g.dayList.where((x) => x.$4).length}/${g.dayList.length}', tag: '일지', sub: '셋을 다 하면 연속 보상', btn: '보기', lead: _dot(const Color(0xFFDFA54B))));
@@ -317,7 +322,7 @@ class _MissionTapeState extends State<MissionTape> {
       'storm' => '위기 › ',
       'choice' => '선택 › ',
       'exp' => '원정 › ',
-      'case' => '흔적 › ',
+      'case' || 'trace' => '흔적 › ',
       'sq' => '부탁 › ',
       _ => '지금 › ',
     };

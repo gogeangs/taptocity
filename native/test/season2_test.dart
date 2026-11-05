@@ -55,7 +55,7 @@ void main() {
     final g = _load();
     final gen0 = g.S.gen;
     final log = <String>[];
-    var rounds = 0;
+    var rounds = 0, builds = 0;
     while (!g.s2Done && rounds++ < 400) {
       g.s2TickIntro();
       _drain(g, log);
@@ -73,6 +73,13 @@ void main() {
         _drain(g, log);
         continue;
       }
+      // 공사 걸음: 실제 시간이 지나야 끝난다 (렌즈 공사 1시간, 재혁이 있으면 42분)
+      final at = g.s2BuildAt;
+      if (at != null) {
+        if (builds++ == 0) expect((at - Game.nowMs()) / 60000, closeTo(42, .1));
+        g.s2F['bAt'] = Game.nowMs() - 1;
+        continue;
+      }
       // 걸음 조건을 채운다
       for (final id in g.s2Missing) {
         g.s2Call(id);
@@ -87,6 +94,7 @@ void main() {
       _drain(g, log);
     }
     expect(g.s2Done, isTrue, reason: '마지막 컷에 닿지 못함 (${g.s2St}.${g.s2I}) · $log');
+    expect(builds, 1, reason: '렌즈 공사');
     expect(g.S.gen, gen0 + 4);
     expect(g.S.region, 'plant');
     expect(townName(gen0 + 1), '얼어붙은 저수지 둑');
@@ -183,5 +191,49 @@ void main() {
     g.s2SetRule('ration', 'work');
     expect(g.s2Rule['ration'], 'work');
     expect(g.prod['food'] ?? 0, greaterThanOrEqualTo(p0));
+  });
+
+  test('아침의 흔적: 지도에 반짝이고, 누르면 수첩에 적힌다', () {
+    Game.tutFlag = true;
+    final g = _load();
+    final log = <String>[];
+    for (var r = 0; r < 60 && g.s2St < 1; r++) {
+      g.s2TickIntro();
+      _drain(g, log);
+      final m = g.mission();
+      if (m.go) {
+        g.migrate(g.svIds.toList());
+      } else if (m.done) {
+        g.claimMission();
+      } else {
+        for (final id in g.s2Missing) {
+          g.s2Call(id);
+        }
+        _night(g);
+      }
+      _drain(g, log);
+    }
+    expect(g.S.region, 'reservoir');
+    final n0 = g.s2Traces.length;
+    g.S.rest.remove('caseNew');
+    g.s2F['aired'] = 1;
+    _night(g);
+    final L = g.s2TraceTiles;
+    expect(L, isNotEmpty, reason: '방송 밤 다음 아침에 반짝이는 흔적');
+    expect(g.s2Traces.length, greaterThan(n0));
+    for (final i in L) {
+      expect(g.S.rev[i], 1, reason: '밝힌 땅 위');
+      expect(i == C0, isFalse);
+    }
+    expect(g.S.rest['caseNew'], isNull, reason: '누르기 전에는 수첩에 적히지 않음');
+    expect(g.s2SeeTrace(L.first), isTrue);
+    expect(g.s2TraceTiles.length, L.length - 1);
+    expect(g.S.rest['caseNew'], 1);
+    expect(g.s2SeeTrace(L.first), isFalse, reason: '두 번 적히지 않음');
+    // 동네를 떠나면 못 본 흔적은 그대로 수첩에
+    if (g.s2TraceTiles.isNotEmpty) {
+      g.s2Traces.whereType<Map>().forEach((t) => t['seen'] ??= 1);
+    }
+    expect(g.s2TraceTiles, isEmpty);
   });
 }

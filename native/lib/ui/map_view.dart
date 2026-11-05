@@ -197,6 +197,18 @@ class _MapViewState extends State<MapView> {
       widget.fxLayer.pull(g);
       return;
     }
+    // 시즌 2 아침의 흔적: 반짝이는 자리를 누르면 한 줄 카드 + 수첩에 적기
+    if (widget.onPlace == null && g.s2On) {
+      for (final ti in g.s2TraceTiles) {
+        if ((toScreen(tileC(ti, 14)) - p.pos).distance < math.max(30.0, 30 * cam.z)) {
+          p.acted = true;
+          _press(p.pos, 0xFFFFE678, buzz: false);
+          g.s2SeeTrace(ti);
+          widget.fxLayer.pull(g);
+          return;
+        }
+      }
+    }
     // 대형 재폭풍: 두드리면 가까운 괴물, 누르고 있으면 연타, 문지르면 베기
     if (g.defn != null) {
       p.acted = true;
@@ -630,6 +642,7 @@ class MapPainter extends CustomPainter {
       }
     }
     _crowMarks(canvas);
+    _s2TraceMarks(canvas);
     if (g.sel >= 0) {
       final c = tileC(g.sel);
       _line
@@ -648,6 +661,28 @@ class MapPainter extends CustomPainter {
   }
 
   /// 등불 탑 (웹 towerDraw 5124): 쉘터 왼쪽의 철골 탑, 4단계부터 렌즈, 불이 켜지면 하늘로 빛줄기
+  /// 시즌 2 아침의 흔적: 밝힌 땅 위 작은 반짝임 (하늘이가 있으면 더 크게 · 수치 문서 7절)
+  void _s2TraceMarks(Canvas canvas) {
+    if (!g.s2On) return;
+    final big = g.hasSv(3) && !g.isDead(3);
+    for (final i in g.s2TraceTiles) {
+      if (i < 0 || i >= g.S.rev.length || g.S.rev[i] != 1) continue;
+      final p = P(i, .5, .5, 14), k = big ? 1.6 : 1.0, r = 7 * k;
+      _glows.add((p, 26 * k, const Color(0xFFFFE678), .75));
+      _line
+        ..color = const Color(0xF2FFF1B0)
+        ..strokeWidth = 2 * k;
+      canvas.drawLine(p.translate(-r, 0), p.translate(r, 0), _line);
+      canvas.drawLine(p.translate(0, -r * 1.3), p.translate(0, r * 1.3), _line);
+      _line.strokeWidth = 1.2 * k;
+      final d = r * .45;
+      canvas.drawLine(p.translate(-d, -d), p.translate(d, d), _line);
+      canvas.drawLine(p.translate(-d, d), p.translate(d, -d), _line);
+      _fill.color = const Color(0xFFFFFBEA);
+      canvas.drawCircle(p, 2.2 * k, _fill);
+    }
+  }
+
   /// 까마귀가 남긴 검은 새 표식 (웹 towerDraw 덮어쓰기)
   void _crowMarks(Canvas canvas) {
     final p = Paint()..color = const Color(0xCC141216);

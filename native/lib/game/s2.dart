@@ -172,7 +172,7 @@ Line _keeper(String t, {String? me}) => Line(30, t, fb: Line(31, t, fb: Line(32,
 
 /// 시즌 2 한 걸음
 class S2Step {
-  const S2Step(this.goal, this.hint, this.done, {this.intro, this.outro, this.rw = const {}, this.cost, this.go, this.k});
+  const S2Step(this.goal, this.hint, this.done, {this.intro, this.outro, this.rw = const {}, this.cost, this.go, this.k, this.build, this.buildName});
   final String goal, hint;
   final bool Function(Game g) done;
   final List<Line> Function(Game g)? intro, outro;
@@ -186,6 +186,11 @@ class S2Step {
 
   /// 받은 뒤 할 일 (아침 사건 예약 등)
   final String? k;
+
+  /// 공사 걸음: 자재를 내고 시작하면 실제 시간(분)이 지나야 끝난다 (렌즈 공사 · 수치 문서 10절).
+  /// 시작할 때 intro 대사, 끝나고 받을 때 outro 대사.
+  final int? build;
+  final String? buildName;
 }
 
 /// 시즌 2 사건 창이 고른 뒤 띄울 선택 (마을 회의)
@@ -309,11 +314,39 @@ extension Season2 on Game {
   Mission? get s2Mission {
     final m = s2Step;
     if (m == null) return null;
+    if (m.build != null) {
+      final nm = m.buildName ?? '공사';
+      final at = s2BuildAt;
+      if (at == null) {
+        return Mission('$nm 시작 · ${m.goal}', m.cost == null || canPay(m.cost!), const {}, '자재가 모이면 눌러 공사를 시작해요 · ${s2BuildMin(m)}분 걸려요 · 앱을 꺼 둬도 이어져요', s2: true);
+      }
+      final left = (at - Game.nowMs()) / 1000;
+      if (left > 0) return Mission('$nm 중 · ${mmss(left)} 남음', false, m.rw, '공사가 끝나면 받기를 눌러요 · 앱을 꺼 둬도 이어져요', s2: true);
+      return Mission('$nm 끝 · 빛을 이어요', true, m.rw, m.hint, s2: true);
+    }
     final done = m.go == null && m.done(this) && (m.cost == null || canPay(m.cost!));
     return Mission(m.goal, done, m.rw, m.hint, s2: true, go: m.go != null);
   }
 
   String get s2StageName => _s2Tag;
+
+  /// 공사 걸음이 끝나는 때 (실제 시각 ms). 시작 전이면 null
+  int? get s2BuildAt => s2F['bK'] == s2St * 100 + s2I ? (s2F['bAt'] as num?)?.toInt() : null;
+
+  /// 공사에 걸리는 분: 재혁이 있으면 −30% (렌즈 공사 1시간 → 42분)
+  int s2BuildMin(S2Step m) => hasSv(9) && !isDead(9) ? (m.build! * .7).round() : m.build!;
+
+  /// 공사 시작 (자재를 내고 시작 대사)
+  void _s2BuildStart(S2Step m) {
+    if (m.cost != null && !pay(m.cost!)) return;
+    s2F['bK'] = s2St * 100 + s2I;
+    s2F['bAt'] = Game.nowMs() + s2BuildMin(m) * 60000;
+    final L = m.intro?.call(this) ?? const <Line>[];
+    if (L.isNotEmpty) talk(L, tag: _s2Tag, goal: m.goal);
+    fx.add(FxNote('${m.buildName ?? '공사'} 시작', '${s2BuildMin(m)}분 걸려요 · 앱을 꺼 둬도 이어져요', ms: 5000));
+    dirty = true;
+    _changed();
+  }
   int get s2StepCount => s2Steps(s2St).length;
 
   /// 다음 새벽까지 남은 시간 '1:23' (무전으로 부른 사람이 도착하는 때)
@@ -343,7 +376,8 @@ extension Season2 on Game {
     if (((s2['iI'] as num?) ?? -1) == key) return false;
     s2['iI'] = key;
     dirty = true;
-    final L = m.intro?.call(this) ?? const <Line>[];
+    // 공사 걸음은 시작할 때 대사가 나온다
+    final L = m.build != null ? const <Line>[] : m.intro?.call(this) ?? const <Line>[];
     if (L.isNotEmpty) {
       talk(L, tag: _s2Tag, goal: m.goal);
     } else {
@@ -355,7 +389,16 @@ extension Season2 on Game {
   void claimS2() {
     final m = s2Step;
     if (m == null || m.go != null) return;
-    if (m.cost != null) {
+    if (m.build != null) {
+      final at = s2BuildAt;
+      if (at == null) {
+        _s2BuildStart(m);
+        return;
+      }
+      if (Game.nowMs() < at) return;
+      s2F.remove('bK');
+      s2F.remove('bAt');
+    } else if (m.cost != null) {
       if (!pay(m.cost!)) return;
     }
     s2['i'] = s2I + 1;
@@ -529,6 +572,7 @@ extension Season2 on Game {
   // ================= 무대 이동 =================
   /// 이주(region.dart migrate)가 다음 무대 동네에 막 도착했을 때
   void _s2Arrive(int g, String region) {
+    _s2TracesFlush();
     final gs = (s2['gens'] is Map) ? s2['gens'] as Map : (s2['gens'] = <String, Object?>{});
     gs['$g'] = region;
     s2Sync();
@@ -875,20 +919,75 @@ extension Season2 on Game {
     return s2['traces'] as List;
   }
 
-  /// 방송 밤 다음 아침: 작은 흔적 (밤 당번을 세우지 않았으면 둘)
+  /// 수첩에 적힌 흔적인가 (지도에서 누르기 전에는 반짝임으로만 남는다. 예전 저장본의 흔적은 자리가 없어 적힌 것으로)
+  static bool s2TraceSeen(Map m) => m['at'] == null || m['seen'] != null;
+
+  /// 지도에서 반짝이는 흔적 자리
+  List<int> get s2TraceTiles => [for (final t in s2Traces) if (t is Map && !s2TraceSeen(t)) (t['at'] as num).toInt()];
+
+  /// 흔적을 놓을 자리: 탑 빛 안쪽, 쉘터·건물·폐허가 아닌 밝힌 땅
+  int _s2TraceTile() {
+    final taken = s2TraceTiles.toSet();
+    final c = [
+      for (var i = 0; i < N; i++)
+        if (S.rev[i] == 1 && i != C0 && !taken.contains(i) && dist(i) >= 1.5 && dist(i) <= s2LightR + .01 && modAtTile(i) == null && !siteLive(i) && !S.camp.containsKey(i) && S.ter[i] != T.lm && S.ter[i] != T.water) i
+    ];
+    return c.isEmpty ? -1 : c[rnd.nextInt(c.length)];
+  }
+
+  /// 방송 밤 다음 아침: 작은 흔적 (밤 당번을 세우지 않았으면 둘). 지도 위에 반짝이고, 누르면 수첩에 적힌다
   void _s2Morning() {
     if (s2F['aired'] != 1) return;
     s2F.remove('aired');
-    if (s2Traces.isEmpty) fx.add(const FxNote('아침의 흔적', '아침에 남은 흔적은 사건 수첩에 쌓여요.', ms: 5000));
+    final first = s2Traces.isEmpty;
     final n = s2Rule['watch'] == 'none' ? 2 : 1;
+    var onMap = 0;
     for (var k = 0; k < n; k++) {
       final used = {for (final t in s2Traces) (t as Map)['k']};
       final left = [for (final t in _s2Traces) if (!used.contains(t.$1)) t];
       final t = (left.isEmpty ? _s2Traces : left)[rnd.nextInt((left.isEmpty ? _s2Traces : left).length)];
-      s2Traces.add(<String, Object?>{'k': t.$1, 't': t.$2, 'n': num_('nights'), 'r': regions[S.region]?.n ?? ''});
-      fx.add(FxNote(hasSv(3) ? '아침의 흔적 · 하늘이가 먼저 봤어요' : '아침의 흔적', '${t.$2}\n사건 수첩에 적었어요', ms: 6000));
+      final at = _s2TraceTile();
+      s2Traces.add(<String, Object?>{'k': t.$1, 't': t.$2, 'n': num_('nights'), 'r': regions[S.region]?.n ?? '', if (at >= 0) 'at': at});
+      if (at >= 0) {
+        onMap++;
+      } else {
+        fx.add(FxNote('아침의 흔적', '${t.$2}\n사건 수첩에 적었어요', ms: 6000));
+        S.rest['caseNew'] = 1;
+      }
     }
-    S.rest['caseNew'] = 1;
+    if (onMap > 0) {
+      final who = hasSv(3) ? '하늘이가 먼저 봤어요. ' : '';
+      fx.add(FxNote('아침의 흔적', '$who지도에 반짝이는 곳이 ${onMap > 1 ? '두 군데 ' : ''}있어요 · 눌러서 살펴봐요${first ? '\n살펴본 흔적은 사건 수첩에 쌓여요' : ''}', ms: 6500));
+    }
+    _changed();
+  }
+
+  /// 지도에서 흔적을 눌렀다: 한 줄 카드 + 수첩에 적기
+  bool s2SeeTrace(int tile) {
+    for (final t in s2Traces) {
+      if (t is Map && !s2TraceSeen(t) && (t['at'] as num).toInt() == tile) {
+        t['seen'] = 1;
+        S.rest['caseNew'] = 1;
+        sfx('chime');
+        fx.add(FxNote('아침의 흔적 · ${t['k']}', '${t['t']}\n사건 수첩에 적었어요', ms: 6500));
+        dirty = true;
+        _changed();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// 동네를 떠날 때 못 본 흔적은 그대로 수첩에 (자리는 새 지도에서 의미가 없다)
+  void _s2TracesFlush() {
+    var any = false;
+    for (final t in s2Traces) {
+      if (t is Map && !s2TraceSeen(t)) {
+        t['seen'] = 1;
+        any = true;
+      }
+    }
+    if (any) S.rest['caseNew'] = 1;
   }
 
   // ---------- 등불망: 이어진 동네에서 마을 하루에 한 번 특산품 ----------
@@ -1290,8 +1389,10 @@ extension Season2 on Game {
                   Line(33, '보고서 같은 게 하나 있어요. 사고 보고서요. 날짜가 아주 오래됐어요. 피해자 이름은 다 지워져 있고요.', fb: Line(9, '사고 보고서예요. 중단 직전 겨울 거예요. 피해자 이름은… 지워져 있어요.')),
                   Line(9, '…중단 직전 겨울이에요.', cond: 'sv33'),
                 ]),
-        S2Step('렌즈 공사 · 철판 20 · 전선 8', '자재가 모이면 받기를 눌러요', (g) => true,
+        S2Step('철판 20 · 전선 8', '렌즈가 다 끼워졌어요 · 받기를 눌러요', (g) => true,
             cost: const {'plate': 20, 'wire': 8},
+            build: 60,
+            buildName: '렌즈 공사',
             rw: const {'batt': 1},
             k: 'jh',
             intro: (g) {

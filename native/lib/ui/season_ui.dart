@@ -636,7 +636,7 @@ List<Widget> casesTab(BuildContext context, Game g) {
     out.add(_entry('수첩 마지막 장', g.s2Notes.join('\n')));
   }
   // 시즌 2: 아침의 흔적 (방송 밤 다음 아침)
-  final T2 = g.s2On ? g.s2Traces : const [];
+  final T2 = g.s2On ? [for (final t in g.s2Traces) if (t is Map && Season2.s2TraceSeen(t)) t] : const [];
   if (T2.isNotEmpty) {
     out.add(sec('아침의 흔적', '${T2.length}개'));
     for (final o in T2) {

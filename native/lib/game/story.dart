@@ -490,7 +490,7 @@ extension Story on Game {
       claimS2();
       misDoneAt = 0;
       misNudged = false;
-      fx.add(FxToast('보상: ${lootText(got)}'));
+      if (m.rw.isNotEmpty) fx.add(FxToast('보상: ${lootText(got)}'));
       recalc();
       _changed();
       return;
