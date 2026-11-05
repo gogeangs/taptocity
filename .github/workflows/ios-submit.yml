@@ -1,0 +1,35 @@
+# App Store 심사 제출 (손으로 실행). 버전을 만들고 빌드·'새로운 기능'(ios/store/metadata/ko/release_notes.txt)을 붙인다.
+# submit=true일 때만 실제로 제출한다. 제출은 대표님이 정한 뒤에만.
+name: iOS submit
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '버전 (예: 2.0.1)'
+        required: true
+      build:
+        description: '빌드 번호 (예: 108)'
+        required: true
+      submit:
+        description: 'true면 심사 제출, false면 준비까지만'
+        default: 'false'
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: 준비
+        run: pip install --quiet pyjwt cryptography requests
+      - name: 버전·빌드·제출
+        env:
+          V: ${{ inputs.version }}
+          B: ${{ inputs.build }}
+          S: ${{ inputs.submit == 'true' && 'submit' || '' }}
+        run: cd ios/store && python3 asc_submit.py "$V" "$B" $S
