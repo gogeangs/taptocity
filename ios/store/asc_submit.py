@@ -19,6 +19,15 @@ def main():
     submit = len(sys.argv) > 3 and sys.argv[3] == "submit"
     aid = call("GET", f"/v1/apps?filter[bundleId]={BUNDLE}")["data"][0]["id"]
 
+    # cancel: 심사 대기 중인 제출을 거둔다 (버전은 다시 고칠 수 있는 상태로)
+    if len(sys.argv) > 3 and sys.argv[3] == "cancel":
+        n = 0
+        for st in ("WAITING_FOR_REVIEW", "IN_REVIEW", "UNRESOLVED_ISSUES"):
+            for s in call("GET", f"/v1/reviewSubmissions?filter[app]={aid}&filter[platform]=IOS&filter[state]={st}&limit=5")["data"]:
+                call("PATCH", f"/v1/reviewSubmissions/{s['id']}", {"data": {"type": "reviewSubmissions", "id": s["id"], "attributes": {"canceled": True}}})
+                print("제출 취소", s["id"], st); n += 1
+        print(f"::notice title=취소::심사 제출 {n}건 취소"); return
+
     # 빌드
     bs = call("GET", f"/v1/builds?filter[app]={aid}&filter[version]={num}&filter[preReleaseVersion.version]={ver}&limit=5")["data"]
     if not bs:

@@ -12,7 +12,7 @@ on:
         description: '빌드 번호 (예: 108)'
         required: true
       submit:
-        description: 'true면 심사 제출, false면 준비까지만'
+        description: 'true면 심사 제출, false면 준비까지만, cancel이면 심사 대기 중인 제출 취소'
         default: 'false'
 
 jobs:
@@ -31,5 +31,5 @@ jobs:
         env:
           V: ${{ inputs.version }}
           B: ${{ inputs.build }}
-          S: ${{ inputs.submit == 'true' && 'submit' || '' }}
+          S: ${{ inputs.submit == 'true' && 'submit' || inputs.submit == 'cancel' && 'cancel' || '' }}
         run: cd ios/store && python3 asc_submit.py "$V" "$B" $S
