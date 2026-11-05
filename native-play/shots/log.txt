@@ -3,5 +3,6 @@
 ✅ /home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart: 화면 사진
 ✅ /home/runner/work/taptocity/taptocity/native/test_screens/screens_test.dart: 화면 사진 · 앱 전용 화면과 좁은 폰
 ✅ /home/runner/work/taptocity/taptocity/native/test_screens/qa_ui_test.dart: 모든 화면 훑기
+QA-UI: 화면 394개를 열어 봄 · 문제 0종
 
 🎉 4 tests passed.
