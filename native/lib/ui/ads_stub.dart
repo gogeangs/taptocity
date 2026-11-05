@@ -7,6 +7,8 @@ class Ads {
   Ads._();
   static bool get on => false;
   static Future<void> init() async {}
+  static bool privacyNeeded = false;
+  static Future<void> privacyForm() async {}
   static Future<void> wayAndAd(BuildContext context, String line) async {}
   static Future<bool> rewarded(BuildContext context, Game g) async => false;
 }

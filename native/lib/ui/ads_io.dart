@@ -36,6 +36,30 @@ class Ads {
       _loadI();
       _loadR();
     } catch (_) {}
+    // 유럽 사용자: 설정에 '광고 동의 다시 고르기'를 둘지 (동의 창은 여기서 띄우지 않는다 · 첫 광고 직전에)
+    try {
+      ConsentInformation.instance.requestConsentInfoUpdate(ConsentRequestParameters(), () => unawaited(_privacyCheck()), (_) {});
+    } catch (_) {}
+  }
+
+  /// 설정에 '광고 동의 다시 고르기'가 필요한가 (유럽 경제 지역·영국 · AdMob 유럽 규정 메시지)
+  static bool privacyNeeded = false;
+
+  static Future<void> _privacyCheck() async {
+    try {
+      privacyNeeded = await ConsentInformation.instance.getPrivacyOptionsRequirementStatus() == PrivacyOptionsRequirementStatus.required;
+    } catch (_) {}
+  }
+
+  /// 구글 광고 동의 창을 다시 연다
+  static Future<void> privacyForm() async {
+    final done = Completer<void>();
+    try {
+      ConsentForm.showPrivacyOptionsForm((_) {
+        if (!done.isCompleted) done.complete();
+      });
+      await done.future.timeout(const Duration(minutes: 5), onTimeout: () {});
+    } catch (_) {}
   }
 
   static void _loadI() {
@@ -98,6 +122,7 @@ class Ads {
       final done = Completer<void>();
       ConsentInformation.instance.requestConsentInfoUpdate(ConsentRequestParameters(), () {
         ConsentForm.loadAndShowConsentFormIfRequired((e) {
+          unawaited(_privacyCheck());
           if (!done.isCompleted) done.complete();
         });
       }, (e) {

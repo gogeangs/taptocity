@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../game/data.dart';
 import '../game/engine.dart';
+import 'ads.dart';
 import 'atlas.dart';
 import 'cloud_ui.dart';
 import 'daily_ui.dart';
@@ -740,6 +741,7 @@ class _SettingsBodyState extends State<SettingsBody> {
       _row('피드백 보내기', '버그·제안·소감, 무엇이든 개발자에게 바로 전해져요', _ghost('쓰기', () => showFeedback(context, g))),
       // 웹 설정과 같이 (App Store 심사 전 2026-10-20)
       _row('개인정보 처리방침', '진행은 기기와 클라우드에 저장돼요 · 광고는 동네를 옮길 때와 원할 때만', _ghost('보기', () => launchUrl(Uri.parse('https://gogeangs.github.io/taptocity/privacy.html'), mode: LaunchMode.externalApplication))),
+      if (Ads.privacyNeeded) _row('광고 동의 다시 고르기', '맞춤 광고에 쓰는 정보 동의를 언제든 바꿀 수 있어요', _ghost('바꾸기', () => Ads.privacyForm())),
       for (final (k, n, d) in const [
         ('mus', '음악', '낮과 밤, 재폭풍, 심야 방송에 맞춰 흐르는 배경 음악'),
         ('snd', '소리', '두드리기, 자재 줍기, 라디오 잡음 같은 효과음'),
