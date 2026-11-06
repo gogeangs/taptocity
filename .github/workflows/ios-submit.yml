@@ -31,5 +31,5 @@ jobs:
         env:
           V: ${{ inputs.version }}
           B: ${{ inputs.build }}
-          S: ${{ inputs.submit == 'true' && 'submit' || inputs.submit == 'cancel' && 'cancel' || '' }}
+          S: ${{ inputs.submit == 'true' && 'submit' || inputs.submit == 'cancel' && 'cancel' || inputs.submit == 'status' && 'status' || '' }}
         run: cd ios/store && python3 asc_submit.py "$V" "$B" $S

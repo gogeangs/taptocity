@@ -19,6 +19,16 @@ def main():
     submit = len(sys.argv) > 3 and sys.argv[3] == "submit"
     aid = call("GET", f"/v1/apps?filter[bundleId]={BUNDLE}")["data"][0]["id"]
 
+    # status: 버전·심사 제출 상태만 읽는다
+    if len(sys.argv) > 3 and sys.argv[3] == "status":
+        for v in call("GET", f"/v1/apps/{aid}/appStoreVersions?filter[platform]=IOS&limit=5")["data"]:
+            a = v["attributes"]
+            print("버전", a["versionString"], a.get("appStoreState"), a.get("appVersionState"), a.get("createdDate"))
+        for s in call("GET", f"/v1/reviewSubmissions?filter[app]={aid}&filter[platform]=IOS&limit=5")["data"]:
+            a = s["attributes"]
+            print("제출", a.get("state"), a.get("submittedDate"))
+        return
+
     # cancel: 심사 대기 중인 제출을 거둔다 (버전은 다시 고칠 수 있는 상태로)
     if len(sys.argv) > 3 and sys.argv[3] == "cancel":
         n = 0
