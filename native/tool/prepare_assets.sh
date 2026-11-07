@@ -12,6 +12,8 @@ for f in shelters modules module-upgrades exploration-sites landmarks settlement
   residents-reservoir s2-lights story-6 story-7 landmarks-reservoir landmarks-institute landmarks-plant s2-ui-props; do
   cp "../assets/illustrated/$f.webp" assets/illustrated/
 done
+# 시즌 2 저수지 사람 지도 인물 (있을 때만)
+[ -f ../assets/illustrated/walkers-4.webp ] && cp ../assets/illustrated/walkers-4.webp assets/illustrated/
 # 웹툰 컷 (2×2 네 칸, 앱 전용): 사건·합류 장면
 mkdir -p assets/illustrated/cuts
 cp ../assets/illustrated/cuts/*.webp assets/illustrated/cuts/

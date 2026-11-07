@@ -340,12 +340,15 @@ Color _hex(Object? s, Color d) => s is String && s.startsWith('#') && s.length =
 // ---------- 손그림 지도 인물 (웹 people.js wkDraw, 2026-10-13) ----------
 // walkers-1: 생존자 0~17, walkers-2: 18~29·아이·손님·노친네, walkers-3: 다 자란 아이(견습 일). 칸마다 그림 테두리를 재서 발을 바닥에 세우고,
 // 걸을 때 살짝 들썩이고 흔들리며, 왼쪽으로 갈 땐 좌우를 뒤집는다. 그림을 다 재기 전에는 아래 먹선 인형으로 그린다.
-List<Rect?>? _wkBoxes(int sheet) => Atlas.boxes('walkers-${sheet + 1}.webp', 6, sheet == 2 ? 1 : 3, thr: 40);
+// walkers-4: 시즌 2 저수지 사람 30~33 (가로 4칸 한 줄, 2026-11-07). 그림이 없으면 먹선 인형으로 그린다.
+int _wkRows(int sheet) => sheet >= 2 ? 1 : 3;
+List<Rect?>? _wkBoxes(int sheet) => Atlas.boxes('walkers-${sheet + 1}.webp', sheet == 3 ? 4 : 6, _wkRows(sheet), thr: 40);
 
 /// 사람 → (장, 칸)
 (int, int)? wkCell(int id, {String? name, int? age, String? job}) {
   if (id >= 0 && id < 18) return (0, id);
   if (id >= 18 && id < 30) return (1, id - 18);
+  if (id >= 30 && id < 34) return (3, id - 30);
   if (id < 0 && name != null && name.isNotEmpty) { // 웹: 빈 이름은 거짓 → 잉크 인물
     var h = 2166136261;
     for (final ch in name.codeUnits) {
@@ -362,7 +365,7 @@ List<Rect?>? _wkBoxes(int sheet) => Atlas.boxes('walkers-${sheet + 1}.webp', 6, 
 bool _wkDraw(Canvas g, (int, int) c, int id, double x, double y, double time, bool moving, double face, bool job) {
   final b = _wkBoxes(c.$1), im = Atlas.image('walkers-${c.$1 + 1}.webp');
   if (b == null || im == null || c.$2 >= b.length || b[c.$2] == null) return false;
-  final src = b[c.$2]!, rows = c.$1 == 2 ? 1 : 3, k = 31 / (.8 * im.height / rows), w = src.width * k, h = src.height * k;
+  final src = b[c.$2]!, rows = _wkRows(c.$1), k = 31 / (.8 * im.height / rows), w = src.width * k, h = src.height * k;
   final reduced = Prefs.calm, ph = reduced ? 0.0 : time / 165 + id * .71;
   final bob = moving && !reduced ? math.sin(ph).abs() * 1.1 : 0.0;
   final sway = moving && !reduced ? math.sin(ph) * .06 : (job && !reduced ? math.sin(ph * .7) * .035 : 0.0);

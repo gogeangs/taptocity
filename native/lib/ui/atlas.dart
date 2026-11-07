@@ -28,6 +28,7 @@ class Atlas {
     'line-stations.webp', 'line-stations-factory.webp', 'landmarks-desert.webp', 'landmarks-factory.webp', 'landmarks-snow.webp',
     'peddler-expressions.webp', // 노친네 표정 2×2 (2026-10-23, 노친네가 올 때만)
     // 시즌 2 (2026-11-02): 저수지 사람 초상·무대 랜드마크·탑과 등·작은 화면 요소
+    'walkers-4.webp', // 저수지 사람 지도 인물 (2026-11-07)
     'residents-reservoir.webp', 'landmarks-reservoir.webp', 'landmarks-institute.webp', 'landmarks-plant.webp', 's2-lights.webp', 's2-ui-props.webp',
     'ash-foes.webp', // 재 괴물 (2026-10-21: 웹 chapter-design.js foe와 같게, 대형 재폭풍에서만)
   };
