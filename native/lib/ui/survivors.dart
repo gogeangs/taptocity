@@ -608,7 +608,7 @@ void showSurvPage(BuildContext context, Game g, int id0, {void Function(int id, 
             ]),
           _ => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               _sline('특기', g.traitOf(id)),
-              _sline('일터', s.match.map((b) => mods[b]!.n).join(', ')),
+              _sline('일터', s.match.map((b) => mods[b]?.n).whereType<String>().join(', ')),
               _sline('스킬', '${skills[id].n} · ${skills[id].d}'),
               _dutyBox(g, id, set),
             ]),
@@ -962,7 +962,7 @@ Future<void> showRescuePage(BuildContext context, Game g, int id, String via) =>
         const SizedBox(height: 10),
         Text.rich(
           TextSpan(children: [
-            TextSpan(text: '특기: ${g.traitOf(id)}\n딱 맞는 일터: ${s.match.map((b) => mods[b]!.n).join(', ')} (거기서 두 배로 일해요)'),
+            TextSpan(text: '특기: ${g.traitOf(id)}\n딱 맞는 일터: ${s.match.map((b) => mods[b]?.n).whereType<String>().join(', ')} (거기서 두 배로 일해요)'),
             if (bond != null) ...[
               const TextSpan(text: '\n'),
               TextSpan(text: '인연 ‘${bond.name}’ ', style: const TextStyle(fontWeight: FontWeight.w700, fontVariations: [FontVariation('wght', 700)])),

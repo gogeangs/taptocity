@@ -151,16 +151,16 @@ final List<SurvInfo> survivors = [
 /// 시즌 2 저수지 사람 넷 (season2-script.md 0절). 동네 사람과 같은 규칙(구조 신호·잃는 규칙)
 const List<SurvInfo> s2Residents = [
   SurvInfo(id: 30, name: '하경수', age: 52, job: '수문 관리인', src: 'town', d: 6.5, region: 'reservoir', hidden: false, alias: '수문지기', hint: '얼어붙은 저수지 둑에서 만나요',
-      hope: 0, need: null, match: [0, 6], eff: {'craft': 0.15}, grade: 1,
+      hope: 0, need: null, match: [1, 5], eff: {'craft': 0.15}, grade: 1,
       story: ['그날부터 수문을 하루도 빼지 않고 열고 닫았다. 물이 얼지 않게.', '깃발이 펄럭이는 쪽을 보면 물이 어느 쪽으로 밀리는지 안다.', '“수문은 열 때보다 닫을 때가 어려워요.”'], trait: '가공할 때 {craft:pc}% 확률로 하나 더'),
   SurvInfo(id: 31, name: '오순임', age: 64, job: '저수지 매점 주인', src: 'town', d: 7.5, region: 'reservoir', hidden: false, alias: null, hint: '얼어붙은 저수지 둑에서 만나요',
-      hope: 0, need: null, match: [5, 4], eff: {'thrift': 0.12}, grade: 0,
+      hope: 0, need: null, match: [2, 4], eff: {'thrift': 0.12}, grade: 0,
       story: ['매점 셔터를 끝까지 올려 두었다. 누구든 들어와 라면 하나 끓여 먹으라고.', '벤치에 앉아 컵라면 하나 먹던 손님들 얼굴을 다 기억한다.', '“물 끓었다. 먹고 가.”'], trait: '식량 소비 -{thrift:pc}%'),
   SurvInfo(id: 32, name: '길태용', age: 40, job: '얼음낚시꾼', src: 'town', d: 8, region: 'reservoir', hidden: false, alias: null, hint: '얼어붙은 저수지 둑에서 만나요',
-      hope: 0, need: null, match: [17], eff: {'food': 0.25}, grade: 0,
+      hope: 0, need: null, match: [2, 9], eff: {'food': 0.25}, grade: 0,
       story: ['얼음 구멍 하나로 둑 위 사람들을 먹여 왔다. 매일 아침 같은 자리.', '밤낚시 할 때 등불 하나면 됐다고 한다.', '“얼음은 거짓말 안 해요.”'], trait: '식량 생산 +{food:pc}%'),
   SurvInfo(id: 33, name: '서다은', age: 26, job: '수자원 연구 대학원생', src: 'town', d: 9, region: 'reservoir', hidden: false, alias: null, hint: '얼어붙은 저수지 둑에서 만나요',
-      hope: 0, need: null, match: [9, 11], eff: {'hope': 6}, grade: 1,
+      hope: 0, need: null, match: [7, 3], eff: {'hope': 6}, grade: 1,
       story: ['수위 기록을 날마다 적었다. 누가 읽을지 몰라도.', '풍경 소리로 바람 세기를 적는 법을 안다.', '“기록은 남겨 두면 언젠가 누가 읽어요.”'], trait: '쉘터 희망 +{hope:r}'),
 ];
 

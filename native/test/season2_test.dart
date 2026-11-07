@@ -242,4 +242,12 @@ void main() {
       expect(rescueNeed[s.id], isNotNull, reason: '${s.id} ${s.name}');
     }
   });
+
+  test('모든 생존자의 맞는 일터가 실제 모듈이다 (2026-11-07 생존자 창 회색)', () {
+    for (final s in survivors) {
+      for (final b in s.match) {
+        expect(mods[b], isNotNull, reason: '${s.id} ${s.name} 일터 $b');
+      }
+    }
+  });
 }
