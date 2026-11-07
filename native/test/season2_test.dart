@@ -236,4 +236,10 @@ void main() {
     }
     expect(g.s2TraceTiles, isEmpty);
   });
+
+  test('모든 생존자에게 구조 사연이 있다 (2026-11-07 실기기 회색 창)', () {
+    for (final s in survivors) {
+      expect(rescueNeed[s.id], isNotNull, reason: '${s.id} ${s.name}');
+    }
+  });
 }

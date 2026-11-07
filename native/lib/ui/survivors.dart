@@ -932,7 +932,7 @@ void showCampPage(BuildContext context, Game g, int tile) => showPageOf(context,
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         _head(g, id, base: true, tag: c['visit'] == true ? '쉘터 앞의 손님' : '구조 대기'),
         const SizedBox(height: 10),
-        Text(rescueNeed[id]!.$2, style: Ttc.t(13.5, color: const Color(0xFF5A3F24), height: 1.6)),
+        Text(rescueNeed[id]?.$2 ?? '', style: Ttc.t(13.5, color: const Color(0xFF5A3F24), height: 1.6)),
         if (hp > 0) ...[const SizedBox(height: 8), Text('잔해 치우기 ${((1 - hp / mx) * 100).round()}% · 신호 자리를 두드려요', style: Ttc.t(12.5, color: Ttc.sepia2, weight: FontWeight.w600))],
         sec('구조에 필요한 것'),
         costWrap(g, need, lead: [CostChip(label: '빈 침상', have: bf < 0 ? 0 : bf, need: 1)]),

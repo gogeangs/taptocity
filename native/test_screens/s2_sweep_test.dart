@@ -11,6 +11,7 @@ import 'package:taptocity/game/engine.dart';
 import 'package:taptocity/game/state.dart';
 import 'package:taptocity/ui/atlas.dart';
 import 'package:taptocity/ui/game_screen.dart';
+import 'package:taptocity/ui/survivors.dart' show showCampPage, showSurvPage;
 import 'package:taptocity/ui/theme.dart';
 
 Game _load() {
@@ -141,6 +142,26 @@ void main() {
               await tester.drag(lv.last, const Offset(0, -3000), warnIfMissed: false);
               await settle();
             }
+            final ex = tester.takeException();
+            if (ex != null) errs['$where · 예외 ${'$ex'.split('\n').first}'] = 1;
+          }
+        }
+        // 구조 신호 창 (2026-11-07 실기기 회색 창: 저수지 사람들의 구조 사연이 없어서) · 생존자 창 네 탭
+        for (final t in g.S.camp.keys.toList()) {
+          where = '$tag · 구조 신호 ${(g.S.camp[t]?['id'])}';
+          await home();
+          showCampPage(tester.element(find.byType(GameScreen)), g, t);
+          await settle();
+          final ex = tester.takeException();
+          if (ex != null) errs['$where · 예외 ${'$ex'.split('\n').first}'] = 1;
+        }
+        for (final id in g.svIds) {
+          for (final tb in const ['정보', '성장', '장비', '이야기']) {
+            where = '$tag · 생존자 $id · $tb';
+            await home();
+            showSurvPage(tester.element(find.byType(GameScreen)), g, id);
+            await settle();
+            await tapText(tb);
             final ex = tester.takeException();
             if (ex != null) errs['$where · 예외 ${'$ex'.split('\n').first}'] = 1;
           }

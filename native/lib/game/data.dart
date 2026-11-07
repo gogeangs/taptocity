@@ -170,6 +170,11 @@ const Map<int, List<String>> s2Roles = {30: ['mech', 'guard'], 31: ['cook'], 32:
 /// 구조에 필요한 것 (웹 RESCUE)
 final Map<int, (Cost, String)> rescueNeed = {
   for (final e in web.rescue.entries) int.parse(e.key): (_cost(e.value['need']), e.value['why'] as String),
+  // 시즌 2 저수지 사람들 (2026-11-07 실기기: 구조 신호 창이 비어 회색으로 뜨던 것)
+  30: (const {'fuel': 6, 'food': 10}, '얼어붙은 수문 관리소에 갇혀 있어요. 문틈의 얼음을 녹일 연료와 식량이 필요해요.'),
+  31: (const {'food': 14, 'cloth': 6}, '셔터를 올려 둔 매점 안에서 버티고 있어요. 함께 먹을 식량과 두를 천이 필요해요.'),
+  32: (const {'rope': 4, 'food': 10}, '얼음 구멍 옆 천막에 고립돼 있어요. 끌어낼 밧줄과 식량이 필요해요.'),
+  33: (const {'parts': 6, 'food': 8}, '수위 관측소 지붕에서 손전등을 깜빡여요. 내려올 사다리를 고칠 부품과 식량이 필요해요.'),
 };
 
 class Bond {

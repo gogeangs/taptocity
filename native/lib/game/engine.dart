@@ -1440,7 +1440,7 @@ class Game extends ChangeNotifier {
     final f = bedsMax - bedsUsed;
     return id == 9 && jaeRes ? math.max(1, f) : f - (jaeRes ? 1 : 0);
   }
-  Cost campNeed(int id) => scaleCost(rescueNeed[id]!.$1, 1);
+  Cost campNeed(int id) => scaleCost(rescueNeed[id]?.$1 ?? const {'food': 10}, 1);
   bool campReady(int i) {
     final c = S.camp[i];
     if (c == null) return false;
