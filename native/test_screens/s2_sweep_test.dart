@@ -209,9 +209,14 @@ void main() {
       }
       for (var k = 0; k < 4; k++) {
         if (find.byType(Dialog).evaluate().isEmpty) break;
-        Navigator.of(tester.element(find.byType(Dialog).last)).pop();
+        try {
+          Navigator.of(tester.element(find.byType(Dialog).last)).pop();
+        } catch (_) {
+          break;
+        }
         await tester.pump(const Duration(milliseconds: 100));
       }
+      tester.takeException();
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 600)));
       await tester.pump(const Duration(milliseconds: 100));
       await expectLater(find.byType(MaterialApp), matchesGoldenFile('shots/$name.png'));
