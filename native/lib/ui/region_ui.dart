@@ -965,6 +965,57 @@ Widget questBox(Game g, int id) {
   ]);
 }
 
+// ======================= 시즌 2 · 하루 부탁 바 (2026-11-08 UI: 스킬 바 자리 · 시즌 1 스킬은 두드리기에 묶여 있었다) =======================
+class S2FavorBar extends StatelessWidget {
+  const S2FavorBar(this.g, {super.key, required this.toast});
+  final Game g;
+  final void Function(String) toast;
+
+  @override
+  Widget build(BuildContext context) {
+    const ids = [(13, '비상 발전'), (12, '태엽 감기'), (10, '심야 방송')];
+    final L = [for (final x in ids) if (g.hasSv(x.$1) && !g.isDead(x.$1)) x];
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      for (var k = 0; k < L.length; k++) ...[if (k > 0) const SizedBox(width: 8), _slot(L[k].$1, L[k].$2)],
+    ]);
+  }
+
+  Widget _slot(int id, String role) {
+    final why = g.s2FavorWhy(id), ok = why == null;
+    return GestureDetector(
+      onTap: () {
+        if (!ok) {
+          toast('${survivors[id].name} · $role · $why');
+          return;
+        }
+        g.s2Favor(id);
+      },
+      child: SizedBox(
+        width: 48,
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFFE6D8B6),
+              border: Border.all(color: ok ? Ttc.amber : const Color(0xFFD2B987), width: ok ? 2 : 1),
+              boxShadow: ok ? const [BoxShadow(color: Color(0x40DFA54B), spreadRadius: 2)] : null,
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: ColorFiltered(
+              colorFilter: ok ? const ColorFilter.mode(Colors.transparent, BlendMode.dst) : const ColorFilter.matrix([.18, .35, .07, 0, 0, .18, .35, .07, 0, 0, .18, .35, .07, 0, 0, 0, 0, 0, 1, 0]),
+              child: Portrait(id, width: 40, height: 47),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(ok ? '부탁' : why == '내일 다시' ? '내일' : '대기', style: Ttc.t(10, color: ok ? Ttc.amber : const Color(0xFFB9B1A2), weight: FontWeight.w700, height: 1.1)),
+        ]),
+      ),
+    );
+  }
+}
+
 // ======================= 시즌 2 · 자재 걸음 '보기' 카드 (2026-11-08 대표님: '중계등 점화'가 이해하기 어려움) =======================
 /// 무엇을 하는지·왜·필요한 자재(지금 개수)·구하는 곳, 만들어야 하는 자재가 모자라면 '가공으로 가기'
 Future<void> showS2StepCard(BuildContext context, Game g, {required VoidCallback onCraft}) {

@@ -504,7 +504,24 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           _closeRing();
           _mig = (n, region);
         });
-        cam.set(0, (CX + CY + 1) * TH / 2 - 10);
+        if (g.s2On) {
+          // 시즌 2 무대 (2026-11-08 UI): 밝은 땅 한가운데로 (쉘터 기준이면 마을이 위로 몰리고 아래 절반이 빈 구름이었다)
+          var sx = 0.0, sy = 0.0, k = 0;
+          for (var i = 0; i < N; i++) {
+            if (g.S.rev[i] != 1) continue;
+            final w = tileC(i);
+            sx += w.dx;
+            sy += w.dy;
+            k++;
+          }
+          if (k > 0) {
+            cam.set(sx / k, sy / k);
+          } else {
+            cam.set(0, (CX + CY + 1) * TH / 2 - 10);
+          }
+        } else {
+          cam.set(0, (CX + CY + 1) * TH / 2 - 10);
+        }
       case FxLevelUp(:final lv):
         Sound.buzzMid();
         _stamp(lv);
@@ -947,7 +964,19 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   void _lampPress() {
     // 시즌 2: 꺼진 랜턴. 평소에는 눌러도 구름을 걷지 않는다 (대형 재폭풍 때는 시즌 1 그대로)
     if (g.s2NoTap && g.defn == null) {
-      fxc.toast('탑 빛 안쪽은 사람들이 다녀와요 · 폐허를 눌러 사람을 보내요');
+      // 2026-11-08 UI: 꺼진 랜턴 자리를 쓴다 — 탑을 켤 자재가 다 모였으면 '불 켜기'(받기), 아니면 '사람 보내기'(가까운 폐허로)
+      final m = g.mission();
+      if (m.s2 && m.done && g.s2Step?.cost != null) {
+        _tapeTap('claim');
+        return;
+      }
+      final t = g.s2SendNear();
+      if (t < 0) {
+        fxc.toast('지금 보낼 폐허가 없어요 · 먼 곳은 원정 탭에서 보내요');
+        return;
+      }
+      _flyTo(t);
+      showS2Send(context, g, t);
       return;
     }
     _close();
@@ -1576,7 +1605,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                       opacity: sheet != null || ringTile >= 0 ? 0 : 1,
                       child: AnimatedBuilder(
                         animation: g,
-                        builder: (c, _) => SkillBar(g, toast: fxc.toast, onEmpty: () {
+                        builder: (c, _) => g.s2AskOn ? S2FavorBar(g, toast: fxc.toast) : SkillBar(g, toast: fxc.toast, onEmpty: () {
                           if (g.S.sv.isEmpty) {
                             fxc.toast('구조 신호를 따라가 생존자를 먼저 만나요');
                           } else {
@@ -1756,12 +1785,15 @@ class _Header extends StatelessWidget {
               child: GestureDetector(
                 key: matsKey,
                 onTap: onMats,
-                child: Row(children: [
-                  for (var k = 0; k < baseMats.length; k++) ...[
-                    if (k > 0) const SizedBox(width: 4),
-                    Expanded(child: _MatTile(g, baseMats[k])),
-                  ],
-                ]),
+                child: Builder(builder: (c) {
+                  final ks = g.s2BarMats(baseMats);
+                  return Row(children: [
+                    for (var k = 0; k < ks.length; k++) ...[
+                      if (k > 0) const SizedBox(width: 4),
+                      Expanded(child: _MatTile(g, ks[k], key: ValueKey(ks[k]))),
+                    ],
+                  ]);
+                }),
               ),
             ),
             const SizedBox(width: 6),
@@ -1791,7 +1823,7 @@ class _HudBtn extends StatelessWidget {
 }
 
 class _MatTile extends StatefulWidget {
-  const _MatTile(this.g, this.k);
+  const _MatTile(this.g, this.k, {super.key});
   final Game g;
   final String k;
   @override
@@ -1886,7 +1918,11 @@ class _MatTileState extends State<_MatTile> {
       child: Container(
         height: 45,
         // 2026-10-23 UI: 어두운 칸에 어두운 그림이라 고철·목재가 잘 안 보였다 → 칸을 한 톤 밝히고 그림 뒤에 옅은 빛
-        decoration: BoxDecoration(color: const Color(0x1AEEE5D3), borderRadius: BorderRadius.circular(6)),
+        // 시즌 2: 지금 걸음에 필요해 잠시 들어온 자재 칸은 호박색 테두리 (2026-11-08)
+        decoration: BoxDecoration(
+            color: const Color(0x1AEEE5D3),
+            borderRadius: BorderRadius.circular(6),
+            border: baseMats.contains(k) ? null : Border.all(color: const Color(0xCCDFA54B), width: 1.2)),
         clipBehavior: Clip.antiAlias,
         child: Stack(children: [
           Positioned.fill(
@@ -1997,7 +2033,10 @@ class _Lamp extends StatelessWidget {
     final p = fev ? g.fever / g.feverT : g.combo / g.comboMax;
     final flame = .7 + (fev ? 1 : g.combo / g.comboMax) * .8;
     final off = g.s2NoTap && g.defn == null; // 시즌 2: 꺼진 랜턴
-    final label = off ? '꺼진 랜턴' : g.defn != null ? (fev ? '피버! 막기' : '막기') : fev ? '피버!' : g.combo > 0 ? '연타 ${g.combo.floor()}' : '두드리기';
+    final m2 = off ? g.mission() : null;
+    final lightNow = off && m2!.s2 && m2.done && g.s2Step?.cost != null; // 탑을 켤 자재가 다 모임 → 랜턴이 빛난다
+    final light2 = lightNow ? ((g.s2Step!.ready ?? '').contains('랜턴') ? '불 켜기' : g.s2Step!.build != null ? '공사 시작' : '받기') : null;
+    final label = off ? (light2 ?? '사람 보내기') : g.defn != null ? (fev ? '피버! 막기' : '막기') : fev ? '피버!' : g.combo > 0 ? '연타 ${g.combo.floor()}' : '두드리기';
     final lamp = Transform.translate(
       offset: Offset(0, down ? 2 : 0),
       child: Container(
@@ -2040,7 +2079,8 @@ class _Lamp extends StatelessWidget {
         ]),
       ),
     );
-    return off ? Opacity(opacity: .55, child: ColorFiltered(colorFilter: const ColorFilter.matrix([.33, .33, .33, 0, 0, .33, .33, .33, 0, 0, .33, .33, .33, 0, 0, 0, 0, 0, 1, 0]), child: lamp)) : lamp;
+    if (lightNow) return lamp;
+    return off ? Opacity(opacity: .85, child: ColorFiltered(colorFilter: const ColorFilter.matrix([.33, .33, .33, 0, 0, .33, .33, .33, 0, 0, .33, .33, .33, 0, 0, 0, 0, 0, 1, 0]), child: lamp)) : lamp;
   }
 }
 

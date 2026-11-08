@@ -602,7 +602,16 @@ class MapPainter extends CustomPainter {
   }
 
   @override
+  /// 시즌 2: ▼를 띄울 폐허 (쉘터에서 가까운, 아무도 안 간 세 곳)
+  Set<int> _s2Marks = const {};
+  void _s2MarksCalc() {
+    if (!g.s2SendOn) return;
+    final L = [for (var i = 0; i < N; i++) if (g.S.rev[i] == 1 && g.siteLive(i) && g.s2SentTo(i) == null) i]..sort((a, b) => dist(a).compareTo(dist(b)));
+    _s2Marks = L.take(3).toSet();
+  }
+
   void paint(Canvas canvas, Size size) {
+    _s2MarksCalc();
     final rect = Offset.zero & size;
     canvas.clipRect(rect);
     canvas.drawRect(rect, Paint()..shader = ui.Gradient.linear(Offset.zero, Offset(0, size.height), [bgTop, bgBottom]));
@@ -979,6 +988,23 @@ class MapPainter extends CustomPainter {
   /// 작은 호박색 아래 화살표 하나 (남은 횟수는 조준 표시가 보여 준다). 조준 중인 곳은 조준 표시가 대신한다
   void _digMark(Canvas canvas, int i, Offset c) {
     if (i == g.aim && g.aimValid) return;
+    // 시즌 2 (2026-11-08 UI): 폐허마다 ▼가 있어 어지러웠다 → 사람이 가 있는 곳엔 파란 얼굴 점, 그 밖엔 쉘터에서 가까운 세 곳에만 ▼
+    if (g.s2SendOn) {
+      if (g.s2SentTo(i) != null) {
+        final h = _bldH(i), p = Offset(c.dx, c.dy - math.max(24.0, h) - 6);
+        _fill.color = const Color(0xFF5B8DB8);
+        canvas.drawCircle(p, 5.5, _fill);
+        _line
+          ..color = const Color(0xF2F5EAD0)
+          ..strokeWidth = 1.4;
+        canvas.drawCircle(p, 5.5, _line);
+        _fill.color = const Color(0xF2F5EAD0);
+        canvas.drawCircle(p + const Offset(0, -1.6), 1.7, _fill);
+        canvas.drawOval(Rect.fromCenter(center: p + const Offset(0, 2.2), width: 5, height: 2.6), _fill);
+        return;
+      }
+      if (!_s2Marks.contains(i)) return;
+    }
     final h = _bldH(i), y = c.dy - math.max(24.0, h) - 2, x = c.dx;
     final path = Path()
       ..moveTo(x - 4.5, y - 5)

@@ -339,6 +339,37 @@ extension Season2 on Game {
     return Mission(m.goal, done, m.rw, m.hint, s2: true, go: m.go != null);
   }
 
+  /// 사람을 보낼 가까운 폐허 (꺼진 랜턴 자리의 '사람 보내기') · 없으면 -1
+  int s2SendNear() {
+    var best = -1;
+    var bd = 1e9;
+    for (var i = 0; i < N; i++) {
+      if (S.rev[i] != 1 || !siteLive(i) || s2SentTo(i) != null) continue;
+      final d = dist(i);
+      if (d < bd) {
+        bd = d;
+        best = i;
+      }
+    }
+    return best;
+  }
+
+  /// 위쪽 자원 줄 (2026-11-08 UI): 지금 걸음에 필요한데 줄에 없는 자재(철판·전선·밧줄…)는 필요 없는 기본 자재 칸을 잠시 대신한다
+  List<String> s2BarMats(List<String> base) {
+    final c = s2Mission != null ? s2Step?.cost : null;
+    if (!s2On || c == null) return base;
+    final want = [for (final k in c.keys) if (!base.contains(k)) k];
+    if (want.isEmpty) return base;
+    final out = [...base];
+    for (final k in const ['cloth', 'wood', 'scrap', 'fuel', 'parts']) {
+      if (want.isEmpty) break;
+      final i = out.indexOf(k);
+      if (i < 0 || c.containsKey(k)) continue;
+      out[i] = want.removeAt(0);
+    }
+    return out;
+  }
+
   /// 자재 걸음의 이름 (목표 문장에서 자재 목록을 뗀 것)
   String s2StepName(S2Step m) => m.name ?? m.goal.split(' · ').first;
 
@@ -1231,7 +1262,7 @@ extension Season2 on Game {
   // ---------- 이야기 동료의 하루 부탁 ----------
   static const s2FavorIds = [13, 12, 10];
   String? s2FavorWhy(int id) {
-    if (!s2On || !hasSv(id) || s2St < 1) return '지금은 부탁할 수 없어요';
+    if (!s2On || !hasSv(id) || !s2AskOn) return '지금은 부탁할 수 없어요';
     if (s2F['fav$id'] == num_('day')) return '내일 다시';
     if (id == 12 && s2F['tsHurt'] != null) return '태식은 쉬고 있다';
     if (id == 12 && !expMap.values.any((x) => Game.nowMs() < (x['end'] as num))) return '나가 있는 원정대가 없어요';

@@ -172,6 +172,11 @@ void main() {
     expect(mm.done, isFalse);
     expect(mm.sub, contains('전선이 모자라요'));
     expect(mm.sub, contains('가공'));
+    // 자원 줄: 전선·철판이 필요 없는 천·목재 칸을 잠시 대신한다 (부품·식량은 그대로)
+    final bar = g.s2BarMats(baseMats);
+    expect(bar, containsAll(['wire', 'plate', 'parts', 'food']));
+    expect(bar.length, baseMats.length);
+    expect(g.s2SendNear(), greaterThanOrEqualTo(0));
     g.S.m['wire'] = 6;
     g.S.m['plate'] = 10;
     mm = g.mission();

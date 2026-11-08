@@ -2080,6 +2080,11 @@ class Game extends ChangeNotifier {
       combo = math.max(0, combo - dt * 10);
       changed = true;
     }
+    // 시즌 2: 손을 떼고 4초가 지나면 조준 표시(점선 타원·막대)를 걷는다 (2026-11-08 UI: 무엇인지 모를 표시가 남아 있었다)
+    if (aim >= 0 && s2SendOn && idle > 4) {
+      aim = -1;
+      _mapChanged();
+    }
     // 1초마다
     _acc += dt;
     while (_acc >= 1) {

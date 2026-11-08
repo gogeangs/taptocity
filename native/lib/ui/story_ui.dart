@@ -337,7 +337,7 @@ class _MissionTapeState extends State<MissionTape> {
           TextSpan(children: [
             TextSpan(text: head, style: Ttc.t(12.5, color: headC, weight: FontWeight.w700, height: 1.35)),
             if (claim) TextSpan(text: '✓ ', style: Ttc.t(13, color: Ttc.rust, weight: FontWeight.w700, height: 1.35)),
-            TextSpan(text: txt, style: Ttc.t(13, color: fg, weight: FontWeight.w600, height: 1.35)),
+            TextSpan(text: g.s2On ? keepWords(txt) : txt, style: Ttc.t(13, color: fg, weight: FontWeight.w600, height: 1.35)),
           ]),
         ),
       ),
@@ -359,6 +359,8 @@ class _MissionTapeState extends State<MissionTape> {
                 border: Border.all(color: widget.moreOpen ? Ttc.tabOnLine : Ttc.line20, width: .8),
               ),
               child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
+                // 시즌 2: 배지가 무엇을 세는지 (2026-11-08 UI)
+                if (n > 0 && g.s2On) Padding(padding: const EdgeInsets.only(right: 4), child: Text('할 일', style: Ttc.t(11, color: claim ? const Color(0xFF3B2A1A) : const Color(0xFFC7CEC9), weight: FontWeight.w700, height: 1))),
                 if (n > 0)
                   Container(
                     constraints: const BoxConstraints(minWidth: 20),
@@ -501,6 +503,9 @@ class TapePanel extends StatelessWidget {
 }
 
 /// 게임 데이터의 옛 이름('미션')을 화면에서만 지금 이름('이야기')으로
+/// 한글 줄바꿈을 낱말 단위로 (2026-11-08 UI: '랜턴으 / 로'처럼 낱말 가운데서 넘어갔다) — 낱말 안 글자 사이에 단어 이음표(U+2060)
+String keepWords(String s) => s.split(' ').map((w) => w.runes.length < 2 ? w : w.runes.map(String.fromCharCode).join('\u2060')).join(' ');
+
 String uiWords(String s) => s.replaceAll('미션을 눌러', '이야기 띠를 눌러').replaceAll('미션 띠', '이야기 띠').replaceAll('미션', '이야기');
 
 class _Shake extends StatefulWidget {
