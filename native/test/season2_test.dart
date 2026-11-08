@@ -163,6 +163,20 @@ void main() {
     // 판잣집 → 마을 믿음, 중계등 점화 → 두드리기 끝
     g.s2['i'] = 1;
     expect(g.s2TrustOn, isTrue);
+    // 자재 걸음은 이름·지금 개수·모자란 것과 구하는 곳을 보여 준다 (2026-11-08)
+    g.S.m['wire'] = 2;
+    g.S.m['parts'] = 50;
+    g.S.m['plate'] = 0;
+    var mm = g.mission();
+    expect(mm.txt, '관리소 지붕의 중계등 켜기 · 전선 2/6 · 부품 ✓ · 철판 0/10');
+    expect(mm.done, isFalse);
+    expect(mm.sub, contains('전선이 모자라요'));
+    expect(mm.sub, contains('가공'));
+    g.S.m['wire'] = 6;
+    g.S.m['plate'] = 10;
+    mm = g.mission();
+    expect(mm.done, isTrue);
+    expect(mm.sub, contains('받기를 누르면 랜턴으로 중계등을 켜요'));
     expect(g.s2NoTap, isFalse);
     g.s2['i'] = 2;
     expect(g.s2NoTap, isTrue);

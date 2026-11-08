@@ -804,6 +804,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       });
     }
 
+    // 시즌 2 자재 걸음: 무엇을·왜·지금 개수·구하는 곳 카드 (2026-11-08)
+    if (m.s2 && g.s2Step?.cost != null && g.s2BuildAt == null) {
+      showS2StepCard(context, g, onCraft: () => toShelter(1));
+      return;
+    }
     if (st == null && m.reg) {
       switch (m.rk) {
         case 'spot':

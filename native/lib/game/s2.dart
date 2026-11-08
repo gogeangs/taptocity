@@ -172,8 +172,11 @@ Line _keeper(String t, {String? me}) => Line(30, t, fb: Line(31, t, fb: Line(32,
 
 /// 시즌 2 한 걸음
 class S2Step {
-  const S2Step(this.goal, this.hint, this.done, {this.intro, this.outro, this.rw = const {}, this.cost, this.go, this.k, this.build, this.buildName});
+  const S2Step(this.goal, this.hint, this.done, {this.intro, this.outro, this.rw = const {}, this.cost, this.go, this.k, this.build, this.buildName, this.name, this.about, this.ready});
   final String goal, hint;
+
+  /// 자재 걸음 (2026-11-08 대표님: '중계등 점화'가 이해하기 어려움): 띠에 보일 이름, '보기' 카드 설명, 다 모였을 때 안내
+  final String? name, about, ready;
   final bool Function(Game g) done;
   final List<Line> Function(Game g)? intro, outro;
   final Cost rw;
@@ -318,14 +321,59 @@ extension Season2 on Game {
       final nm = m.buildName ?? '공사';
       final at = s2BuildAt;
       if (at == null) {
-        return Mission('$nm 시작 · ${m.goal}', m.cost == null || canPay(m.cost!), const {}, '자재가 모이면 눌러 공사를 시작해요 · ${s2BuildMin(m)}분 걸려요 · 앱을 꺼 둬도 이어져요', s2: true);
+        final ok = m.cost == null || canPay(m.cost!);
+        return Mission('$nm 시작 · ${s2CostLine(m.cost)}', ok, const {},
+            ok ? (m.ready ?? '눌러서 공사를 시작해요') : (s2LackHint(m.cost) ?? '자재가 모이면 눌러 공사를 시작해요 · ${s2BuildMin(m)}분 걸려요'),
+            s2: true);
       }
       final left = (at - Game.nowMs()) / 1000;
       if (left > 0) return Mission('$nm 중 · ${mmss(left)} 남음', false, m.rw, '공사가 끝나면 받기를 눌러요 · 앱을 꺼 둬도 이어져요', s2: true);
       return Mission('$nm 끝 · 빛을 이어요', true, m.rw, m.hint, s2: true);
     }
     final done = m.go == null && m.done(this) && (m.cost == null || canPay(m.cost!));
+    if (m.cost != null) {
+      // 자재 걸음: 이름 · 지금 개수, 모자란 것과 구하는 곳 (2026-11-08)
+      final lack = s2LackHint(m.cost);
+      return Mission('${s2StepName(m)} · ${s2CostLine(m.cost)}', done, m.rw, done ? (m.ready ?? m.hint) : (lack ?? m.hint), s2: true);
+    }
     return Mission(m.goal, done, m.rw, m.hint, s2: true, go: m.go != null);
+  }
+
+  /// 자재 걸음의 이름 (목표 문장에서 자재 목록을 뗀 것)
+  String s2StepName(S2Step m) => m.name ?? m.goal.split(' · ').first;
+
+  /// '전선 2/6 · 부품 ✓ · 철판 4/10'
+  String s2CostLine(Cost? c) {
+    if (c == null) return '';
+    return [
+      for (final e in c.entries)
+        if (have(e.key) >= e.value) '${matOf[e.key]?.n ?? e.key} ✓' else '${matOf[e.key]?.n ?? e.key} ${fmt(have(e.key).floor())}/${fmt(e.value)}'
+    ].join(' · ');
+  }
+
+  /// 모자란 자재 하나 (철판·전선처럼 만들어야 하는 것을 먼저)
+  String? s2LackKey(Cost? c) {
+    if (c == null) return null;
+    final miss = [for (final e in c.entries) if (have(e.key) < e.value) e.key];
+    if (miss.isEmpty) return null;
+    miss.sort((a, b) => (matOf[b]?.tier ?? 0) - (matOf[a]?.tier ?? 0));
+    return miss.first;
+  }
+
+  /// 모자란 자재를 어디서 구하는지 한 줄
+  String? s2LackHint(Cost? c) => s2LackWhere(s2LackKey(c));
+
+  String? s2LackWhere(String? k) {
+    if (k == null) return null;
+    final n = matOf[k]?.n ?? k, head = '${jo(n, '이', '가')} 모자라요';
+    if ((matOf[k]?.tier ?? 0) == 0) {
+      return '$head · 폐허에 사람을 보내 모아요';
+    }
+    final r = recipes.where((x) => x.out == k).firstOrNull;
+    if (r == null) return '$head · 원정과 무전 거래로 구해요';
+    final lock = recipeLock(r);
+    if (!hasMod(1)) return '$head · 작업대를 짓고 마을 › 가공에서 만들어요${r.wb > 1 ? ' (작업대 ${r.wb}단계)' : ''}';
+    return lock.isEmpty ? '$head · 마을 › 가공에서 만들어요' : '$head · 마을 › 가공에서 만들어요 ($lock 필요)';
   }
 
   String get s2StageName => _s2Tag;
@@ -1296,6 +1344,9 @@ extension Season2 on Game {
                   const Line('npc:keeper', '…여기 사람들은 아직 낯을 가려요. 믿어 주면, 믿어 줄 거예요.'),
                 ]),
         S2Step('중계등 점화 · 전선 6 · 부품 20 · 철판 10', '자재가 모이면 받기를 눌러 랜턴으로 불을 붙여요', (g) => true,
+            name: '관리소 지붕의 중계등 켜기',
+            about: '수문 관리소 지붕에 한 번도 켜진 적 없는 등(중계등)이 있어요. 자재를 모아 랜턴으로 켜면 산골 탑과 이 둑 사이에 빛줄기가 이어져요. 등불망의 첫 연결이에요.',
+            ready: '다 모였어요 · 받기를 누르면 랜턴으로 중계등을 켜요',
             cost: const {'wire': 6, 'parts': 20, 'plate': 10},
             rw: const {'batt': 1},
             k: 'net1',
@@ -1360,6 +1411,9 @@ extension Season2 on Game {
                 ],
             outro: (g) => const [Line(_me, '봉인 띠를 끊었다. 철문은 생각보다 쉽게 열렸다.')]),
         S2Step('꺼지지 않는 불 · 연료 30 · 부품 15', '자재가 모이면 받기를 눌러 랜턴으로 시험등을 깨워요', (g) => true,
+            name: '옥상 시험등 깨우기',
+            about: '연구소 옥상에 희미하게 켜져 있는 시험등이 있어요. 연료와 부품으로 손본 뒤 랜턴으로 제대로 깨워요.',
+            ready: '다 모였어요 · 받기를 누르면 랜턴으로 시험등을 깨워요',
             cost: const {'fuel': 30, 'parts': 15},
             rw: const {'batt': 1},
             k: 'lamp',
@@ -1438,6 +1492,9 @@ extension Season2 on Game {
                   Line(9, '…중단 직전 겨울이에요.', cond: 'sv33'),
                 ]),
         S2Step('철판 20 · 전선 8', '렌즈가 다 끼워졌어요 · 받기를 눌러요', (g) => true,
+            name: '시험등 렌즈 끼우기',
+            about: '시험등에 렌즈를 끼우면 빛이 저수지까지 닿아 두 번째 빛줄기가 생겨요. 자재를 내면 공사가 시작되고, 실제 시간으로 1시간(재혁이 있으면 42분) 걸려요. 앱을 꺼 둬도 이어져요.',
+            ready: '다 모였어요 · 눌러서 렌즈 공사를 시작해요',
             cost: const {'plate': 20, 'wire': 8},
             build: 60,
             buildName: '렌즈 공사',
@@ -1531,6 +1588,8 @@ extension Season2 on Game {
                   const Line(_me, '돌아오는 길에 한 번도 뒤돌아보지 않았다.'),
                 ]),
         S2Step('첫 탑을 등불망에 잇기 · 전선 12 · 철판 30 · 연료 40', '자재가 모이면 받기를 눌러 랜턴으로 이어요', (g) => true,
+            about: '심지가 든 첫 등불 탑을 랜턴으로 등불망에 이어요. 지금까지 켠 불빛이 고리처럼 하나로 닫혀요.',
+            ready: '다 모였어요 · 받기를 누르면 랜턴으로 첫 탑을 이어요',
             cost: const {'wire': 12, 'plate': 30, 'fuel': 40},
             rw: const {'batt': 2},
             k: 'ring',
@@ -1624,6 +1683,9 @@ extension Season2 on Game {
               ];
             }),
         S2Step('제어실 전원 · 연료 60 · 전선 10', '자재가 모이면 받기를 눌러요', (g) => true,
+            name: '제어실에 전원 넣기',
+            about: '무너진 제어실의 기록계를 읽으려면 전기가 필요해요. 연료와 전선으로 전원을 넣어요.',
+            ready: '다 모였어요 · 받기를 누르면 제어실에 전원이 들어가요',
             cost: const {'fuel': 60, 'wire': 10},
             rw: const {'batt': 1},
             intro: (g) => const [Line(13, '기록계를 읽으려면 제어실에 전기를 넣어야 해요.')],

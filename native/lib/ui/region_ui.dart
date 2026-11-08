@@ -965,6 +965,54 @@ Widget questBox(Game g, int id) {
   ]);
 }
 
+// ======================= 시즌 2 · 자재 걸음 '보기' 카드 (2026-11-08 대표님: '중계등 점화'가 이해하기 어려움) =======================
+/// 무엇을 하는지·왜·필요한 자재(지금 개수)·구하는 곳, 만들어야 하는 자재가 모자라면 '가공으로 가기'
+Future<void> showS2StepCard(BuildContext context, Game g, {required VoidCallback onCraft}) {
+  final m = g.s2Step;
+  final c = m?.cost;
+  if (m == null || c == null) return Future.value();
+  return showPageOf(context, g, (ctx) {
+    final lack = g.s2LackKey(c);
+    final craft = lack != null && (matOf[lack]?.tier ?? 0) > 0 && recipes.any((r) => r.out == lack);
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
+      _tag('${g.s2StageName} · ${g.s2I + 1}/${g.s2StepCount}'),
+      _h3(g.s2StepName(m)),
+      if (m.about != null) _p(m.about!),
+      const SizedBox(height: 12),
+      Text('필요한 것', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
+      for (final e in c.entries)
+        Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Row(children: [
+            ResIcon(e.key, size: 24),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('${matOf[e.key]?.n ?? e.key}  ${fmt(g.have(e.key).floor())} / ${fmt(e.value)}',
+                    style: Ttc.t(14, color: g.have(e.key) >= e.value ? const Color(0xFF4F7A3A) : Ttc.sepia, weight: FontWeight.w700)),
+                if (g.have(e.key) < e.value) _d((g.s2LackWhere(e.key) ?? '').replaceFirst(RegExp(r'^[^·]*· '), '')),
+              ]),
+            ),
+            if (g.have(e.key) >= e.value) const Icon(Icons.check_circle, size: 20, color: Color(0xFF4F7A3A)),
+          ]),
+        ),
+      const SizedBox(height: 10),
+      _d(lack == null ? (m.ready ?? '다 모였어요 · 받기를 눌러요') : '다 모이면 위쪽 목표 줄의 ‘보기’가 ‘받기’로 바뀌어요.'),
+      const SizedBox(height: 12),
+      Row(children: [
+        pageBtn('닫기', () => Navigator.pop(ctx), alt: craft),
+        if (craft) ...[
+          const SizedBox(width: 8),
+          pageBtn('가공으로 가기', () {
+            Navigator.pop(ctx);
+            onCraft();
+          }),
+        ],
+      ]),
+    ]);
+  });
+}
+
 // ======================= 시즌 2 · 사람 보내기 (폐허를 눌렀을 때) =======================
 Future<void> showS2Send(BuildContext context, Game g, int tile) {
   final s = g.S.site[tile];
