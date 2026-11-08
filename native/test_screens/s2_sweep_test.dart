@@ -12,6 +12,7 @@ import 'package:taptocity/game/state.dart';
 import 'package:taptocity/ui/atlas.dart';
 import 'package:taptocity/ui/game_screen.dart';
 import 'package:taptocity/ui/people.dart' show drawPerson;
+import 'package:taptocity/ui/region_ui.dart' show s2VillageCard;
 import 'package:taptocity/ui/survivors.dart' show showCampPage, showSurvPage;
 import 'package:taptocity/ui/theme.dart';
 
@@ -178,6 +179,34 @@ void main() {
       debugPrint('S2-SWEEP: ${e.key} ×${e.value}');
     }
     expect(errs, isEmpty, reason: errs.keys.take(12).join('\n'));
+  });
+
+  testWidgets('마을 카드 사진 (2026-11-08 줄인 모양)', (tester) async {
+    await tester.runAsync(() async => Atlas.load());
+    tester.view.physicalSize = const Size(780, 1000);
+    tester.view.devicePixelRatio = 2;
+    final g = _load();
+    for (var r = 0; r < 200 && g.s2St < 2; r++) {
+      _step(g);
+      g.takeFx();
+    }
+    g.s2Rule['ration'] = 'equal';
+    await tester.pumpWidget(MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: Ttc.theme(),
+        home: Scaffold(backgroundColor: const Color(0xFFE9E3D6), body: Padding(padding: const EdgeInsets.all(12), child: Builder(builder: (c) => s2VillageCard(c, g, () {}))))));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 500)));
+    await tester.pump();
+    await expectLater(find.byType(MaterialApp), matchesGoldenFile('shots/s2-village.png'));
+    final f = File('test_screens/shots/s2-village.png');
+    if (f.existsSync()) {
+      final b = base64Encode(f.readAsBytesSync());
+      for (var i = 0; i < b.length; i += 900) {
+        debugPrint('SHOT64:s2-village ${b.substring(i, math.min(b.length, i + 900))}');
+      }
+    }
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
   });
 
   testWidgets('지도 인물 사진 · 저수지 사람도 손그림 (2026-11-08)', (tester) async {
