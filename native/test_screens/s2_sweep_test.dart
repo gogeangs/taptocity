@@ -197,6 +197,14 @@ void main() {
     await tester.pumpWidget(board());
     await tester.pump();
     await expectLater(find.byType(MaterialApp), matchesGoldenFile('shots/s2-walkers.png'));
+    // 실행 기록에서 바로 볼 수 있게 (내려받기가 막힌 곳에서 확인용)
+    final f = File('test_screens/shots/s2-walkers.png');
+    if (f.existsSync()) {
+      final b = base64Encode(f.readAsBytesSync());
+      for (var i = 0; i < b.length; i += 900) {
+        debugPrint('WK64 ${b.substring(i, math.min(b.length, i + 900))}');
+      }
+    }
   });
 }
 
