@@ -180,6 +180,62 @@ void main() {
     expect(errs, isEmpty, reason: errs.keys.take(12).join('\n'));
   });
 
+  testWidgets('시즌 2 저수지 화면 사진 (2026-11-08 UI 다듬기 확인)', (tester) async {
+    await tester.runAsync(() async {
+      await Atlas.load();
+      await Atlas.ensure('walkers-4.webp');
+      await Atlas.ensure('residents-reservoir.webp');
+      await Atlas.ensure('landmarks-reservoir.webp');
+    });
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    final g = _load();
+    for (var r = 0; r < 80 && g.s2St < 1; r++) {
+      _step(g);
+      g.takeFx();
+    }
+    // 판잣집까지 지나 중계등 걸음 (다리 구간 · 전선 2 · 철판 0)
+    for (var r = 0; r < 20 && g.s2St == 1 && g.s2I < 1; r++) {
+      _step(g);
+      g.takeFx();
+    }
+    g.S.m['wire'] = 2;
+    g.S.m['plate'] = 0;
+    Future<void> shot(String name) async {
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(MaterialApp(debugShowCheckedModeBanner: false, theme: Ttc.theme(), home: GameScreen(game: g)));
+      for (var k = 0; k < 8; k++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      for (var k = 0; k < 4; k++) {
+        if (find.byType(Dialog).evaluate().isEmpty) break;
+        Navigator.of(tester.element(find.byType(Dialog).last)).pop();
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 600)));
+      await tester.pump(const Duration(milliseconds: 100));
+      await expectLater(find.byType(MaterialApp), matchesGoldenFile('shots/$name.png'));
+      final f = File('test_screens/shots/$name.png');
+      if (f.existsSync()) {
+        final b = base64Encode(f.readAsBytesSync());
+        for (var i = 0; i < b.length; i += 900) {
+          debugPrint('SHOT64:$name ${b.substring(i, math.min(b.length, i + 900))}');
+        }
+      }
+    }
+
+    await shot('s2-res-bridge');
+    // 점화 뒤 (꺼진 랜턴 · 하루 부탁 바)
+    g.S.m['wire'] = 50;
+    g.S.m['plate'] = 50;
+    g.S.m['parts'] = 100;
+    g.claimMission();
+    g.takeFx();
+    await shot('s2-res-after');
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
+
   testWidgets('지도 인물 사진 · 저수지 사람도 손그림 (2026-11-08)', (tester) async {
     await tester.runAsync(() async {
       await Atlas.load();
