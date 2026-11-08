@@ -1919,10 +1919,8 @@ class _MatTileState extends State<_MatTile> {
         height: 45,
         // 2026-10-23 UI: 어두운 칸에 어두운 그림이라 고철·목재가 잘 안 보였다 → 칸을 한 톤 밝히고 그림 뒤에 옅은 빛
         // 시즌 2: 지금 걸음에 필요해 잠시 들어온 자재 칸은 호박색 테두리 (2026-11-08)
-        decoration: BoxDecoration(
-            color: const Color(0x1AEEE5D3),
-            borderRadius: BorderRadius.circular(6),
-            border: baseMats.contains(k) ? null : Border.all(color: const Color(0xCCDFA54B), width: 1.2)),
+        decoration: BoxDecoration(color: const Color(0x1AEEE5D3), borderRadius: BorderRadius.circular(6)),
+        foregroundDecoration: baseMats.contains(k) ? null : BoxDecoration(borderRadius: BorderRadius.circular(6), border: Border.all(color: const Color(0xCCDFA54B), width: 1.2)),
         clipBehavior: Clip.antiAlias,
         child: Stack(children: [
           Positioned.fill(
