@@ -11,6 +11,7 @@ import 'package:taptocity/game/engine.dart';
 import 'package:taptocity/game/state.dart';
 import 'package:taptocity/ui/atlas.dart';
 import 'package:taptocity/ui/game_screen.dart';
+import 'package:taptocity/ui/people.dart' show drawPerson;
 import 'package:taptocity/ui/survivors.dart' show showCampPage, showSurvPage;
 import 'package:taptocity/ui/theme.dart';
 
@@ -178,4 +179,37 @@ void main() {
     }
     expect(errs, isEmpty, reason: errs.keys.take(12).join('\n'));
   });
+
+  testWidgets('지도 인물 사진 · 저수지 사람도 손그림 (2026-11-08)', (tester) async {
+    await tester.runAsync(() async {
+      await Atlas.load();
+      await Atlas.ensure('walkers-4.webp');
+    });
+    tester.view.physicalSize = const Size(900, 240);
+    tester.view.devicePixelRatio = 1;
+    // 칸 테두리 재기는 비동기라 한 번 그려 두고 기다린다
+    Widget board() => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Container(color: const Color(0xFFC8CDD2), child: CustomPaint(size: const Size(900, 240), painter: _People())));
+    await tester.pumpWidget(board());
+    await tester.runAsync(() => Future<void>.delayed(const Duration(seconds: 2)));
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(board());
+    await tester.pump();
+    await expectLater(find.byType(MaterialApp), matchesGoldenFile('shots/s2-walkers.png'));
+  });
+}
+
+class _People extends CustomPainter {
+  @override
+  void paint(Canvas c, Size s) {
+    const ids = [18, 19, 20, 21, 27, 30, 31, 32, 33];
+    c.scale(3);
+    for (var i = 0; i < ids.length; i++) {
+      drawPerson(c, ids[i], 16 + i * 32.0, 70, 0, false, 1, null);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter o) => true;
 }
