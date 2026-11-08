@@ -1582,6 +1582,37 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                     ),
                   ),
                 ),
+                // 시즌 2 다리 구간: '사람 보내기' 단추 (누른 뒤 폐허를 누르면 보내기 · 그냥 누르면 두드리기)
+                Positioned(
+                  left: 8,
+                  bottom: bottom + 90,
+                  child: AnimatedBuilder(
+                    animation: g,
+                    builder: (c, _) {
+                      if (!g.s2SendOn || g.s2NoTap || sheet != null) return const SizedBox.shrink();
+                      final on = g.sendMode;
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() => g.sendMode = !on);
+                          if (!on) fxc.toast('사람을 보낼 폐허를 눌러요');
+                        },
+                        child: Container(
+                          width: 76,
+                          padding: const EdgeInsets.symmetric(vertical: 7),
+                          decoration: BoxDecoration(
+                            color: on ? const Color(0xFF2F3F4B) : const Color(0xE6202932),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: on ? Ttc.amber : const Color(0x66F0C77F), width: on ? 1.6 : 1),
+                          ),
+                          child: Column(mainAxisSize: MainAxisSize.min, children: [
+                            Icon(Icons.directions_walk, size: 20, color: on ? Ttc.amber : const Color(0xFFEFE3C4)),
+                            Text(on ? '폐허 고르기' : '사람 보내기', style: Ttc.t(11, color: on ? Ttc.amber : const Color(0xFFEFE3C4), weight: FontWeight.w700)),
+                          ]),
+                        ),
+                      );
+                    },
+                  ),
+                ),
                 // 랜턴
                 Positioned(
                   left: 8,
@@ -1603,7 +1634,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                     key: _kTabs,
                     animation: g,
                     builder: (c, _) => _Tabs(
-                    s2: g.s2NoTap,
+                    s2: g.s2Mgmt,
                     dots: g.actionDots(Game.nowMs()),
                     on: switch (sheet?.kind) {
                       'surv' => 0,

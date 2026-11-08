@@ -248,6 +248,9 @@ class Game extends ChangeNotifier {
   double combo = 0, idle = 0, fever = 0, feverT = 6;
   int sel = -1; // 빠른 메뉴로 고른 칸 (저장하지 않음)
   int aim = -1;
+
+  /// 시즌 2 다리 구간(두드리기와 사람 보내기를 함께 쓰는 때): '사람 보내기' 단추를 누르면 다음 폐허 누르기가 보내기 (저장 안 함)
+  bool sendMode = false;
   (int, int) aimDir = (0, -1);
   final Set<int> frontier = {};
 
@@ -1725,6 +1728,8 @@ class Game extends ChangeNotifier {
     if (s2NoTap) return false;
     final s = S.site[i];
     if (s == null || s.c <= 0) return false;
+    amt *= s2TapK; // 시즌 2 다리 구간: 걸음마다 두드리기 몫이 준다
+    s2TapNag();
     darkTap(i);
     sfx('hit', buzz: true);
     addCombo();
@@ -1822,7 +1827,11 @@ class Game extends ChangeNotifier {
   String tapTile(int i) {
     if (i < 0) return 'none';
     // 시즌 2: 두드리지 않는다. 폐허를 누르면 사람 보내기, 구름은 그대로
-    if (s2NoTap && S.rev[i] == 1 && siteLive(i)) return 'send';
+    // (다리 구간에는 '사람 보내기' 단추를 누른 뒤에만 보내기, 그냥 누르면 두드리기)
+    if ((s2NoTap || (sendMode && s2SendOn)) && S.rev[i] == 1 && siteLive(i)) {
+      sendMode = false;
+      return 'send';
+    }
     if (s2NoTap && S.rev[i] != 1) return 'far';
     if (S.rev[i] == 1) {
       if (siteLive(i)) {

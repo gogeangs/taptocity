@@ -462,7 +462,8 @@ extension Season2 on Game {
   void s2Dawn() {
     if (!s2On) return;
     _s2CallArrive();
-    if (s2NoTap) {
+    s2F.remove('nagN');
+    if (s2Mgmt) {
       // 마을 하루: 배급 규칙·하늘이(눈 밝은 아이)가 믿음을 바꾼다, 방송 밤 다음 아침의 흔적
       final d = switch (s2Rule['ration']) { 'equal' => 1, 'work' => -1, 'kids' => 2, _ => 0 } + (hasSv(3) ? 1 : 0);
       if (d != 0) s2TrustAdd(d);
@@ -631,8 +632,49 @@ extension Season2 on Game {
       '';
 
   // ================= 2차 · 경영 놀이 (2026-11-02) =================
-  /// 두드리기 없음: 산골의 아침에 만수가 "넌 좀 앉아 있어"라고 한 뒤부터 (대형 재폭풍의 괴물 막기는 시즌 1 그대로)
-  bool get s2NoTap => s2On && (s2St >= 1 || s2I >= 1 || s2Done);
+  // 다리 구간 (2026-11-08 대표님: 시즌 1에서 경영으로 갑자기 넘어가는 느낌 → 시즌 2 앞부분에서 서서히)
+  //   산골의 아침 시작: 사람 보내기 (두드리기 100%) → 떠나기: 하루 부탁 (70%)
+  //   → 저수지 판잣집·하경수 합류: 마을 믿음 (40%) → 중계등 점화: 만수 "넌 좀 앉아 있어", 두드리기 끝·꺼진 랜턴
+  /// 두드리기 없음: 저수지 중계등 점화 뒤 만수가 "넌 좀 앉아 있어"라고 한 뒤부터 (대형 재폭풍의 괴물 막기는 시즌 1 그대로)
+  bool get s2NoTap => s2On && (s2St >= 2 || (s2St == 1 && s2I >= 2) || s2Done);
+
+  /// 마을 하루(밤·새벽의 마을 일, 아래 메뉴 이름, 재폭풍 대신 밤 당번): 산골의 아침 첫 걸음 뒤부터 (다리 구간 전과 같은 때)
+  bool get s2Mgmt => s2On && (s2St >= 1 || s2I >= 1 || s2Done);
+
+  /// 사람 보내기: 시즌 2 첫 걸음(산골의 아침)부터
+  bool get s2SendOn => s2On && (s2Active || s2Done);
+
+  /// 하루 부탁(미영·태식·은호): 먼 불빛을 따라 떠나기부터
+  bool get s2AskOn => s2Mgmt;
+
+  /// 마을 믿음: 저수지 판잣집을 세우고 하경수가 나온 뒤부터
+  bool get s2TrustOn => s2On && (s2St >= 2 || (s2St == 1 && s2I >= 1) || s2Done);
+
+  /// 다리 구간 두드리기 몫: 산골의 아침 100% → 떠나기 70% → 저수지 40% → 점화 뒤 없음
+  double get s2TapK {
+    if (!s2SendOn || s2Done) return 1;
+    if (s2St == 0) return s2I == 0 ? 1 : .7;
+    return .4;
+  }
+
+  /// 다리 구간에서 두드릴 때 가끔 동료 한마디 (하루 세 번까지)
+  void s2TapNag() {
+    if (!s2SendOn || s2NoTap || s2TapK >= 1) return;
+    final n = ((s2F['tapN'] as num?) ?? 0).toInt() + 1;
+    s2F['tapN'] = n;
+    final said = ((s2F['nagN'] as num?) ?? 0).toInt();
+    if (n % 40 != 0 || said >= 3) return;
+    final opts = <(int, String)>[
+      if (hasSv(jinId)) (jinId, '…그거, 내가 갈게.'),
+      if (hasSv(3)) (3, '손 아프겠어요. 쉬엄쉬엄 해요.'),
+      if (hasSv(0)) (0, '어허, 또 두드리는구먼. 사람 보내라니까.'),
+    ];
+    if (opts.isEmpty) return;
+    final o = opts[said % opts.length];
+    s2F['nagN'] = said + 1;
+    fx.add(FxToast('${survivors[o.$1].name} · ${o.$2}'));
+  }
+
 
   /// 탑 빛 반경 (무대 동네에서 재가 걷힌 거리). 도착 5칸, 점화·연결마다 넓어진다
   int get s2LightR => ((s2['lr'] as num?) ?? 5).toInt();
@@ -687,15 +729,13 @@ extension Season2 on Game {
   bool _s2Fit(int id) => roleOf(id).contains('scout') || roleOf(id).contains('drive');
 
   bool s2Send(int id, int tile) {
-    if (!s2NoTap || !hasSv(id) || busy(id) || atOf(id) >= 0 || s2Comps.contains(id)) return false;
+    if (!s2SendOn || !hasSv(id) || busy(id) || atOf(id) >= 0 || s2Comps.contains(id)) return false;
     if (S.rev[tile] != 1 || !siteLive(tile) || s2SentTo(tile) != null) return false;
     s2SendMap['$id'] = <String, Object?>{'t': tile, 'left': s2SendT};
     rec(id)!['away'] = 's2send';
     sfx('tap');
-    if (s2F['sendTold'] == null) {
-      s2F['sendTold'] = 1;
-      fx.add(const FxNote('사람 보내기', '탑 빛 안쪽은 사람들이 다녀와요. 사람을 누르고, 땅을 누르면 끝. 마을의 하루가 지나면 돌아와요.', ms: 6500));
-    } else {
+    s2F['sendTold'] = 1;
+    {
       fx.add(FxToast('${jo(survivors[id].name, '이', '가')} 폐허로 갔어요 · 마을 하루 뒤 돌아와요'));
     }
     recalc();
@@ -731,7 +771,7 @@ extension Season2 on Game {
   /// 매초: 보낸 사람들이 다녀오고, 폐허가 비면 쉰다
   void s2TickSec([double dt = 1]) {
     if (!s2On) return;
-    if (s2NoTap) {
+    if (s2Mgmt) {
       if (!isNight && phase > dayLen - 20) _s2Dusk();
       if (isNight) _s2NightStart();
     }
@@ -843,8 +883,8 @@ extension Season2 on Game {
   void s2AfterRecalc() {
     if (!s2On) return;
     var m = 1.0;
-    if (s2Trust >= 70) m *= 1.1;
-    if (s2Trust <= 30) m *= .9;
+    if (s2TrustOn && s2Trust >= 70) m *= 1.1;
+    if (s2TrustOn && s2Trust <= 30) m *= .9;
     m *= switch (s2Rule['ration']) { 'equal' => .9, 'work' => 1.15, 'kids' => .85, _ => 1.0 };
     if (s2Rule['watch'] == 'rotate') m *= .95;
     final now = Game.nowMs();
@@ -1221,13 +1261,10 @@ extension Season2 on Game {
                   if (!g.hasSv(9) && g.inStay(9)) const Line('r:9', '방송 끊긴 시각이… 아니에요. 다들 괜찮으면 됐어요.'),
                   if (g.s2Missing.isNotEmpty) const Line(_me, '남겨 두고 온 얼굴들이었다. 불러야겠다고 생각했다.'),
                   if (!g.hasSv(10) && g.inStay(10)) ...const [Line('r:10', '저… 저도 가도 될까요?'), Line(_me, '은호의 목소리가 떨렸다.')],
-                ],
-            outro: (g) => [
-                  const Line(0, '탑 빛 안쪽은 이제 우리가 다녀올게. 넌 좀 앉아 있어.', fb: Line(_g, '탑 빛 안쪽은 이제 우리가 다녀올게요. 좀 앉아 있어요.')),
-                  const Line(_me, '아직 걸을 만하다고 했다.'),
-                  const Line(0, '걸을 만할 때 쉬는 거구먼. 등불지기가 쓰러지면 불은 누가 지키나.', fb: Line(_g, '걸을 만할 때 쉬는 거예요. 등불지기가 쓰러지면 불은 누가 지켜요.')),
-                  const Line(3, '아저씨는 랜턴만 잘 들고 있어요!'),
-                  const Line(_me, '아버지가 남긴 말과 같았다.'),
+                  // 다리 구간 ① (2026-11-08): 사람 보내기가 열린다 · 두드리기는 아직 그대로
+                  const Line(0, '폐허는 이제 같이 다니자구먼. 얼굴 하나 골라서 보내 봐. 혼자 다 두드리지 말고.', fb: Line(_g, '폐허는 이제 같이 다녀요. 사람 하나 골라서 보내 봐요. 혼자 다 두드리지 말고요.')),
+                  const Line(_me, '아직 혼자 할 만하다고 했다.'),
+                  const Line(0, '할 만할 때 나눠 드는 거여.', fb: Line(_g, '할 만할 때 나눠 드는 거예요.')),
                 ]),
         S2Step('먼 불빛을 따라 떠나기', '위쪽 띠의 ‘새 동네로’를 눌러요 · 이야기 동료는 늘 함께 가요', (g) => false,
             go: 'reservoir',
@@ -1239,6 +1276,8 @@ extension Season2 on Game {
                   const Line(_me, '수첩을 펼쳤다. 마지막 장에 내 글씨가 그대로 있었다. 다음은 탑.'),
                   const Line(_me, '저 불빛도 탑일까.'),
                   const Line(_me, '가 보자고 했다.'),
+                  // 다리 구간 ② (2026-11-08): 하루 부탁이 열린다 · 두드리기 70%
+                  const Line(13, '부탁할 거 있으면 나한테 먼저 말해요. 혼자 다 들고 다니지 말고.', fb: Line(_g, '부탁할 거 있으면 먼저 말해요. 혼자 다 들고 다니지 말고요.')),
                 ]),
       ];
 
@@ -1251,8 +1290,10 @@ extension Season2 on Game {
                   Line(_me, '둑 위에 바람이 셌다. 얼음 밑으로 물이 우는 소리가 났다.'),
                   Line(_g, '우선 바람 막을 데부터 찾자고. 수문 관리소가 아직 서 있구먼.'),
                 ],
-            outro: (g) => const [
-                  Line('npc:keeper', '…불빛 보고 나왔어요. 수문 관리인 하경수예요. 여기 몇 사람 더 있어요.'),
+            outro: (g) => [
+                  const Line('npc:keeper', '…불빛 보고 나왔어요. 수문 관리인 하경수예요. 여기 몇 사람 더 있어요.'),
+                  // 다리 구간 ③ (2026-11-08): 마을 믿음이 열린다 · 두드리기 40%
+                  const Line('npc:keeper', '…여기 사람들은 아직 낯을 가려요. 믿어 주면, 믿어 줄 거예요.'),
                 ]),
         S2Step('중계등 점화 · 전선 6 · 부품 20 · 철판 10', '자재가 모이면 받기를 눌러 랜턴으로 불을 붙여요', (g) => true,
             cost: const {'wire': 6, 'parts': 20, 'plate': 10},
@@ -1262,10 +1303,17 @@ extension Season2 on Game {
                   _keeper('관리소 지붕에 등이 하나 있어요. 사고 전에 발전소 사람들이 달고 갔죠. 한 번도 켜진 적은 없고요.', me: '관리소 지붕에 작은 등이 달려 있었다. 한 번도 켜진 적 없는 것 같았다.'),
                   const Line(13, '…등불 계획 중계등이에요. 랜턴 빛이면 깨울 수 있어요.'),
                 ],
-            outro: (g) => const [
-                  Line(_me, '랜턴을 들어 올렸다. 지붕 위 작은 등이 숨을 쉬듯 켜졌다.'),
-                  Line(_me, '노선도 위, 산골 탑과 이 둑 사이에 가는 빛줄기 하나가 그어졌다.'),
-                  Line(_me, '랜턴을 내렸다. 갓이 뜨거웠다.'),
+            outro: (g) => [
+                  const Line(_me, '랜턴을 들어 올렸다. 지붕 위 작은 등이 숨을 쉬듯 켜졌다.'),
+                  const Line(_me, '노선도 위, 산골 탑과 이 둑 사이에 가는 빛줄기 하나가 그어졌다.'),
+                  const Line(_me, '랜턴을 내렸다. 갓이 뜨거웠다.'),
+                  // 다리 구간 ④ (2026-11-08): 산골의 아침에 있던 만수의 말을 여기로 옮김 · 두드리기 끝, 꺼진 랜턴
+                  const Line(0, '탑 빛 안쪽은 이제 우리가 다녀올게. 넌 좀 앉아 있어.', fb: Line(_g, '탑 빛 안쪽은 이제 우리가 다녀올게요. 좀 앉아 있어요.')),
+                  const Line(_me, '아직 걸을 만하다고 했다.'),
+                  const Line(0, '걸을 만할 때 쉬는 거구먼. 등불지기가 쓰러지면 불은 누가 지키나.', fb: Line(_g, '걸을 만할 때 쉬는 거예요. 등불지기가 쓰러지면 불은 누가 지켜요.')),
+                  const Line(3, '아저씨는 랜턴만 잘 들고 있어요!'),
+                  const Line(_me, '아버지가 남긴 말과 같았다.'),
+                  const Line(_me, '그날부터 랜턴은 두드리는 데 쓰지 않았다. 불을 켤 때만 들었다.'),
                 ]),
         S2Step('배급 정하기 · 식량 80 모으기', '식량을 모아 두면 나눠 먹는 법을 정해요', (g) => g.have('food') >= 80,
             rw: const {'cloth': 20},

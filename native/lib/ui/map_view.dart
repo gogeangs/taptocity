@@ -270,7 +270,7 @@ class _MapViewState extends State<MapView> {
       p.hold = Timer(const Duration(milliseconds: 320), again);
       return;
     }
-    if (i >= 0 && g.S.rev[i] == 1 && g.siteLive(i) && !g.s2NoTap) {
+    if (i >= 0 && g.S.rev[i] == 1 && g.siteLive(i) && !g.s2NoTap && !(g.sendMode && g.s2SendOn)) {
       p.acted = true;
       p.site = i;
       _press(p.pos, 0xFFBEE696, buzz: false);
@@ -283,7 +283,7 @@ class _MapViewState extends State<MapView> {
     final onBld = i >= 0 && g.S.rev[i] == 1 && (i == C0 || g.modAtTile(i) != null || g.S.camp.containsKey(i) || g.S.ter[i] == T.lm);
     final f = frontierAt(p.pos);
     final onLand = i >= 0 && g.S.rev[i] == 1;
-    if (f >= 0 && !onBld && !g.s2NoTap && (!onLand || (toScreen(tileC(f, 12)) - p.pos).distance < TW * .38 * cam.z)) {
+    if (f >= 0 && !onBld && !g.s2NoTap && !(g.sendMode && onLand && i >= 0 && g.siteLive(i)) && (!onLand || (toScreen(tileC(f, 12)) - p.pos).distance < TW * .38 * cam.z)) {
       p.acted = true;
       p.digging = f;
       p.r0 = revCount;

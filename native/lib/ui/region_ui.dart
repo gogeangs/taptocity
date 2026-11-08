@@ -1014,7 +1014,7 @@ Future<void> showS2Send(BuildContext context, Game g, int tile) {
 
 // ======================= 시즌 2 · 마을 (믿음·규칙·하루 부탁) — 쉘터 창 맨 위 =======================
 Widget s2VillageCard(BuildContext context, Game g, VoidCallback redraw) {
-  if (!g.s2On || !g.s2NoTap) return const SizedBox.shrink();
+  if (!g.s2On || !g.s2Mgmt) return const SizedBox.shrink();
   const faces = ['😊', '🙂', '😐', '😟', '😔'];
   Widget opt(String k, String v, String label, String eff) {
     final on = g.s2Rule[k] == v, lock = k == 'air' && v == 'open' && g.s2AirLocked;
@@ -1075,7 +1075,8 @@ Widget s2VillageCard(BuildContext context, Game g, VoidCallback redraw) {
     padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
     decoration: BoxDecoration(color: const Color(0xFFF3E7CB), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0x59B0452A))),
     child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Row(children: [
+      // 마을 믿음은 저수지 판잣집·하경수 합류 뒤부터 (다리 구간 2026-11-08)
+      if (g.s2TrustOn) Row(children: [
         Text(faces[g.s2Face], style: const TextStyle(fontSize: 26)),
         const SizedBox(width: 8),
         Expanded(
@@ -1117,7 +1118,7 @@ Widget s2VillageCard(BuildContext context, Game g, VoidCallback redraw) {
         ),
         Text('마을 믿음은 오르지만, 가까운 사람은 서운해해요.', style: Ttc.t(12, color: Ttc.sepia2, height: 1.4)),
       ],
-      if (g.s2St >= 1) ...[
+      if (g.s2AskOn) ...[
         const SizedBox(height: 10),
         Text('하루 한 번 부탁', style: Ttc.t(13, color: Ttc.sepia, weight: FontWeight.w700)),
         favor(13, '비상 발전'),
