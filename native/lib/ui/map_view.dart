@@ -601,7 +601,6 @@ class MapPainter extends CustomPainter {
     return Offset((x + u - y - v) * TW / 2, (x + u + y + v) * TH / 2 - z);
   }
 
-  @override
   /// 시즌 2: ▼를 띄울 폐허 (쉘터에서 가까운, 아무도 안 간 세 곳)
   Set<int> _s2Marks = const {};
   void _s2MarksCalc() {
@@ -610,6 +609,7 @@ class MapPainter extends CustomPainter {
     _s2Marks = L.take(3).toSet();
   }
 
+  @override
   void paint(Canvas canvas, Size size) {
     _s2MarksCalc();
     final rect = Offset.zero & size;
