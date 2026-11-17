@@ -93,6 +93,13 @@ def android():
                 s = s.replace('compileOptions {', 'compileOptions {\n        coreLibraryDesugaringEnabled true', 1)
                 s += '\ndependencies {\n    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"\n}\n'
             print('desugaring 켬')
+        # 릴리스 빌드 때 lint 끄기 (2026-11-17 url_launcher_android lintVitalAnalyzeRelease가 lint 자체 오류로 멈춤)
+        if 'checkReleaseBuilds' not in s:
+            if kts:
+                s = s.replace('android {', 'android {\n    lint {\n        checkReleaseBuilds = false\n        abortOnError = false\n    }', 1)
+            else:
+                s = s.replace('android {', 'android {\n    lint {\n        checkReleaseBuilds false\n        abortOnError false\n    }', 1)
+            print('릴리스 lint 끔')
         if os.environ.get('TTC_KEYSTORE') and 'ttcUpload' not in s:
             if kts:
                 cfg = ('    signingConfigs {\n'
