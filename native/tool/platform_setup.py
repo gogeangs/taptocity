@@ -37,7 +37,7 @@ def android():
     if 'com.google.android.gms.ads.APPLICATION_ID' not in s:
         s = s.replace('<application', '<application', 1)
         i = s.find('>', s.find('<application')) + 1
-        s = s[:i] + '\n        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-8720405407394137~8522154049"/>' + s[i:]
+        s = s[:i] + '\n        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-6371515231972058~6173331458"/>' + s[i:]
     if 'android.permission.INTERNET' not in s:
         s = s.replace('<application', '<uses-permission android:name="android.permission.INTERNET"/>\n    <application', 1)
     if 'android:scheme="taptocity"' not in s:
@@ -93,6 +93,13 @@ def android():
                 s = s.replace('compileOptions {', 'compileOptions {\n        coreLibraryDesugaringEnabled true', 1)
                 s += '\ndependencies {\n    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"\n}\n'
             print('desugaring 켬')
+        # 릴리스 빌드 때 lint 끄기 (2026-11-17 url_launcher_android lintVitalAnalyzeRelease가 lint 자체 오류로 멈춤)
+        if 'checkReleaseBuilds' not in s:
+            if kts:
+                s = s.replace('android {', 'android {\n    lint {\n        checkReleaseBuilds = false\n        abortOnError = false\n    }', 1)
+            else:
+                s = s.replace('android {', 'android {\n    lint {\n        checkReleaseBuilds false\n        abortOnError false\n    }', 1)
+            print('릴리스 lint 끔')
         if os.environ.get('TTC_KEYSTORE') and 'ttcUpload' not in s:
             if kts:
                 cfg = ('    signingConfigs {\n'
@@ -140,7 +147,7 @@ def ios():
     put('UIRequiresFullScreen', '<true/>')
     put('UISupportedInterfaceOrientations', '<array>\n\t\t<string>UIInterfaceOrientationPortrait</string>\n\t</array>')
     # 광고 (AdMob 앱 ID · 추적 허용 문구 · SKAdNetwork)
-    put('GADApplicationIdentifier', '<string>ca-app-pub-8720405407394137~1234243850</string>')
+    put('GADApplicationIdentifier', '<string>ca-app-pub-6371515231972058~6137672439</string>')
     put('NSUserTrackingUsageDescription', '<string>허용하면 탭투시티에 관심 있을 만한 광고가 나와요. 허용하지 않아도 게임은 똑같이 할 수 있어요.</string>')
     put('SKAdNetworkItems', '<array>\n\t\t<dict>\n\t\t\t<key>SKAdNetworkIdentifier</key>\n\t\t\t<string>cstr6suwn9.skadnetwork</string>\n\t\t</dict>\n\t</array>')
     put('CFBundleURLTypes', '<array>\n\t\t<dict>\n\t\t\t<key>CFBundleURLSchemes</key>\n\t\t\t<array>\n\t\t\t\t<string>taptocity</string>\n\t\t\t</array>\n\t\t</dict>\n\t</array>')

@@ -146,6 +146,44 @@ void main() {
       _drain(g, log);
     }
     expect(g.S.region, 'reservoir');
+    // 다리 구간 (2026-11-08): 저수지에 닿아도 중계등을 켜기 전까지는 두드리기(40%)와 사람 보내기를 함께 쓴다
+    expect(g.s2NoTap, isFalse);
+    expect(g.s2SendOn, isTrue);
+    expect(g.s2AskOn, isTrue);
+    expect(g.s2TrustOn, isFalse);
+    expect(g.s2TapK, .4);
+    {
+      final ruins = [for (var i = 0; i < N; i++) if (g.S.rev[i] == 1 && g.siteLive(i)) i];
+      expect(ruins, isNotEmpty);
+      expect(g.tapTile(ruins.first), 'site', reason: '그냥 누르면 두드리기');
+      g.sendMode = true;
+      expect(g.tapTile(ruins.first), 'send', reason: '사람 보내기 단추를 누른 뒤에는 보내기');
+      expect(g.sendMode, isFalse);
+    }
+    // 판잣집 → 마을 믿음, 중계등 점화 → 두드리기 끝
+    g.s2['i'] = 1;
+    expect(g.s2TrustOn, isTrue);
+    // 자재 걸음은 이름·지금 개수·모자란 것과 구하는 곳을 보여 준다 (2026-11-08)
+    g.S.m['wire'] = 2;
+    g.S.m['parts'] = 50;
+    g.S.m['plate'] = 0;
+    var mm = g.mission();
+    expect(mm.txt, '관리소 지붕의 중계등 켜기 · 전선 2/6 · 부품 ✓ · 철판 0/10');
+    expect(mm.done, isFalse);
+    expect(mm.sub, contains('전선이 모자라요'));
+    expect(mm.sub, contains('가공'));
+    // 자원 줄: 전선·철판이 필요 없는 천·목재 칸을 잠시 대신한다 (부품·식량은 그대로)
+    final bar = g.s2BarMats(baseMats);
+    expect(bar, containsAll(['wire', 'plate', 'parts', 'food']));
+    expect(bar.length, baseMats.length);
+    expect(g.s2SendNear(), greaterThanOrEqualTo(0));
+    g.S.m['wire'] = 6;
+    g.S.m['plate'] = 10;
+    mm = g.mission();
+    expect(mm.done, isTrue);
+    expect(mm.sub, contains('받기를 누르면 랜턴으로 중계등을 켜요'));
+    expect(g.s2NoTap, isFalse);
+    g.s2['i'] = 2;
     expect(g.s2NoTap, isTrue);
     expect(g.S.sig, isEmpty);
     // 탑 빛 안쪽은 밝혀져 있다
@@ -191,6 +229,22 @@ void main() {
     g.s2SetRule('ration', 'work');
     expect(g.s2Rule['ration'], 'work');
     expect(g.prod['food'] ?? 0, greaterThanOrEqualTo(p0));
+  });
+
+  test('다리 구간: 두드리기 몫이 걸음마다 준다 (2026-11-08)', () {
+    Game.tutFlag = true;
+    final g = _load();
+    expect(g.s2TapK, 1);
+    expect(g.s2SendOn, isTrue, reason: '시즌 2 첫 걸음부터 사람 보내기');
+    expect(g.s2AskOn, isFalse);
+    expect(g.s2NoTap, isFalse);
+    g.s2['i'] = 1;
+    expect(g.s2TapK, .7);
+    expect(g.s2AskOn, isTrue);
+    expect(g.s2TrustOn, isFalse);
+    g.s2['st'] = 1;
+    g.s2['i'] = 0;
+    expect(g.s2TapK, .4);
   });
 
   test('아침의 흔적: 지도에 반짝이고, 누르면 수첩에 적힌다', () {

@@ -67,10 +67,15 @@ final List<FeatInfo> feats = [
           ? '떠돌이 개 ${jo(g.petName('dog'), '이', '가')} 식구가 됐어요. 이제 다른 떠돌이 동물도 쉘터 근처를 기웃거려요.'
           : '쉘터에 네 발 달린 식구가 생겼어요. 이제 다른 떠돌이 동물도 쉘터 근처를 기웃거려요.'),
   FeatInfo('fire', -1, null, null, (g) => g.S.region == 'snow', '위쪽 띠의 모닥불 온기를 지켜요', '모닥불 온기'),
+  // 시즌 2 다리 구간 (2026-11-08): 경영 놀이를 하나씩 연다 (이미 지나간 사람에게는 띄우지 않는다)
+  FeatInfo('s2send', -1, null, null, (g) => g.s2SendOn && !g.s2NoTap, '왼쪽 아래 ‘사람 보내기’를 누르고 폐허를 누르면 사람이 다녀와요', '사람 보내기'),
+  FeatInfo('s2ask', 2, 'shelter', null, (g) => g.s2AskOn && !g.s2NoTap, '아래 ‘마을’ 탭 맨 위에서 미영·태식·은호에게 하루 한 번 일을 맡겨요', '하루 부탁'),
+  FeatInfo('s2trust', 2, 'shelter', null, (g) => g.s2TrustOn && !g.s2NoTap, '아래 ‘마을’ 탭 맨 위에서 마을 믿음을 볼 수 있어요', '마을 믿음'),
+  FeatInfo('s2lamp', -1, null, null, (g) => g.s2NoTap && g.s2St == 1, '랜턴은 이제 탑을 켜거나 이을 때만 들어요 · 폐허를 누르면 바로 사람을 보내요', '꺼진 랜턴'),
 ];
 
 /// 첫 동네 이후에는 그 동네에서 새로 생기는 기능만 카드를 띄운다 (웹 FEAT_LATER, 2026-10-13)
-const featLater = ['trade', 'route', 'fire', 'line'];
+const featLater = ['trade', 'route', 'fire', 'line', 's2send', 's2ask', 's2trust', 's2lamp'];
 
 /// 시트 → 아래 탭 (웹 TAB_OF)
 const featTabOf = {'surv': 0, 'exp': 1, 'shelter': 2, 'radio': 3, 'diary': 4};

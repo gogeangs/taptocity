@@ -20,9 +20,9 @@ class Ads {
   Ads._();
   static bool get on => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
-  // 광고 단위 (AdMob 계정 pub-8720405407394137, 2026-11-02 등록)
-  static String get _inter => Platform.isIOS ? 'ca-app-pub-8720405407394137/5560948785' : 'ca-app-pub-8720405407394137/5408905546';
-  static String get _rew => Platform.isIOS ? 'ca-app-pub-8720405407394137/2782742205' : 'ca-app-pub-8720405407394137/4095823879';
+  // 광고 단위 (AdMob 계정 pub-6371515231972058, 2026-11-17 새 계정으로 옮김)
+  static String get _inter => Platform.isIOS ? 'ca-app-pub-6371515231972058/5507117040' : 'ca-app-pub-6371515231972058/3266811560';
+  static String get _rew => Platform.isIOS ? 'ca-app-pub-6371515231972058/9640648227' : 'ca-app-pub-6371515231972058/5179813984';
 
   static bool _init = false;
   static InterstitialAd? _i;
