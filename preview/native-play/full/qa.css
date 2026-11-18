@@ -1,0 +1,514 @@
+/* QA fixes layered on top of design.css (kept separate so design passes can keep editing design.css) */
+/* nested portrait crops must fill their frame; size rules like `.sk .av svg` otherwise shrink the inner crop too */
+:is(#app,#modal,#sheet,body) svg.illustrated-portrait svg{width:100%!important;height:100%!important;margin:0!important}
+/* choice cards (cases, crows) and gear slots: light card, dark ink */
+.page .copt{background:#f8f3e6!important;color:#26333b!important;border:1.5px solid rgba(38,51,59,.16)!important;box-shadow:none!important}
+.page .copt.hi{background:#fff8ea!important;border-color:#b0452a!important}
+.page .copt b{color:#26333b!important}.page .copt small{color:#56646a!important}
+.page .copt[disabled]{opacity:.6}
+.page .gslot{background:#f8f3e6!important;color:#26333b!important;border:1px solid rgba(38,51,59,.16)!important}
+.page .gslot b{color:#26333b!important}.page .gslot small,.page .gslot .gar{color:#56646a!important}
+.page .gslot .gi{background:#e9e1cf}
+/* previous / next survivor */
+.svnav button{color:#26333b!important;border-color:rgba(38,51,59,.25)!important}
+/* skill cooldown numbers stay readable over the light frame */
+.sk .cd{text-shadow:0 1px 2px rgba(0,0,0,.85),0 0 6px rgba(0,0,0,.6)}
+.page .gslot:not(.empty) .gi{background:#33495a}
+.nw{color:#26333b!important}
+/* story illustrations (story-art.js) */
+.page.talk .story-art{margin:-2px -2px 12px;border-radius:10px;overflow:hidden;aspect-ratio:3/2;max-height:34vh;background:#35404a;animation:scene-arrive .32s ease-out both}
+.page.talk .story-art svg{display:block;width:100%;height:100%}
+@media (max-height:640px){.page.talk .story-art{max-height:26vh}}
+@media(prefers-reduced-motion:reduce){.page.talk .story-art{animation:none}}
+/* UI audit 2026-10-01b: minimum text sizes on phones */
+.mc i{font-size:10.5px!important}
+.tape .chap,.chap{font-size:11px!important}
+.ready-label{font-size:10.5px!important}
+.sk small{font-size:10.5px!important}
+.lbadge{font-size:11.5px!important}
+@media (max-width:360px){.mc i{font-size:10px!important}}
+/* quest card: long goals wrap to two lines instead of being cut */
+@media (max-width:400px){.sq .sqm b{white-space:normal!important;display:-webkit-box!important;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;text-overflow:clip!important;line-height:1.25}}
+/* sheet sub-tabs: nothing scrolls into view above the sticky bar */
+#shBody .segs{top:-14px!important}
+#shBody .segs::before{content:"";position:absolute;left:-30px;right:-30px;top:-16px;height:16px;background:#e7e4dc;pointer-events:none}
+/* 회상 갤러리 */
+.scene-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding-bottom:12px}
+.scene-cell{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:5px;min-width:0}
+.scene-cell svg{display:block;width:100%;aspect-ratio:3/2;border-radius:8px;background:#35404a;box-shadow:0 2px 6px rgba(23,29,36,.18)}
+.scene-cell span{font:600 12px/1.35 var(--body);color:#26333b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.scene-cell:focus-visible svg{outline:3px solid #dfa54b;outline-offset:2px}
+.scene-cell:active svg{transform:scale(.98)}
+.scene-cell.locked{cursor:default}
+.scene-cell.locked b{display:grid;place-items:center;width:100%;aspect-ratio:3/2;border-radius:8px;background:repeating-linear-gradient(135deg,#d9d3c4 0 8px,#e2dccd 8px 16px);color:#8a8f8c;font:700 18px var(--serif)}
+.scene-cell.locked span{color:#7d8789;font-weight:500}
+@media (min-width:560px){.scene-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.page.scene-view .story-art{margin:-2px -2px 12px;border-radius:10px;overflow:hidden;aspect-ratio:3/2;max-height:40vh;background:#35404a}
+.page.scene-view .story-art svg{display:block;width:100%;height:100%}
+.page.scene-view h3{margin:2px 0 12px}
+.page.scene-view .ch{display:flex;flex-direction:column;gap:8px}
+
+/* 시즌 1 엔딩 카드: black, silence, the title, then one line of radio */
+#endcard{position:fixed;inset:0;z-index:9999;background:#050506;color:#e8e2d4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;opacity:0;transition:opacity 1.6s ease;padding:24px;text-align:center}
+#endcard.on{opacity:1}
+#endcard .ec-t{opacity:0;transition:opacity 2.2s ease;display:flex;flex-direction:column;gap:8px}
+#endcard.t .ec-t{opacity:1}
+#endcard .ec-t small{font-size:13px;letter-spacing:.4em;color:#9a948a}
+#endcard .ec-t b{font-size:26px;font-weight:600;letter-spacing:.18em}
+#endcard .ec-r{min-height:1.4em;font-size:15px;color:#b9c4c8;font-family:ui-monospace,monospace;letter-spacing:.06em;transition:opacity .08s}
+#endcard.cut .ec-r{opacity:0}
+#endcard .ec-go{opacity:0;pointer-events:none;transition:opacity 1.2s;background:none;border:1px solid #5a564e;color:#d8d2c4;border-radius:999px;padding:10px 22px;font-size:14px;min-height:44px}
+#endcard.go .ec-go{opacity:1;pointer-events:auto}
+@media (prefers-reduced-motion:reduce){#endcard,#endcard .ec-t,#endcard .ec-go{transition:none}}
+
+/* close button: the design sheet makes it 44px, so center the ✕ by grid instead of a fixed line-height */
+.mx,.page .mx{display:grid!important;place-items:center!important;line-height:1!important;width:44px!important;height:44px!important;margin:-14px -12px 0 8px!important;font-size:26px!important;font-weight:400!important}
+
+/* the mission bar's goal is plain text; the design sheet's boxed .goal is for the talk card's 할 일 box only */
+.tape .m .goal{display:inline!important;background:none!important;border:0!important;border-radius:0!important;padding:0!important;margin:0!important;font:inherit!important;color:inherit!important}
+
+/* story text wraps line by line; Safari's text-wrap:pretty rebalanced whole paragraphs and left the first line short */
+.page.talk p,.page.talk .d,.page.scene-view p,.tt.note .nb,.tt.note small{text-wrap:wrap!important}
+
+/* the lantern art is a nested svg; the design sheet's #lamp svg size must not resize it (Safari drew it 56×56 with a sampled edge line on top) */
+#lamp svg.lamp-art{width:46px!important;height:46px!important;overflow:hidden}
+
+/* icons inside buttons sit inline with the label: no dark box, a little air on both sides */
+.page .btns button .mi,.ch button .mi{background:none!important;padding:0!important;border-radius:0!important;vertical-align:-2px!important;margin:0 3px 0 2px}
+
+/* survivor-request choices: light cards like the case choices (the page-wide button color made them dark on dark) */
+.page .rqo{background:#f8f3e6!important;color:#26333b!important;border:1.5px solid rgba(38,51,59,.16)!important;box-shadow:none!important;padding:12px 14px!important;border-radius:12px!important}
+.page .rqo:not(.b){background:#fff8ea!important;border-color:#b0452a!important}
+.page .rqo[disabled]{background:#efe9dc!important;opacity:.6!important}
+.page .rqo .rqol{color:#26333b!important}.page .rqo .rqcost.free{color:#56646a!important}
+
+/* the module info card's max-height includes its padding, so it never spills over the ring buttons */
+#ringLabel.rl{box-sizing:border-box!important}
+/* the module card stays above passing notes while it is open */
+#ringLabel.rl{z-index:7!important}
+
+/* amber buttons: grid centering (Safari leaves a min-height flex button's text at the top) */
+.buy:not(.cbtn),.page .btns>button,.page>button,.tfoot button,.page .rqok{display:inline-grid!important;place-items:center!important;align-content:center!important;justify-content:center!important;line-height:1.2!important}
+.buy small,.page .btns>button small{display:block}
+@media (max-width:360px){.tt.note .nb small{-webkit-line-clamp:3}}
+/* chips in a row keep their own height, so a short chip beside a tall cost chip is not stretched with its text at the top */
+.chips{align-items:center!important}.chip{display:inline-flex!important;align-items:center!important}
+
+/* tap gauge: a bright cream arc instead of amber-on-amber, thicker, with a dark edge so it reads on both the button and the dark circle */
+#lampRing{stroke:#fff3c4!important;stroke-width:5.5!important;filter:drop-shadow(0 0 1.5px rgba(40,28,10,.9));transition:stroke-dashoffset .12s linear}
+#lamp.fever #lampRing{stroke:#ffd060!important;filter:drop-shadow(0 0 4px rgba(255,200,80,.95))}
+
+/* collar colour swatches keep their colour (the page-wide button colour had painted them all teal) */
+.page .pcols .pcol{background:var(--c)!important;width:30px!important;height:30px!important;min-height:0!important;padding:0!important;border:2px solid rgba(59,42,26,.35)!important;border-radius:50%!important;display:block!important}
+.page .pcols .pcol.on{outline:3px solid #3b2a1a;outline-offset:2px}
+
+/* underground cells are square grid tiles, not text buttons: keep their own block grid so the icon bubble keeps its 74% size */
+.page .ut,.page.ug .ut{display:grid!important;place-items:center!important;line-height:1!important}
+.page.ug .ut{position:relative!important}.page.ug .ut .ub{position:absolute!important;inset:11%!important;width:auto!important;height:auto!important;border-radius:9px!important}
+.page.ug .ut .ub svg{width:70%!important;height:70%!important;stroke-width:2.4!important}
+
+/* underground: a name under each revealed icon, and a legend of this floor's finds under the grid */
+.page.ug .ut.r .ub{inset:6% 14% 30% 14%!important;border-radius:8px!important}
+.page.ug .ut.r .ub svg{width:72%!important;height:72%!important}
+.page.ug .ut .ul{position:absolute;left:0;right:0;bottom:3px;text-align:center;font:700 9.5px/1 var(--body);letter-spacing:-.02em;color:#1d1712;pointer-events:none}
+.page.ug .ut.act .ul{color:#2a1c0c}.page.ug .ut.k-hazard .ul{color:#fff0dc}.page.ug .ut.done .ul{opacity:.55}
+.page.ug .uglegend{display:flex;flex-wrap:wrap;gap:4px 12px;margin:-4px 0 10px;font:600 11.5px/1.2 var(--body);color:#c9d1d8}
+.page.ug .uglegend span{display:inline-flex;align-items:center;gap:5px}
+.page.ug .uglegend .ub{position:static!important;inset:auto!important;width:18px!important;height:18px!important;border-radius:5px!important;display:grid!important;place-items:center!important;box-shadow:none!important}
+.page.ug .uglegend .ub svg{width:72%!important;height:72%!important;stroke-width:2.4}
+
+/* illustrated underground icons: the drawing itself, no coloured bubble behind it */
+.page.ug .ut .ub,.page.ug .uglegend .ub{background:none!important;box-shadow:none!important;clip-path:none!important;filter:none!important}
+.page.ug .ut.r .ub{inset:3% 8% 27% 8%!important}
+.page.ug .ut .ub .uimg,.page.ug .uglegend .ub .uimg{width:100%!important;height:100%!important;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.45))}
+.page.ug .ut.done .ub{filter:grayscale(.7) brightness(.75)!important}
+.page.ug .uglegend .ub{width:22px!important;height:22px!important}
+
+/* survivor notebook: grade + stars under the name */
+.resident-row .resident-grade{display:flex;align-items:center;gap:4px;margin:2px 0 3px;line-height:1}.resident-row .resident-grade .gr{vertical-align:0}.resident-row .resident-grade .stars{margin-left:1px;vertical-align:0;font-size:12px}
+/* shelter sheet: five tabs stay on one row (labels are 2-3 chars) */
+#shBody .segs:has(.seg:nth-child(5)){display:grid!important;grid-template-columns:repeat(5,1fr)!important;overflow:visible!important}
+#shBody .segs:has(.seg:nth-child(5)) .seg{min-width:0!important;flex:none!important;padding:9px 2px!important;font-size:13px!important;letter-spacing:-.01em}
+.page .rsintro{margin:-4px 0 12px;font-size:13px;line-height:1.5;color:var(--sepia-2,#6b5e52)}
+/* light banners (.b2): bold text must read on the cream background */
+.banner.b2 b{color:#2f3f4b!important}.banner.b2{color:#5a4d42!important}
+/* migration party pick / radio swap pick */
+.page .migpick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 10px}
+.page .migpick .mpk{display:flex!important;flex-direction:column;align-items:center;gap:4px;padding:8px 4px 7px!important;border:1.5px solid rgba(59,42,26,.25)!important;border-radius:10px!important;background:#fbf7ee!important;color:#3b2a1a!important;font:600 12.5px/1.2 var(--body)!important;text-align:center;min-height:0!important;box-shadow:none!important}
+.page .migpick .mpk .fc{width:44px;height:44px;border-radius:50%;overflow:hidden;background:#e6d8b6;border:2px solid rgba(59,42,26,.3)}
+.page .migpick .mpk .fc svg{display:block;width:100%;height:100%}
+.page .migpick .mpk b{font-size:13px}.page .migpick .mpk small{font-size:10.5px;color:var(--sepia-2,#6b5e52);white-space:normal}
+.page .migpick .mpk.on{border-color:#2f3f4b!important;background:#2f3f4b!important;color:#fff!important}.page .migpick .mpk.on small{color:#d9d4c8}
+.page .migpick .mpk.on .fc{border-color:#e0b441}
+/* pet modal: switch between pets without closing */
+.petp .petstrip{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;margin:-4px 0 6px;scrollbar-width:none}
+.petp .petstrip::-webkit-scrollbar{display:none}
+.petp .petstrip .pst{position:relative;flex:none;width:52px;height:52px;border-radius:50%;border:2px solid rgba(59,42,26,.25)!important;background:#efe6d2!important;padding:0!important;min-height:0!important;display:grid!important;place-items:center;box-shadow:none!important}
+.petp .petstrip .pst img{width:44px;height:44px;display:block}
+.petp .petstrip .pst.on{border-color:#2f3f4b!important;background:#fff8e6!important;box-shadow:0 0 0 2px rgba(47,63,75,.18)!important}
+.petp .petstrip .pst i{position:absolute;right:-1px;bottom:-1px;width:12px;height:12px;border-radius:50%;border:2px solid #f3eee2}
+.petp .petstrip .pst i.hungry{background:#d9483b}.petp .petstrip .pst i.full{background:#6b8f4a}
+/* underground prep: fuel cap hint */
+.fuelrow span{flex-wrap:wrap}.fuelrow span .fmax{font:500 11.5px/1 var(--body);color:var(--sepia-2,#6b5e52);margin-left:2px;white-space:nowrap;flex-basis:100%}
+/* unmet survivor with a known signal: tappable row */
+.svrow.locked.sigrow{opacity:1;cursor:pointer;grid-template-columns:54px minmax(0,1fr) auto!important}
+.svrow.locked.sigrow small{color:#3f6fa0}
+
+/* migration: make the road out of a finished town visible */
+.banner.mig{background:linear-gradient(90deg,#6b3a1a,#b0452a)!important;color:#ffe9c4!important;border:0!important;box-shadow:0 0 0 2px rgba(255,200,110,.35),0 6px 18px rgba(176,69,42,.35)!important;animation:migglow 2.4s ease-in-out infinite}.banner.mig b{color:#ffe2a0!important}
+@keyframes migglow{0%,100%{box-shadow:0 0 0 2px rgba(255,200,110,.25),0 6px 18px rgba(176,69,42,.25)}50%{box-shadow:0 0 0 3px rgba(255,210,120,.6),0 8px 24px rgba(176,69,42,.5)}}
+#tape .migchip{flex:none;align-self:center;display:inline-flex!important;align-items:center;gap:4px;margin:0 0 0 8px;padding:8px 11px;border-radius:999px;border:0!important;background:linear-gradient(90deg,#6b3a1a,#b0452a)!important;color:#ffe2a0!important;font:700 12.5px/1 var(--body)!important;white-space:nowrap;box-shadow:0 2px 8px rgba(176,69,42,.4);animation:migglow 2.4s ease-in-out infinite;cursor:pointer;min-height:0!important}
+#tape .migchip[hidden]{display:none!important}
+@media(prefers-reduced-motion:reduce){.banner.mig,#tape .migchip{animation:none}}
+/* decoration sets */
+.setlist{display:grid;gap:6px;margin:0 0 12px}
+.dset{padding:8px 10px;border-radius:10px;border:1px solid rgba(59,42,26,.18);background:rgba(255,255,255,.35);font:600 13px/1.35 var(--body);color:var(--sepia)}
+.dset small{display:block;font:11.5px/1.4 var(--body);color:var(--sepia-2,#6b5e52)}
+.dset.on{background:#2f3f4b;color:#fff;border-color:#2f3f4b}.dset.on small{color:#d9d4c8}
+/* gear: who wears it, and signature items */
+.wch{display:inline-flex;align-items:center;gap:5px;margin-top:4px;padding:2px 8px 2px 2px;border-radius:999px;background:rgba(59,42,26,.08);font:600 11px/1 var(--body);color:var(--sepia)}
+.wch .fc{width:18px;height:18px;border-radius:50%;overflow:hidden;background:#e6d8b6;border:1px solid rgba(59,42,26,.3);display:inline-block}
+.wch .fc svg{display:block;width:100%;height:100%}
+.gfit.gonly,.badge.gonly{background:linear-gradient(135deg,#f3c34a,#c9861a)!important;color:#3b2a1a!important}
+.gpr.only{background:rgba(224,180,65,.14)}
+/* 만수의 노선도 (diary › 노선도) */
+.rmap{position:relative;padding:4px 0 8px 6px}
+.rmap .rhead{margin:0 0 12px}.rmap .rhead b{display:block;font:700 15px/1.3 var(--body);color:var(--sepia)}.rmap .rhead small{display:block;font:400 12px/1.5 var(--body);color:var(--sepia-2,#6b5e52);margin-top:3px}
+.rmap .rstop{position:relative;display:flex;align-items:flex-start;gap:12px;width:100%;padding:10px 6px 10px 0;margin:0;border:0;background:transparent;text-align:left;color:var(--sepia);font:inherit;min-height:0;box-shadow:none;border-radius:0}
+.rmap .rstop+.rstop,.rmap .rway+.rstop{border-top:0}
+.rmap .rstop::before,.rmap .rway::before{content:'';position:absolute;left:11px;top:-14px;bottom:-14px;border-left:2px dashed rgba(59,42,26,.35);z-index:0}
+.rmap .rstop:last-child::before{bottom:50%}.rmap .rstop.next::before{top:50%;border-left-style:dotted;opacity:.6}
+.rmap .dot{position:relative;z-index:1;flex:0 0 24px;width:24px;height:24px;border-radius:50%;background:#fbf7ee;border:2px solid #3b2a1a;display:flex;align-items:center;justify-content:center;font-size:12px;margin-top:2px}
+.rmap .rstop.cur .dot{background:#e0b441;border-color:#8a5a12;box-shadow:0 0 0 4px rgba(224,180,65,.28),0 0 14px rgba(224,180,65,.55)}
+.rmap .rstop.next .dot{border-style:dashed;opacity:.6;background:transparent}
+.rmap .rstop .cb{flex:1;min-width:0;background:#fbf7ee;border:1.5px solid rgba(59,42,26,.25);border-radius:10px;padding:9px 11px}
+.rmap .rstop.cur .cb{border-color:#8a5a12;background:#fdf6df}
+.rmap .rstop.next .cb{background:transparent;border-style:dashed;opacity:.75}
+.rmap .rstop .t{font:700 14px/1.35 var(--body);color:var(--sepia)}.rmap .rstop .t small{font-weight:500;font-size:11.5px;color:var(--sepia-2,#6b5e52);margin-left:4px}
+.rmap .rstop .d{font:400 12.5px/1.5 var(--body);color:var(--sepia-2,#6b5e52);margin-top:3px}
+.rmap .rstop .d.q{font-style:italic;color:var(--sepia);margin-top:6px;white-space:normal}
+.rmap .faces{display:flex;gap:4px;margin-top:7px;align-items:center}
+.rmap .faces .fc{width:30px;height:30px;border-radius:50%;overflow:hidden;background:#e6d8b6;border:1.5px solid rgba(59,42,26,.35);flex:0 0 30px}.rmap .faces .fc svg{display:block;width:100%;height:100%}
+.rmap .faces .more{font:600 11px/1 var(--body);color:var(--sepia-2,#6b5e52);margin-left:2px}
+.rmap .rway{position:relative;padding:2px 0 2px 36px;font:400 11.5px/1.6 var(--body);color:var(--sepia-2,#6b5e52);opacity:.85}
+.rmap .rway span{display:block}
+.sec .lnk{float:right;border:0;background:transparent;color:#8a5a12;font:600 12px/1.4 var(--body);padding:0;min-height:0;box-shadow:none;text-decoration:underline;text-underline-offset:2px}
+.page .migpick .mpk:disabled{opacity:.55}
+/* 무전 거래 */
+.row.mcard.tro .t{display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px}
+.ttag{display:inline-block;font:600 10.5px/1 var(--body);padding:3px 7px;border-radius:999px;background:rgba(59,42,26,.1);color:var(--sepia);font-style:normal}
+.ttag.good{background:rgba(96,160,80,.18);color:#2f6b2a}.ttag.poor{background:rgba(120,120,120,.16);color:#555}.ttag.urg{background:rgba(224,120,60,.2);color:#9a4612}
+.row.mcard.tro .d.q{font-style:italic;color:var(--sepia);margin:3px 0}
+.row.mcard.tro .costs{display:inline-flex;vertical-align:middle}
+.row.mcard.tro.urg{position:relative;background:linear-gradient(135deg,#fbe9d6,#f6dcc2)!important;border:1.5px solid #e07a45!important;box-shadow:0 2px 10px rgba(224,122,69,.22)!important;overflow:visible!important}
+.row.mcard.tro.urg::after{content:'후한 보상';position:absolute;top:-9px;right:12px;font:700 10.5px/1 var(--body);padding:4px 8px;border-radius:999px;background:#e07a45;color:#fff8ee;box-shadow:0 1px 4px rgba(120,50,10,.3);pointer-events:none}
+.row.mcard.tro.urg .ttag.urg{background:#e07a45;color:#fff8ee}
+.row.mcard.tro .warn{font-style:normal;color:#9a4612;font-weight:600}
+/* 노친네 */
+#tape .migchip.ped{background:linear-gradient(90deg,#4a3a2a,#7a5a33)!important;color:#f3e2b8!important;animation:none}
+.pedpage .row.mcard.rare{background:rgba(224,180,65,.1)!important}
+.pedpage .row.mcard.crow{border-left:3px solid #2a2420!important;padding-left:8px!important}
+.pedpage .row.mcard .d.q{font-style:italic;color:var(--sepia);margin:3px 0}
+.pedpage .row.mcard .costs{display:inline-flex;vertical-align:middle}
+.pedpage .row.mcard{display:flex;align-items:center;gap:10px}
+.pedpage .row.mcard .cb{flex:1 1 auto;min-width:0}
+.pedpage .row.mcard .t{display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px}
+.pedpage .row.mcard .buy{flex:0 0 auto;width:auto!important;min-width:0!important;padding:9px 14px!important;font-size:13px!important}
+.pedpage .row.mcard .th{flex:0 0 auto}
+/* 장비 일러스트 아이콘 */
+.gi.art{background:#efe3c4;padding:1px;overflow:hidden}
+.gi.art svg.gart{display:block;width:100%!important;height:100%!important}
+.gi.art.g3{box-shadow:0 0 8px rgba(255,210,74,.6)}
+.page .gslot:not(.empty) .gi.art{background:#efe3c4}
+/* 이주 추천 */
+.page .migpick .mpk{position:relative}
+.page .migpick .mpk.rec{border-color:#8a5a12!important;background:#fdf6df!important}
+.page .migpick .mpk.rec.on{background:#2f3f4b!important;border-color:#e0b441!important}
+.page .migpick .mpk .rtag{position:absolute;top:-7px;left:50%;transform:translateX(-50%);font:700 10px/1 var(--body);font-style:normal;padding:3px 7px;border-radius:999px;background:#e0b441;color:#3b2a1a}
+.page .migpick .mpk em{font:500 10.5px/1.3 var(--body);font-style:normal;color:#8a5a12;white-space:normal}
+.page .migpick .mpk.on em{color:#f3d9a0}
+.page .row.mcard.migrec{display:flex;align-items:center;gap:10px;background:#fdf6df!important;border:1.5px solid #8a5a12!important;border-radius:10px!important;padding:8px 10px!important;margin:0 0 10px}
+.page .row.mcard.migrec .cb{flex:1;min-width:0}.page .row.mcard.migrec .buy{flex:0 0 auto;width:auto!important;min-width:0!important;padding:9px 12px!important;font-size:13px!important}
+/* 지하 팀 추천 */
+.ugprep .mem{position:relative;gap:8px!important}
+.ugprep .mem .mtx{display:flex;flex-direction:column;align-items:flex-start;line-height:1.25;min-width:0}
+.ugprep .mem .mtx b{font-size:13.5px}.ugprep .mem .mtx small{font:500 11px/1.3 var(--body);color:var(--sepia-2,#6b5e52);white-space:normal;text-align:left}
+.ugprep .mem .mtx small i{font-style:normal;color:#8a5a12}
+.ugprep .mem.rec{border-color:#8a5a12!important;background:#fdf6df!important}
+.ugprep .mem .rtag{margin-left:auto;font:700 10px/1 var(--body);font-style:normal;padding:3px 7px;border-radius:999px;background:#e0b441;color:#3b2a1a;flex:none}
+.ugprep .mem.on .rtag{display:none}
+/* 스킬 바 추천 */
+.pick.rec{background:#fdf6df!important;border-left:3px solid #e0b441!important;padding-left:8px!important}
+.badge.rec{background:#e0b441!important;color:#3b2a1a!important}
+#shBody .row.mcard.migrec{display:flex;align-items:center;gap:10px;background:#fdf6df!important;border:1.5px solid #8a5a12!important;border-radius:10px!important;padding:8px 10px!important;margin:0 0 10px}
+#shBody .row.mcard.migrec .cb{flex:1;min-width:0}#shBody .row.mcard.migrec .buy{flex:0 0 auto;width:auto!important;min-width:0!important;padding:9px 12px!important;font-size:13px!important}
+#shBody .row.mcard.migrec .d{font-size:12px;line-height:1.45}
+/* portrait inside a card thumbnail (무전 거래 · 교대 · 노선도) */
+.row.mcard .th .fc{display:block;width:56px;height:56px;overflow:hidden}
+.row.mcard .th .fc svg{display:block;width:100%;height:100%}
+/* 장비 가방 정리 */
+#shBody .tidy{display:flex;align-items:center;gap:10px;justify-content:space-between;background:var(--surface,#f7f1e3);border:1px solid var(--line,rgba(59,42,26,.15));border-radius:10px;padding:10px 12px;margin:0 0 10px}
+#shBody .tidy b{display:block;font-size:14px}#shBody .tidy small{display:block;color:var(--sepia,#6b5a45);font-size:11.5px;margin-top:2px;line-height:1.4}
+#shBody .tidy.none{display:block;opacity:.85}
+#shBody .bagbar{display:flex;flex-direction:column;gap:6px;margin:0 0 8px}#shBody .bagbar>div{display:flex;flex-wrap:wrap;gap:6px}
+#shBody .bchip{border:1px solid var(--line,rgba(59,42,26,.2));background:transparent;border-radius:999px;padding:5px 11px;font:600 12px/1 var(--body);color:var(--ink,#3b2a1a)}
+#shBody .bchip.s{font-weight:500;font-size:11.5px;padding:4px 9px}
+#shBody .bchip.on{background:var(--ink,#3b2a1a);color:var(--paper,#f3ead6);border-color:transparent}
+#shBody .gact{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+#shBody .lkb{width:30px;height:30px;border-radius:8px;border:1px solid var(--line,rgba(59,42,26,.2));background:transparent;color:var(--sepia,#8a7a64);display:grid;place-items:center;padding:0}
+#shBody .lkb.on{background:#3b2a1a;color:#f3c76a;border-color:transparent}
+.page.tidyp .tlist{display:flex;flex-direction:column;gap:6px;max-height:46vh;overflow:auto;margin-top:8px}
+.page.tidyp .trow{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid rgba(59,42,26,.18);background:transparent;border-radius:10px;padding:8px 10px;width:100%}
+.page.tidyp .trow.on{background:rgba(201,138,58,.12);border-color:rgba(201,138,58,.55)}
+.page.tidyp .trow .ck{width:20px;height:20px;border-radius:6px;border:1.5px solid rgba(59,42,26,.4);display:grid;place-items:center;font:700 12px/1 sans-serif;font-style:normal;flex:0 0 auto}
+.page.tidyp .trow.on .ck{background:#c98a3a;border-color:#c98a3a;color:#fff}
+.page.tidyp .trow small{display:block;color:#6b5a45;font-size:11.5px;margin-top:2px}
+#shBody .tidy .buy{white-space:nowrap;flex:0 0 auto}
+.page.tidyp .trow,.page.tidyp .trow:hover{background:#fbf6ea!important;color:#3b2a1a!important;border:1px solid rgba(59,42,26,.18)!important;box-shadow:none!important;min-height:0!important;font:inherit!important;justify-content:flex-start!important}
+.page.tidyp .trow.on{background:#f6e6cc!important;border-color:rgba(201,138,58,.7)!important}
+.page.tidyp .trow b{font-weight:700;font-size:14px}
+.page.tidyp .gains{display:flex;flex-wrap:wrap;gap:6px}
+.page.tidyp .gn{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:999px;background:rgba(96,160,80,.14);color:#2f5a28;font:600 12.5px/1 var(--body)}
+.page.tidyp .trow{flex:0 0 auto!important;height:auto!important;padding:8px 10px!important;line-height:1.3!important;overflow:visible!important}
+.page.tidyp .trow>span{display:block;min-width:0}
+/* 잃은 사람 장면 */
+#ttcDeath{position:fixed;inset:0;z-index:500;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 40%,rgba(24,21,24,.97),rgba(5,4,6,.995));opacity:0;transition:opacity 1.2s ease}
+#ttcDeath.on{opacity:1}#ttcDeath.out{opacity:0;transition:opacity .7s ease}
+#ttcDeath .dbox{width:min(330px,100%);text-align:center;color:#e9e1d1;font-family:var(--body)}
+#ttcDeath .dtag{font-size:12px;letter-spacing:.08em;color:#9b927f;margin-bottom:16px;opacity:0;animation:dIn 1.4s ease var(--t1) forwards}
+#ttcDeath .dpf{width:150px;height:176px;margin:0 auto 16px;border-radius:12px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.6),0 0 0 1px rgba(233,225,209,.18);opacity:0;animation:dIn 1.6s ease .2s forwards,dFade 3s ease var(--t1) forwards}
+#ttcDeath .dpf svg,#ttcDeath .dpf img{width:100%;height:100%;display:block}
+#ttcDeath h3{font:700 26px/1.2 var(--display,inherit);margin:0;letter-spacing:.02em;opacity:0;animation:dIn 1.2s ease var(--t1) forwards}
+#ttcDeath .dsub{font-size:13px;color:#a79e8a;margin-top:4px;opacity:0;animation:dIn 1.2s ease var(--t1) forwards}
+#ttcDeath .dlast{margin:20px 4px 0;font-size:15.5px;line-height:1.7;color:#e9e1d1;opacity:0;animation:dIn 1.8s ease var(--t2) forwards;word-break:keep-all}
+#ttcDeath .dlamp{margin:22px auto 6px;height:44px;opacity:0;animation:dIn 1s ease var(--t2) forwards}
+#ttcDeath .dlamp .fl{transform-origin:20px 32px;animation:dFlick .18s ease-in-out infinite alternate,dOut 1.1s ease var(--t3) forwards,dRelit 1.4s ease var(--t4) forwards}
+#ttcDeath .dok{margin-top:14px;min-width:170px;padding:12px 20px;border-radius:999px;border:1px solid rgba(233,225,209,.35);background:transparent;color:#e9e1d1;font:600 14.5px/1 var(--body);transition:opacity .6s,background .3s}
+#ttcDeath .dok:disabled{opacity:.25}#ttcDeath .dok:not(:disabled):active{background:rgba(233,225,209,.12)}
+@keyframes dIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes dFade{from{filter:grayscale(0) brightness(1)}to{filter:grayscale(1) brightness(.78) contrast(.95)}}
+@keyframes dFlick{from{transform:scale(1,1)}to{transform:scale(.92,1.06)}}
+@keyframes dOut{to{opacity:.0;transform:scale(.3,.2)}}
+@keyframes dRelit{from{opacity:0;transform:scale(.3,.2)}to{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){#ttcDeath .dlamp .fl{animation:none}}
+#ttcDeath h3{font-size:28px}
+#ttcDeath .dlamp svg{filter:drop-shadow(0 0 10px rgba(255,190,110,.35))}
+/* 산골 모닥불 칩 */
+#tape .migchip.fire{background:linear-gradient(90deg,#6b2f17,#c4652a)!important;color:#ffe9c7!important;animation:none}
+#tape .migchip.fire[data-t="0"]{background:linear-gradient(90deg,#2d3a45,#4b5d6b)!important;color:#dfe8ef!important;animation:fireCold 1.2s ease-in-out infinite alternate}
+@keyframes fireCold{to{filter:brightness(1.25)}}
+
+/* 2026-10-10 디자인 정리: 레벨 칩을 목표 띠에 합침 · 의뢰 칩 접기 · 증축 카드 · 장비 칸 */
+.hud{padding-bottom:6px!important}
+.lvchip{all:unset;box-sizing:border-box;flex:none;display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:70px;max-width:96px;padding:4px 8px;margin:-4px 0 -4px -4px;border-radius:7px;background:#2c333b;color:#f5ead0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.lvchip #lv{font:700 11.5px/1 var(--body)!important;color:#ffdf9e!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lvchip .lvbar{display:block;height:4px;border-radius:99px;background:rgba(245,234,208,.18);overflow:hidden}
+.lvchip .lvbar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#c9a24a,#f3a53a);transition:width .4s}
+.lvchip.ready{background:#d9a34e;color:#243039;animation:lvpulse 1.6s ease-in-out infinite}
+.lvchip.ready #lv{color:#243039!important}
+.lvchip.ready .lvbar{display:none}
+.lvchip.ready::after{content:'증축 가능 ›';font:700 10px/1 var(--body);color:#243039}
+@keyframes lvpulse{50%{box-shadow:0 0 0 3px rgba(243,165,58,.35)}}
+@media (prefers-reduced-motion:reduce){.lvchip.ready{animation:none}}
+body.calm .lvchip.ready{animation:none}
+.tape .m{min-width:0}
+
+.sq.mini{width:auto!important;padding:4px 8px 4px 4px;gap:6px}
+.sq.mini .sqm{display:none}
+.sq.mini .sqp{width:46px}
+.sq.mini .sqav{width:30px;height:30px}
+.sq:not(.mini){animation:sqin .18s ease-out}
+@keyframes sqin{from{opacity:.4;transform:translateX(-6px)}}
+
+.row.mcard.hero .costs{margin-left:calc(-1 * var(--heroTh,82px));margin-top:10px}
+.row.mcard.hero>.buy{font-size:15.5px!important;font-weight:700!important;min-height:46px}
+
+#shBody .pick.gear{grid-template-columns:50px 1fr auto;gap:10px;cursor:pointer;align-items:start}
+#shBody .pick.gear>.gi{width:50px!important;height:50px!important;margin-top:2px}
+#shBody .pick.gear>.gi svg{width:30px;height:30px}
+#shBody .pick.gear .t{line-height:1.35}
+#shBody .pick.gear .gfx{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+#shBody .pick.gear .gfx span{font:600 11.5px/1 var(--body);padding:4px 7px;border-radius:6px;background:rgba(77,122,79,.12);color:#3f6a42;white-space:nowrap}
+#shBody .pick.gear .gfx .sl{background:rgba(59,42,26,.08);color:var(--sepia-2,#73634e)}
+#shBody .pick.gear .gw{margin-top:5px}
+#shBody .pick.gear .gmore{display:none;margin-top:6px;font-size:12.5px;line-height:1.5}
+#shBody .pick.gear.open .gmore{display:block}
+#shBody .pick.gear .gact{align-self:center}
+#shBody .lkb{width:36px!important;height:36px!important;border-color:transparent!important;opacity:.55}
+#shBody .lkb.on{opacity:1}
+
+.resident-side .ready-label{font-size:11px!important;padding:3px 7px!important;border:0!important;background:rgba(217,163,78,.2)!important;color:#8a5a17!important;border-radius:99px!important}
+
+/* 2026-10-11 손그림 자원 아이콘 */
+.mi.rimg{display:inline-block;width:var(--rs,20px)!important;height:var(--rs,20px)!important;flex:none;background-color:transparent!important;background-image:url(/taptocity/assets/illustrated/resources.webp)!important;background-size:1200% 100%!important;background-repeat:no-repeat!important;border:0!important;border-radius:0!important;padding:0!important;box-shadow:none!important;vertical-align:middle!important;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
+.mc.ric{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:1px!important;padding:3px 2px 4px!important}
+.mc.ric>.mi.rimg{display:inline-block!important;--rs:22px}
+.mc.ric .top{justify-content:center}
+.mc.ric.zero>.mi.rimg{opacity:.45}
+.mc.ric.low>.mi.rimg{animation:ricLow 1s ease-in-out infinite}
+@keyframes ricLow{50%{transform:scale(1.15)}}
+body.calm .mc.ric.low>.mi.rimg{animation:none}
+.cost .mi.rimg,.gn .mi.rimg,.rqfx .mi.rimg,.nr .mi.rimg{margin-right:2px}
+.th.ico.mat .mi.rimg{--rs:40px}
+.cost .mi.rimg,.nr .mi.rimg,.gn .mi.rimg{--rs:20px!important;margin:-3px 2px -3px -2px}
+.mc.ric>.mi.rimg{--rs:24px!important;filter:drop-shadow(0 0 2px rgba(255,236,200,.18)) drop-shadow(0 1px 1px rgba(0,0,0,.5))}
+.sumchips .mi.rimg{--rs:15px!important}
+
+/* 2026-10-11 발열: 계속 도는 반짝임은 다시 칠하지 않는 방식(투명도만)으로 */
+.lvchip.ready{animation:none!important;position:relative}
+.lvchip.ready::before{content:'';position:absolute;inset:-3px;border-radius:9px;box-shadow:0 0 0 3px rgba(243,165,58,.45);opacity:0;animation:glowOp 1.6s ease-in-out infinite;pointer-events:none;will-change:opacity}
+.banner.mig,#tape .migchip{animation:none!important;position:relative}
+.banner.mig::after,#tape .migchip::after{content:'';position:absolute;inset:-2px;border-radius:inherit;box-shadow:0 0 0 3px rgba(255,210,120,.6),0 8px 24px rgba(176,69,42,.5);opacity:0;animation:glowOp 2.4s ease-in-out infinite;pointer-events:none;will-change:opacity}
+@keyframes glowOp{50%{opacity:1}}
+body.calm .lvchip.ready::before,body.calm .banner.mig::after,body.calm #tape .migchip::after{animation:none}
+
+/* 2026-10-11 끊긴 노선 */
+.exp.lnc .lnitems{display:flex;gap:6px;margin:8px 0 6px}
+.exp.lnc .lnitems>span{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:8px;background:rgba(59,42,26,.06);font:600 11px/1.25 var(--body);color:var(--sepia-2,#73634e);text-align:center}
+.exp.lnc .lnitems>span.on{background:rgba(217,163,78,.16);color:var(--sepia,#30281f)}
+.exp.lnc .lnitems span>i{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:rgba(59,42,26,.12);font:700 15px var(--body);font-style:normal;color:rgba(59,42,26,.45)}
+.exp.lnc .lnitems em{font-style:normal}
+.page.line .team{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.page.line .lnstops{display:flex;align-items:center;gap:6px;margin:4px 0 10px;font:600 12px var(--body);color:var(--sepia,#30281f);flex-wrap:wrap}
+.page.line .lnstops span{display:inline-flex;align-items:center;gap:5px}
+.page.line .lnstops i{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#2c333b;color:#ffdf9e;font:700 10.5px var(--body);font-style:normal}
+.page.line .lnstops b{color:rgba(59,42,26,.35);font-weight:400}
+.page.line.run{padding-top:14px}
+.lntrack{display:flex;align-items:center;gap:0;margin:2px 0 12px;padding:0 4px}
+.lntrack .lnd{flex:1;height:4px;background:rgba(59,42,26,.15);position:relative}
+.lntrack .lnd::after{content:'';position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#d8ccb1}
+.lntrack .lnd.on{background:#c9a24a}.lntrack .lnd.on::after{background:#c9a24a}
+.lntrack .lns{flex:none;position:relative;display:grid;place-items:center}
+.lntrack .lns i{width:16px;height:16px;border-radius:4px;background:#d8ccb1;border:2px solid #fbf4e4;box-shadow:0 0 0 1.5px rgba(59,42,26,.25)}
+.lntrack .lns.on i{background:#2c333b;box-shadow:0 0 0 1.5px #c9a24a}
+.lntrack .lns em{position:absolute;top:19px;white-space:nowrap;font:600 9.5px var(--body);font-style:normal;color:var(--sepia-2,#73634e)}
+.lntrack .lns:last-child em{right:-4px}
+.lnhead{display:flex;align-items:center;gap:10px;margin:16px 0 8px}
+.lnteam{display:flex;gap:2px}.lnteam>*{width:30px!important;height:30px!important}
+.lnhp{flex:1;position:relative;height:20px;border-radius:99px;background:rgba(59,42,26,.12);overflow:hidden}
+.lnhp i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#b0452a,#d9743a);border-radius:99px;transition:width .3s}
+.lnhp b{position:relative;display:block;text-align:center;font:700 11.5px/20px var(--body);color:#30281f}
+.lnmsg{min-height:44px;margin:6px 0 10px;font:14px/1.55 var(--body);color:var(--sepia,#30281f)}
+.lncards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.lncard{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px 10px;border-radius:12px;background:#2c333b;color:#efe3c4;text-align:center;min-height:132px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.25)}
+.lncard .ic{width:52px;height:52px;display:grid;place-items:center}
+.lncard .ic svg{width:52px;height:52px}
+.lncard .ic>b{font:700 30px var(--body);color:rgba(239,227,196,.4)}
+.lncard>b{font:700 13.5px/1.25 var(--body)}
+.lncard small{font:11.5px/1.35 var(--body);color:#c4b5a0}
+.lncard.k-foe{background:#4a2a24}.lncard.k-loot{background:#3a3422}.lncard.k-rest{background:#25383a}.lncard.k-trace{background:#33304a}.lncard.k-hazard{background:#3d3328}
+.lncard.hid{background:#181b20;border:1.5px dashed rgba(239,227,196,.2)}
+.lncard:active{transform:scale(.97)}
+.page.line .btns.col{flex-direction:column}
+.page.line .btns small{display:block;font-weight:400;font-size:11.5px;opacity:.8}
+.lnarena{position:relative;width:min(240px,70vw);aspect-ratio:1;margin:4px auto 0;border-radius:50%;background:radial-gradient(circle,#3a2a24 0%,#1c1714 70%);touch-action:manipulation;cursor:pointer;user-select:none;-webkit-user-select:none}
+.lnarena svg{position:absolute;inset:0;width:100%;height:100%}
+.lnarena .lnfoe{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none}
+.lnarena .lnfoe svg{position:static;width:54px;height:54px}
+.lnarena.boss .lnfoe svg{width:72px;height:72px}
+.lnarena .pips{position:absolute;left:0;right:0;top:12%;display:flex;justify-content:center;gap:3px;pointer-events:none}.lnarena .pips i{width:8px;height:8px;border-radius:2px;background:rgba(239,227,196,.2)}.lnarena .pips i.on{background:#e0614a}
+.lnarena .lnres{position:absolute;left:0;right:0;bottom:11%;text-align:center;font:700 13px var(--body);color:#ffd36b;pointer-events:none}
+.lnarena.hit{animation:lnShake .3s}
+@keyframes lnShake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.lncarry{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px;padding-top:10px;border-top:1px dashed rgba(59,42,26,.2)}
+.lncarry span{display:inline-flex;align-items:center;gap:3px;font:600 12px var(--body)}
+.lncarry .lnit{padding:2px 8px 2px 2px;border-radius:99px;background:rgba(217,163,78,.2)}
+.lncarry small{color:var(--sepia-2,#73634e)}
+.lnfoot{margin-top:8px}.lnfoot button{width:100%}
+.gi.art .lnimg{display:block;width:100%;height:100%;background-image:url(/taptocity/assets/illustrated/line-items.webp);background-size:1200% 100%;background-repeat:no-repeat}
+.exp.lnc .lnitems .gi{width:36px!important;height:36px!important;border-radius:8px}
+
+/* 2026-10-11 새 기능 안내 카드 */
+.page.featcard .fchead{display:flex;align-items:center;gap:12px;margin:4px 0 8px}
+.page.featcard .fchead h3{margin:0}
+.fcic{flex:none;width:64px;height:64px;border-radius:14px;background:#2c333b;display:grid;place-items:center;overflow:hidden}
+.fcic>svg{width:56px;height:56px}
+.fcic .mi.rimg{--rs:48px!important}
+.fcic .gi{width:56px!important;height:56px!important;background:transparent!important;box-shadow:none!important;border:0!important}
+.page.featcard .fcwhat{font:15px/1.6 var(--body);margin:2px 0 12px;color:var(--sepia,#30281f)}
+.page.featcard .fcsec{font:700 12.5px var(--body);color:var(--sepia-2,#73634e);margin:0 0 6px}
+.page.featcard .fcsteps{margin:0 0 12px;padding:0;list-style:none;counter-reset:fc}
+.page.featcard .fcsteps li{counter-increment:fc;position:relative;padding:8px 10px 8px 40px;margin:0 0 6px;border-radius:10px;background:rgba(59,42,26,.06);font:14px/1.5 var(--body);color:var(--sepia,#30281f)}
+.page.featcard .fcsteps li::before{content:counter(fc);position:absolute;left:10px;top:8px;width:21px;height:21px;border-radius:50%;background:#2c333b;color:#ffdf9e;font:700 12px/21px var(--body);text-align:center}
+.page.featcard .fctip{margin:0 0 14px;padding:9px 12px;border-radius:10px;background:rgba(217,163,78,.16);font:13.5px/1.55 var(--body);color:#5a3d12}
+.page.featcard .fctip b{margin-right:4px}
+.fclist{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.fcitem{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(59,42,26,.06)}
+.fcitem .fcic{width:44px;height:44px;border-radius:10px}.fcitem .fcic>svg{width:38px;height:38px}.fcitem .fcic .gi{width:38px!important;height:38px!important}.fcitem .fcic .mi.rimg{--rs:32px!important}
+.fcitem>span:nth-child(2){flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.fcitem b{font:700 14px var(--body);color:var(--sepia,#30281f)}
+.fcitem small{font:12px/1.4 var(--body);color:var(--sepia-2,#73634e);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fcitem>i{font-style:normal;color:var(--sepia-2,#73634e)}
+.fchl{position:relative;z-index:2;animation:fchl 1.1s ease-in-out 3;border-radius:10px}
+@keyframes fchl{0%,100%{box-shadow:0 0 0 0 rgba(243,165,58,0)}50%{box-shadow:0 0 0 4px rgba(243,165,58,.9),0 0 18px rgba(243,165,58,.6)}}
+body.calm .fchl{animation:none;box-shadow:0 0 0 3px rgba(243,165,58,.9)}
+/* 위쪽 띠가 붐빌 때(받기·모닥불·새 동네·노친네 칩): 레벨 칩은 'Lv.5'만, 목표 글자는 최소 폭 확보 */
+.tape:has(#claim:not([hidden])) .lvchip .lvn,.tape:has(.migchip:not([hidden])) .lvchip .lvn{display:none}
+.tape:has(#claim:not([hidden])) .lvchip,.tape:has(.migchip:not([hidden])) .lvchip{min-width:0;padding:4px 7px}
+.tape:has(#claim:not([hidden])):has(.migchip:not([hidden])) .lvchip{display:none}
+.tape .m{min-width:72px}
+
+/* 2026-10-11 그날 밤 → 첫 동네 안내 + 화면 둘러보기 */
+.page.featcard.onb .fchead h3{line-height:1.3}
+.page.featcard.onb .fcsteps li b{color:#2c333b}
+#coach{position:fixed;inset:0;z-index:500}
+#coach .chole{position:fixed;border-radius:12px;box-shadow:0 0 0 9999px rgba(8,10,14,.72),0 0 0 3px #f3a53a inset;transition:all .25s ease;pointer-events:none}
+#coach .cbub{position:fixed;left:16px;right:16px;max-width:420px;margin:0 auto;background:#efe3c4;color:#30281f;border-radius:14px;padding:14px 14px 12px;box-shadow:0 10px 30px rgba(0,0,0,.5);font:14px/1.55 var(--body)}
+#coach .cbub b{display:block;font:700 16px/1.3 var(--body);margin-bottom:4px}
+#coach .cbub p{margin:0 0 10px}
+#coach .cbtn{display:flex;gap:8px;justify-content:flex-end}
+#coach .cbtn button{border:0;border-radius:99px;padding:9px 14px;font:700 13.5px var(--body)}
+#coach .cskip{background:transparent;color:#73634e}
+#coach .cnext{background:#2c333b;color:#ffdf9e}
+
+/* UX 점검: 손가락으로 누르기 쉬운 크기 */
+.bchip{min-height:34px;padding:8px 13px}
+.bchip.s{min-height:32px}
+.setrow,.row:has(>.tgl){cursor:pointer}
+.tgl::before{content:"";position:absolute;inset:-9px -6px}
+.row.mcard>.lbadge{font-size:11px!important;line-height:1.4!important}
+.page.line .mem{position:relative}.page.line .mem.rec:not(.on){border-color:#c99a3a!important;background:#fdf6df!important}.page.line .mem .rtag{display:inline-block!important;position:static!important;transform:none!important;margin-left:auto;font:700 10.5px/1 var(--body);font-style:normal;padding:4px 8px;border-radius:999px;background:#e0b441;color:#3b2a1a;flex:none}.page.line .mem.on .rtag{display:none!important}.page.line .mem .mtx i{font-style:normal;color:#8a5a12;font-weight:700}
+/* casebook card picture (story-5) */
+.page.case .story-art{margin:-2px -2px 12px;border-radius:10px;overflow:hidden;aspect-ratio:3/2;max-height:30vh;background:#35404a;animation:scene-arrive .32s ease-out both}
+.page.case .story-art svg{display:block;width:100%;height:100%}
+@media (max-height:640px){.page.case .story-art{max-height:22vh}}
+@media(prefers-reduced-motion:reduce){.page.case .story-art{animation:none}}
+/* 손님(이름 없는 방문자) 부탁 창: 빈 동그라미 대신 수레 그림 */
+.page.req .rqav.guest{display:grid;place-items:center}
+.page.req .rqav.guest svg{width:46%;height:46%}
+/* 스킬 바: 빈 칸(+)이 초상들보다 아래로 처지던 것 — 모든 칸을 위쪽에 맞춤 */
+#skills{align-items:flex-start!important}
+#skills .sk{justify-content:flex-start!important}
+/* 일반 '빈 목록' 상자 스타일(.empty: 안쪽 여백·점선 테두리)이 스킬 빈 칸에 묻던 것 되돌림 */
+#skills .sk.empty{padding:0!important;margin:0!important;border:0!important;border-radius:0!important;gap:2px!important}
+/* 손그림 연구 아이콘 · 손님 초상 */
+.th.rsart{display:grid;place-items:center;background:#2b3138;border-radius:12px}
+.th.rsart i{display:block;width:84%;aspect-ratio:1;background:url(/taptocity/assets/illustrated/research-icons.webp) 0 0/300% 100% no-repeat}
+.guestart{display:block;width:100%;height:100%;background:url(/taptocity/assets/illustrated/guests.webp) 0 18%/200% auto no-repeat}
+.page.req .rqav.guest .guestart{border-radius:50%}
+/* 시스템 이모지 대신 게임 그림 */
+.migchip .pedface{display:inline-block;width:18px;height:18px;border-radius:50%;margin-right:5px;vertical-align:-4px;background:url(/taptocity/assets/illustrated/peddler.webp) 50% 12%/180% auto no-repeat;box-shadow:0 0 0 1px rgba(239,227,196,.6)}
+.migchip .mi.rimg{vertical-align:-3px;margin-right:3px}
+.rstop .dot .mi.rimg{--rs:16px}
+.ukey svg,.exp svg{vertical-align:-2px}
+/* 생존자 일 아이콘(duty-icons.webp 5칸) · 방벽 썸네일(walls.webp 3칸) */
+.dico{display:inline-block;width:1.45em;height:1.45em;vertical-align:-.38em;margin-right:2px;background:url(/taptocity/assets/illustrated/duty-icons.webp) 0 0/500% 100% no-repeat}
+.th.wallart{display:grid;place-items:center}
+.th.wallart i{display:block;width:100%;aspect-ratio:1;background:url(/taptocity/assets/illustrated/walls.webp) 0 0/300% 100% no-repeat}
+.ugshop button small{opacity:.7;margin-left:4px;font-size:.85em}
+/* 손님 칩: 손그림 얼굴도 동그랗게 — 남은 시간 고리가 온전히 보이게 */
+#evBtn .av>.guestart{border-radius:50%;background-color:#e6d8b6}
+/* 노선 역: 링 메뉴 버튼과 안내 칩을 호박색으로 구분 */
+.tok.lngo{width:60px!important;height:60px!important;margin:-30px 0 0 -30px!important;background:#f0c071;border-color:#2c2217;color:#2c2217;box-shadow:0 0 0 3px rgba(240,192,113,.35),0 0 16px rgba(255,200,110,.55)}
+.tok.lngo .cap{top:62px!important;color:#ffe2a0;font-weight:700}
+.chip.ln{background:#f0c071;color:#2c2217;border-color:#2c2217;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+.chip.ln svg{width:13px;height:13px}
+/* 링 메뉴가 열려 있는 동안 생존자 얼굴 줄을 숨겨 버튼을 가리지 않게 */
+body.ringon #skills{opacity:0!important;pointer-events:none!important}
+#ring{z-index:5}
+body.ringon #toasts{z-index:4!important}
+body.ringon #toasts>*{pointer-events:none!important;opacity:.55}
+
+/* 설정 → 클라우드 저장 줄: 아이콘 칸이 없어서 글이 36px 칸에 갇혀 한 단어씩 줄바꿈되던 문제 */
+.row.setrow.cloudrow{grid-template-columns:1fr auto!important}
+.row.setrow.cloudrow>div:first-child{min-width:0}
