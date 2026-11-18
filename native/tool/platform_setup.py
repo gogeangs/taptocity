@@ -37,7 +37,7 @@ def android():
     if 'com.google.android.gms.ads.APPLICATION_ID' not in s:
         s = s.replace('<application', '<application', 1)
         i = s.find('>', s.find('<application')) + 1
-        s = s[:i] + '\n        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-6371515231972058~6173331458"/>' + s[i:]
+        s = s[:i] + '\n        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-8634871594482105~8510936362"/>' + s[i:]
     if 'android.permission.INTERNET' not in s:
         s = s.replace('<application', '<uses-permission android:name="android.permission.INTERNET"/>\n    <application', 1)
     if 'android:scheme="taptocity"' not in s:
@@ -147,7 +147,7 @@ def ios():
     put('UIRequiresFullScreen', '<true/>')
     put('UISupportedInterfaceOrientations', '<array>\n\t\t<string>UIInterfaceOrientationPortrait</string>\n\t</array>')
     # 광고 (AdMob 앱 ID · 추적 허용 문구 · SKAdNetwork)
-    put('GADApplicationIdentifier', '<string>ca-app-pub-6371515231972058~6137672439</string>')
+    put('GADApplicationIdentifier', '<string>ca-app-pub-8634871594482105~1184265630</string>')
     put('NSUserTrackingUsageDescription', '<string>허용하면 탭투시티에 관심 있을 만한 광고가 나와요. 허용하지 않아도 게임은 똑같이 할 수 있어요.</string>')
     put('SKAdNetworkItems', '<array>\n\t\t<dict>\n\t\t\t<key>SKAdNetworkIdentifier</key>\n\t\t\t<string>cstr6suwn9.skadnetwork</string>\n\t\t</dict>\n\t</array>')
     put('CFBundleURLTypes', '<array>\n\t\t<dict>\n\t\t\t<key>CFBundleURLSchemes</key>\n\t\t\t<array>\n\t\t\t\t<string>taptocity</string>\n\t\t\t</array>\n\t\t</dict>\n\t</array>')
