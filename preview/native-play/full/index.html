@@ -33,7 +33,7 @@ const TTCPreviewStorage=Object.freeze({
 #previewTools{position:fixed;top:env(safe-area-inset-top);left:0;right:0;height:36px;z-index:9999;display:flex;align-items:center;justify-content:center;gap:8px;background:#202932;color:#efe3c4;font:12px system-ui;border-bottom:1px solid #786951}
 #previewTools button{font:inherit;padding:5px 9px;border:1px solid #998057;border-radius:6px;background:#3a3025;color:#fff1cd;cursor:pointer}
 body{padding-top:calc(36px + env(safe-area-inset-top))!important}#app{height:calc(100% - 36px - env(safe-area-inset-top))!important}
-</style><div id="previewTools" aria-label="통합 테스트 도구"><span title="본편과 별도로 저장됩니다">통합 테스트 · 별도 저장</span><button id="previewCity" title="도입을 건너뛰고 건설을 시험합니다">도시 건설</button><button id="previewSupply">자재 보충</button></div>
+</style><div id="previewTools" aria-label="통합 테스트 도구"><span title="본편과 별도로 저장됩니다">도시 성장 테스트 · 별도 저장</span><button id="previewCity" title="도입을 건너뛰고 건설을 시험합니다">도시 건설</button><button id="previewSupply">자재 보충</button></div>
 <title>탭투시티 · 본편 통합 테스트</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
@@ -1296,6 +1296,9 @@ window.ttcLazy=function(src){const im=new Image();im.decoding='async';let go=fal
 <link rel="stylesheet" href="/taptocity/preview/native-play/full/city.css?v=20261117-city1">
 <script src="/taptocity/preview/native-play/full/city-core.js?v=20261117-city1"></script>
 <script src="/taptocity/preview/native-play/full/city-view.js?v=20261117-city1"></script>
+<script src="/taptocity/preview/native-play/full/city-sim.js?v=2"></script>
+<script src="/taptocity/preview/native-play/full/city-world.js?v=2"></script>
+<link rel="stylesheet" href="/taptocity/preview/native-play/full/city-world.css?v=2">
 <script src="/taptocity/preview/native-play/full/people.js?v=20261013-walkers4"></script>
 <script src="/taptocity/preview/native-play/full/design.js?v=20261014-lsf"></script>
 <script>
@@ -6387,7 +6390,7 @@ function hud(){renderMats();renderClock();renderDefBar();tickDusk();canvasLabel(
   renderMission();tickStory();tickNav();}
 function frontierNearest(){let best=-1,bd=1e9;for(let i=0;i<N;i++)if(isFrontier(i)){const d=dist(i)+speck[i]*1.5;if(d<bd){bd=d;best=i;}}return best;}
 let lastDraw=0,FS=1;// FS: this frame's length in 60fps frames, so per-draw motion keeps its speed at 30fps
-function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;
+function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;if(cityWorld){cityWorld.tick(now,dt);requestAnimationFrame(loop);return;}
   tickProd(dt);tickBuff(dt);tickClock(dt);tickDefense(dt);tickLife(dt);tickShadow(dt);tickDread(dt);tickKidWalk(dt);tickEvents(dt);tickSkills(dt);
   idle+=dt;if(fever>0){fever=Math.max(0,fever-dt);}else if(idle>.7&&combo>0)combo=Math.max(0,combo-dt*10);
   acc+=dt;if(acc>=1){acc-=1;tickGhost();tickTwk();tickSide();tickACraft();tickSeason();tickSurv();tickExp();tickSites();tickQuests();tickBand();tickKids();tickPets();tickFinale();tickRegionStory();tickRegionHidden();tickTownEvents();tickDuty();tickAuto();tickAutoExp();tickAch();tickFeat();tickClaim();tickBeats();tickBatt();tickProfile();if(S.overT>0)S.overT--;if(S.hintT>0)S.hintT--;if(S.droneLv||S.overT>0){const i=frontierNearest();if(i>=0){damage(i,S.overT>0?Math.max(droneDmg(),tapPow())*4:droneDmg(),false);const[x,y]=tileC(i,14);burst(x,y,'#9fc6d2',4);}}}
@@ -6554,7 +6557,7 @@ const cityView=window.TTCCityView?window.TTCCityView({
 }):null;
 $('shBody').addEventListener('click',e=>{if(!e.target.closest('[data-act="cityopen"]'))return;e.stopPropagation();cancelGestures();cityView&&cityView.open();},true);
 function start(snap){applySettings();wireUI();resize();const had=load(snap&&snap.S);recalc();centerCam();ensureAim();hud();
-  if(had&&!(snap&&snap.S)){const el=Math.min(8*3600,(Date.now()-S.t)/1000);if(el>60&&perMin()>0){const got=give(Object.fromEntries(Object.entries(D.prod).map(([k,v])=>[k,v*el/60*.5])));
+  if(false&&had&&!(snap&&snap.S)){const el=Math.min(8*3600,(Date.now()-S.t)/1000);if(el>60&&perMin()>0){const got=give(Object.fromEntries(Object.entries(D.prod).map(([k,v])=>[k,v*el/60*.5])));
     const back=Object.keys(S.exp||{}).filter(k=>S.exp[k]&&Date.now()>=S.exp[k].end).length;
     if(Object.keys(got).length||back)setTimeout(()=>note({h:`돌아오셨군요 · ${el>=3600?Math.floor(el/3600)+'시간 ':''}${Math.round(el%3600/60)}분 동안`,t:`<small>${Object.keys(got).length?'모인 자재 · '+lootTxt(got):''}${back?`${Object.keys(got).length?'<br>':''}원정대 ${back}팀이 돌아와 기다리고 있어요`:''}</small>`,kind:'story',ms:7500}),600);}}
   window.addEventListener('resize',()=>{resize();placeRing();});
@@ -6563,18 +6566,20 @@ function start(snap){applySettings();wireUI();resize();const had=load(snap&&snap
   requestAnimationFrame(t=>{last=t;loop(t);});}
 if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.ready(start);else start(window.claude&&window.claude.hot&&window.claude.hot.data||{});
 
-$('previewCity').onclick=()=>{
- talk=null;mq.length=0;closeModal();closeRing();cancelGestures();
- if(S.tut){delete S.tut;}S.tutSeen=1;S.onb=2;lsSet(TUT_KEY,'1');
- const coach=$('coach');if(coach)coach.remove();
- save();goShelter('build');cityView.open();
-};
-$('previewSupply').onclick=()=>{
- S.m.wood=capOf('wood');S.m.scrap=capOf('scrap');save();recalc();hud();
- toast('테스트 목재·고철을 창고 한도까지 채웠어요');
- if(sheetTab)renderSheet();
-};
+
+S.tutSeen=1;S.onb=2;delete S.tut;talk=null;mq.length=0;closeModal();closeSheet();cancelGestures();
+var cityWorld=TTCCityWorld({
+ canvas:cv,stage,state:()=>S,
+ persist:d=>TTCPreviewStorage.setItem(KEY,JSON.stringify(d)),
+ changed:()=>{recalc();hud();},
+ art:(g,P,b,t)=>{const A=window.TTCDesign,F=window.TTCFinal;if(b.type==='center'||b.type==='home'){if(A&&A.core(g,P,b.type==='center'?1:b.level+1))return;}else{const id={farm:2,workshop:1,tower:8}[b.type];if(F&&F.module(g,P,id,b.level-1)||A&&A.module(g,P,id,b.level-1))return;}const[x,y]=P(.5,.5,0);g.fillStyle='#b7a483';g.fillRect(x-14,y-22,28,22);},
+ person:(g,x,y,t,i)=>{if(window.TTCPeople)TTCPeople.person(g,SURV[i%4],x,y,t,true,1,null,reduce);}
+});
+cityView.open=()=>{closeSheet();cityWorld.build();};
+$('previewCity').textContent='도움말';$('previewCity').title='개척부터 도시 성장까지';$('previewCity').onclick=()=>cityWorld.help();
+$('previewSupply').onclick=()=>cityWorld.supply();
 sendFeedback=async()=>toast('테스트 의견은 대화창에 남겨 주세요');
+
 
 
 })();
