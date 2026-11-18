@@ -51,16 +51,16 @@ window.TTCCityWorld=function(B){
  function renderUI(){const q=c().buildings.find(x=>x.id===selected),goal=M.goal(s()),prod=M.income(s()),beds=C.bonuses(c()).beds;
   cv.setAttribute('aria-label','영구 도시 지도. 방향키로 칸 선택, Enter로 개척 또는 배치.');
   el('worldName').textContent=(region==='0,0'?'중심 거점':'동쪽 구역')+' · '+(c().buildings.length>=6?'작은 도시':c().buildings.length>=3?'살아나는 마을':c().buildings.length?'첫 정착지':'재 속의 등불');
-  el('worldWeather').textContent=(M.night(s())?'밤':'낮')+' · '+Math.ceil(240-p().seconds%240)+'초 뒤 새날';
+  el('worldWeather').textContent=M.night(s())?'밤 · '+Math.ceil(240-p().seconds%240)+'초 뒤 새날':'낮 · '+Math.ceil(180-p().seconds%240)+'초 뒤 밤';
   el('worldStats').textContent=`개척 ${c().opened}/1,250 · 주민 ${p().pop}/${beds} · 식량 +${prod.food}/분 · 자재 +${prod.wood}/분`;
   el('worldGoalTitle').textContent=goal?`${p().claimed.length+1}/6 · ${goal.title}`:'1차 테스트 목표 달성';el('worldGoalHint').textContent=goal?goal.hint:'두 구역을 계속 넓히며 나만의 도시를 만들어 보세요.';
   el('worldClaim').hidden=!goal;el('worldClaim').disabled=!goal||!goal.test(s());el('worldRegion').textContent=region==='0,0'?'동쪽 →':'← 거점';
   el('worldNotice').textContent=notice;
   const placing=mode==='build'||mode==='move',ghost=placing&&target?{type,region,...target,rot}:null,why=ghost?C.placement(c(),ghost,mode==='move'?selected:undefined):'';
   el('worldSelection').textContent=placing?(target?`(${target.x+1}, ${target.y+1}) ${why||'배치 가능'}`:'밝은 땅을 골라 주세요'):q?`${C.TYPES[q.type].name} Lv.${q.level} · ${C.TYPES[q.type].effect}${p().ash.includes(q.id)?' · 재에 덮여 생산 중단':''}`:target?`선택 (${target.x+1}, ${target.y+1}) · ${['안전','주의','위험'][C.risk(region,target.x,target.y)]}`:'지도를 끌어 이동 · 두 손가락으로 확대';
-  el('worldCatalog').hidden=mode!=='catalog';if(mode==='catalog')el('worldCatalog').innerHTML=Object.entries(C.TYPES).map(([k,t])=>`<button data-type="${k}" ${c().opened<t.unlock?'disabled':''}><b>${t.name}</b><small>${c().opened<t.unlock?t.unlock+'칸 개척 후 해금':`목재 ${t.cost.wood} · 고철 ${t.cost.scrap}`}</small></button>`).join('');
+  el('worldCatalog').hidden=mode!=='catalog';if(mode==='catalog'){const catalogHTML=Object.entries(C.TYPES).map(([k,t])=>`<button data-type="${k}" ${c().opened<t.unlock?'disabled':''}><b>${t.name}</b><small>${c().opened<t.unlock?t.unlock+'칸 개척 후 해금':`목재 ${t.cost.wood} · 고철 ${t.cost.scrap}`}</small></button>`).join('');if(el('worldCatalog')._markup!==catalogHTML){el('worldCatalog')._markup=catalogHTML;el('worldCatalog').innerHTML=catalogHTML;}}
   const btn=(a,t,disabled=false)=>`<button data-action="${a}" ${disabled?'disabled':''}>${t}</button>`;
-  el('worldActions').innerHTML=placing?btn('rotate','회전')+btn('confirm',mode==='move'?'이동 확정':'건설 확정',!ghost||!!why)+btn('cancel','취소'):q?(p().ash.includes(q.id)?btn('clean','재 걷어내기'):'')+btn('move','이동')+btn('upgrade',q.level<3?`강화 (${C.cost(q.type,q.level+1).wood}/${C.cost(q.type,q.level+1).scrap})`:'최대 단계',q.level>=3)+btn('demolish',remove?'철거 확정':'철거'):'';
+  const actionsHTML=placing?btn('rotate','회전')+btn('confirm',mode==='move'?'이동 확정':'건설 확정',!ghost||!!why)+btn('cancel','취소'):q?(p().ash.includes(q.id)?btn('clean','재 걷어내기'):'')+btn('move','이동')+btn('upgrade',q.level<3?`강화 (${C.cost(q.type,q.level+1).wood}/${C.cost(q.type,q.level+1).scrap})`:'최대 단계',q.level>=3)+btn('demolish',remove?'철거 확정':'철거'):'';if(el('worldActions')._markup!==actionsHTML){el('worldActions')._markup=actionsHTML;el('worldActions').innerHTML=actionsHTML;}
   for(const [id,active]of [['worldExplore',mode==='explore'],['worldBuild',mode==='catalog'||placing],['worldInspect',mode==='inspect']])el(id).setAttribute('aria-pressed',active);
  }
  function diamond(x,y,fill,stroke){const [a,b]=xy(x,y);g.beginPath();g.moveTo(a,b);g.lineTo(a+32,b+16);g.lineTo(a,b+32);g.lineTo(a-32,b+16);g.closePath();g.fillStyle=fill;g.fill();if(stroke){g.strokeStyle=stroke;g.lineWidth=.7;g.stroke();}}
