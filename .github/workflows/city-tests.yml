@@ -1,0 +1,18 @@
+name: Persistent city tests
+on:
+  push:
+    branches: [dev/persistent-city-phase1]
+  pull_request:
+    paths: ['index.html', 'city-*', 'city.css', 'sw.js', 'tests/**']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/qa-regressions.cjs tests/city.test.cjs
+      - run: node --check city-core.js && node --check city-view.js
