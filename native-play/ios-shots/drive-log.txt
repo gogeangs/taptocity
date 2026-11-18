@@ -2,7 +2,7 @@ Resolving dependencies...
 Downloading packages...
   app_links 6.4.1 (7.2.2 available)
   flutter_lints 5.0.0 (6.0.0 available)
-  flutter_local_notifications 22.3.3 (23.0.2 available)
+  flutter_local_notifications 22.3.3 (23.0.3 available)
   flutter_local_notifications_linux 8.0.2 (9.0.0 available)
   flutter_local_notifications_platform_interface 12.2.0 (13.0.0 available)
   flutter_local_notifications_web 1.0.0 (2.0.0 available)
@@ -17,10 +17,10 @@ Got dependencies!
 13 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
 Running Xcode build...                                          
-Xcode build done.                                           325.7s
-VMServiceFlutterDriver: Connecting to Flutter application at http://127.0.0.1:56596/GTFVpbM-7Lw=/
-VMServiceFlutterDriver: Isolate found with number: 5930661311182779
-VMServiceFlutterDriver: Isolate 5930661311182779 is runnable.
+Xcode build done.                                           237.3s
+VMServiceFlutterDriver: Connecting to Flutter application at http://127.0.0.1:56183/59WUvxiCJqc=/
+VMServiceFlutterDriver: Isolate found with number: 5105309526942015
+VMServiceFlutterDriver: Isolate 5105309526942015 is runnable.
 VMServiceFlutterDriver: Isolate is paused at start.
 VMServiceFlutterDriver: Attempting to resume isolate
 VMServiceFlutterDriver: Connected to Flutter application.
