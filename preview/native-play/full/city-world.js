@@ -49,6 +49,7 @@ window.TTCCityWorld=function(B){
  cv.tabIndex=0;cv.setAttribute('aria-label','영구 도시 지도. 방향키로 칸 선택, Enter로 개척 또는 배치.');
  cv.addEventListener('keydown',e=>{const dirs={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};if(dirs[e.key]){e.preventDefault();e.stopImmediatePropagation();const d=dirs[e.key],a=target||{x:12,y:12};target={x:Math.max(0,Math.min(24,a.x+d[0])),y:Math.max(0,Math.min(24,a.y+d[1]))};const [tx,ty]=xy(target.x+.5,target.y+.5),[cx,cy]=camera();ox+=w/2-(tx*zoom+cx);oy+=h*.43-(ty*zoom+cy);renderUI();}else if(e.key==='Enter'){e.preventDefault();const a=target||{x:12,y:12};pick(a.x,a.y);}},true);
  function renderUI(){const q=c().buildings.find(x=>x.id===selected),goal=M.goal(s()),prod=M.income(s()),beds=C.bonuses(c()).beds;
+  cv.setAttribute('aria-label','영구 도시 지도. 방향키로 칸 선택, Enter로 개척 또는 배치.');
   el('worldName').textContent=(region==='0,0'?'중심 거점':'동쪽 구역')+' · '+(c().buildings.length>=6?'작은 도시':c().buildings.length>=3?'살아나는 마을':c().buildings.length?'첫 정착지':'재 속의 등불');
   el('worldWeather').textContent=(M.night(s())?'밤':'낮')+' · '+Math.ceil(240-p().seconds%240)+'초 뒤 새날';
   el('worldStats').textContent=`개척 ${c().opened}/1,250 · 주민 ${p().pop}/${beds} · 식량 +${prod.food}/분 · 자재 +${prod.wood}/분`;
