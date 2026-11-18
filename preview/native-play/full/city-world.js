@@ -35,7 +35,7 @@ window.TTCCityWorld=function(B){
   renderUI();
  }
  function xy(x,y){return[(x-y)*32,(x+y)*16];}
- function camera(){const mid=region==='1,0'&&!c().regions[region].revealed.some(Boolean)?xy(.5,12.5):xy(12.5,12.5);return[w/2-mid[0]*zoom+ox,h*.43-mid[1]*zoom+oy];}
+ function camera(){const mid=region==='1,0'&&!c().regions[region].revealed.some(Boolean)?xy(.5,12.5):xy(12.5,12.5);return[w/2-mid[0]*zoom+ox,h*.5-mid[1]*zoom+oy];}
  function screenPick(px,py){const [cx,cy]=camera(),a=(px-cx)/zoom/32,b=(py-cy)/zoom/16;pick(Math.floor((a+b)/2),Math.floor((b-a)/2));}
  const pts=new Map();let down=null,pinch=0,oldZoom=zoom,multi=false;
  for(const ev of ['pointerdown','pointermove','pointerup','pointercancel','wheel'])cv.addEventListener(ev,e=>{
@@ -47,7 +47,7 @@ window.TTCCityWorld=function(B){
   if(ev==='pointerup'||ev==='pointercancel'){pts.delete(e.pointerId);if(!pts.size){down=null;multi=false;}}
  },{capture:true,passive:false});
  cv.tabIndex=0;cv.setAttribute('aria-label','영구 도시 지도. 방향키로 칸 선택, Enter로 개척 또는 배치.');
- cv.addEventListener('keydown',e=>{const dirs={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};if(dirs[e.key]){e.preventDefault();e.stopImmediatePropagation();const d=dirs[e.key],a=target||{x:12,y:12};target={x:Math.max(0,Math.min(24,a.x+d[0])),y:Math.max(0,Math.min(24,a.y+d[1]))};const [tx,ty]=xy(target.x+.5,target.y+.5),[cx,cy]=camera();ox+=w/2-(tx*zoom+cx);oy+=h*.43-(ty*zoom+cy);renderUI();}else if(e.key==='Enter'){e.preventDefault();const a=target||{x:12,y:12};pick(a.x,a.y);}},true);
+ cv.addEventListener('keydown',e=>{const dirs={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};if(dirs[e.key]){e.preventDefault();e.stopImmediatePropagation();const d=dirs[e.key],a=target||{x:12,y:12};target={x:Math.max(0,Math.min(24,a.x+d[0])),y:Math.max(0,Math.min(24,a.y+d[1]))};const [tx,ty]=xy(target.x+.5,target.y+.5),[cx,cy]=camera();ox+=w/2-(tx*zoom+cx);oy+=h*.5-(ty*zoom+cy);renderUI();}else if(e.key==='Enter'){e.preventDefault();const a=target||{x:12,y:12};pick(a.x,a.y);}},true);
  function renderUI(){const q=c().buildings.find(x=>x.id===selected),goal=M.goal(s()),prod=M.income(s()),beds=C.bonuses(c()).beds;
   cv.setAttribute('aria-label','영구 도시 지도. 방향키로 칸 선택, Enter로 개척 또는 배치.');
   el('worldName').textContent=(region==='0,0'?'중심 거점':'동쪽 구역')+' · '+(c().buildings.length>=6?'작은 도시':c().buildings.length>=3?'살아나는 마을':c().buildings.length?'첫 정착지':'재 속의 등불');
@@ -77,7 +77,7 @@ window.TTCCityWorld=function(B){
    if(isNight){const light=g.createRadialGradient(x,y-10,2,x,y-10,b.type==='tower'?58:30);light.addColorStop(0,'rgba(255,195,95,.3)');light.addColorStop(1,'rgba(255,195,95,0)');g.fillStyle=light;g.fillRect(x-60,y-70,120,120);}
    if(b.type!=='center'){g.fillStyle='#ecd4a1';g.font='bold 10px system-ui';g.textAlign='center';g.fillText('ⅠⅡⅢ'[b.level-1],x,y+14);if(p().ash.includes(b.id)){g.fillStyle='rgba(71,78,83,.65)';g.beginPath();g.ellipse(x,y-25,40,25,0,0,7);g.fill();g.fillStyle='#f3c27f';g.fillText('재 걷기',x,y-23);}}
   }
-  const homes=buildings.filter(b=>b.type==='home');for(let i=0;i<Math.min(p().pop,16);i++){const b=homes[i%Math.max(1,homes.length)];if(!b)break;const phase=now/7000+i,dx=.3+(.5+.5*Math.sin(phase))*.5,dy=.3+(.5+.5*Math.cos(phase))*.5,[x,y]=xy(b.x+dx,b.y+dy);B.person(g,x,y,now,i);}
+  const homes=buildings.filter(b=>b.type==='home');for(let i=0;i<Math.min(p().pop,16);i++){const b=homes[i%Math.max(1,homes.length)];if(!b)break;const phase=now/7000+i*1.7;let tx=b.x+.2+(.5+.5*Math.sin(phase))*1.6,ty=b.y+2.2;if(ty>=25||!r.revealed[Math.floor(ty)*25+Math.floor(tx)]||C.at(c(),region,Math.floor(tx),Math.floor(ty))){tx=b.x+2.2;ty=b.y+.2+(.5+.5*Math.cos(phase))*1.6;}if(tx>=25||!r.revealed[Math.floor(ty)*25+Math.floor(tx)]||C.at(c(),region,Math.floor(tx),Math.floor(ty)))continue;const[x,y]=xy(tx,ty);B.person(g,x,y,now,i);}
   const placing=mode==='build'||mode==='move';if(placing&&target){const b={type,region,...target,rot},why=C.placement(c(),b,mode==='move'?selected:undefined);for(const[x,y]of C.cells(b))diamond(x,y,why?'rgba(201,74,66,.55)':'rgba(137,204,146,.5)',why?'#ff9987':'#d1f1c2');}
   else if(target)diamond(target.x,target.y,'rgba(238,202,127,.12)','#ffe3a5');
   if(flash&&now-flash.t<600){const[x,y]=xy(flash.x+.5,flash.y+.5);g.strokeStyle=flash.ok?'#efd19b':'#d97e70';g.globalAlpha=1-(now-flash.t)/600;g.beginPath();g.ellipse(x,y,10+(now-flash.t)/20,5+(now-flash.t)/40,0,0,7);g.stroke();g.globalAlpha=1;}
