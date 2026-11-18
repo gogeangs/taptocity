@@ -84,6 +84,6 @@ window.TTCCityWorld=function(B){
   g.setTransform(dpr,0,0,dpr,0,0);if(isNight){g.fillStyle='rgba(13,20,35,.15)';g.fillRect(0,0,w,h);}
  }
  renderUI();
- return{tick(now,dt){tick+=dt;if(tick>=1&&!paused){act({kind:'tick',dt:Math.min(60,tick)});tick=0;}if(now-paint>40){draw(now);paint=now;}},supply:()=>act({kind:'supply'}),help:()=>el('worldHelpDialog').showModal(),build:()=>resetMode('catalog')};
+ return{tick(now,dt){tick+=dt;if(tick>=1&&!paused){act({kind:'tick',dt:Math.min(60,tick)});tick=0;}if(now-paint>40){draw(now);paint=now;}},night:()=>act({kind:'night'}),supply:()=>act({kind:'supply'}),help:()=>el('worldHelpDialog').showModal(),build:()=>resetMode('catalog')};
 };
 })();

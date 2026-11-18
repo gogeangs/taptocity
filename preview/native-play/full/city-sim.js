@@ -24,6 +24,7 @@ function apply(s,a){const p=ensure(s),fail=message=>({ok:false,message});
   p.arrive+=a.dt;const beds=C.bonuses(s.city).beds;if(p.arrive>=30){p.arrive%=30;if(p.pop<beds)p.pop++;}
   return{ok:true,message:''};
  }
+ if(a.kind==='night'){p.seconds=Math.floor(p.seconds/240)*240+179;apply(s,{kind:'tick',dt:1});return{ok:true,message:p.ash.length?'밤이 왔어요. 재에 덮인 건물을 눌러 청소하세요.':'밤이 왔어요. 감시탑이 지키는 건물은 안전해요.'};}
  if(a.kind==='claim'){const g=goal(s);if(!g||!g.test(s))return fail('목표를 먼저 완료해 주세요');p.claimed.push(g.id);for(const[k,v]of Object.entries(g.reward))s.m[k]=(s.m[k]||0)+Math.min(v,Math.max(0,cap(s)-(s.m[k]||0)));return{ok:true,message:g.title+' · 보상을 받았어요'};}
  if(a.kind==='clean'){if(!p.ash.includes(a.id))return fail('재가 덮이지 않은 건물이에요');p.ash=p.ash.filter(id=>id!==a.id);return{ok:true,message:'재를 걷어 생산을 다시 시작했어요'};}
  if(a.kind==='supply'){s.m.wood=s.m.scrap=cap(s);return{ok:true,message:'테스트용 목재·고철을 보충했어요'};}

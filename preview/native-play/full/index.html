@@ -33,7 +33,7 @@ const TTCPreviewStorage=Object.freeze({
 #previewTools{position:fixed;top:env(safe-area-inset-top);left:0;right:0;height:36px;z-index:9999;display:flex;align-items:center;justify-content:center;gap:8px;background:#202932;color:#efe3c4;font:12px system-ui;border-bottom:1px solid #786951}
 #previewTools button{font:inherit;padding:5px 9px;border:1px solid #998057;border-radius:6px;background:#3a3025;color:#fff1cd;cursor:pointer}
 body{padding-top:calc(36px + env(safe-area-inset-top))!important}#app{height:calc(100% - 36px - env(safe-area-inset-top))!important}
-</style><div id="previewTools" aria-label="통합 테스트 도구"><span title="본편과 별도로 저장됩니다">도시 성장 테스트 · 별도 저장</span><button id="previewCity" title="도입을 건너뛰고 건설을 시험합니다">도시 건설</button><button id="previewSupply">자재 보충</button></div>
+</style><div id="previewTools" aria-label="통합 테스트 도구"><span title="본편과 별도로 저장됩니다">도시 테스트 · 별도 저장</span><button id="previewCity" title="도입을 건너뛰고 건설을 시험합니다">도시 건설</button><button id="previewSupply">자재 보충</button><button id="previewNight">밤 체험</button></div>
 <title>탭투시티 · 본편 통합 테스트</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
@@ -1296,9 +1296,9 @@ window.ttcLazy=function(src){const im=new Image();im.decoding='async';let go=fal
 <link rel="stylesheet" href="/taptocity/preview/native-play/full/city.css?v=20261117-city1">
 <script src="/taptocity/preview/native-play/full/city-core.js?v=20261117-city1"></script>
 <script src="/taptocity/preview/native-play/full/city-view.js?v=20261117-city1"></script>
-<script src="/taptocity/preview/native-play/full/city-sim.js?v=2"></script>
-<script src="/taptocity/preview/native-play/full/city-world.js?v=4"></script>
-<link rel="stylesheet" href="/taptocity/preview/native-play/full/city-world.css?v=4">
+<script src="/taptocity/preview/native-play/full/city-sim.js?v=5"></script>
+<script src="/taptocity/preview/native-play/full/city-world.js?v=5"></script>
+<link rel="stylesheet" href="/taptocity/preview/native-play/full/city-world.css?v=5">
 <script src="/taptocity/preview/native-play/full/people.js?v=20261013-walkers4"></script>
 <script src="/taptocity/preview/native-play/full/design.js?v=20261014-lsf"></script>
 <script>
@@ -6577,7 +6577,7 @@ var cityWorld=TTCCityWorld({
 });
 cityView.open=()=>{closeSheet();cityWorld.build();};
 $('previewCity').textContent='도움말';$('previewCity').title='개척부터 도시 성장까지';$('previewCity').onclick=()=>cityWorld.help();
-$('previewSupply').onclick=()=>cityWorld.supply();
+$('previewSupply').onclick=()=>cityWorld.supply();$('previewNight').onclick=()=>cityWorld.night();$('setBtn').onclick=()=>cityWorld.help();$('setBtn').setAttribute('aria-label','테스트 도움말');$('pfBtn').onclick=()=>cityWorld.help();$('pfBtn').setAttribute('aria-label','도시 테스트 안내');
 sendFeedback=async()=>toast('테스트 의견은 대화창에 남겨 주세요');
 
 
