@@ -17,12 +17,4 @@ Got dependencies!
 13 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
 Running Xcode build...                                          
-Xcode build done.                                           237.3s
-VMServiceFlutterDriver: Connecting to Flutter application at http://127.0.0.1:56183/59WUvxiCJqc=/
-VMServiceFlutterDriver: Isolate found with number: 5105309526942015
-VMServiceFlutterDriver: Isolate 5105309526942015 is runnable.
-VMServiceFlutterDriver: Isolate is paused at start.
-VMServiceFlutterDriver: Attempting to resume isolate
-VMServiceFlutterDriver: Connected to Flutter application.
-VMServiceFlutterDriver: request_data message is taking a long time to complete...
-All tests passed.
+Xcode build done.                                           196.0s

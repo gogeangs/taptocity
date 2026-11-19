@@ -1,2 +1,0 @@
-Timestamp               Ty Process[PID:TID]
-2026-11-18 11:59:40.348 F  Runner[36628:19a97] [com.apple.WebKit:Process] WebContent process (0x1290bc0c0) took 1.079401 seconds to launch
